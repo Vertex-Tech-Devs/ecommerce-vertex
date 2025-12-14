@@ -1,0 +1,67 @@
+<div class="home-page">
+  @if (heroBanner$ | async; as banner) {
+    @if (banner.imageUrl) {
+      <section class="hero-banner" [style.backgroundImage]="'url(' + banner.imageUrl + ')'">
+        <div class="hero-content">
+          @if (banner.title) {
+            <h1 class="hero-title">{{ banner.title }}</h1>
+          }
+          @if (banner.buttonText && banner.buttonLink) {
+            <a [routerLink]="banner.buttonLink" class="btn hero-btn">
+              {{ banner.buttonText }}
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="home-container">
+      @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
+        <section class="featured-content py-5">
+          <h2 class="section-title">Categorías Destacadas</h2>
+          <div
+            class="category-grid"
+            [ngClass]="{'has-scroll': banner.featuredCategories.length > 2}">
+            @for (category of banner.featuredCategories; track $index) {
+              <a [routerLink]="['/shop/catalog']" [queryParams]="{ category: category.categoryId }" class="category-card">
+                <div class="category-image" [style.backgroundImage]="'url(' + category.imageUrl + ')'"></div>
+                <span class="category-name">{{ category.name }}</span>
+              </a>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+
+  <div class="home-container">
+    <section class="featured-content py-5">
+      <h2 class="section-title">Nuevos Ingresos</h2>
+      @if (newArrivals$ | async; as products) {
+        <div class="product-grid">
+          @for (product of products; track product.id) {
+            <a [routerLink]="['/shop/product', product.id]" class="product-card-link">
+              <div class="product-card">
+                <div class="product-image-wrapper">
+                  <img [src]="product.image" [alt]="product.name" class="product-image">
+                </div>
+                <div class="product-info">
+                  <h3 class="product-name">{{ product.name }}</h3>
+                  <p class="product-price">{{ product.price | currency:'ARS':'$' }}</p>
+                </div>
+              </div>
+            </a>
+          } @empty {
+            <p class="text-center text-muted empty-state">No hay productos nuevos para mostrar en este momento.</p>
+          }
+        </div>
+      } @else {
+        <div class="text-center">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+</div>

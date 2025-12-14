@@ -1,0 +1,217 @@
+@use 'variables' as vars;
+@use "sass:color";
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: vars.$header-height;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+
+  background-color: vars.$dark-bg-primary;
+  background-image:
+    radial-gradient(ellipse 50% 100px at 0% 100%, rgba(123, 104, 238, 0.1), transparent),
+    radial-gradient(ellipse 50% 100px at 100% 100%, rgba(0, 123, 255, 0.1), transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  box-shadow: 0 1px 0 rgba(vars.$accent-purple, 0.2);
+}
+
+.header-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-message {
+  display: none;
+  font-size: 1.25rem;
+  font-weight: vars.$font-weight-light;
+  color: vars.$text-muted-dark;
+}
+
+.user-menu-wrapper {
+  position: relative;
+  padding: 2px;
+  border-radius: vars.$border-radius-md;
+  background: transparent;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background-size: 200% 200%;
+    animation: gradient-animation 8s ease infinite;
+    box-shadow: 0 0 20px rgba(vars.$accent-purple, 0.5);
+
+    .user-dropdown-toggle {
+      background-color: vars.$dark-bg-secondary;
+    }
+
+    .user-icon,
+    .user-name {
+      background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+      background-size: 200% 200%;
+      animation: gradient-animation 8s ease infinite;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  }
+}
+
+.user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: transparent;
+  border: none;
+  color: vars.$text-light;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: calc(#{vars.$border-radius-md} - 2px);
+  transition: background-color 0.2s ease-in-out;
+
+  .user-name,
+  .user-icon {
+    transition: color 0.3s ease;
+  }
+
+  .user-name {
+    font-weight: vars.$font-weight-medium;
+  }
+
+  .user-icon {
+    font-size: 1.5rem;
+  }
+
+  .dropdown-caret {
+    font-size: 0.8rem;
+    color: vars.$text-muted-dark;
+    transition: transform 0.3s ease;
+  }
+
+  &[aria-expanded="true"] .dropdown-caret {
+    transform: rotate(180deg);
+  }
+}
+
+.dropdown-menu {
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: vars.$border-radius-md;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  margin-top: 0.75rem !important;
+  overflow: hidden;
+
+  .dropdown-gradient-wrapper {
+    padding: 1px;
+    background: linear-gradient(160deg, vars.$accent-blue, vars.$accent-purple, vars.$accent-blue);
+    background-size: 200% 200%;
+    animation: gradient-animation 6s ease infinite;
+    border-radius: inherit;
+  }
+
+  .dropdown-content {
+    background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 2%);
+    border-radius: calc(#{vars.$border-radius-md} - 1px);
+    padding: 0.5rem;
+  }
+
+  .dropdown-item {
+    color: vars.$text-muted-dark;
+    padding: 0.75rem 1rem;
+    border-radius: vars.$border-radius-sm;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+
+    &:hover,
+    &:focus {
+      background: linear-gradient(90deg, rgba(vars.$accent-purple, 0.2), rgba(vars.$accent-blue, 0.2));
+      color: vars.$text-light;
+      transform: translateX(5px);
+    }
+
+    .bi {
+      width: 20px;
+    }
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    margin: 0.5rem;
+    border: none;
+    background-image: linear-gradient(to right, transparent, rgba(vars.$accent-purple, 0.4), transparent);
+  }
+}
+
+.menu-toggle-wrapper {
+  position: relative;
+  padding: 2px;
+  border-radius: vars.$border-radius-sm;
+  background: transparent;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background-size: 200% 200%;
+    animation: gradient-animation 8s ease infinite;
+  }
+}
+
+.menu-toggle {
+  background: vars.$dark-bg-secondary;
+  border: 1px solid rgba(vars.$text-light, 0.15);
+  border-radius: calc(#{vars.$border-radius-sm} - 2px);
+  color: vars.$text-light;
+  font-size: 1.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  display: flex;
+
+  &:hover {
+    color: vars.$text-light;
+    border-color: transparent;
+  }
+}
+
+@media (min-width: vars.$breakpoint-md) {
+  .admin-header {
+    padding: 1rem 2rem;
+  }
+
+  .welcome-message {
+    display: inline;
+  }
+
+  .menu-toggle-wrapper {
+    display: none !important;
+  }
+}

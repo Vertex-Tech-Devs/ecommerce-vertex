@@ -1,0 +1,188 @@
+  @use 'variables' as vars;
+@use 'sass:color';
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: vars.$border-radius-lg;
+  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+}
+
+.list-card {
+  border: none;
+  border-radius: calc(#{vars.$border-radius-lg} - 2px);
+  background-color: #f4f6f9;
+
+  .card-body {
+    padding: 1.5rem;
+
+    @media(min-width: vars.$breakpoint-md) {
+      padding: 2rem;
+    }
+  }
+}
+
+.card-title {
+  font-weight: vars.$font-weight-bold;
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.category-table {
+  $table-text-dark: #1c2a42;
+  $table-border-soft: #dfe3e8;
+  $table-hover-bg-soft: rgba(233, 236, 239, 0.7);
+
+  &.table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: #{$table-border-soft};
+    --bs-table-color: #{$table-text-dark};
+    --bs-table-hover-color: #{$table-text-dark};
+    --bs-table-hover-bg: #{$table-hover-bg-soft};
+  }
+
+  thead th {
+    font-weight: vars.$font-weight-semibold;
+  }
+
+  tbody tr {
+    position: relative;
+    border-radius: vars.$border-radius-md;
+    transition: transform 0.2s ease-in-out;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(120deg, vars.$accent-blue, vars.$accent-purple, vars.$accent-blue);
+      background-size: 200% 200%;
+      animation: gradient-animation 6s ease infinite;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.attributes-text {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.text-muted-custom {
+  color: #6c757d;
+}
+
+
+@media (max-width: 768px) {
+  .category-table {
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      background-color: #ffffff;
+      border-radius: vars.$border-radius-md;
+      margin-bottom: 1rem;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #f0f0f0;
+
+      &:hover {
+        transform: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: right !important;
+      padding: 0.75rem 0.5rem;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        color: #495057;
+        margin-right: 1rem;
+      }
+    }
+
+    td[data-label="Acciones"] {
+      justify-content: flex-end;
+      gap: 0.5rem;
+
+      &::before {
+        margin-right: auto;
+      }
+    }
+  }
+}
+
+.fab-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1050;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+  font-size: 1.6rem;
+
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(vars.$accent-purple, 0.3);
+  }
+}

@@ -1,0 +1,121 @@
+<div class="container-fluid my-4">
+  <div class="card-gradient-wrapper">
+    <div class="card list-card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Directorio de Clientes</h2>
+
+        <div class="row g-3 mb-4 align-items-center">
+          <div class="col-lg-9 col-md-6">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar por nombre o email..."
+              [ngModel]="searchTermSubject | async"
+              (ngModelChange)="onSearchChange($event)"
+            />
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <select
+              class="form-select"
+              [ngModel]="itemsPerPageSubject | async"
+              (ngModelChange)="onItemsPerPageChange($event)"
+            >
+              @for (option of itemsPerPageOptions; track option) {
+                <option [value]="option">
+                  {{ option }} por página
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle client-table">
+            <thead>
+              <tr>
+                <th scope="col">Nombre Completo</th>
+                <th scope="col">Email</th>
+                <th scope="col">Teléfono</th>
+                <th scope="col" class="text-center">N.º Pedidos</th>
+                <th scope="col" class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (clients$ | async; as clients) {
+                @for (client of clients; track client.id) {
+                  <tr>
+                    <td data-label="Nombre">{{ client.fullName }}</td>
+                    <td data-label="Email">{{ client.email }}</td>
+                    <td data-label="Teléfono">{{ client.phone }}</td>
+                    <td data-label="N.º Pedidos" class="text-center">{{ client.numberOfOrders }}</td>
+                    <td data-label="Acciones" class="text-center">
+                      <button
+                        class="btn btn-outline-primary btn-sm"
+                        (click)="viewClientHistory(client.email)"
+                        title="Ver Historial de Pedidos"
+                      >
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="text-center text-muted-custom py-5">
+                      @if (searchTermSubject | async) {
+                        <div>
+                          <i class="bi bi-search fs-2 d-block mb-2"></i>
+                          No se encontraron clientes que coincidan.
+                        </div>
+                      } @else {
+                        <div>
+                          <i class="bi bi-person-slash fs-2 d-block mb-2"></i>
+                          Aún no hay clientes para mostrar.
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td colspan="5" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando clientes...</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (totalClients > 0 && totalPages > 1) {
+          @if (currentPageSubject | async; as currentPage) {
+            <div class="d-flex justify-content-center mt-4">
+              <nav aria-label="Paginación de clientes">
+                <ul class="pagination">
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior">&lsaquo;</a>
+                  </li>
+                  @for (page of [].constructor(totalPages); track i; let i = $index) {
+                    <li class="page-item" [class.active]="currentPage === i + 1">
+                      <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
+                    </li>
+                  }
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente">&rsaquo;</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última">&raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</div>

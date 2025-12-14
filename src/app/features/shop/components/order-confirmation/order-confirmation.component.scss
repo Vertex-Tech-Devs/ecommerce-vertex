@@ -1,0 +1,134 @@
+:host {
+  display: block;
+  background-color: #f4f5f7;
+  min-height: calc(100vh - 80px);
+}
+
+.confirmation-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.confirmation-card,
+.loading-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 3rem;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  color: #333;
+}
+
+.loading-card {
+  padding: 4rem;
+}
+
+.icon-success {
+  font-size: 4rem;
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+.icon-pending {
+  font-size: 4rem;
+  color: #ffc107;
+  margin-bottom: 1rem;
+}
+
+.icon-error {
+  font-size: 4rem;
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.thank-you-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #6c757d;
+  margin-bottom: 2.5rem;
+}
+
+.order-summary {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.summary-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #333;
+}
+
+.order-id {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #495057;
+}
+
+.summary-item,
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  color: #495057;
+}
+
+.summary-item .item-name {
+  color: #333;
+}
+
+.summary-item .item-price {
+  font-weight: 500;
+  color: #212529;
+}
+
+.summary-total {
+  font-size: 1.1rem;
+  border-top: 2px solid #dee2e6;
+  border-bottom: none;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.email-info {
+  margin-bottom: 2rem;
+  color: #6c757d;
+}
+
+.action-button {
+  display: inline-block;
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(90deg, #fd7e14, #ff5722);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 87, 34, 0.3);
+  }
+}

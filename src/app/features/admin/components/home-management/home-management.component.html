@@ -1,0 +1,132 @@
+<div class="container-fluid my-4">
+  <div class="card-gradient-wrapper">
+    <div class="card list-card shadow-sm">
+      <div class="card-body">
+        <div class="page-title-container text-center mb-4">
+          <h2 class="card-title mb-0">Gestión de la Página de Inicio</h2>
+        </div>
+
+        <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="card-gradient-wrapper mb-4">
+            <div class="card details-sub-card">
+              <div class="card-header">
+                <h5 class="card-title mb-0"><i class="bi bi-image me-2"></i>Banner Principal (Hero)</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3 text-center">
+                  <label for="bannerImage" class="form-label">Cambiar Imagen del Banner</label>
+                  <div>
+                    <label for="bannerImage" class="file-input-label">
+                      <i class="bi bi-upload"></i> Seleccionar archivo
+                    </label>
+                    <input type="file" id="bannerImage" class="file-input" (change)="onFileSelected($event, 'main')" accept="image/png, image/jpeg, image/webp">
+                  </div>
+                  <div class="form-text mt-2 text-muted-custom">Sube una nueva imagen para reemplazar la actual.</div>
+                </div>
+
+                <div class="image-preview-container">
+                  @if (bannerPreviewUrl || imageUrl?.value) {
+                    <p class="form-text text-muted text-center">Vista Previa:</p>
+                  }
+                  @if (bannerPreviewUrl) {
+                    <img [src]="bannerPreviewUrl" alt="Previsualización del nuevo banner" class="img-fluid rounded">
+                  } @else if (imageUrl?.value) {
+                    <img [src]="imageUrl?.value" alt="Banner actual" class="img-fluid rounded">
+                  } @else {
+                    <p class="no-preview-text">No hay imagen cargada.</p>
+                  }
+                </div>
+                <hr>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="title" class="form-label">Título General (Opcional)</label>
+                    <input type="text" id="title" class="form-control" formControlName="title" placeholder="Ej: ¡Nueva Colección!">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="buttonText" class="form-label">Texto del Botón (Opcional)</label>
+                    <input type="text" id="buttonText" class="form-control" formControlName="buttonText" placeholder="Ej: Ver ahora">
+                  </div>
+                </div>
+                <div>
+                  <label for="buttonLink" class="form-label">Enlace del Botón (Opcional)</label>
+                  <input type="text" id="buttonLink" class="form-control" formControlName="buttonLink" placeholder="Ej: /shop/catalog">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-gradient-wrapper">
+            <div class="card details-sub-card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="bi bi-tags me-2"></i>Categorías Destacadas (Máx. 3)</h5>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addFeaturedCategory()" [disabled]="featuredCategories.length >= 3">
+                  <i class="bi bi-plus-lg"></i> Añadir
+                </button>
+              </div>
+              <div class="card-body" formArrayName="featuredCategories">
+                @for (categoryControl of featuredCategories.controls; track categoryControl; let i = $index) {
+                  <div [formGroupName]="i" class="featured-category-item mb-3">
+                    <div class="row align-items-center">
+                      <div class="col-md-4 mb-2 mb-md-0">
+                        <label [for]="'categoryName' + i" class="form-label">Categoría</label>
+                        <select [id]="'categoryName' + i" class="form-select" formControlName="categoryId"
+                          (change)="onCategorySelectionChange(i, $event)">
+                          <option [ngValue]="null" disabled>Selecciona...</option>
+                          @if (categories$ | async; as categories) {
+                            @for (cat of categories; track cat.id) {
+                              <option [value]="cat.id">{{ cat.name }}</option>
+                            }
+                          }
+                        </select>
+                      </div>
+                      <div class="col-md-4 mb-2 mb-md-0">
+                        <label [for]="'categoryImageFile' + i" class="form-label">Imagen</label>
+                        <div>
+                           <label [for]="'categoryImageFile' + i" class="file-input-label w-100 text-center">
+                            <i class="bi bi-upload"></i> Cambiar
+                           </label>
+                          <input type="file" [id]="'categoryImageFile' + i" class="file-input" (change)="onFileSelected($event, i)" accept="image/png, image/jpeg, image/webp">
+                        </div>
+                      </div>
+                      <div class="col-md-3 mb-2 mb-md-0">
+                          <div class="image-preview-container m-0" style="min-height: 50px; padding: 0.25rem">
+                            @if (categoryPreviewUrls[i]) {
+                              <img [src]="categoryPreviewUrls[i]" class="img-fluid rounded">
+                            } @else if (categoryControl.get('imageUrl')?.value) {
+                              <img [src]="categoryControl.get('imageUrl')?.value" class="img-fluid rounded">
+                            } @else {
+                              <small class="no-preview-text">Sin imagen</small>
+                            }
+                          </div>
+                      </div>
+                      <div class="col-md-1">
+                        <label class="form-label d-block">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-danger w-100" (click)="removeFeaturedCategory(i)" title="Eliminar">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (featuredCategories.length === 0) {
+                  <div class="text-center text-muted-custom p-3">
+                    No hay categorías destacadas. Haz clic en "Añadir" para empezar.
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty">
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

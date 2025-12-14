@@ -1,0 +1,157 @@
+<div class="container-fluid my-4">
+  <div class="card product-list-card shadow-sm">
+    <div class="card-body">
+      <h2 class="card-title text-center mb-4">Lista de Productos</h2>
+
+      <div class="row g-3 mb-4 align-items-center">
+        <div class="col-lg-6 col-md-12">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar por nombre o descripción..."
+            [ngModel]="searchTermSubject.value"
+            (ngModelChange)="onSearchChange($event)"
+          />
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <select
+            class="form-select"
+            [ngModel]="filterCategorySubject.value"
+            (ngModelChange)="onFilterCategoryChange($event)"
+          >
+            <option value="all">Todas las Categorías</option>
+            @for (category of categories$ | async; track category.id) {
+              <option [value]="category.id">
+                {{ category.name | titlecase }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <select
+            class="form-select"
+            [ngModel]="itemsPerPageSubject.value"
+            (ngModelChange)="onItemsPerPageChange($event)"
+          >
+            @for (option of itemsPerPageOptions; track option) {
+              <option [value]="option">
+                {{ option }} por página
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle product-table">
+          <thead>
+            <tr>
+              <th scope="col" class="col-nombre">Nombre</th>
+              <th scope="col" class="col-descripcion">Descripción</th>
+              <th scope="col" class="text-end col-precio">Precio</th>
+              <th scope="col" class="col-categoria">Categoría</th>
+              <th scope="col" class="text-center col-stock">Stock Total</th>
+              <th scope="col" class="text-center col-acciones">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (products$ | async; as products) {
+              @if (products.length === 0) {
+                <tr>
+                  <td colspan="6" class="text-center text-muted-custom py-5">
+                    @if (searchTermSubject.value || filterCategorySubject.value !== 'all') {
+                      <div>
+                        <i class="bi bi-search fs-2 d-block mb-2"></i>
+                        No se encontraron productos que coincidan.
+                      </div>
+                    } @else {
+                      <div>
+                        <i class="bi bi-box2-heart fs-2 d-block mb-2"></i>
+                        Aún no hay productos para mostrar.
+                      </div>
+                    }
+                  </td>
+                </tr>
+              } @else {
+                @for (product of products; track product.id) {
+                  <tr>
+                    <td data-label="Nombre" class="col-nombre">{{ product.name }}</td>
+                    <td data-label="Descripción" class="col-descripcion">
+                      {{ product.description | truncate:30 }}
+                    </td>
+                    <td data-label="Precio" class="text-end col-precio">
+                      {{ product.price | currency : "ARS" : "$" }}
+                    </td>
+                    <td data-label="Categoría" class="col-categoria">{{ getCategoryName(product.categoryId) | titlecase }}</td>
+                    <td data-label="Stock" class="text-center col-stock">
+                      <span class="badge" [ngClass]="{
+                        'bg-success': product.totalStock > 10,
+                        'bg-warning text-dark': product.totalStock > 0 && product.totalStock <= 10,
+                        'bg-danger': product.totalStock === 0
+                      }">
+                        {{ product.totalStock }}
+                      </span>
+                    </td>
+                    <td data-label="Acciones" class="text-center col-acciones">
+                      <a [routerLink]="['/admin/products/detail', product.id]" class="btn btn-outline-info btn-sm me-2" title="Ver Detalles">
+                          <i class="bi bi-eye"></i>
+                      </a>
+                      <a [routerLink]="['/admin/products/edit', product.id]" class="btn btn-outline-primary btn-sm me-2" title="Editar">
+                          <i class="bi bi-pencil-square"></i>
+                      </a>
+                      <button
+                        class="btn btn-outline-danger btn-sm"
+                        (click)="confirmDelete(product)"
+                        title="Eliminar"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              }
+            } @else {
+              <tr>
+                <td colspan="6" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando productos...</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if ((products$ | async)?.length && totalProducts > 0 && totalPages > 1) {
+        <div class="d-flex justify-content-center mt-4">
+          <nav aria-label="Paginación de productos">
+            <ul class="pagination">
+              <li class="page-item" [class.disabled]="currentPageSubject.value === 1">
+                <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPageSubject.value === 1">
+                <a class="page-link" (click)="goToPage(currentPageSubject.value - 1)" aria-label="Anterior">&lsaquo;</a>
+              </li>
+              @for (page of [].constructor(totalPages); track i; let i = $index) {
+                <li class="page-item" [class.active]="currentPageSubject.value === i + 1">
+                  <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
+                </li>
+              }
+              <li class="page-item" [class.disabled]="currentPageSubject.value === totalPages">
+                <a class="page-link" (click)="goToPage(currentPageSubject.value + 1)" aria-label="Siguiente">&rsaquo;</a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPageSubject.value === totalPages">
+                <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última">&raquo;</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<a routerLink="/admin/products/create" class="btn btn-primary btn-lg rounded-circle fab-button shadow-lg" title="Nuevo Producto">
+  <i class="bi bi-plus-lg"></i>
+</a>

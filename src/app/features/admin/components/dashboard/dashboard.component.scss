@@ -1,0 +1,314 @@
+@use "variables" as vars;
+@use "sass:color";
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+#page-content-wrapper {
+  transition: all 0.3s ease-in-out;
+
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .dashboard-header {
+    margin-bottom: 2rem;
+  }
+
+  .dashboard-title {
+    padding-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+    font-weight: vars.$font-weight-bold;
+    text-align: center;
+    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  hr {
+    border-color: rgba(vars.$text-light, 0.1);
+    margin: 0;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: vars.$font-weight-semibold;
+    color: vars.$dashboard-section-title-color;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.03em;
+    text-align: center;
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(160deg,
+        vars.$dark-bg-card-gradient-start,
+        vars.$dark-bg-card-gradient-end );
+    border: 1px solid rgba(vars.$accent-purple, 0.2);
+    border-radius: vars.$border-radius-md;
+    box-shadow: vars.$box-shadow-dark;
+    color: vars.$text-light;
+    transition: none;
+
+    &::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(90deg,
+          vars.$accent-purple,
+          vars.$accent-blue,
+          vars.$accent-purple );
+      background-size: 200% 200%;
+      animation: gradient-animation 8s ease infinite;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    &:hover {
+      &::before {
+        opacity: 1;
+      }
+
+      .card-body .display-5 {
+        color: vars.$text-light;
+      }
+
+      .list-group-item a.btn {
+        border-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      .list-group-item .bi-person-fill {
+        color: vars.$text-light;
+      }
+
+      .list-group-item a.btn-outline-success:hover {
+        background: vars.$card-header-latest-products-bg;
+        border-color: transparent;
+        color: vars.$text-light;
+      }
+
+      .list-group-item a.btn-outline-info:hover {
+        background: vars.$card-header-latest-orders-bg;
+        border-color: transparent;
+        color: vars.$text-light;
+      }
+
+      .list-group-item a.btn-outline-danger:hover {
+        background: vars.$card-header-low-stock-bg;
+        border-color: transparent;
+        color: vars.$text-light;
+      }
+
+      .header-pending-orders+.card-body .list-group-item a.btn-outline-primary:hover {
+        background: vars.$card-header-pending-orders-bg;
+        border-color: transparent;
+        color: vars.$text-light;
+      }
+
+      .header-latest-clients+.card-body .list-group-item a.btn-outline-primary:hover {
+        background: vars.$card-header-latest-clients-bg;
+        border-color: transparent;
+        color: vars.$text-light;
+      }
+    }
+
+    .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(vars.$text-light, 0.1);
+      font-weight: vars.$font-weight-semibold;
+      font-size: 1rem;
+
+      &.header-sales {
+        background: vars.$card-header-sales-bg;
+      }
+
+      &.header-orders {
+        background: vars.$card-header-orders-bg;
+      }
+
+      &.header-new-clients {
+        background: vars.$card-header-clients-bg;
+      }
+
+      &.header-total-sales {
+        background: vars.$card-header-total-sales-bg;
+      }
+
+      &.header-total-orders {
+        background: vars.$card-header-total-orders-bg;
+      }
+
+      &.header-total-clients {
+        background: vars.$card-header-total-clients-bg;
+      }
+
+      &.header-pending-orders {
+        background: vars.$card-header-pending-orders-bg;
+      }
+
+      &.header-low-stock {
+        background: vars.$card-header-low-stock-bg;
+      }
+
+      &.header-latest-orders {
+        background: vars.$card-header-latest-orders-bg;
+      }
+
+      &.header-latest-clients {
+        background: vars.$card-header-latest-clients-bg;
+      }
+
+      &.header-latest-products {
+        background: vars.$card-header-latest-products-bg;
+      }
+    }
+
+    .card-body {
+      padding: 1.25rem;
+      color: vars.$text-light;
+
+      .display-5 {
+        font-size: 2.5rem;
+        font-weight: vars.$font-weight-bold;
+        color: vars.$accent-purple;
+        transition: color 0.3s ease-in-out;
+      }
+
+      .card-text {
+        color: vars.$text-muted-dark;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .list-group {
+    background-color: transparent;
+
+    .list-group-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background-color: transparent;
+      border-color: rgba(vars.$text-light, 0.08);
+      color: vars.$text-light;
+      padding: 0.75rem 0;
+      flex-wrap: wrap;
+
+      a.btn {
+        transition: background .2s ease-in-out, color .2s ease-in-out, border-color .2s ease-in-out;
+      }
+
+      .bi-person-fill {
+        transition: color 0.3s ease-in-out;
+      }
+
+      &:first-child {
+        border-top: none;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .item-content {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  #page-content-wrapper {
+    .container-fluid {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+
+    .dashboard-title {
+      font-size: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+    }
+
+    .card {
+      .card-header {
+        font-size: 1.1rem;
+        padding: 1.25rem 1.5rem;
+      }
+
+      .card-body {
+        padding: 1.5rem;
+
+        .display-5 {
+          font-size: 3rem;
+        }
+
+        .card-text {
+          font-size: 0.95rem;
+        }
+      }
+    }
+
+    .list-group-item {
+      padding: 1rem 0;
+      flex-wrap: nowrap;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  #page-content-wrapper {
+    .dashboard-header {
+      margin-bottom: 3rem;
+    }
+
+    .dashboard-title {
+      font-size: 2.25rem;
+      padding-top: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .card .card-body .display-5 {
+      font-size: 3.25rem;
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  #page-content-wrapper {
+    .dashboard-title {
+      font-size: 2.5rem;
+    }
+
+    .card .card-body .display-5 {
+      font-size: 3.5rem;
+    }
+  }
+}

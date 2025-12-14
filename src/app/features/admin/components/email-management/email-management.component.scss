@@ -1,0 +1,299 @@
+@use 'variables' as vars;
+@use 'sass:color';
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: vars.$border-radius-lg;
+  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+}
+
+.list-card {
+  border: none;
+  border-radius: calc(#{vars.$border-radius-lg} - 2px);
+  background-color: #f4f6f9;
+  color: #212529;
+}
+
+.page-title-container {
+  padding-bottom: 0.5rem;
+  text-align: left;
+  margin-bottom: 1.5rem !important;
+}
+
+.page-title-container .card-title {
+  font-weight: vars.$font-weight-bold;
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+.details-sub-card {
+  border: none;
+  box-shadow: none;
+  border-radius: vars.$border-radius-md;
+  background-color: #ffffff;
+
+  .card-header {
+    background-color: transparent;
+    border-bottom: 1px solid #dfe3e8;
+
+    .card-title {
+      font-size: 1.1rem;
+      color: #343a40;
+      font-weight: vars.$font-weight-semibold;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+
+      i {
+        color: vars.$accent-blue;
+        font-size: 1.2em;
+      }
+    }
+  }
+}
+
+.form-label,
+.form-check-label {
+  color: #495057;
+  font-weight: 500;
+}
+
+.form-control {
+  background-color: #ffffff;
+  color: #1c2a42;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  padding: 0.5rem 1rem;
+
+  &:hover {
+    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+  }
+
+  &:focus {
+    border-color: vars.$accent-blue;
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+  }
+}
+
+quill-editor {
+  display: block;
+  border-radius: vars.$border-radius-md;
+  overflow: hidden;
+
+  .ql-toolbar {
+    background-color: #f8f9fa;
+    border: 1px solid #dfe3e8;
+    border-bottom: 0;
+  }
+
+  .ql-container {
+    background-color: #ffffff;
+    color: #1c2a42;
+    border: 1px solid #dfe3e8;
+    min-height: 250px;
+  }
+
+  .ql-editor.ql-blank::before {
+    color: #6c757d;
+    font-style: normal;
+    opacity: 0.9;
+  }
+}
+
+.editor-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+
+  >quill-editor {
+    flex: 1 1 450px;
+    min-width: 300px;
+  }
+
+  >.placeholder-assistant {
+    flex: 1 1 240px;
+    max-width: 100%;
+    align-self: flex-start;
+    border: 1px solid #dfe3e8;
+    border-radius: vars.$border-radius-md;
+    padding: 1rem;
+    background-color: #f8f9fa;
+
+    @media (min-width: 1200px) {
+      flex-basis: 280px;
+      flex-grow: 0;
+    }
+  }
+}
+
+.placeholder-assistant {
+  h6 {
+    font-weight: vars.$font-weight-semibold;
+    color: #495057;
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #dfe3e8;
+    padding-bottom: 0.5rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    padding: 0.35rem 0.5rem;
+    margin-bottom: 0.25rem;
+    border-radius: vars.$border-radius-sm;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    code {
+      font-size: 0.85rem;
+      color: vars.$accent-purple;
+      font-weight: 500;
+    }
+
+    &:hover {
+      background-color: color.scale(vars.$accent-blue, $alpha: -90%);
+
+      code {
+        color: vars.$accent-blue;
+      }
+    }
+  }
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-content,
+.modal-gradient-wrapper,
+.modal-gradient-wrapper>form {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-height: 0;
+  background-color: transparent;
+  border: none;
+}
+
+.modal-gradient-wrapper>form {
+  background-color: #f4f6f9;
+  border-radius: calc(#{vars.$border-radius-lg} - 2px);
+}
+
+
+.modal-header {
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+  flex-shrink: 0;
+
+  .modal-title {
+    font-weight: vars.$font-weight-bold;
+    font-size: 1.25rem;
+    color: #343a40;
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex-grow: 1;
+
+  h6 {
+    font-weight: vars.$font-weight-semibold;
+    color: vars.$accent-blue;
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+
+  hr {
+    margin: 1.5rem 0;
+    border-top: 1px solid #dee2e6;
+  }
+}
+
+.modal-footer {
+  background-color: #ffffff;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem 1.5rem;
+  border-bottom-left-radius: calc(#{vars.$border-radius-lg} - 2px);
+  border-bottom-right-radius: calc(#{vars.$border-radius-lg} - 2px);
+  flex-shrink: 0;
+}
+
+.actions-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  border-top: 1px solid #dfe3e8;
+  padding-top: 1.5rem;
+  margin-top: 2rem;
+}
+
+.save-button-wrapper {
+  position: relative;
+  padding: 2px;
+  border-radius: vars.$border-radius-md;
+  background: transparent;
+  transition: all 0.3s ease;
+  flex-grow: 1;
+  flex-basis: 200px;
+  min-width: fit-content;
+
+  .btn-primary {
+    background: linear-gradient(135deg, color.adjust(vars.$accent-purple, $lightness: 5%), vars.$accent-purple);
+    color: white;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.2);
+    width: 100%;
+  }
+
+  &:hover:not(:has(:disabled)) {
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background-size: 200% 200%;
+    animation: gradient-animation 8s ease infinite;
+    box-shadow: 0 0 20px rgba(vars.$accent-purple, 0.5);
+
+    .btn-primary {
+      background-color: vars.$dark-bg-secondary;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.3);
+    }
+  }
+}

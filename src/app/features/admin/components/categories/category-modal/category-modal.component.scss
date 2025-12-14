@@ -1,0 +1,190 @@
+@use 'variables' as vars;
+@use 'sass:color';
+
+.modal-header-custom {
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  color: white;
+  border-bottom: none;
+  padding: 1.25rem 1.5rem;
+
+  .modal-title {
+    font-weight: vars.$font-weight-semibold;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+}
+
+.modal-body {
+  padding: 2rem;
+  background-color: #f4f6f9;
+
+  .form-label {
+    font-weight: vars.$font-weight-medium;
+    color: #495057;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-control {
+    border: 1px solid #dfe3e8;
+    border-radius: vars.$border-radius-sm;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #fff;
+
+    &:focus {
+      border-color: vars.$accent-purple;
+      box-shadow: 0 0 0 0.25rem rgba(vars.$accent-purple, 0.15);
+    }
+
+    &.is-invalid {
+      border-color: vars.$accent-red;
+
+      &:focus {
+        box-shadow: 0 0 0 0.25rem rgba(vars.$accent-red, 0.15);
+      }
+    }
+  }
+}
+
+.modal-subtitle {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
+
+.modal-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+.form-content-card {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  
+  @media (min-width: vars.$breakpoint-md) {
+    padding: 2rem;
+  }
+}
+
+.attributes-grid-container {
+  background-color: #f8f9fa;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-sm;
+  padding: 1.5rem;
+}
+
+.attributes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1rem;
+  
+  @media (max-width: vars.$breakpoint-sm) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-check.form-switch {
+  padding-left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  
+  .form-check-input {
+    width: 3rem;
+    height: 1.6rem;
+    margin-top: 0;
+    margin-left: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    
+    &:focus {
+      border-color: rgba(vars.$accent-blue, 0.5);
+      box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+
+    &:checked {
+      background-color: vars.$accent-blue;
+      border-color: vars.$accent-blue;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+    }
+  }
+
+  .form-check-label {
+    cursor: pointer;
+    color: #343a40;
+    font-weight: 500;
+  }
+}
+
+
+.modal-footer {
+  background-color: #f4f6f9;
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+
+  .btn {
+    font-weight: vars.$font-weight-semibold;
+    padding: 0.6rem 1.25rem;
+    border-radius: vars.$border-radius-sm;
+    transition: all 0.3s ease;
+  }
+
+  .btn-secondary {
+    background-color: transparent;
+    border: 2px solid vars.$accent-red;
+    color: vars.$accent-red;
+    padding: calc(0.6rem - 2px) calc(1.25rem - 2px);
+
+    &:hover {
+      background-color: vars.$accent-red;
+      border-color: vars.$accent-red;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+    }
+  }
+
+  .btn-save-gradient {
+    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: none;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.25);
+    }
+
+    &:disabled {
+      background: #ccc;
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+  }
+}

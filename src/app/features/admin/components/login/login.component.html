@@ -1,0 +1,72 @@
+<div class="login-container">
+  <div class="card-gradient-wrapper">
+    <div class="card shadow-sm rounded-3">
+
+      <div class="card-header login-card-header text-center">
+        <h2 class="mb-0">Panel Administrador</h2>
+      </div>
+
+      <div class="card-body p-4">
+        <h4 class="form-title text-center mb-4">Iniciar Sesión</h4>
+
+        @if (authErrorMessage) {
+          <div class="alert alert-custom alert-warning">
+            {{ authErrorMessage }}
+          </div>
+        }
+
+        @if (isAlreadyLogged) {
+          <div class="alert alert-custom alert-info">
+            Ya has iniciado sesión. <a href="#" (click)="logout()">Cerrar sesión</a> para usar otra cuenta.
+          </div>
+        }
+
+        @if (!isAlreadyLogged) {
+          <form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input id="email" class="form-control" type="email" formControlName="email" [class.is-invalid]="formControls['email'].invalid && formControls['email'].touched" />
+              @if (formControls['email'].invalid && formControls['email'].touched) {
+                <div class="invalid-feedback d-block">
+                  @if (formControls['email'].errors?.['required']) {
+                    <div>El email es obligatorio.</div>
+                  }
+                  @if (formControls['email'].errors?.['email']) {
+                    <div>El formato del email no es válido.</div>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Contraseña</label>
+              <div class="password-input-wrapper" [class.is-invalid-wrapper]="formControls['password'].invalid && formControls['password'].touched">
+                <input id="password" [type]="showPassword ? 'text' : 'password'" class="form-control" formControlName="password" />
+                <button type="button" class="password-toggle-icon" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                  <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash-fill' : 'bi-eye-fill'"></i>
+                </button>
+              </div>
+              @if (formControls['password'].invalid && formControls['password'].touched) {
+                <div class="invalid-feedback d-block">
+                  @if (formControls['password'].errors?.['required']) {
+                    <div>La contraseña es obligatoria.</div>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+              <button id="login-btn" class="btn" [disabled]="loginForm.invalid || isSubmitting">
+                @if (isSubmitting) {
+                  <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                }
+                Ingresar
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+    </div>
+  </div>
+</div>

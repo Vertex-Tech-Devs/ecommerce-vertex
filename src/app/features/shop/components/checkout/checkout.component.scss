@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  background-color: #f4f5f7;
+  min-height: calc(100vh - 80px);
+}
+
+@keyframes rotate-gradient {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #0b0b0b;
+}
+
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+
+  @media (min-width: 992px) {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.checkout-card {
+  position: relative;
+  z-index: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 2px;
+  background: #eee;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-card::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, #fd7e14, #ff5722, #fd7e14);
+  opacity: 1;
+}
+
+.checkout-card-inner {
+  background-color: #ffffff;
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 2.5rem;
+}
+
+.summary-column .checkout-card {
+  position: sticky;
+  top: 2rem;
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e6e9ec;
+    padding-bottom: 0.75rem;
+    color: #333;
+  }
+}
+
+.form-label {
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875em;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(90deg, #fd7e14, #ff5722);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 87, 34, 0.3);
+  }
+
+  &:disabled {
+    background: #ced4da;
+    cursor: not-allowed;
+  }
+}

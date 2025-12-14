@@ -1,0 +1,68 @@
+<div class="cart-container">
+  @if (cart().items.length > 0) {
+    <div class="cart-content">
+      <div class="cart-items-card">
+        <div class="cart-items-card-inner">
+          <h1 class="cart-title">Tu Carrito</h1>
+          <div class="cart-items-list">
+            @for (item of cart().items; track trackByItemId($index, item)) {
+              <div class="cart-item">
+                <img [src]="item.image || 'assets/placeholder.png'" [alt]="item.name" class="item-image">
+                <div class="item-details">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-price">{{ item.price | currency:'ARS':'$' }}</span>
+                </div>
+                <div class="item-quantity">
+                  <input
+                    type="number"
+                    [id]="'quantity-' + item.id"
+                    [value]="item.quantity"
+                    min="1"
+                    [max]="item.stock"
+                    class="quantity-input"
+                    (change)="onUpdateQuantity(item, $event)">
+                </div>
+                <div class="item-subtotal">
+                  <span>{{ (item.price * item.quantity) | currency:'ARS':'$' }}</span>
+                </div>
+                <div class="item-actions">
+                  <button (click)="onRemoveItem(item.id)" class="remove-button" title="Eliminar producto">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-summary-card">
+        <div class="cart-summary-card-inner">
+          <h2 class="summary-title">Resumen de Compra</h2>
+          <div class="summary-details">
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span>{{ cart().total | currency:'ARS':'$' }}</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Total</span>
+              <span>{{ cart().total | currency:'ARS':'$' }}</span>
+            </div>
+          </div>
+          <button (click)="goToCheckout()" class="checkout-button">
+            Iniciar Compra
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="empty-cart-container">
+      <i class="bi bi-cart-x empty-cart-icon"></i>
+      <h2>Tu carrito está vacío</h2>
+      <p>Parece que todavía no has añadido ningún producto.</p>
+      <a routerLink="/shop/catalog" class="continue-shopping-button">
+        Explorar Productos
+      </a>
+    </div>
+  }
+</div>

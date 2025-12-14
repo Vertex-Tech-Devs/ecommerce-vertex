@@ -1,0 +1,135 @@
+<div class="container-fluid mt-4">
+  @if (data$ | async; as data) {
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0 page-title">
+            Detalles de: {{ data.product.name }}
+          </h2>
+          <button (click)="goBack()" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver a la lista
+          </button>
+        </div>
+
+        <hr />
+
+        <div>
+          <div class="card-gradient-wrapper mb-4">
+            <div class="card details-card">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col-lg-5 mb-4 mb-lg-0">
+                    <div class="image-container">
+                      @if (data.product.image) {
+                        <img [src]="data.product.image" class="img-fluid" alt="Imagen principal del producto" />
+                      } @else {
+                        <div class="no-image-placeholder">
+                          <i class="bi bi-image"></i>
+                          <span>Sin Imagen Principal</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="col-lg-7">
+                    <h3 class="product-name mb-4">{{ data.product.name }}</h3>
+                    <dl class="details-list">
+                      <div>
+                        <dt>ID:</dt>
+                        <dd>{{ data.product.id }}</dd>
+                      </div>
+                      <div>
+                        <dt>Descripción:</dt>
+                        <dd>{{ data.product.description }}</dd>
+                      </div>
+                      <div>
+                        <dt>Precio Base:</dt>
+                        <dd class="price">{{ data.product.price | currency : "ARS" : "$" }}</dd>
+                      </div>
+                      <div>
+                        <dt>Categoría:</dt>
+                        <dd>{{ data.category?.name || 'N/A' }}</dd>
+                      </div>
+                      <div>
+                        <dt>Stock Total:</dt>
+                        <dd>
+                          <span class="badge fs-6" [ngClass]="{
+                            'bg-success': data.product.totalStock > 10,
+                            'bg-warning text-dark': data.product.totalStock > 0 && data.product.totalStock <= 10,
+                            'bg-danger': data.product.totalStock === 0
+                          }">
+                            {{ data.product.totalStock }} unidades
+                          </span>
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          @if (data.product.images && data.product.images.length > 0) {
+            <div class="card-gradient-wrapper mb-4">
+              <div class="card details-card">
+                <div class="card-header"><h5 class="mb-0">Galería de Imágenes</h5></div>
+                <div class="card-body">
+                  <div class="row">
+                    @for (imgUrl of data.product.images; track imgUrl) {
+                      <div class="col-6 col-md-3 mb-3">
+                        <img [src]="imgUrl" class="img-fluid rounded shadow-sm" alt="Imagen adicional">
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="card-gradient-wrapper mb-4">
+            <div class="card details-card">
+              <div class="card-header"><h5 class="mb-0">Variantes Disponibles</h5></div>
+              <div class="card-body">
+                @if (data.variants && data.variants.length > 0) {
+                  <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                      <thead>
+                        <tr>
+                          @for (attr of variantAttributes(); track attr.id) {
+                            <th>{{ attr.name }}</th>
+                          }
+                          <th class="text-end">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (variant of data.variants; track variant.id) {
+                          <tr>
+                            @for (attr of variantAttributes(); track attr.id) {
+                              <td>{{ getVariantAttributeValue(variant, attr.id) }}</td>
+                            }
+                            <td class="text-end">{{ variant.stock }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="alert alert-secondary text-center">Este producto no tiene variantes definidas.</div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
+            <button (click)="editProduct(data.product.id)" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
+            <button (click)="confirmDeleteProduct(data.product)" class="btn btn-danger"><i class="bi bi-trash"></i> Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="alert alert-info text-center py-4" role="alert">
+      <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+      Cargando detalles del producto...
+    </div>
+  }
+</div>

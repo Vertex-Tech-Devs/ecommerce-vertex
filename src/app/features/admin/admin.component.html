@@ -1,0 +1,14 @@
+<div class="dashboard-container">
+  <app-sidebar [ngClass]="{'sidebar-open': isSidebarOpen}"
+               [isOpen]="isSidebarOpen"
+               (linkClicked)="closeSidebarOnOverlayClick()">
+  </app-sidebar>
+
+  <div class="main-content-wrapper" [ngClass]="{'sidebar-active': isSidebarOpen}" (click)="closeSidebarOnOverlayClick()">
+    <app-header (toggleSidebarEvent)="toggleSidebar()"></app-header>
+
+    <div class="main-content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

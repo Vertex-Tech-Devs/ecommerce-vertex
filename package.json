@@ -1,0 +1,44 @@
+{
+  "name": "ecommerce-vertex",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "ng test",
+    "clean": "rm -rf dist functions/lib functions/.npmrc",
+    "build:functions": "npm run build --prefix functions",
+    "update:functions:deps": "cd functions && npm install firebase-functions@latest firebase-admin@latest && cd ..",
+    
+    "deploy:prod": "npm run clean && npm run build -- --configuration production && npm run build:functions && firebase deploy --project production --only hosting:vertex-tienda,functions",
+    "deploy:dev": "npm run clean && npm run build -- --configuration development && npm run build:functions && firebase deploy --project development --only hosting:vertex-tienda-dev,functions"
+  },
+  "dependencies": {
+    "@angular/animations": "^20.0.0",
+    "@angular/common": "^20.0.0",
+    "@angular/compiler": "^20.0.0",
+    "@angular/core": "^20.0.0",
+    "@angular/fire": "^20.0.0",
+    "@angular/forms": "^20.0.0",
+    "@angular/platform-browser": "^20.0.0",
+    "@angular/platform-browser-dynamic": "^20.0.0",
+    "@angular/router": "^20.0.0",
+    "bootstrap": "5.3.7",
+    "bootstrap-icons": "1.13.1",
+    "firebase": "^11.8.1",
+    "firebase-admin": "^13.5.0",
+    "ngx-bootstrap": "20.0.2",
+    "ngx-quill": "^28.0.1",
+    "quill": "^2.0.3",
+    "rxjs": "^7.8.1",
+    "sweetalert2": "^11.23.0",
+    "tslib": "^2.6.2",
+    "zone.js": "^0.15.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^20.0.0",
+    "@angular/cli": "^20.0.0",
+    "@angular/compiler-cli": "^20.0.0",
+    "typescript": "5.8.3"
+  },
+  "private": true
+}

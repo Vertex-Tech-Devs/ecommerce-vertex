@@ -1,0 +1,133 @@
+<div class="sidebar-overlay" [class.is-visible]="isSidebarOpen" (click)="toggleSidebar()"></div>
+
+<div class="container py-5">
+  <h1 class="catalog-title">Nuestro Catálogo</h1>
+  <div class="catalog-layout">
+
+    <aside class="filter-sidebar" [class.is-open]="isSidebarOpen" [formGroup]="filterForm">
+      <div class="filter-sidebar-content">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+          <h3 class="filter-title mb-0">Filtros</h3>
+          <button class="btn-close d-lg-none" (click)="toggleSidebar()"></button>
+        </div>
+        
+        <div class="filter-group">
+          <h5 class="filter-group-title">Categorías</h5>
+          @if (categories$ | async; as categories) {
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="category" id="cat-all" value="all" formControlName="category">
+              <label class="form-check-label" for="cat-all">Todas</label>
+            </div>
+            @for (cat of categories; track cat.id) {
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="category" [id]="'cat-' + cat.id" [value]="cat.id" formControlName="category">
+                <label class="form-check-label" [for]="'cat-' + cat.id">{{ cat.name }}</label>
+              </div>
+            }
+          }
+        </div>
+        
+        <div formGroupName="dynamicAttributes">
+          @if(activeAttributes().length > 0) {
+            @for (attr of activeAttributes(); track attr.id) {
+              @if (attr.id && filterForm.get('dynamicAttributes.' + attr.id)) {
+                <div class="filter-group" [formGroupName]="attr.id">
+                  <h5 class="filter-group-title">{{ attr.name }}</h5>
+                  @for (val of attr.values; track val) {
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [id]="'attr-' + attr.id + '-' + val" [formControlName]="val">
+                      <label class="form-check-label" [for]="'attr-' + attr.id + '-' + val">{{ val }}</label>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          } @else {
+            @if (filterForm.get('category')?.value !== 'all') {
+              <div class="filter-group">
+                <p class="filter-helper-text">Esta categoría no tiene filtros adicionales.</p>
+              </div>
+            }
+          }
+        </div>
+        
+        <div class="filter-group">
+          <h5 class="filter-group-title">Precio</h5>
+          <div class="price-inputs d-flex align-items-center gap-2">
+            <input type="number" class="form-control form-control-sm" placeholder="Mín" formControlName="minPrice">
+            <span>-</span>
+            <input type="number" class="form-control form-control-sm" placeholder="Máx" formControlName="maxPrice">
+          </div>
+        </div>
+
+        <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">Limpiar Filtros</button>
+      </div>
+    </aside>
+
+    <main class="product-list">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-outline-secondary d-lg-none" (click)="toggleSidebar()">
+          <i class="bi bi-funnel-fill me-2"></i>Filtros
+        </button>
+        <div class="sorting-controls">
+          <select class="form-select" (change)="onSortChange($event)">
+            <option value="newest">Lo más nuevo</option>
+            <option value="priceAsc">Precio: Menor a Mayor</option>
+            <option value="priceDesc">Precio: Mayor a Menor</option>
+          </select>
+        </div>
+      </div>
+      @if (paginatedProducts$ | async; as products) {
+        @if (products.length > 0) {
+          <div class="product-grid">
+            @for (product of products; track product.id) {
+              <a [routerLink]="['/shop/product', product.id]" class="product-card">
+                <div class="product-card-inner">
+                  <div class="product-image">
+                    <img [src]="product.image" [alt]="product.name">
+                  </div>
+                  <div class="product-info">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-price">{{ product.price | currency:'ARS':'$' }}</p>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+
+          <nav *ngIf="totalPages > 1" class="pagination-container mt-5" aria-label="Paginación de productos">
+            <ul class="pagination">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1); $event.preventDefault()" aria-label="Anterior">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              @for (page of [].constructor(totalPages); track i; let i = $index) {
+                <li class="page-item" [class.active]="currentPage === i + 1">
+                  <a class="page-link" (click)="goToPage(i + 1); $event.preventDefault()">{{ i + 1 }}</a>
+                </li>
+              }
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1); $event.preventDefault()" aria-label="Siguiente">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+        } @else {
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-search fs-1"></i>
+            <p class="mt-3">No se encontraron productos con los filtros seleccionados.</p>
+          </div>
+        }
+      } @else {
+        <div class="text-center mt-5">
+          <div class="spinner-border" role="status">
+            <span class="visually-hidden">Cargando productos...</span>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

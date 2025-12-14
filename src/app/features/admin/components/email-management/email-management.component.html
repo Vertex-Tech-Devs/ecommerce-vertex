@@ -1,0 +1,221 @@
+<div class="container-fluid my-4">
+  <div class="card-gradient-wrapper">
+    <div class="card list-card shadow-sm">
+      <div class="card-body">
+        <div class="page-title-container">
+          <h2 class="card-title mb-0">Gestión de Notificaciones por Email</h2>
+        </div>
+
+        @if (isLoading) {
+          <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Cargando configuración...</span>
+            </div>
+          </div>
+        } @else {
+          <form [formGroup]="emailForm" (ngSubmit)="onSubmit()" novalidate>
+
+            <div class="card-gradient-wrapper mb-4">
+              <div class="card details-sub-card">
+                <div class="card-header">
+                  <h5 class="card-title mb-0"><i class="bi bi-gear-fill me-2"></i>Configuración General</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="storeOwnerEmail" class="form-label">Email del Administrador</label>
+                      <input type="email" id="storeOwnerEmail" class="form-control" formControlName="storeOwnerEmail"
+                        [class.is-invalid]="emailForm.get('storeOwnerEmail')?.invalid && emailForm.get('storeOwnerEmail')?.touched">
+                      <div class="invalid-feedback">Ingresa un email válido.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="storeWhatsappNumber" class="form-label">Nº WhatsApp de la Tienda</label>
+                      <input type="text" id="storeWhatsappNumber" class="form-control"
+                        formControlName="storeWhatsappNumber" placeholder="Ej: +549261..."
+                        [class.is-invalid]="emailForm.get('storeWhatsappNumber')?.invalid && emailForm.get('storeWhatsappNumber')?.touched">
+                      <div class="invalid-feedback">Ingresa un número de teléfono válido.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-gradient-wrapper mb-4">
+              <div class="card details-sub-card" formGroupName="adminNotification">
+                <div class="card-header">
+                  <h5 class="card-title mb-0"><i class="bi bi-bell-fill me-2"></i>Notificación de Nuevo Pedido (para Admin)</h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label for="adminSubject" class="form-label">Asunto</label>
+                    <input type="text" id="adminSubject" class="form-control" formControlName="subject">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Plantilla</label>
+                    <div class="editor-wrapper">
+                      <quill-editor
+                        #adminEditor
+                        formControlName="template"
+                        [modules]="editorModules"
+                        placeholder="Escribe aquí el contenido del email..."
+                      ></quill-editor>
+                      <div class="placeholder-assistant">
+                        <h6>Variables Disponibles</h6>
+                        <ul>
+                          @for (p of availablePlaceholders; track p.key) {
+                            <li (click)="insertPlaceholder(p.key, adminEditor)" [title]="p.description">
+                              <code>{{ p.label }}</code>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="showManageButton" formControlName="showManageButton">
+                    <label class="form-check-label" for="showManageButton">Incluir botón "Gestionar Pedido"</label>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showWhatsappButtonAdmin" formControlName="showWhatsappButton">
+                    <label class="form-check-label" for="showWhatsappButtonAdmin">Incluir botón "Contactar por WhatsApp"</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-gradient-wrapper mb-4">
+              <div class="card details-sub-card" formGroupName="customerConfirmation">
+                <div class="card-header">
+                  <h5 class="card-title mb-0"><i class="bi bi-envelope-check-fill me-2"></i>Email de Confirmación (para Cliente)</h5>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label for="customerSubject" class="form-label">Asunto</label>
+                    <input type="text" id="customerSubject" class="form-control" formControlName="subject">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Plantilla</label>
+                    <div class="editor-wrapper">
+                      <quill-editor
+                        #customerEditor
+                        formControlName="template"
+                        [modules]="editorModules"
+                        placeholder="Escribe aquí el contenido del email..."
+                      ></quill-editor>
+                      <div class="placeholder-assistant">
+                        <h6>Variables Disponibles</h6>
+                        <ul>
+                          @for (p of availablePlaceholders; track p.key) {
+                            <li (click)="insertPlaceholder(p.key, customerEditor)" [title]="p.description">
+                              <code>{{ p.label }}</code>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showWhatsappButtonCustomer" formControlName="showWhatsappButton">
+                    <label class="form-check-label" for="showWhatsappButtonCustomer">Incluir botón "Contactar por WhatsApp"</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions-container">
+              <div class="d-grid gap-2 d-sm-flex">
+                <button type="button" class="btn btn-info" (click)="openTestModal()">
+                  <i class="bi bi-robot me-2"></i> Enviar Prueba Avanzada
+                </button>
+                <button type="button" class="btn btn-outline-warning" (click)="restoreDefaults()">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i> Restaurar Plantillas
+                </button>
+              </div>
+
+              <div class="save-button-wrapper">
+                <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || emailForm.invalid || !emailForm.dirty">
+                  @if (isSubmitting) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+              </div>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (isTestModalVisible) {
+  <div class="modal-backdrop fade show"></div>
+  <div class="modal fade show" style="display: block;" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="card-gradient-wrapper modal-gradient-wrapper">
+          <form [formGroup]="testEmailModalForm" (ngSubmit)="onSendAdvancedTest()">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="bi bi-robot me-2"></i> Prueba de Envío Avanzada</h5>
+              <button type="button" class="btn-close" (click)="closeTestModal()"></button>
+            </div>
+            <div class="modal-body">
+              <h6>1. Destinatario</h6>
+              <div class="mb-3">
+                <label for="recipientEmail" class="form-label">Enviar email de prueba a:</label>
+                <input type="email" id="recipientEmail" class="form-control" formControlName="recipientEmail">
+              </div>
+              <hr>
+              <h6>2. Plantillas a Probar</h6>
+              <div class="mb-3" formGroupName="templatesToTest">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="testAdmin" formControlName="adminNotification">
+                  <label class="form-check-label" for="testAdmin">Notificación al Administrador</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="testCustomer" formControlName="customerConfirmation">
+                  <label class="form-check-label" for="testCustomer">Confirmación al Cliente</label>
+                </div>
+              </div>
+              <hr>
+              <h6>3. Valores de Prueba (editables)</h6>
+              <div formGroupName="testData">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">ID del Pedido</label>
+                    <input type="text" class="form-control" formControlName="orderId">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Nombre del Cliente</label>
+                    <input type="text" class="form-control" formControlName="clientName">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Email del Cliente</label>
+                    <input type="email" class="form-control" formControlName="clientEmail">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Teléfono del Cliente</label>
+                    <input type="text" class="form-control" formControlName="clientPhone">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Monto Total</label>
+                    <input type="text" class="form-control" formControlName="totalAmount">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="closeTestModal()">Cancelar</button>
+              <button type="submit" class="btn btn-primary" [disabled]="isSendingAdvancedTest || testEmailModalForm.invalid">
+                @if (isSendingAdvancedTest) {
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                {{ isSendingAdvancedTest ? 'Enviando...' : 'Enviar Prueba' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+}

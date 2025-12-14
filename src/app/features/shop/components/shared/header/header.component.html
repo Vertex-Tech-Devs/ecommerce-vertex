@@ -1,0 +1,26 @@
+<header class="shop-header" [class.sidebar-is-open]="isMenuOpen()">
+  <div class="sidebar-backdrop" [class.active]="isMenuOpen()" (click)="closeMenu()"></div>
+
+  <div class="container">
+    <a routerLink="/shop" class="brand-logo">Vertex</a>
+
+    <button class="menu-toggle" (click)="toggleMenu()">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <nav class="main-nav" [class.menu-open]="isMenuOpen()">
+      <a routerLink="/shop" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Inicio</a>
+      <a routerLink="/shop/catalog" routerLinkActive="active" (click)="closeMenu()">Productos</a>
+      <a routerLink="/shop/about" routerLinkActive="active" (click)="closeMenu()">Nosotros</a>
+    </nav>
+
+    <div class="header-actions">
+      <a routerLink="/shop/cart" class="cart-icon">
+        <i class="bi bi-cart"></i>
+        @if (cartItemCount() > 0) {
+          <span class="cart-count">{{ cartItemCount() }}</span>
+        }
+      </a>
+    </div>
+  </div>
+</header>

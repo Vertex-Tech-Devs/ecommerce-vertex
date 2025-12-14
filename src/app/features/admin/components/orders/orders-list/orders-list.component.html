@@ -1,0 +1,160 @@
+<div class="container-fluid my-4">
+  <div class="card-gradient-wrapper">
+    <div class="card list-card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Lista de Pedidos</h2>
+
+        <div class="row g-3 mb-4 align-items-center">
+          <div class="col-lg-6 col-md-12">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Buscar por ID, Cliente o Estado..."
+              [ngModel]="searchTermSubject | async"
+              (ngModelChange)="onSearchTermChange($event)"
+            />
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <select
+              class="form-select"
+              [ngModel]="filterStatusSubject | async"
+              (ngModelChange)="onFilterStatusChange($event)"
+            >
+              <option value="all">Todos los Estados</option>
+              @for (status of statusOptions.slice(1); track status) {
+                <option [value]="status">
+                  @switch (status) {
+                    @case ('pending') { <span>Pendiente</span> }
+                    @case ('processing') { <span>Procesando</span> }
+                    @case ('shipped') { <span>Enviado</span> }
+                    @case ('delivered') { <span>Entregado</span> }
+                    @case ('cancelled') { <span>Cancelado</span> }
+                    @default { <span>{{ status | titlecase }}</span> }
+                  }
+                </option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <select
+              class="form-select"
+              [ngModel]="itemsPerPageSubject | async"
+              (ngModelChange)="onItemsPerPageChange($event)"
+            >
+              @for (option of itemsPerPageOptions; track option) {
+                <option [value]="option">
+                  {{ option }} por página
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle order-table">
+            <thead>
+              <tr>
+                <th scope="col">ID Pedido</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-center">Estado</th>
+                <th scope="col" class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (orders$ | async; as orders) {
+                @for (order of orders; track order.id) {
+                  <tr>
+                    <td data-label="ID Pedido">{{ order.id }}</td>
+                    <td data-label="Cliente">{{ order.clientName }}</td>
+                    <td data-label="Fecha">{{ order.orderDate | date:'short' }}</td>
+                    <td data-label="Total" class="text-end">{{ order.total | currency:'ARS':'$' }}</td>
+                    <td data-label="Estado" class="text-center">
+                      <span class="badge" [ngClass]="{
+                        'bg-warning text-dark': order.status === 'pending',
+                        'bg-primary': order.status === 'processing',
+                        'bg-info text-dark': order.status === 'shipped',
+                        'bg-success': order.status === 'delivered',
+                        'bg-danger': order.status === 'cancelled'
+                      }">
+                        @switch (order.status) {
+                          @case ('pending') { <span>Pendiente</span> }
+                          @case ('processing') { <span>Procesando</span> }
+                          @case ('shipped') { <span>Enviado</span> }
+                          @case ('delivered') { <span>Entregado</span> }
+                          @case ('cancelled') { <span>Cancelado</span> }
+                          @default { <span>{{ order.status | titlecase }}</span> }
+                        }
+                      </span>
+                    </td>
+                    <td data-label="Acciones" class="text-center">
+                      <button class="btn btn-outline-info btn-sm me-2" [routerLink]="['/admin/orders/detail', order.id]" title="Ver Detalles">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" (click)="deleteOrder(order)" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="text-center text-muted-custom py-5">
+                      @if ((searchTermSubject | async) || (filterStatusSubject | async) !== 'all') {
+                        <div>
+                          <i class="bi bi-search fs-2 d-block mb-2"></i>
+                          No se encontraron pedidos que coincidan.
+                        </div>
+                      } @else {
+                        <div>
+                          <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+                          Aún no hay pedidos para mostrar.
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td colspan="6" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando pedidos...</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (totalOrders > 0 && totalPages > 1) {
+          @if (currentPageSubject | async; as currentPage) {
+            <div class="d-flex justify-content-center mt-4">
+              <nav aria-label="Paginación de pedidos">
+                <ul class="pagination">
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior">&lsaquo;</a>
+                  </li>
+                  @for (page of [].constructor(totalPages); track i; let i = $index) {
+                    <li class="page-item" [class.active]="currentPage === i + 1">
+                      <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
+                    </li>
+                  }
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente">&rsaquo;</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última">&raquo;</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+</div>

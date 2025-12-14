@@ -1,0 +1,97 @@
+@use 'variables' as vars;
+@use 'sass:color';
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.product-list-card {
+  position: relative;
+  border-radius: vars.$border-radius-lg;
+  padding: 2px;
+  background: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background-size: 200% 200%;
+    animation: gradient-animation 8s ease infinite;
+  }
+
+  >.card-body {
+    position: relative;
+    z-index: 2;
+    background-color: #f4f6f9;
+    border-radius: calc(#{vars.$border-radius-lg} - 2px);
+    padding: 1.5rem;
+
+    @media(min-width: vars.$breakpoint-md) {
+      padding: 2rem;
+    }
+  }
+
+  >.card {
+    position: relative;
+    z-index: 2;
+    background-color: #ffffff;
+    border-radius: calc(#{vars.$border-radius-lg} - 2px);
+    border: none;
+  }
+
+  .card-title {
+    font-weight: vars.$font-weight-bold;
+    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.form-control,
+.form-select {
+  background-color: #ffffff;
+  color: #1c2a42;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  padding: 0.5rem 1rem;
+
+  &:hover {
+    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+  }
+
+  &:focus {
+    border-color: vars.$accent-blue;
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+  }
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.img-thumbnail {
+  max-height: 150px;
+  object-fit: cover;
+  background-color: #fff;
+  border: 1px solid #dfe3e8;
+}
+
+.card.bg-light {
+  background-color: #ffffff !important;
+  border: 1px solid #dfe3e8;
+}

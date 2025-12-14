@@ -1,0 +1,293 @@
+@use 'variables' as vars;
+@use 'sass:color';
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.product-list-card {
+  position: relative;
+  border-radius: vars.$border-radius-lg;
+  padding: 2px;
+  background: transparent;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background-size: 200% 200%;
+    animation: gradient-animation 8s ease infinite;
+  }
+
+  .card-body {
+    position: relative;
+    z-index: 2;
+    background-color: #f4f6f9;
+    border-radius: calc(#{vars.$border-radius-lg} - 2px);
+    padding: 1.5rem;
+
+    @media(min-width: vars.$breakpoint-md) {
+      padding: 2rem;
+    }
+  }
+
+  .card-title {
+    font-weight: vars.$font-weight-bold;
+    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.form-control,
+.form-select {
+  background-color: #ffffff;
+  color: #1c2a42;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  padding: 0.5rem 1rem;
+
+  &:hover {
+    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+  }
+
+  &:focus {
+    border-color: vars.$accent-blue;
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+  }
+}
+
+.form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.product-table {
+  $table-text-dark: #1c2a42;
+  $table-border-soft: #dfe3e8;
+  $table-hover-bg-soft: rgba(233, 236, 239, 0.7);
+
+  &.table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: #{$table-border-soft};
+    --bs-table-color: #{$table-text-dark};
+    --bs-table-hover-color: #{$table-text-dark};
+    --bs-table-hover-bg: #{$table-hover-bg-soft};
+  }
+
+  thead th,
+  tbody td {
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    position: relative;
+    border-radius: vars.$border-radius-md;
+    transition: transform 0.2s ease-in-out;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(120deg, vars.$accent-blue, vars.$accent-purple, vars.$accent-blue);
+      background-size: 200% 200%;
+      animation: gradient-animation 6s ease infinite;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+
+      td {
+        color: #000;
+        font-weight: 500;
+      }
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.pagination {
+  .page-item .page-link {
+    border-radius: 50% !important;
+    margin: 0 4px;
+    border: none;
+    font-weight: vars.$font-weight-semibold;
+    color: #6c757d;
+    transition: all 0.3s ease;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      background-color: #e9ecef;
+      color: vars.$accent-purple;
+      transform: translateY(-2px);
+    }
+
+    &:focus {
+      box-shadow: none;
+    }
+  }
+
+  .page-item.active .page-link {
+    background-color: vars.$accent-purple;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.4);
+    transform: translateY(-3px);
+  }
+
+  .page-item.disabled .page-link {
+    background-color: transparent;
+    color: #ced4da;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+.fab-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  font-size: 1.6rem;
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(vars.$accent-purple, 0.3);
+  }
+}
+
+@media (min-width: 769px) {
+  .product-table .col-acciones {
+    white-space: nowrap;
+    width: 1%;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .product-list-card .card-body {
+    padding: 1rem;
+  }
+
+  .product-table {
+    thead {
+      display: none;
+    }
+
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      background-color: #ffffff;
+      border-radius: vars.$border-radius-md;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      position: relative;
+      border: 1px solid #f0f0f0;
+      transition: box-shadow 0.3s ease;
+      padding: 0;
+
+      &:hover {
+        td[data-label="Acciones"] .btn {
+          background-color: transparent;
+        }
+
+        &::after {
+          opacity: 1;
+        }
+      }
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: right !important;
+      padding: 0.75rem 1rem;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      position: relative;
+      z-index: 1;
+
+      &:first-child {
+        border-top-left-radius: vars.$border-radius-md;
+        border-top-right-radius: vars.$border-radius-md;
+      }
+
+      &:last-child {
+        border-bottom: none;
+        border-bottom-left-radius: vars.$border-radius-md;
+        border-bottom-right-radius: vars.$border-radius-md;
+      }
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        color: #495057;
+        margin-right: 1rem;
+        flex-shrink: 0;
+      }
+    }
+
+    td[data-label="Acciones"] {
+      justify-content: flex-end;
+      gap: 0.5rem;
+
+      &::before {
+        margin-right: auto;
+      }
+
+      .btn {
+        flex-shrink: 0;
+        margin-right: 0 !important;
+      }
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1300px) {
+  .form-select {
+    padding-right: 2.75rem;
+  }
+}

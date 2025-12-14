@@ -1,0 +1,90 @@
+@use 'styles/variables' as vars;
+@use 'sass:color';
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: vars.$font-family-primary;
+  background-color: vars.$dark-bg-primary;
+  color: vars.$text-light;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: vars.$dark-bg-secondary;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #ff7b0f, #ff5722);
+  border-radius: 5px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+}
+
+.ql-snow {
+  .ql-toolbar {
+    background-color: #f0f0f0 !important;
+    border-top-left-radius: 0.5rem !important;
+    border-top-right-radius: 0.5rem !important;
+    border: 1px solid #ccc !important;
+    border-bottom: 0 !important;
+
+    .ql-stroke, .ql-picker-label, .ql-picker-item {
+      stroke: #444 !important;
+      color: #444 !important;
+    }
+    .ql-fill {
+      fill: #444 !important;
+    }
+
+    button:hover, .ql-picker-label:hover {
+      .ql-stroke, & {
+        stroke: vars.$accent-blue !important;
+        color: vars.$accent-blue !important;
+      }
+      .ql-fill {
+        fill: vars.$accent-blue !important;
+      }
+    }
+
+    & .ql-active {
+      .ql-stroke, & {
+        stroke: vars.$accent-blue !important;
+        color: vars.$accent-blue !important;
+      }
+      .ql-fill {
+        fill: vars.$accent-blue !important;
+      }
+    }
+  }
+
+  .ql-container {
+    background-color: #ffffff !important;
+    border-bottom-left-radius: 0.5rem !important;
+    border-bottom-right-radius: 0.5rem !important;
+    border: 1px solid #ccc !important;
+    
+    .ql-editor {
+      color: #212529 !important;
+
+      &.ql-blank::before {
+        color: rgba(0, 0, 0, 0.4) !important;
+        font-style: normal !important;
+      }
+    }
+  }
+
+  .ql-picker-options {
+    background-color: #ffffff !important;
+    border-color: #ccc !important;
+    color: #444 !important;
+  }
+}

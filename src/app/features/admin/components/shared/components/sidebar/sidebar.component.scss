@@ -1,0 +1,84 @@
+@use "sass:color";
+@use 'variables' as vars;
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background-color: vars.$dark-bg-secondary;
+  border-right: 1px solid rgba(vars.$text-light, 0.1);
+  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+}
+
+.nav-links {
+  list-style: none;
+  padding: 1rem 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.85rem 2rem;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+  border-radius: 0;
+  position: relative;
+  cursor: pointer;
+
+  span,
+  i {
+    font-size: 1rem;
+    font-weight: vars.$font-weight-medium;
+    color: vars.$text-muted-dark;
+    transition: color 0.3s ease;
+  }
+
+  i {
+    font-size: 1.25rem;
+    margin-right: 1rem;
+    width: 24px;
+  }
+
+  &:hover:not(.active) {
+
+    span,
+    i {
+      background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+      background-size: 200% 200%;
+      animation: gradient-animation 6s ease infinite;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+  }
+
+  &.active {
+    color: vars.$text-light;
+    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue);
+    background-size: 200% 200%;
+    animation: gradient-animation 6s ease infinite;
+
+    span,
+    i {
+      color: vars.$text-light;
+      background: none;
+      -webkit-background-clip: initial;
+      background-clip: initial;
+    }
+  }
+}

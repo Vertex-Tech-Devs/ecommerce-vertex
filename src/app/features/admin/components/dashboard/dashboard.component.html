@@ -1,0 +1,239 @@
+<div class="dashboard-wrapper">
+  <div id="page-content-wrapper">
+    <div class="container-fluid my-4">
+      <div class="dashboard-header">
+        <h1 class="dashboard-title">Dashboard del Administrador</h1>
+        <hr />
+      </div>
+
+      <section class="mb-5">
+        <h2 class="section-title">Resumen Rápido</h2>
+
+        @if ({ monthly: monthlyMetrics$ | async, global: globalMetrics$ | async }; as metrics) {
+          @if(metrics.monthly && metrics.global) {
+            <div class="row g-4">
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-sales">Ventas del Mes</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.monthly.sales | currency : "ARS" : "$" : "1.0-0" }}</h3>
+                    <p class="card-text">Hasta la fecha actual</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-orders">Pedidos del Mes</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.monthly.orders }}</h3>
+                    <p class="card-text">Nuevas órdenes este mes</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-new-clients">Clientes Nuevos del Mes</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.monthly.newClients }}</h3>
+                    <p class="card-text">Primeras compras en el mes</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-total-sales">Ventas Totales</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.global.totalSales | currency : "ARS" : "$" : "1.0-0" }}</h3>
+                    <p class="card-text">Ingresos acumulados</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-total-orders">Pedidos Totales</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.global.totalOrders }}</h3>
+                    <p class="card-text">Órdenes procesadas en total</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                  <div class="card-header fw-bold header-total-clients">Clientes Totales</div>
+                  <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h3 class="display-5 fw-bold">{{ metrics.global.totalClients }}</h3>
+                    <p class="card-text">Base de clientes única</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="text-center p-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando métricas...</span>
+              </div>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="mb-5">
+        <h2 class="section-title">Tareas Pendientes</h2>
+        <div class="row g-4">
+          <div class="col-12 col-lg-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header fw-bold header-pending-orders"><i class="bi bi-box-seam me-2"></i>Pedidos por Enviar</div>
+              <div class="card-body">
+                @if (pendingOrders$ | async; as pendingOrders) {
+                  <ul class="list-group list-group-flush">
+                    @for (order of pendingOrders; track order.id) {
+                      <li class="list-group-item">
+                        <div class="item-content text-truncate">
+                          <span class="fw-bold">{{ order.clientName }}</span>
+                          <small class="d-block text-muted">#{{ order.id }} - {{ order.orderDate | date : "short" }}</small>
+                        </div>
+                        <span class="badge rounded-pill flex-shrink-0 mx-2" [ngClass]="{
+                            'bg-warning text-dark': order.status === 'pending',
+                            'bg-primary': order.status === 'processing',
+                            'bg-info text-dark': order.status === 'shipped',
+                            'bg-success': order.status === 'delivered',
+                            'bg-danger': order.status === 'cancelled'
+                          }">
+                          @switch (order.status) {
+                            @case ('pending') { <span>Pendiente</span> }
+                            @case ('processing') { <span>Procesando</span> }
+                            @case ('shipped') { <span>Enviado</span> }
+                            @case ('delivered') { <span>Entregado</span> }
+                            @case ('cancelled') { <span>Cancelado</span> }
+                            @default { <span>{{ order.status | titlecase }}</span> }
+                          }
+                        </span>
+                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Pedido">
+                          <i class="bi bi-arrow-right-circle"></i>
+                        </a>
+                      </li>
+                    } @empty {
+                      <p class="text-center py-3"><i class="bi bi-check-circle me-1"></i>¡No hay pedidos pendientes!</p>
+                    }
+                  </ul>
+                } @else {
+                  <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header fw-bold header-low-stock"><i class="bi bi-exclamation-triangle-fill me-2"></i>Productos con Poco Stock</div>
+              <div class="card-body">
+                @if (lowStockProducts$ | async; as lowStockProducts) {
+                  <ul class="list-group list-group-flush">
+                    @for (product of lowStockProducts; track product.id) {
+                      <li class="list-group-item">
+                        <div class="item-content text-truncate">
+                          <span class="fw-bold">{{ product.name }}</span>
+                        </div>
+                        <span class="badge bg-danger rounded-pill flex-shrink-0 mx-2">{{ product.totalStock }} unidades</span>
+                        <a [routerLink]="['/admin/products/edit', product.id]" class="btn btn-sm btn-outline-danger ms-auto flex-shrink-0" title="Editar Producto">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                      </li>
+                    } @empty {
+                      <p class="text-center py-3"><i class="bi bi-check-circle me-1"></i>¡Todos los productos tienen buen stock!</p>
+                    }
+                  </ul>
+                } @else {
+                  <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Actividad Reciente</h2>
+        <div class="row g-4">
+          <div class="col-12 col-lg-6 col-xl-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header fw-bold header-latest-orders">Últimos 10 Pedidos</div>
+              <div class="card-body">
+                @if (latestOrders$ | async; as latestOrders) {
+                  <ul class="list-group list-group-flush">
+                    @for (order of latestOrders; track order.id) {
+                      <li class="list-group-item">
+                        <div class="item-content text-truncate">
+                          <span class="fw-bold">{{ order.clientName }}</span>
+                          <small class="d-block text-muted">{{ order.total | currency : "ARS" : "$" }} - {{ order.orderDate | date : "short" }}</small>
+                        </div>
+                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-info ms-auto flex-shrink-0" title="Ver Pedido">
+                          <i class="bi bi-arrow-right-circle"></i>
+                        </a>
+                      </li>
+                    } @empty {
+                      <p class="text-center py-3">No hay pedidos recientes.</p>
+                    }
+                  </ul>
+                } @else {
+                  <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6 col-xl-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header fw-bold header-latest-clients">Últimos 10 Clientes</div>
+              <div class="card-body">
+                @if (latestClients$ | async; as latestClients) {
+                  <ul class="list-group list-group-flush">
+                    @for (client of latestClients; track client.id) {
+                      <li class="list-group-item">
+                        <div class="item-content text-truncate">
+                          <span class="fw-bold">{{ client.fullName }}</span>
+                          <small class="d-block text-truncate">{{ client.email }}</small>
+                        </div>
+                        <a [routerLink]="['/admin/clients', client.email, 'details']" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Cliente">
+                          <i class="bi bi-person-fill"></i>
+                        </a>
+                      </li>
+                    } @empty {
+                      <p class="text-center py-3">No hay clientes recientes.</p>
+                    }
+                  </ul>
+                } @else {
+                  <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>
+                }
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-6 col-xl-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header fw-bold header-latest-products">Últimos 10 Productos</div>
+              <div class="card-body">
+                @if (latestProducts$ | async; as latestProducts) {
+                  <ul class="list-group list-group-flush">
+                    @for (product of latestProducts; track product.id) {
+                      <li class="list-group-item">
+                        <div class="item-content text-truncate">
+                          <span class="fw-bold">{{ product.name }}</span>
+                          <small class="d-block text-muted">{{ product.price | currency : "ARS" : "$" }} - {{ product.createdAt | date : "shortDate" }}</small>
+                        </div>
+                        <a [routerLink]="['/admin/products/detail', product.id]" class="btn btn-sm btn-outline-success ms-auto flex-shrink-0" title="Ver Producto">
+                          <i class="bi bi-eye"></i>
+                        </a>
+                      </li>
+                    } @empty {
+                      <p class="text-center py-3">No hay productos recientes.</p>
+                    }
+                  </ul>
+                } @else {
+                  <div class="text-center py-3"><div class="spinner-border spinner-border-sm"></div></div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,162 @@
+@use "variables" as vars;
+@use "sass:color";
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(90deg,
+      vars.$accent-purple,
+      vars.$accent-blue,
+      vars.$accent-purple );
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+  box-shadow: 0 8px 32px rgba(vars.$accent-purple, 0.3);
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: vars.$dark-bg-secondary;
+}
+
+.account-card-header {
+  background: transparent;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.page-title {
+  font-weight: vars.$font-weight-bold;
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.8rem;
+  letter-spacing: 1px;
+}
+
+.form-title {
+  color: #f0f0f0;
+  font-weight: 500;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #a0a0a0;
+  letter-spacing: 0.5px;
+}
+
+#save-changes-btn {
+  background: linear-gradient(135deg,
+      color.adjust(vars.$accent-purple, $lightness: 5%),
+      vars.$accent-purple );
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.form-divider {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(to right,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent);
+  margin: 2rem 0;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 5%);
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  .form-control {
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    color: #fff;
+    flex-grow: 1;
+    padding-right: 2.75rem;
+
+    &::placeholder {
+      color: #888;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  .password-toggle-icon {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: #888;
+    line-height: 1;
+    transition: color 0.2s ease-in-out;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.password-input-wrapper:focus-within {
+  border-color: vars.$accent-purple;
+  box-shadow: 0 0 0 0.2rem rgba(vars.$accent-purple, 0.25);
+}
+
+.is-invalid-wrapper {
+  border-color: #e57373;
+  box-shadow: 0 0 0 0.2rem rgba(229, 115, 115, 0.25);
+
+  .password-toggle-icon {
+    color: #e57373;
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "origin": [
+      "http://localhost:4200",
+      "https://ecommerce-vertex.app",
+      "https://ecommerce-vertex.firebaseapp.com"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "HEAD"
+    ],
+    "responseHeader": [
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "x-goog-resumable"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

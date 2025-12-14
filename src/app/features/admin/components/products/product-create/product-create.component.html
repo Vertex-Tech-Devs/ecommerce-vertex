@@ -1,0 +1,223 @@
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0 page-title">{{ pageTitle }}</h2>
+    <button class="btn btn-outline-secondary" (click)="onCancel()">
+      <i class="bi bi-arrow-left"></i>
+      {{ isEditMode ? 'Volver al Detalle' : 'Volver a la Lista' }}
+    </button>
+  </div>
+
+  <div class="card-gradient-wrapper">
+    <div class="card form-card">
+      <div class="card-body">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label">Nombre del Producto</label>
+              <input type="text" id="name" class="form-control" formControlName="name"
+                [ngClass]="{ 'is-invalid': name?.invalid && (name?.dirty || name?.touched) }">
+              @if (name?.invalid && (name?.dirty || name?.touched)) {
+                <div class="invalid-feedback">
+                  <div>El nombre es obligatorio (mín. 3 caracteres).</div>
+                </div>
+              }
+            </div>
+            <div class="col-md-6">
+              <label for="price" class="form-label">Precio Base (Requerido)</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" id="price" class="form-control" formControlName="price"
+                  [ngClass]="{ 'is-invalid': price?.invalid && (price?.dirty || price?.touched) }">
+              </div>
+              @if (price?.invalid && (price?.dirty || price?.touched)) {
+                <div class="invalid-feedback d-block">
+                  @if (price?.errors?.['required']) {
+                    <div>El precio es obligatorio.</div>
+                  }
+                  @if (price?.errors?.['min']) {
+                    <div>El precio debe ser mayor a 0.</div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="categoryId" class="form-label">Categoría</label>
+            <select id="categoryId" class="form-select" formControlName="categoryId"
+              [ngClass]="{ 'is-invalid': categoryId?.invalid && (categoryId?.dirty || categoryId?.touched) }">
+              <option [ngValue]="null" disabled>Selecciona una categoría</option>
+              @if (categories$ | async; as categories) {
+                @for (cat of categories; track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              }
+            </select>
+            @if (categoryId?.invalid && (categoryId?.dirty || categoryId?.touched)) {
+              <div class="invalid-feedback">
+                <div>Debes seleccionar una categoría.</div>
+              </div>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">Descripción</label>
+            <textarea id="description" class="form-control" formControlName="description" rows="4"></textarea>
+          </div>
+
+          <hr class="my-4">
+          <h5 class="section-title">Imágenes del Producto</h5>
+
+          <div class="mb-3">
+            <label for="image" class="form-label">Imagen Principal</label>
+            <input type="file" id="image" class="form-control" (change)="onFileSelected($event)" accept="image/*"
+              [ngClass]="{ 'is-invalid': image?.invalid && (image?.dirty || image?.touched) }">
+            @if (uploadProgress !== null) {
+              <div class="progress mt-2" style="height: 10px;">
+                <div class="progress-bar" role="progressbar" [style.width.%]="uploadProgress"></div>
+              </div>
+            }
+            @if (image?.value) {
+              <div class="image-preview-main mt-2">
+                <img [src]="image?.value" alt="Vista previa">
+              </div>
+            }
+            @if (image?.invalid && (image?.dirty || image?.touched)) {
+              <div class="invalid-feedback">
+                <div>La imagen principal es obligatoria.</div>
+              </div>
+            }
+          </div>
+
+          <div formArrayName="images">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label mb-0">Galería de Imágenes Adicionales</label>
+              <button (click)="addImage()" type="button" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-plus-lg"></i> Añadir otra imagen
+              </button>
+            </div>
+            @for (imageControl of images.controls; track i; let i = $index) {
+              <div class="gallery-item-row">
+                <div class="gallery-preview">
+                  @if (imageControl.value) {
+                    <img [src]="imageControl.value" alt="Vista previa de galería">
+                  } @else {
+                    <div class="gallery-placeholder">
+                      <i class="bi bi-image"></i>
+                    </div>
+                  }
+                </div>
+                <div class="gallery-input">
+                  <input type="file" class="form-control" (change)="onGalleryFileSelected($event, i)" accept="image/*"
+                    [disabled]="galleryUploadProgress[i] !== null && galleryUploadProgress[i] !== undefined">
+                  @if (galleryUploadProgress[i] !== null && galleryUploadProgress[i] !== undefined) {
+                    <div class="progress mt-2" style="height: 10px;">
+                      <div class="progress-bar" role="progressbar" [style.width.%]="galleryUploadProgress[i]"></div>
+                    </div>
+                  }
+                </div>
+                <div class="gallery-action">
+                  <button (click)="removeImage(i)" type="button" class="btn btn-outline-danger" title="Eliminar imagen">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="section-title mb-0">Atributos de Variantes</h5>
+            <button (click)="openAttributeModal()" type="button" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-plus-lg"></i> Crear Atributo
+            </button>
+          </div>
+          
+          <div class="mb-3 p-3 bg-light border rounded" formArrayName="variantAttributes">
+            <label class="form-label d-block">Selecciona los atributos que definen este producto:</label>
+            @if(attributes$ | async; as attributes) {
+              @if (attributes.length > 0) {
+                @for (attr of attributes; track attr.id) {
+                  @if (attr.id) {
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" [id]="'attr-' + attr.id" [value]="attr.id"
+                        (change)="onAttributeCheckboxChange($event, attr.id!)"
+                        [checked]="variantAttributes.value.includes(attr.id)">
+                      <label class="form-check-label" [for]="'attr-' + attr.id">{{ attr.name }}</label>
+                    </div>
+                  }
+                }
+              } @else {
+                <p class="text-muted small mb-0">No hay atributos creados. Haz clic en "Crear Atributo" para empezar.</p>
+              }
+            } @else {
+              <p class="text-muted small">Cargando atributos...</p>
+            }
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="section-title mb-0">Variantes y Stock</h5>
+            <button (click)="addVariant()" type="button" class="btn btn-success" [disabled]="variantAttributes.length === 0">
+              <i class="bi bi-plus-lg me-2"></i>Añadir Variante
+            </button>
+          </div>
+
+          @if (productForm.get('variants')?.touched && productForm.get('variants')?.invalid) {
+            <div class="alert alert-danger text-center">
+              Debes añadir al menos una variante y completar todos sus campos.
+            </div>
+          }
+          
+          <div formArrayName="variants">
+            @for (variantGroup of variants.controls; track i; let i = $index) {
+              <div [formGroupName]="i" class="variant-row">
+                
+                <div class="variant-attributes-container" formGroupName="attributes">
+                  @if(attributes$ | async; as attributes) {
+                    @for (attr of attributes; track attr.id) {
+                      @if (attr.id && variantAttributes.value.includes(attr.id)) {
+                        <div class="variant-attribute-item">
+                          <label class="form-label small">{{ attr.name }}</label>
+                          <select class="form-select form-select-sm" [formControlName]="attr.id"
+                            [ngClass]="{ 'is-invalid': variantGroup.get('attributes.' + attr.id)?.invalid && variantGroup.get('attributes.' + attr.id)?.touched }">
+                            <option [ngValue]="null" disabled>Seleccionar...</option>
+                            @for (val of attr.values; track val) {
+                              <option [value]="val">{{ val }}</option>
+                            }
+                          </select>
+                        </div>
+                      }
+                    }
+                  }
+                </div>
+
+                <div class="variant-stock-item">
+                  <label class="form-label small">Stock</label>
+                  <input type="number" class="form-control form-control-sm" formControlName="stock" placeholder="Stock"
+                    [ngClass]="{ 'is-invalid': variantGroup.get('stock')?.invalid && variantGroup.get('stock')?.touched }">
+                </div>
+                
+                <div class="variant-action-item">
+                  <button (click)="removeVariant(i)" type="button" class="btn btn-danger btn-sm" title="Eliminar Variante">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            <button type="button" class="btn btn-secondary me-2" (click)="onCancel()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid || isSubmitting">
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ isSubmitting ? 'Guardando...' : (isEditMode ? 'Actualizar Producto' : 'Crear Producto') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

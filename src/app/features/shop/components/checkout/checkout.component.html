@@ -1,0 +1,143 @@
+<div class="checkout-container">
+  <h1>Finalizar Compra</h1>
+  <div class="checkout-grid">
+
+    <div class="checkout-card">
+      <div class="checkout-card-inner">
+        <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" novalidate>
+          <section class="form-section">
+            <h2>1. Información de Contacto</h2>
+            <div formGroupName="contactInfo" class="row">
+              <div class="col-md-6 form-group">
+                <label for="firstName" class="form-label">Nombre</label>
+                <input type="text" id="firstName" formControlName="firstName" class="form-control" [ngClass]="{ 'is-invalid': contactControls['firstName'].invalid && contactControls['firstName'].touched }">
+                @if (contactControls['firstName'].invalid && contactControls['firstName'].touched) {
+                  <div class="invalid-feedback">
+                    @if (contactControls['firstName'].errors?.['required']) {
+                      <div>El nombre es requerido.</div>
+                    }
+                    @if (contactControls['firstName'].errors?.['minlength']) {
+                      <div>Debe tener al menos 2 caracteres.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-md-6 form-group">
+                <label for="lastName" class="form-label">Apellido</label>
+                <input type="text" id="lastName" formControlName="lastName" class="form-control" [ngClass]="{ 'is-invalid': contactControls['lastName'].invalid && contactControls['lastName'].touched }">
+                @if (contactControls['lastName'].invalid && contactControls['lastName'].touched) {
+                  <div class="invalid-feedback">
+                    @if (contactControls['lastName'].errors?.['required']) {
+                      <div>El apellido es requerido.</div>
+                    }
+                    @if (contactControls['lastName'].errors?.['minlength']) {
+                      <div>Debe tener al menos 2 caracteres.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-12 form-group">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" formControlName="email" class="form-control" [ngClass]="{ 'is-invalid': contactControls['email'].invalid && contactControls['email'].touched }">
+                @if (contactControls['email'].invalid && contactControls['email'].touched) {
+                  <div class="invalid-feedback">
+                    @if (contactControls['email'].errors?.['required']) {
+                      <div>El email es requerido.</div>
+                    }
+                    @if (contactControls['email'].errors?.['email']) {
+                      <div>El formato del email no es válido.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-12 form-group">
+                <label for="phone" class="form-label">Teléfono</label>
+                <input type="tel" id="phone" formControlName="phone" class="form-control" placeholder="Ej: 1122334455" [ngClass]="{ 'is-invalid': contactControls['phone'].invalid && contactControls['phone'].touched }">
+                @if (contactControls['phone'].invalid && contactControls['phone'].touched) {
+                  <div class="invalid-feedback">
+                    @if (contactControls['phone'].errors?.['required']) {
+                      <div>El teléfono es requerido.</div>
+                    }
+                    @if (contactControls['phone'].errors?.['pattern']) {
+                      <div>Ingresa un número de teléfono válido.</div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h2>2. Dirección de Envío</h2>
+            <div formGroupName="shippingInfo" class="row">
+              <div class="col-12 form-group">
+                <label for="address" class="form-label">Dirección</label>
+                <input type="text" id="address" formControlName="address" class="form-control" [ngClass]="{ 'is-invalid': shippingControls['address'].invalid && shippingControls['address'].touched }">
+                @if (shippingControls['address'].invalid && shippingControls['address'].touched) {
+                  <div class="invalid-feedback">
+                    @if (shippingControls['address'].errors?.['required']) {
+                      <div>La dirección es requerida.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-md-6 form-group">
+                <label for="city" class="form-label">Ciudad</label>
+                <input type="text" id="city" formControlName="city" class="form-control" [ngClass]="{ 'is-invalid': shippingControls['city'].invalid && shippingControls['city'].touched }">
+                @if (shippingControls['city'].invalid && shippingControls['city'].touched) {
+                  <div class="invalid-feedback">
+                    @if (shippingControls['city'].errors?.['required']) {
+                      <div>La ciudad es requerida.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-md-6 form-group">
+                <label for="zipCode" class="form-label">Código Postal</label>
+                <input type="text" id="zipCode" formControlName="zipCode" class="form-control" [ngClass]="{ 'is-invalid': shippingControls['zipCode'].invalid && shippingControls['zipCode'].touched }">
+                @if (shippingControls['zipCode'].invalid && shippingControls['zipCode'].touched) {
+                  <div class="invalid-feedback">
+                    @if (shippingControls['zipCode'].errors?.['required']) {
+                      <div>El código postal es requerido.</div>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="col-12 form-group">
+                <label for="province" class="form-label">Provincia</label>
+                <input type="text" id="province" formControlName="province" class="form-control" [ngClass]="{ 'is-invalid': shippingControls['province'].invalid && shippingControls['province'].touched }">
+                @if (shippingControls['province'].invalid && shippingControls['province'].touched) {
+                  <div class="invalid-feedback">
+                    @if (shippingControls['province'].errors?.['required']) {
+                      <div>La provincia es requerida.</div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        </form>
+      </div>
+    </div>
+
+    <div class="summary-column">
+      <div class="checkout-card">
+        <div class="checkout-card-inner">
+          <app-order-summary [items]="cartService.cart().items" [total]="cartService.cart().total"></app-order-summary>
+          <button
+            type="button"
+            class="btn btn-primary w-100 mt-3 btn-lg"
+            (click)="onSubmit()"
+            [disabled]="checkoutForm.invalid || isProcessingPayment()">
+            @if (isProcessingPayment()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span>Procesando pago...</span>
+            } @else {
+              <span>Pagar con Mercado Pago</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

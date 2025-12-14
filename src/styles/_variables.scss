@@ -1,0 +1,70 @@
+// -- General Layout and Component Variables --
+$admin-header-bg: #020202;
+$admin-header-text: #f9f7f7;
+
+// Variables for sidebar width, differentiating desktop from mobile/overlay
+$sidebar-width-desktop: 250px;
+$sidebar-width-mobile-overlay: 280px;
+$header-height: 80px;
+
+// -- Dark Theme Colors --
+$dark-bg-primary: #1a1a2e;
+$dark-bg-secondary: #21213b;
+
+// Gradients for card backgrounds
+$dark-bg-card-gradient-start: #2a2a47;
+$dark-bg-card-gradient-end: #1a1a2e;
+
+// Text colors
+$text-light: #f8f9fa;
+$text-dark: #212529;
+$text-muted-dark: #adb5bd;
+
+// Accent colors (for buttons, links, important numbers, etc.)
+$accent-purple: #7b68ee;
+$accent-blue: #007bff;
+$accent-green: #28a745;
+$accent-red: #dc3545;
+$accent-yellow: #ffc107;
+
+// Shadows and rounded borders
+$border-radius-lg: 1rem;
+$border-radius-md: 0.75rem;
+$border-radius-sm: 0.5rem;
+$border-radius-pill: 50%;
+
+$box-shadow-dark: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+// Typography (make sure to import the 'Inter' font in your main styles.scss)
+$font-family-primary: 'Inter', sans-serif;
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// -- Breakpoints for Responsive Design --
+$breakpoint-sm: 576px; // Small (mobile)
+$breakpoint-md: 768px; // Medium (tablets)
+$breakpoint-lg: 992px; // Large (desktops)
+$breakpoint-xl: 1200px; // Extra large (large desktops)
+
+// -- Specific Variables for the Dashboard --
+$dashboard-header-text-color: $text-light;
+$dashboard-section-title-color: $accent-purple;
+
+// Specific card header backgrounds (gradients) for each metric type
+$card-header-sales-bg: linear-gradient(135deg, #6c757d, #495057); // Gray for Sales
+$card-header-orders-bg: linear-gradient(135deg, #007bff, #0056b3); // Blue for Orders
+$card-header-clients-bg: linear-gradient(135deg, #28a745, #1e7e34); // Green for New Clients
+
+$card-header-total-sales-bg: linear-gradient(135deg, #6c757d, #495057); // Gray for Total Sales
+$card-header-total-orders-bg: linear-gradient(135deg, #343a40, #212529); // Black/Dark Gray for Total Orders
+$card-header-total-clients-bg: linear-gradient(135deg, #ffc107, #d39e00); // Yellow for Total Clients
+
+$card-header-pending-orders-bg: linear-gradient(135deg, #ffc107, #d39e00); // Yellow for Pending Orders
+$card-header-low-stock-bg: linear-gradient(135deg, #dc3545, #b02a37); // Red for Low Stock Products
+
+$card-header-latest-orders-bg: linear-gradient(135deg, #17a2b8, #117a8b); // Cyan for Latest Orders
+$card-header-latest-clients-bg: linear-gradient(135deg, #007bff, #0056b3); // Blue for Latest Clients
+$card-header-latest-products-bg: linear-gradient(135deg, #28a745, #1e7e34); // Green for Latest Products

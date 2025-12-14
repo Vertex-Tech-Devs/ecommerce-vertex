@@ -1,0 +1,94 @@
+@if (product) {
+  <div class="product-detail-container">
+    <div class="product-card">
+      <div class="product-grid">
+        <div class="product-gallery">
+          <div class="main-image-container">
+            <img [src]="mainImage()" [alt]="product.name" class="main-image fade-in">
+          </div>
+          @if (galleryImages().length > 1) {
+            <div class="thumbnail-container">
+              @for (img of galleryImages(); track img) {
+                <img
+                  [src]="img"
+                  [alt]="product.name + ' thumbnail'"
+                  class="thumbnail"
+                  [class.selected]="img === mainImage()"
+                  (click)="changeMainImage(img)">
+              }
+            </div>
+          }
+        </div>
+
+        <div class="product-info">
+          <h1 class="product-title">{{ product.name }}</h1>
+          <p class="product-price">{{ product.price | currency:'ARS':'$' }}</p>
+          <p class="product-description">{{ product.description }}</p>
+
+          @for(attr of attributes(); track attr.id) {
+            <div class="variant-selector">
+              <label class="selector-label">{{ attr.name }}:</label>
+              <div class="options-container">
+                @for (value of getValuesForAttribute(attr); track value) {
+                  @if (isOptionVisible(attr.id, value)) {
+                    <button
+                      class="option-btn"
+                      [class.selected]="value === attr.selectedValue"
+                      (click)="selectAttribute(attr.id, value)">
+                      {{ value }}
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          }
+
+          @if (selectedVariant() !== undefined) {
+            <div class="stock-info">
+              @if (selectedVariant(); as variant) {
+                @if (variant.stock > 0) {
+                  <span class="in-stock">
+                    ¡Disponible! (Quedan {{ variant.stock }} unidades)
+                  </span>
+                } @else {
+                  <span class="out-of-stock">Agotado</span>
+                }
+              } @else if (selectedVariant() === null && attributes().length > 0) {
+                <span class="out-of-stock">Variante no disponible</span>
+              }
+            </div>
+          }
+
+          <div class="purchase-actions">
+            <div class="quantity-selector">
+              <button class="quantity-btn" (click)="decreaseQuantity()" [disabled]="quantity() <= 1">-</button>
+              <span class="quantity-value">{{ quantity() }}</span>
+              <button class="quantity-btn" (click)="increaseQuantity()" [disabled]="!selectedVariant() || quantity() >= (selectedVariant()?.stock || 1)">+</button>
+            </div>
+
+            <button
+              class="add-to-cart-btn"
+              (click)="addToCart()"
+              [disabled]="!selectedVariant() || selectedVariant()?.stock === 0">
+              @if (selectedVariant() === undefined) {
+                <span>Selecciona una variante</span>
+              } @else if (!selectedVariant()) {
+                <span>No disponible</span>
+              } @else if (selectedVariant()?.stock === 0) {
+                <span>Agotado</span>
+              } @else {
+                <span>Añadir al Carrito</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="product-detail-container product-card" style="text-align: center; padding-top: 5rem; padding-bottom: 5rem;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando producto...</span>
+    </div>
+  </div>
+}

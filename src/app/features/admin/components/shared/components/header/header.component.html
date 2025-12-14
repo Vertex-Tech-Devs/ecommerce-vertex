@@ -1,0 +1,40 @@
+<header class="admin-header">
+  <div class="header-content">
+    <div class="header-left">
+      <div class="menu-toggle-wrapper">
+        <button class="menu-toggle" (click)="onToggleSidebar($event)">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+      <span class="welcome-message">Bienvenido</span>
+    </div>
+
+    <div class="header-right">
+      <div class="user-menu-wrapper">
+        <button class="user-dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <span class="user-name">{{ userName$ | async }}</span>
+          <i class="bi bi-person-circle user-icon"></i>
+          <i class="bi bi-chevron-down dropdown-caret"></i>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+          <div class="dropdown-gradient-wrapper">
+            <div class="dropdown-content">
+              <li>
+                <a class="dropdown-item" routerLink="/admin/account">
+                  <i class="bi bi-person-gear me-2"></i>Mi Perfil
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <button class="dropdown-item" type="button" (click)="logout()">
+                  <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
+                </button>
+              </li>
+            </div>
+          </div>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>

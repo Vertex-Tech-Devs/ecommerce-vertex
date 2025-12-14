@@ -1,0 +1,494 @@
+@use "variables" as vars;
+@use "sass:color";
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: vars.$border-radius-lg;
+  background: linear-gradient(90deg,
+      vars.$accent-purple,
+      vars.$accent-blue,
+      vars.$accent-purple );
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+}
+
+.form-card {
+  border: none;
+  border-radius: calc(#{vars.$border-radius-lg} - 2px);
+  background-color: #f4f6f9;
+
+  .card-body {
+    padding: 1.5rem;
+
+    @media (min-width: vars.$breakpoint-md) {
+      padding: 2.5rem;
+    }
+  }
+}
+
+.page-title {
+  font-weight: vars.$font-weight-bold;
+  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.section-title {
+  color: vars.$accent-blue;
+  font-weight: vars.$font-weight-semibold;
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  font-weight: vars.$font-weight-semibold;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+  background-color: #ffffff;
+  color: #1c2a42;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  padding: 0.65rem 1rem;
+
+  &:hover:not(:disabled) {
+    border-color: color.adjust(vars.$accent-purple,
+        $lightness: 15%,
+        $saturation: -10%);
+  }
+
+  &:focus {
+    border-color: vars.$accent-blue;
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+  }
+}
+
+.input-group {
+  .form-control {
+    border-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .input-group-text {
+    border-right: 0;
+    background-color: #e9ecef;
+  }
+}
+
+.is-invalid {
+  border-color: vars.$accent-red !important;
+
+  &:focus {
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-red, 0.25);
+  }
+}
+
+.form-select.is-invalid {
+  border-color: vars.$accent-red !important;
+  
+  &:focus {
+    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-red, 0.25);
+  }
+}
+
+.invalid-feedback {
+  display: block;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg,
+      vars.$accent-blue,
+      vars.$accent-purple );
+  border: none;
+  color: white;
+  font-weight: vars.$font-weight-semibold;
+  padding: 0.75rem 1.5rem;
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(vars.$accent-purple, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 2px solid vars.$accent-red;
+  color: vars.$accent-red;
+  font-weight: vars.$font-weight-semibold;
+  padding: calc(0.75rem - 2px) calc(1.5rem - 2px);
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: vars.$accent-red;
+    border-color: vars.$accent-red;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+  }
+}
+
+.btn-outline-secondary {
+  border: 2px solid vars.$accent-blue;
+  color: vars.$accent-blue;
+  background-color: transparent;
+  font-weight: vars.$font-weight-semibold;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    border-color: transparent;
+    background: linear-gradient(90deg,
+        vars.$accent-purple,
+        vars.$accent-blue,
+        vars.$accent-purple );
+    background-size: 200% 200%;
+    animation: gradient-animation 4s ease infinite;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+  }
+}
+
+.btn-outline-primary {
+  border: 2px solid vars.$accent-blue;
+  color: vars.$accent-blue;
+  background-color: transparent;
+  font-weight: vars.$font-weight-semibold;
+  transition: all 0.3s ease;
+
+  &:hover {
+    color: white;
+    border-color: transparent;
+    background: linear-gradient(90deg,
+        vars.$accent-purple,
+        vars.$accent-blue,
+        vars.$accent-purple );
+    background-size: 200% 200%;
+    animation: gradient-animation 4s ease infinite;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+  }
+}
+
+.image-preview-main {
+  width: 100%;
+  max-width: 250px;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  overflow: hidden;
+  background-color: #e9ecef;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+}
+
+.gallery-item-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background-color: #ffffff;
+  border: 1px solid #dfe3e8;
+  border-radius: vars.$border-radius-md;
+  transition: box-shadow 0.2s ease-in-out;
+
+  &:focus-within,
+  &:hover {
+    box-shadow: 0 0 0 0.2rem rgba(vars.$accent-blue, 0.2);
+  }
+}
+
+.gallery-preview {
+  flex-shrink: 0;
+  width: 70px;
+  height: 70px;
+  border-radius: vars.$border-radius-sm;
+  overflow: hidden;
+  background-color: #e9ecef;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gallery-placeholder {
+    color: #adb5bd;
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.gallery-input {
+  flex-grow: 1;
+
+  .progress {
+    height: 8px;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+
+    .progress-bar {
+      background: linear-gradient(45deg,
+          vars.$accent-blue,
+          vars.$accent-purple );
+    }
+  }
+}
+
+.gallery-action {
+  flex-shrink: 0;
+}
+
+.btn-danger {
+  background-color: vars.$accent-red;
+  border-color: vars.$accent-red;
+  color: white;
+  font-weight: vars.$font-weight-semibold;
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: color.adjust(vars.$accent-red, $lightness: -5%);
+    border-color: color.adjust(vars.$accent-red, $lightness: -5%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+  }
+}
+
+.btn-outline-danger {
+  border: 2px solid vars.$accent-red;
+  color: vars.$accent-red;
+  background-color: transparent;
+  font-weight: vars.$font-weight-semibold;
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: vars.$accent-red;
+    color: white;
+    transform: translateY(-2px);
+  }
+}
+
+.btn-success {
+  background-color: vars.$accent-green;
+  border-color: vars.$accent-green;
+  color: white;
+  font-weight: vars.$font-weight-semibold;
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover:not(:disabled) {
+    background-color: color.adjust(vars.$accent-green, $lightness: -5%);
+    border-color: color.adjust(vars.$accent-green, $lightness: -5%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(vars.$accent-green, 0.2);
+  }
+}
+
+.btn-outline-success {
+  border: 2px solid vars.$accent-green;
+  color: vars.$accent-green;
+  background-color: transparent;
+  font-weight: vars.$font-weight-semibold;
+  border-radius: vars.$border-radius-md;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: vars.$accent-green;
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  &.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+.variant-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-areas: "attributes stock action";
+  gap: 1rem;
+  align-items: start;
+  
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: vars.$border-radius-md;
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  border: 1px solid #dfe3e8;
+  background-color: #ffffff;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  &.ng-invalid.ng-touched {
+    background-color: rgba(vars.$accent-red, 0.05);
+    border-color: rgba(vars.$accent-red, 0.2);
+  }
+}
+
+.variant-attributes-container {
+  grid-area: attributes;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.variant-attribute-item {
+  min-width: 120px;
+}
+
+.variant-stock-item {
+  grid-area: stock;
+  width: 100px;
+}
+
+.variant-action-item {
+  grid-area: action;
+  padding-top: 1.75rem;
+  
+  .btn-danger {
+    padding: 0.65rem 1rem;
+  }
+}
+
+.progress-bar {
+  background-color: vars.$accent-purple;
+}
+
+@media (max-width: vars.$breakpoint-md) {
+  .form-card .card-body {
+    padding: 1.5rem;
+  }
+
+  .gallery-item-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    .gallery-preview {
+      width: 60px;
+      height: 60px;
+      order: 1;
+    }
+
+    .gallery-action {
+      order: 1;
+      margin-left: auto;
+    }
+
+    .gallery-input {
+      flex-basis: 100%;
+      order: 2;
+    }
+  }
+
+  .variant-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "attributes attributes"
+      "stock      action";
+    align-items: end;
+    
+    .variant-attributes-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .variant-stock-item {
+      width: auto;
+    }
+    .variant-action-item {
+      padding-top: 0;
+    }
+  }
+}
+
+@media (max-width: vars.$breakpoint-sm) {
+
+  .container>.d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  div[formArrayName="images"]>.d-flex.justify-content-between {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  form>.d-flex.justify-content-end {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .d-flex.justify-content-between .btn-success {
+    width: 100%;
+  }
+
+  .variant-row {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "attributes"
+      "stock"
+      "action";
+    align-items: stretch;
+    
+    .variant-attributes-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .variant-action-item {
+      padding-top: 0;
+    }
+
+    .variant-action-item .btn-danger {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,134 @@
+<div class="container-fluid my-4">
+
+  <div class="card product-list-card shadow-sm">
+    <div class="card-body">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0 card-title">Gestión del Footer de la Tienda</h2>
+        <button class="btn btn-primary" (click)="onSubmit()" [disabled]="isSubmitting || footerForm.invalid || !footerForm.dirty">
+          @if (isSubmitting) {
+            <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+          }
+          {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+
+      <hr class="mb-4">
+
+      @if (isLoading) {
+        <div class="text-center p-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando datos del footer...</span>
+          </div>
+        </div>
+      } @else {
+        <form [formGroup]="footerForm" (ngSubmit)="onSubmit()">
+
+          <div class="product-list-card mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">1. Información de Contacto</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label for="contactEmail" class="form-label">Email de Contacto</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                      <input type="email" id="contactEmail" class="form-control" formControlName="contactEmail"
+                             [class.is-invalid]="email?.invalid && email?.touched">
+                    </div>
+                    @if (email?.invalid && email?.touched) {
+                      <div class="invalid-feedback d-block">
+                        @if (email?.errors?.['required']) { <span>Email es obligatorio.</span> }
+                        @if (email?.errors?.['email']) { <span>Debe ser un email válido.</span> }
+                      </div>
+                    }
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label for="contactPhone" class="form-label">Teléfono (Texto libre)</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                      <input type="text" id="contactPhone" class="form-control" formControlName="contactPhone" placeholder="(Ej: +54 9 261...">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-list-card mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">2. Redes Sociales (URLs Completas)</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="socialInstagramUrl" class="form-label">URL de Instagram</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-instagram"></i></span>
+                    <input type="url" id="socialInstagramUrl" class="form-control" formControlName="socialInstagramUrl" placeholder="https://instagram.com/usuario">
+                  </div>
+                  @if (instagram?.invalid && instagram?.touched) {
+                    <div class="invalid-feedback d-block">La URL debe ser válida (empezar con http:// o https://). Dejar vacío si no aplica.</div>
+                  }
+                </div>
+                <div class="mb-3">
+                  <label for="socialFacebookUrl" class="form-label">URL de Facebook</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-facebook"></i></span>
+                    <input type="url" id="socialFacebookUrl" class="form-control" formControlName="socialFacebookUrl" placeholder="https://facebook.com/pagina">
+                  </div>
+                  @if (facebook?.invalid && facebook?.touched) {
+                    <div class="invalid-feedback d-block">La URL debe ser válida (empezar con http:// o https://). Dejar vacío si no aplica.</div>
+                  }
+                </div>
+                <div class="mb-3">
+                  <label for="socialWhatsAppUrl" class="form-label">URL de WhatsApp (Link directo)</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-whatsapp"></i></span>
+                    <input type="url" id="socialWhatsAppUrl" class="form-control" formControlName="socialWhatsAppUrl" placeholder="https://wa.me/549...">
+                  </div>
+                  @if (whatsapp?.invalid && whatsapp?.touched) {
+                    <div class="invalid-feedback d-block">La URL debe ser válida (empezar con http:// o https://). Dejar vacío si no aplica.</div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-list-card mb-4">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">3. Contenido y Copyright</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="copyrightText" class="form-label">Texto de Copyright</label>
+                  <input type="text" id="copyrightText" class="form-control" formControlName="copyrightText" placeholder="Vertex. Todos los derechos reservados.">
+                  <div class="form-text">El año (Ej: © 2025) se añadirá automáticamente en la tienda.</div>
+                  @if (copyright?.invalid && copyright?.touched) {
+                    <div class="invalid-feedback d-block">El texto de copyright es obligatorio.</div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-warning" (click)="resetForm()" [disabled]="!footerForm.dirty">
+              Resetear Cambios
+            </button>
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || footerForm.invalid || !footerForm.dirty">
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+              }
+              {{ isSubmitting ? 'Guardando...' : 'Guardar Todos los Cambios' }}
+            </button>
+          </div>
+
+        </form>
+      }
+    </div>
+  </div>
+</div>

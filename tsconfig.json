@@ -1,0 +1,39 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "strict": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "isolatedModules": true,
+    "baseUrl": "./",
+    "paths": {
+      "@core/*": [
+        "src/app/core/*"
+      ],
+      "@shared/*": [
+        "src/app/shared/*"
+      ],
+      "@features/*": [
+        "src/app/features/*"
+      ],
+      "@environments/*": [
+        "src/environments/*"
+      ]
+    },
+    "lib": [
+      "ES2022",
+      "dom"
+    ]
+  },
+  "angularCompilerOptions": {
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
+}

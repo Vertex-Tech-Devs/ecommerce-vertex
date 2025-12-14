@@ -1,0 +1,104 @@
+@if (order) {
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">{{ title }} #{{ order.id }}</h4>
+    <button type="button" class="btn-close btn-close-white close pull-right" aria-label="Close" (click)="close()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body receipt-body">
+    <div class="receipt-header">
+      <div class="store-details">
+        <h2 class="store-name">Kasa Kalle</h2>
+      </div>
+      <div class="receipt-details">
+        <p><strong>Recibo #:</strong> {{ order.id }}</p>
+        <p><strong>Fecha de Emisión:</strong> {{ today | date:'dd/MM/yyyy' }}</p>
+        <p><strong>Fecha del Pedido:</strong> {{ order.orderDate | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="customer-details">
+      <div class="billed-to">
+        <h5>Facturado a:</h5>
+        <p><strong>{{ order.clientName }}</strong></p>
+        <p>{{ order.clientEmail }}</p>
+        <p>{{ order.clientPhone }}</p>
+      </div>
+      <div class="shipped-to">
+        <h5>Enviado a:</h5>
+        <address>
+          {{ order.shippingAddress.street }}<br>
+          {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }} {{ order.shippingAddress.zipCode }}<br>
+          {{ order.shippingAddress.country }}
+        </address>
+      </div>
+    </div>
+
+    <div class="items-table">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-end">Precio Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(item of order.items; track item.variantId) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td class="text-center">{{ item.quantity }}</td>
+              <td class="text-end">{{ item.price | currency:'ARS':'$' }}</td>
+              <td class="text-end">{{ getItemSubtotal(item) | currency:'ARS':'$' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals-summary">
+      <table class="table">
+        <tbody>
+          <tr>
+            <td>Subtotal:</td>
+            <td class="text-end">{{ order.paymentDetails?.subtotal || (order.items | sumItems:'price':'quantity') | currency:'ARS':'$' }}</td>
+          </tr>
+          <tr>
+            <td>Envío:</td>
+            <td class="text-end">{{ order.paymentDetails?.shippingCost || 0 | currency:'ARS':'$' }}</td>
+          </tr>
+          <tr>
+            <td>Impuestos:</td>
+            <td class="text-end">{{ order.paymentDetails?.taxAmount || 0 | currency:'ARS':'$' }}</td>
+          </tr>
+          <tr class="total-row">
+            <td><strong>Total:</strong></td>
+            <td class="text-end"><strong>{{ order.total | currency:'ARS':'$' }}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="close()">Cerrar</button>
+    <button type="button" class="btn btn-primary" (click)="printReceipt()"><i class="bi bi-printer me-2"></i>Imprimir</button>
+  </div>
+} @else {
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Error</h4>
+    <button type="button" class="btn-close btn-close-white close pull-right" aria-label="Close" (click)="close()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="alert alert-danger">No se pudieron cargar los datos del recibo.</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="close()">Cerrar</button>
+  </div>
+}

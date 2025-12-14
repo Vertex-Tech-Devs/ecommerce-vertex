@@ -1,0 +1,103 @@
+<div class="container-fluid my-4">
+  <div class="card-gradient-wrapper">
+    <div class="card list-card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="card-title mb-0">
+            Detalles del Cliente
+          </h2>
+          <button class="btn btn-outline-secondary btn-sm" (click)="goBackToList()">
+            <i class="bi bi-arrow-left"></i> Volver a Clientes
+          </button>
+        </div>
+
+        @if (clientDetails) {
+          <div class="card-gradient-wrapper mb-4">
+            <div class="card details-sub-card">
+              <div class="card-header">
+                <h3 class="card-title mb-0">
+                  <i class="bi bi-person-circle me-2"></i>
+                  {{ clientDetails.fullName }}
+                </h3>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <p class="card-text"><strong>Email:</strong> {{ clientDetails.email }}</p>
+                    <p class="card-text mb-md-0"><strong>Teléfono:</strong> {{ clientDetails.phone }}</p>
+                  </div>
+                  <div class="col-md-6">
+                    <p class="card-text"><strong>Cliente desde:</strong> {{ clientDetails.firstOrderDate | date:"dd/MM/yyyy" }}</p>
+                    <p class="card-text mb-0"><strong>N.º de Pedidos:</strong> {{ clientDetails.numberOfOrders }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <h4><i class="bi bi-receipt-cutoff me-2"></i>Historial de Pedidos</h4>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle details-table">
+            <thead>
+              <tr>
+                <th scope="col">ID Pedido</th>
+                <th scope="col">Fecha</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-center">Estado</th>
+                <th scope="col" class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (clientOrders$ | async; as orders) {
+                @for (order of orders; track order.id) {
+                  <tr>
+                    <td data-label="ID Pedido">{{ order.id }}</td>
+                    <td data-label="Fecha">{{ order.orderDate | date:"dd/MM/yyyy HH:mm" }}</td>
+                    <td data-label="Total" class="text-end">{{ order.total | currency:"ARS":"$" }}</td>
+                    <td data-label="Estado" class="text-center">
+                      <span class="badge" [ngClass]="{
+                        'bg-warning text-dark': order.status === 'pending',
+                        'bg-primary': order.status === 'processing',
+                        'bg-info': order.status === 'shipped',
+                        'bg-success': order.status === 'delivered',
+                        'bg-danger': order.status === 'cancelled'
+                      }">
+                        {{ order.status | titlecase }}
+                      </span>
+                    </td>
+                    <td data-label="Acciones" class="text-center">
+                      <button class="btn btn-outline-primary btn-sm" [routerLink]="['/admin/orders/detail', order.id]" title="Ver Detalles del Pedido">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="text-center text-muted-custom py-4">
+                      Este cliente aún no tiene pedidos registrados.
+                    </td>
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td colspan="5" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Cargando historial...</span>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (!clientDetails && clientEmail) {
+    <div class="alert alert-warning text-center mt-4">
+      No se encontraron detalles para el cliente con el email: {{ clientEmail }}
+    </div>
+  }
+</div>

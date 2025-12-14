@@ -1,0 +1,175 @@
+@use 'variables' as vars;
+@use "sass:color";
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem;
+  background-color: vars.$dark-bg-primary;
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  background-size: 200% 200%;
+  animation: gradient-animation 8s ease infinite;
+  box-shadow: 0 8px 32px rgba(vars.$accent-purple, 0.3);
+  width: 100%;
+  max-width: 450px;
+}
+
+.card {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: vars.$dark-bg-secondary;
+}
+
+.login-card-header {
+  background: transparent;
+  color: #fff;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  h2 {
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-size: 1.4rem;
+  }
+}
+
+.form-title {
+  color: #f0f0f0;
+  font-weight: 500;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #a0a0a0;
+  letter-spacing: 0.5px;
+}
+
+#login-btn {
+  background: linear-gradient(135deg, color.adjust(vars.$accent-purple, $lightness: 5%), vars.$accent-purple);
+  color: white;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 5%);
+  border: 1px solid #444;
+  border-radius: 8px;
+  color: #fff;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  padding: 0.75rem 1rem;
+
+  &::placeholder {
+    color: #888;
+  }
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 5%);
+  border: 1px solid #444;
+  border-radius: 8px;
+  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+
+  .form-control {
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    flex-grow: 1;
+    padding-right: 2.75rem;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.password-toggle-icon {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #888;
+  line-height: 1;
+  transition: color 0.2s ease-in-out;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.form-control:focus,
+.password-input-wrapper:focus-within {
+  border-color: vars.$accent-purple;
+  box-shadow: 0 0 0 0.2rem rgba(vars.$accent-purple, 0.25);
+}
+
+.form-control.is-invalid,
+.is-invalid-wrapper {
+  border-color: #e57373;
+  box-shadow: 0 0 0 0.2rem rgba(229, 115, 115, 0.25);
+
+  .password-toggle-icon {
+    color: #e57373;
+  }
+}
+
+.alert-custom {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f0f0f0;
+  border-radius: 8px;
+
+  a {
+    color: vars.$accent-blue;
+  }
+}
