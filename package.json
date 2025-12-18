@@ -8,9 +8,8 @@
     "clean": "rm -rf dist functions/lib functions/.npmrc",
     "build:functions": "npm run build --prefix functions",
     "update:functions:deps": "cd functions && npm install firebase-functions@latest firebase-admin@latest && cd ..",
-    
-    "deploy:prod": "npm run clean && npm run build -- --configuration production && npm run build:functions && firebase deploy --project production --only hosting:vertex-tienda,functions",
-    "deploy:dev": "npm run clean && npm run build -- --configuration development && npm run build:functions && firebase deploy --project development --only hosting:vertex-tienda-dev,functions"
+    "deploy:prod": "npm run clean && npm run build -- --configuration production && npm run build:functions && firebase deploy --project production --only hosting:ecommerce-vertex,functions",
+    "deploy:dev": "npm run clean && npm run build -- --configuration development && npm run build:functions && firebase deploy --project development --only hosting:ecommerce-vertex,functions"
   },
   "dependencies": {
     "@angular/animations": "^20.0.0",

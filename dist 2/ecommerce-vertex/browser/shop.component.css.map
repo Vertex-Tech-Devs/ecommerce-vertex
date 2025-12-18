@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/features/shop/layout/shop/shop.component.scss"],
+  "sourcesContent": [":host {\n  display: flex;\n  flex-direction: column;\n  min-height: 100vh;\n  background-color: #f4f5f7;\n  color: #333;\n}\n\n.main-content {\n  flex: 1;\n  width: 100%;\n}"],
+  "mappings": ";AAAA;AACE,WAAA;AACA,kBAAA;AACA,cAAA;AACA,oBAAA;AACA,SAAA;;AAGF,CAAA;AACE,QAAA;AACA,SAAA;;",
+  "names": []
+}

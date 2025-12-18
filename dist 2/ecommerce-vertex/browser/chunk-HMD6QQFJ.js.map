@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/core/utils/date-converter.ts"],
+  "sourcesContent": ["import { Timestamp } from 'firebase/firestore';\n\nexport function convertTimestampsToDates(data: any): any {\n  if (!data) return data;\n  if (data instanceof Timestamp) return data.toDate();\n  if (Array.isArray(data)) {\n    return data.map(item => convertTimestampsToDates(item));\n  }\n  if (typeof data === 'object' && data !== null) {\n    const convertedData: { [key: string]: any } = {};\n    for (const key in data) {\n      if (Object.prototype.hasOwnProperty.call(data, key)) {\n        convertedData[key] = convertTimestampsToDates(data[key]);\n      }\n    }\n    return convertedData;\n  }\n  return data;\n}"],
+  "mappings": ";;;;;AAEM,SAAU,yBAAyB,MAAS;AAChD,MAAI,CAAC;AAAM,WAAO;AAClB,MAAI,gBAAgB;AAAW,WAAO,KAAK,OAAM;AACjD,MAAI,MAAM,QAAQ,IAAI,GAAG;AACvB,WAAO,KAAK,IAAI,UAAQ,yBAAyB,IAAI,CAAC;EACxD;AACA,MAAI,OAAO,SAAS,YAAY,SAAS,MAAM;AAC7C,UAAM,gBAAwC,CAAA;AAC9C,eAAW,OAAO,MAAM;AACtB,UAAI,OAAO,UAAU,eAAe,KAAK,MAAM,GAAG,GAAG;AACnD,sBAAc,GAAG,IAAI,yBAAyB,KAAK,GAAG,CAAC;MACzD;IACF;AACA,WAAO;EACT;AACA,SAAO;AACT;",
+  "names": []
+}

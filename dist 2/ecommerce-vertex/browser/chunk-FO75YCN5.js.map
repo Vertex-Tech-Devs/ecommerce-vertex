@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/core/services/footer.service.ts"],
+  "sourcesContent": ["import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';\nimport { Firestore, docData } from '@angular/fire/firestore';\nimport { doc, setDoc } from 'firebase/firestore';\nimport { Observable } from 'rxjs';\nimport { FooterData } from '@core/models/footer.model';\n\n@Injectable({\n  providedIn: 'root',\n})\nexport class FooterService {\n  private firestore: Firestore = inject(Firestore);\n  private injector = inject(Injector);\n\n  getFooterData(): Observable<FooterData | undefined> {\n    return runInInjectionContext(this.injector, () => {\n      const docRef = doc(this.firestore, 'configuracion/footer');\n      return docData(docRef) as Observable<FooterData | undefined>;\n    });\n  }\n\n  saveFooterData(data: FooterData): Promise<void> {\n    const docRef = doc(this.firestore, 'configuracion/footer');\n    const cleanData = JSON.parse(JSON.stringify(data));\n    return setDoc(docRef, cleanData);\n  }\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;AASM,IAAO,gBAAP,MAAO,eAAa;EAChB,YAAuB,OAAO,SAAS;EACvC,WAAW,OAAO,QAAQ;EAElC,gBAAa;AACX,WAAO,sBAAsB,KAAK,UAAU,MAAK;AAC/C,YAAM,SAAS,IAAI,KAAK,WAAW,sBAAsB;AACzD,aAAO,QAAQ,MAAM;IACvB,CAAC;EACH;EAEA,eAAe,MAAgB;AAC7B,UAAM,SAAS,IAAI,KAAK,WAAW,sBAAsB;AACzD,UAAM,YAAY,KAAK,MAAM,KAAK,UAAU,IAAI,CAAC;AACjD,WAAO,OAAO,QAAQ,SAAS;EACjC;;qCAfW,gBAAa;EAAA;4EAAb,gBAAa,SAAb,eAAa,WAAA,YAFZ,OAAM,CAAA;;;sEAEP,eAAa,CAAA;UAHzB;WAAW;MACV,YAAY;KACb;;;",
+  "names": []
+}

@@ -5,22 +5,7 @@
   },
   "hosting": [
     {
-      "target": "veertex-tienda",
-      "public": "dist/ecommerce-vertex/browser",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
-      "rewrites": [
-        {
-          "source": "**",
-          "destination": "/index.html"
-        }
-      ]
-    },
-    {
-      "target": "vertex-tienda-dev",
+      "target": "ecommerce-vertex",
       "public": "dist/ecommerce-vertex/browser",
       "ignore": [
         "firebase.json",
