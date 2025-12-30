@@ -2,7 +2,7 @@
   {
     "origin": [
       "http://localhost:4200",
-      "https://ecommerce-vertex.app",
+      "https://ecommerce-vertex.web.app",
       "https://ecommerce-vertex.firebaseapp.com"
     ],
     "method": [
