@@ -1,0 +1,56 @@
+<div class="carousel-container" [style.--aspect-ratio]="carouselAspectRatio">
+  <!-- Contenedor de imágenes -->
+  <div
+    class="carousel-slide-container"
+    (touchstart)="onTouchStart($event)"
+    (touchend)="onTouchEnd($event)"
+    role="img"
+    [attr.aria-label]="'Carrusel de imagen ' + (currentIndex + 1) + ' de ' + images.length"
+  >
+    <img
+      [src]="currentImage"
+      [alt]="'Slide ' + (currentIndex + 1)"
+      class="carousel-image"
+      loading="lazy"
+    />
+  </div>
+
+  <!-- Controles: Flechas de navegación -->
+  @if (showArrows && images.length > 1) {
+    <button
+      class="carousel-control carousel-control-prev"
+      (click)="prevSlide()"
+      aria-label="Imagen anterior"
+      type="button"
+    >
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <button
+      class="carousel-control carousel-control-next"
+      (click)="nextSlide()"
+      aria-label="Siguiente imagen"
+      type="button"
+    >
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  }
+
+  <!-- Indicadores (puntos) de navegación -->
+  @if (showIndicators && images.length > 1) {
+    <div class="carousel-indicators" role="tablist">
+      @for (image of images; track $index; let i = $index) {
+        <button
+          class="indicator"
+          [class.active]="i === currentIndex"
+          (click)="goToSlide(i)"
+          [attr.aria-label]="'Ir a imagen ' + (i + 1)"
+          [attr.aria-pressed]="i === currentIndex"
+          type="button"
+        ></button>
+      }
+    </div>
+  }
+
+  <!-- Barra de progreso visual (opcional) -->
+  <div class="carousel-progress-bar" [style.width.%]="slideProgress"></div>
+</div>

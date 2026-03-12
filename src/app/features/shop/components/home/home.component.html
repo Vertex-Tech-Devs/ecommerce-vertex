@@ -1,27 +1,54 @@
 <div class="home-page">
   @if (heroBanner$ | async; as banner) {
-    @if (banner.imageUrl) {
-      <section class="hero-banner" [style.backgroundImage]="'url(' + banner.imageUrl + ')'">
-        <div class="hero-content">
-          @if (banner.title) {
-            <h1 class="hero-title">{{ banner.title }}</h1>
-          }
-          @if (banner.buttonText && banner.buttonLink) {
-            <a [routerLink]="banner.buttonLink" class="btn hero-btn">
-              {{ banner.buttonText }}
-            </a>
-          }
-        </div>
+    <!-- HERO SECTION: Renderizado Condicional -->
+    @if (banner.heroImages && banner.heroImages.length > 0) {
+      <section class="hero-section">
+        @if (isCarousel(banner)) {
+          <!-- CASO B: Múltiples imágenes = Carrusel dinámico -->
+          <app-carousel 
+            [images]="banner.heroImages"
+            [interval]="banner.carouselSettings?.interval || 6000"
+            [showIndicators]="banner.carouselSettings?.showIndicators !== false"
+            [showArrows]="true"
+            [aspectRatio]="'16 / 9'"
+          ></app-carousel>
+        } @else {
+          <!-- CASO A: Una sola imagen = Banner estático optimizado (LCP) -->
+          <div class="hero-static-container">
+            <img 
+              [src]="getStaticImage(banner)" 
+              [alt]="banner.title || 'Hero banner'"
+              class="hero-static-image"
+              loading="eager"
+              decoding="sync"
+            />
+          </div>
+        }
+
+        <!-- Contenido del hero (overlay transparente sobre carousel) -->
+        @if (banner.title || (banner.buttonText && banner.buttonLink)) {
+          <div class="hero-content-overlay">
+            <div class="hero-content-wrapper">
+              @if (banner.title) {
+                <h1 class="hero-title">{{ banner.title }}</h1>
+              }
+              @if (banner.buttonText && banner.buttonLink) {
+                <a [routerLink]="banner.buttonLink" class="btn btn-hero">
+                  {{ banner.buttonText }}
+                </a>
+              }
+            </div>
+          </div>
+        }
       </section>
     }
 
+    <!-- SECCIÓN DE CATEGORÍAS DESTACADAS -->
     <div class="home-container">
       @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
         <section class="featured-content py-5">
           <h2 class="section-title">Categorías Destacadas</h2>
-          <div
-            class="category-grid"
-            [ngClass]="{'has-scroll': banner.featuredCategories.length > 2}">
+          <div class="category-grid" [ngClass]="{'has-scroll': banner.featuredCategories.length > 2}">
             @for (category of banner.featuredCategories; track $index) {
               <a [routerLink]="['/shop/catalog']" [queryParams]="{ category: category.categoryId }" class="category-card">
                 <div class="category-image" [style.backgroundImage]="'url(' + category.imageUrl + ')'"></div>
@@ -34,6 +61,7 @@
     </div>
   }
 
+  <!-- SECCIÓN DE NUEVOS INGRESOS -->
   <div class="home-container">
     <section class="featured-content py-5">
       <h2 class="section-title">Nuevos Ingresos</h2>

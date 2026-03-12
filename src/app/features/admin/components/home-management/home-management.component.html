@@ -7,54 +7,172 @@
         </div>
 
         <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
+          <!-- SECCIÓN CARRUSEL HERO -->
           <div class="card-gradient-wrapper mb-4">
             <div class="card details-sub-card">
               <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-image me-2"></i>Banner Principal (Hero)</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-images me-2"></i>Carrusel Hero (Imágenes Principales)</h5>
               </div>
               <div class="card-body">
-                <div class="mb-3 text-center">
-                  <label for="bannerImage" class="form-label">Cambiar Imagen del Banner</label>
-                  <div>
-                    <label for="bannerImage" class="file-input-label">
-                      <i class="bi bi-upload"></i> Seleccionar archivo
-                    </label>
-                    <input type="file" id="bannerImage" class="file-input" (change)="onFileSelected($event, 'main')" accept="image/png, image/jpeg, image/webp">
+                <!-- Recomendaciones de Calidad -->
+                <div class="alert alert-info mb-4" role="alert">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>Recomendaciones de Calidad</h6>
+                      <ul class="mb-0 small">
+                        <li><strong>Resolución ideal:</strong> 1600×900 px (16:9)</li>
+                        <li><strong>Resolución mínima:</strong> 1200×675 px (16:9)</li>
+                        <li><strong>Tamaño máximo:</strong> 2 MB por imagen</li>
+                        <li><strong>Formatos:</strong> WebP, JPG, PNG</li>
+                      </ul>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="alert-heading"><i class="bi bi-tools me-2"></i>Consejos de Optimización</h6>
+                      <ul class="mb-0 small">
+                        <li>Usa WebP para mejor compresión</li>
+                        <li>Redimensiona a 1600×900 antes de subir</li>
+                        <li>Comprime con TinyPNG o Squoosh</li>
+                        <li>Evita imágenes borrosas o pixeladas</li>
+                      </ul>
+                    </div>
                   </div>
-                  <div class="form-text mt-2 text-muted-custom">Sube una nueva imagen para reemplazar la actual.</div>
                 </div>
 
-                <div class="image-preview-container">
-                  @if (bannerPreviewUrl || imageUrl?.value) {
-                    <p class="form-text text-muted text-center">Vista Previa:</p>
-                  }
-                  @if (bannerPreviewUrl) {
-                    <img [src]="bannerPreviewUrl" alt="Previsualización del nuevo banner" class="img-fluid rounded">
-                  } @else if (imageUrl?.value) {
-                    <img [src]="imageUrl?.value" alt="Banner actual" class="img-fluid rounded">
-                  } @else {
-                    <p class="no-preview-text">No hay imagen cargada.</p>
-                  }
+                <div class="mb-4">
+                  <p class="form-text text-muted mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Carga entre 1 y 5 imágenes. Una imagen = banner estático, múltiples imágenes = carrusel automático.
+                  </p>
+                  <label for="heroImages" class="form-label">Seleccionar Imágenes (WebP, JPG, PNG)</label>
+                  <div>
+                    <label for="heroImages" class="file-input-label">
+                      <i class="bi bi-upload"></i> 
+                      @if (heroImages.length < 5) {
+                        Seleccionar archivos
+                      } @else {
+                        Límite alcanzado (5/5)
+                      }
+                    </label>
+                    <input 
+                      type="file" 
+                      id="heroImages" 
+                      class="file-input" 
+                      (change)="onHeroImagesSelected($event)" 
+                      accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
+                      multiple
+                      [disabled]="heroImages.length >= 5"
+                    >
+                  </div>
+                  <div class="form-text mt-2 text-muted-custom">
+                    @if (heroImages.length > 0) {
+                      <strong>Imágenes cargadas: {{ heroImages.length }}/5</strong>
+                    } @else {
+                      <strong>Formato: WebP, JPG o PNG. Máximo 5 imágenes.</strong>
+                    }
+                  </div>
                 </div>
+
+                <!-- Galería de miniaturas -->
+                @if (heroImagePreviews.length > 0) {
+                  <div class="mb-4">
+                    <p class="form-text text-muted mb-3">
+                      <strong>Imágenes Cargadas:</strong> Puedes reordenarlas o eliminarlas
+                    </p>
+                    <div class="hero-thumbnails-grid">
+                      @for (preview of heroImagePreviews; track $index; let i = $index) {
+                        <div class="hero-thumbnail-item">
+                          <div class="thumbnail-image-wrapper">
+                            <img [src]="preview" [alt]="'Imagen hero ' + (i + 1)" class="thumbnail-image">
+                            <div class="thumbnail-overlay">
+                              <span class="image-number">{{ i + 1 }}</span>
+                            </div>
+                          </div>
+                          <div class="thumbnail-controls mt-2">
+                            <button 
+                              type="button" 
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="moveHeroImageUp(i)"
+                              [disabled]="i === 0"
+                              title="Mover arriba"
+                            >
+                              <i class="bi bi-arrow-up"></i>
+                            </button>
+                            <button 
+                              type="button" 
+                              class="btn btn-sm btn-outline-secondary"
+                              (click)="moveHeroImageDown(i)"
+                              [disabled]="i === heroImages.length - 1"
+                              title="Mover abajo"
+                            >
+                              <i class="bi bi-arrow-down"></i>
+                            </button>
+                            <button 
+                              type="button" 
+                              class="btn btn-sm btn-outline-danger"
+                              (click)="removeHeroImage(i)"
+                              title="Eliminar"
+                            >
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <hr>
+                }
+
+                <!-- Configuración del Carrusel -->
+                <div formGroupName="carouselSettings">
+                  <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Configuración del Carrusel</h6>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="carouselInterval" class="form-label">Intervalo de Transición (ms)</label>
+                      <input 
+                        type="number" 
+                        id="carouselInterval" 
+                        class="form-control" 
+                        formControlName="interval"
+                        min="1000"
+                        max="10000"
+                        step="500"
+                        placeholder="4000"
+                      >
+                      <small class="form-text text-muted">
+                        Tiempo entre cambios de imagen en milisegundos. Rango: 1000-10000. Default: 4000
+                      </small>
+                      @if (carouselIntervalControl?.invalid && carouselIntervalControl?.touched) {
+                        <div class="invalid-feedback d-block">
+                          El intervalo debe estar entre 1000 y 10000 ms.
+                        </div>
+                      }
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="showIndicators" class="form-label d-block">Indicadores Visuales</label>
+                      <div class="form-check form-switch">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="showIndicators" 
+                          formControlName="showIndicators"
+                        >
+                        <label class="form-check-label" for="showIndicators">
+                          Mostrar puntos de navegación
+                        </label>
+                      </div>
+                      <small class="form-text text-muted d-block">
+                        Los puntos ayudan al usuario a navegar entre imágenes.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
                 <hr>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="title" class="form-label">Título General (Opcional)</label>
-                    <input type="text" id="title" class="form-control" formControlName="title" placeholder="Ej: ¡Nueva Colección!">
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="buttonText" class="form-label">Texto del Botón (Opcional)</label>
-                    <input type="text" id="buttonText" class="form-control" formControlName="buttonText" placeholder="Ej: Ver ahora">
-                  </div>
-                </div>
-                <div>
-                  <label for="buttonLink" class="form-label">Enlace del Botón (Opcional)</label>
-                  <input type="text" id="buttonLink" class="form-control" formControlName="buttonLink" placeholder="Ej: /shop/catalog">
-                </div>
               </div>
             </div>
           </div>
 
+          <!-- SECCIÓN CATEGORÍAS DESTACADAS -->
           <div class="card-gradient-wrapper">
             <div class="card details-sub-card">
               <div class="card-header d-flex justify-content-between align-items-center">
@@ -118,7 +236,7 @@
           </div>
 
           <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0">
               @if (isSubmitting) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               }
