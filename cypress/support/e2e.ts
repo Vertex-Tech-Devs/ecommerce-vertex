@@ -1,3 +1,5 @@
+/// <reference types="cypress" />
+
 /**
  * Cypress E2E Support - Common Commands
  * 
@@ -51,7 +53,9 @@ Cypress.Commands.add('fillPaymentForm', (paymentData: any) => {
 });
 
 // ✅ Custom command: Check API response
-Cypress.Commands.add('interceptAPI', (method: string, pattern: string, fixture: string) => {
+import type { Method } from 'cypress/types/net-stubbing';
+
+Cypress.Commands.add('interceptAPI', (method: Method, pattern: string, fixture: string) => {
   cy.intercept(method, pattern, { fixture });
 });
 
@@ -64,7 +68,7 @@ declare global {
       goToCheckout(): Chainable<void>;
       fillShippingForm(data: any): Chainable<void>;
       fillPaymentForm(data: any): Chainable<void>;
-      interceptAPI(method: string, pattern: string, fixture: string): Chainable<void>;
+      interceptAPI(method: Method, pattern: string, fixture: string): Chainable<void>;
     }
   }
 }

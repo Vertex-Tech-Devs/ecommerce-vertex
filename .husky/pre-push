@@ -3,48 +3,22 @@
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# PRODUCTION - Blocked
 if [ "$BRANCH" = "main" ]; then
   echo ""
-  echo "=========================================="
-  echo "  PRODUCTION BRANCH PROTECTED"
-  echo "=========================================="
-  echo ""
-  echo "PUSH BLOCKED - Cannot push to main directly"
-  echo ""
-  echo "To deploy to production:"
-  echo "  1. Merge develop → main via GitHub PR"
-  echo "  2. Get approval from team"
-  echo "  3. GitHub Actions auto-deploys"
+  echo "PRODUCTION BRANCH PROTECTED"
+  echo "Cannot push directly to main"
+  echo "Use GitHub PR to deploy"
   echo ""
   exit 1
 fi
 
-# DEVELOPMENT - Auto-fix + validate
 if [ "$BRANCH" = "develop" ]; then
-  echo ""
-  echo "DEV BRANCH - Running validation..."
-  echo ""
-  
-  echo "Auto-fixing code (ESLint + Prettier)..."
+  echo "Auto-fixing code..."
   npm run fix > /dev/null 2>&1
-
+  echo "Validating..."
   npm run push
+  exit $?
+fi
 
-  if [ $? -ne 0 ]; then
-    echo ""
-    echo "PUSH BLOCKED - Fix issues:"
-    echo "   - TypeScript errors"
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-
-# PRODUCTION - Blocked
-if [ "$BRANCH" = "ss. "$(dirin
-BRANCH=$(git rev-parse --abb
-# 
-# PRODUCTION - Blocked
-if [ "$BRANCH" =ho if [ "$BRANCH" = "mai$B  echo ""
-  echo "============if  echo "e   echo "  PRODUCTION BRANCH PROTECTED"
-  echo "===ue  echo "==================== "✅ Valid  ion passed!"
+npm run push
+exit $?
