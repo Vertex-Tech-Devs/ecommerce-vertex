@@ -43,6 +43,7 @@ export class HomeManagementComponent implements OnInit {
   public heroImages: string[] = [];
   public selectedHeroFiles: File[] = [];
   public heroImagePreviews: string[] = [];
+  public isDragOver = false;
   public carouselSettings: CarouselSettings = {
     interval: 4000,
     showIndicators: true,
@@ -132,7 +133,32 @@ export class HomeManagementComponent implements OnInit {
   get carouselIntervalControl() {
     return this.carouselSettingsGroup.get("interval");
   }
+  get emptySlots(): null[] {
+    return Array(Math.max(0, this.MAX_HERO_IMAGES - this.heroImagePreviews.length)).fill(null);
+  }
 
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.heroImages.length < this.MAX_HERO_IMAGES) {
+      this.isDragOver = true;
+    }
+  }
+
+  onDragLeave(): void {
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+    if (this.heroImages.length >= this.MAX_HERO_IMAGES) return;
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const fakeEvent = { target: { files } } as unknown as Event;
+    this.onHeroImagesSelected(fakeEvent);
+  }
   get carouselShowIndicatorsControl() {
     return this.carouselSettingsGroup.get("showIndicators");
   }

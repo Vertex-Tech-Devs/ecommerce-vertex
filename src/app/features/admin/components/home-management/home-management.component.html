@@ -14,113 +14,72 @@
                 <h5 class="card-title mb-0"><i class="bi bi-images me-2"></i>Carrusel Hero (Imágenes Principales)</h5>
               </div>
               <div class="card-body">
-                <!-- Recomendaciones de Calidad -->
-                <div class="alert alert-info mb-4" role="alert">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <h6 class="alert-heading"><i class="bi bi-lightbulb me-2"></i>Recomendaciones de Calidad</h6>
-                      <ul class="mb-0 small">
-                        <li><strong>Resolución ideal:</strong> 1600×900 px (16:9)</li>
-                        <li><strong>Resolución mínima:</strong> 1200×675 px (16:9)</li>
-                        <li><strong>Tamaño máximo:</strong> 2 MB por imagen</li>
-                        <li><strong>Formatos:</strong> WebP, JPG, PNG</li>
-                      </ul>
-                    </div>
-                    <div class="col-md-6">
-                      <h6 class="alert-heading"><i class="bi bi-tools me-2"></i>Consejos de Optimización</h6>
-                      <ul class="mb-0 small">
-                        <li>Usa WebP para mejor compresión</li>
-                        <li>Redimensiona a 1600×900 antes de subir</li>
-                        <li>Comprime con TinyPNG o Squoosh</li>
-                        <li>Evita imágenes borrosas o pixeladas</li>
-                      </ul>
-                    </div>
+                <!-- Input de archivos oculto -->
+                <input
+                  #heroImagesInput
+                  type="file"
+                  class="d-none"
+                  (change)="onHeroImagesSelected($event)"
+                  accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
+                  multiple
+                  [disabled]="heroImages.length >= 5"
+                >
+
+                <!-- Zona de carga drag & drop -->
+                <div
+                  class="hero-drop-zone"
+                  [class.drag-over]="isDragOver"
+                  [class.drop-zone--full]="heroImages.length >= 5"
+                  (dragover)="onDragOver($event)"
+                  (dragleave)="onDragLeave()"
+                  (drop)="onDrop($event)"
+                  (click)="heroImages.length < 5 && heroImagesInput.click()"
+                >
+                  <div class="drop-zone-icon-wrap">
+                    <i class="bi bi-cloud-arrow-up drop-icon"></i>
                   </div>
+                  <p class="drop-title">
+                    @if (heroImages.length < 5) {
+                      Arrastrá imágenes aquí&ensp;·&ensp;<span class="text-accent">hacé clic para explorar</span>
+                    } @else {
+                      <span class="text-muted-custom">Límite alcanzado</span>
+                    }
+                  </p>
+                  <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB &nbsp;·&nbsp; Proporción 16:9 recomendada</p>
+                  @if (heroImages.length > 0) {
+                    <span class="drop-badge">{{ heroImages.length }}/5</span>
+                  }
                 </div>
 
-                <div class="mb-4">
-                  <p class="form-text text-muted mb-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Carga entre 1 y 5 imágenes. Una imagen = banner estático, múltiples imágenes = carrusel automático.
-                  </p>
-                  <label for="heroImages" class="form-label">Seleccionar Imágenes (WebP, JPG, PNG)</label>
-                  <div>
-                    <label for="heroImages" class="file-input-label">
-                      <i class="bi bi-upload"></i> 
-                      @if (heroImages.length < 5) {
-                        Seleccionar archivos
-                      } @else {
-                        Límite alcanzado (5/5)
-                      }
-                    </label>
-                    <input 
-                      type="file" 
-                      id="heroImages" 
-                      class="file-input" 
-                      (change)="onHeroImagesSelected($event)" 
-                      accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
-                      multiple
-                      [disabled]="heroImages.length >= 5"
-                    >
-                  </div>
-                  <div class="form-text mt-2 text-muted-custom">
-                    @if (heroImages.length > 0) {
-                      <strong>Imágenes cargadas: {{ heroImages.length }}/5</strong>
-                    } @else {
-                      <strong>Formato: WebP, JPG o PNG. Máximo 5 imágenes.</strong>
+                <!-- Slots de previsualización -->
+                @if (heroImagePreviews.length > 0 || true) {
+                  <div class="hero-slots-wrapper mt-4">
+                    @for (preview of heroImagePreviews; track $index; let i = $index) {
+                      <div class="hero-slot hero-slot--filled">
+                        <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image">
+                        <div class="slot-overlay">
+                          <button type="button" class="slot-btn" (click)="moveHeroImageUp(i)" [disabled]="i === 0" title="Mover izquierda">
+                            <i class="bi bi-chevron-left"></i>
+                          </button>
+                          <button type="button" class="slot-btn slot-btn--danger" (click)="removeHeroImage(i)" title="Eliminar">
+                            <i class="bi bi-trash3"></i>
+                          </button>
+                          <button type="button" class="slot-btn" (click)="moveHeroImageDown(i)" [disabled]="i === heroImages.length - 1" title="Mover derecha">
+                            <i class="bi bi-chevron-right"></i>
+                          </button>
+                        </div>
+                        <span class="slot-badge">{{ i + 1 }}</span>
+                      </div>
+                    }
+                    @for (_ of emptySlots; track $index) {
+                      <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
+                        <i class="bi bi-plus-lg"></i>
+                      </div>
                     }
                   </div>
-                </div>
-
-                <!-- Galería de miniaturas -->
-                @if (heroImagePreviews.length > 0) {
-                  <div class="mb-4">
-                    <p class="form-text text-muted mb-3">
-                      <strong>Imágenes Cargadas:</strong> Puedes reordenarlas o eliminarlas
-                    </p>
-                    <div class="hero-thumbnails-grid">
-                      @for (preview of heroImagePreviews; track $index; let i = $index) {
-                        <div class="hero-thumbnail-item">
-                          <div class="thumbnail-image-wrapper">
-                            <img [src]="preview" [alt]="'Imagen hero ' + (i + 1)" class="thumbnail-image">
-                            <div class="thumbnail-overlay">
-                              <span class="image-number">{{ i + 1 }}</span>
-                            </div>
-                          </div>
-                          <div class="thumbnail-controls mt-2">
-                            <button 
-                              type="button" 
-                              class="btn btn-sm btn-outline-secondary"
-                              (click)="moveHeroImageUp(i)"
-                              [disabled]="i === 0"
-                              title="Mover arriba"
-                            >
-                              <i class="bi bi-arrow-up"></i>
-                            </button>
-                            <button 
-                              type="button" 
-                              class="btn btn-sm btn-outline-secondary"
-                              (click)="moveHeroImageDown(i)"
-                              [disabled]="i === heroImages.length - 1"
-                              title="Mover abajo"
-                            >
-                              <i class="bi bi-arrow-down"></i>
-                            </button>
-                            <button 
-                              type="button" 
-                              class="btn btn-sm btn-outline-danger"
-                              (click)="removeHeroImage(i)"
-                              title="Eliminar"
-                            >
-                              <i class="bi bi-trash"></i>
-                            </button>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                  <hr>
                 }
+
+                <hr class="mt-4">
 
                 <!-- Configuración del Carrusel -->
                 <div formGroupName="carouselSettings">

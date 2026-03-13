@@ -96,7 +96,11 @@ export class OrderService {
       );
       return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Order)),
-        map(orders => orders.sort((a, b) => a.orderDate.getTime() - b.orderDate.getTime()))
+        map(orders => orders.sort((a, b) => {
+          const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
+          const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
+          return dateA - dateB;
+        }))
       );
     });
   }

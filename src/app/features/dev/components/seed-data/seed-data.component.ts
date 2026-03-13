@@ -20,22 +20,25 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
           <div class="info-box">
             <h3><i class="bi bi-info-circle"></i> ¿Qué hace este generador?</h3>
             <ul>
-              <li>✓ Crea 5 categorías de productos con imágenes</li>
-              <li>✓ Genera 15 productos con precios, descripciones y calificaciones</li>
-              <li>✓ Configura el banner hero con 4 imágenes de alta calidad</li>
-              <li>✓ Establece categorías destacadas</li>
-              <li>✓ Crea contenido completo para "Acerca de"</li>
-              <li>✓ Todo listo para testing y demostración</li>
+              <li>✓ Crea 5 atributos globales (talles, colores, material)</li>
+              <li>✓ Crea 5 categorías de indumentaria y calzado</li>
+              <li>✓ Genera 25 productos con precios, descripciones y 4 imágenes cada uno</li>
+              <li>✓ Configura el banner hero con <strong>5 imágenes</strong> (slots completos)</li>
+              <li>✓ Crea 3 categorías destacadas en la home</li>
+              <li>✓ Agrega 20 clientes con datos realistas argentinos</li>
+              <li>✓ Genera 20 pedidos con distintos estados y productos reales</li>
+              <li>✓ Completa el contenido de "Quiénes Somos" y el footer</li>
             </ul>
           </div>
 
           <div class="warning-box">
             <i class="bi bi-exclamation-triangle"></i>
             <div>
-              <strong>⚠️ Advertencia:</strong>
+              <strong>Atención:</strong>
               <p>
-                Esta acción sobrescribirá los datos existentes. Asegúrate de tener una copia de
-                seguridad si necesitas preservar datos importantes.
+                Esta acción <strong>elimina absolutamente todos los datos</strong> (productos,
+                categorías, pedidos, clientes, atributos, banner, About y Footer) y los
+                vuelve a crear desde cero con datos de prueba completos y consistentes.
               </p>
             </div>
           </div>
@@ -45,39 +48,39 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
             <div class="stats-grid">
               <div class="stat-item">
                 <div class="stat-number">5</div>
+                <div class="stat-label">Atributos</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">5</div>
                 <div class="stat-label">Categorías</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">15</div>
+                <div class="stat-number">25</div>
                 <div class="stat-label">Productos</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">4</div>
-                <div class="stat-label">Imágenes Hero</div>
+                <div class="stat-number">5</div>
+                <div class="stat-label">Fotos Hero</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">1</div>
-                <div class="stat-label">Config About</div>
+                <div class="stat-number">20</div>
+                <div class="stat-label">Clientes</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">20</div>
+                <div class="stat-label">Pedidos</div>
               </div>
             </div>
           </div>
 
           <div class="action-buttons">
             <button
-              (click)="onSeedData(false)"
-              [disabled]="isLoading"
-              class="btn btn-success btn-lg"
-            >
-              <i class="bi bi-plus-circle"></i>
-              {{ isLoading ? 'Agregando datos...' : 'Agregar Datos' }}
-            </button>
-            <button
-              (click)="onSeedData(true)"
+              (click)="onSeedData()"
               [disabled]="isLoading"
               class="btn btn-warning btn-lg"
             >
               <i class="bi bi-arrow-clockwise"></i>
-              {{ isLoading ? 'Regenerando...' : 'Regenerar (Limpiar + Crear)' }}
+              {{ isLoading ? 'Regenerando...' : 'Regenerar Todo' }}
             </button>
             <button (click)="onCancel()" class="btn btn-secondary btn-lg">
               <i class="bi bi-x-lg"></i> Cancelar
@@ -86,14 +89,8 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 
           <div class="info-footer">
             <p>
-              <strong>Opciones:</strong>
-              <br/>
-              • <strong>Agregar Datos:</strong> Suma los nuevos datos sin eliminar los existentes
-              <br/>
-              • <strong>Regenerar:</strong> Elimina los datos anteriores y crea nuevos (recomendado para testing limpio)
-              <br/>
-              <br/>
-              <em>Las imágenes se obtienen de Unsplash (licencia abierta). Los datos son ficticios y solo para testing.</em>
+              Las imágenes se obtienen de <strong>picsum.photos</strong> (licencia abierta). Todos los datos son
+              ficticios y solo sirven para testing y demostración. No usar en producción.
             </p>
           </div>
         </div>
@@ -357,7 +354,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
       }
 
       .stats-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-columns: repeat(3, 1fr) !important;
       }
     }
   `],
@@ -369,14 +366,12 @@ export class SeedDataComponent {
 
   isLoading = false;
 
-  async onSeedData(deleteExisting: boolean = false): Promise<void> {
+  async onSeedData(): Promise<void> {
     this.isLoading = true;
 
     try {
-      await this.seedDataService.seedAllData(deleteExisting);
-      // Esperar un poco para que el usuario vea el mensaje de éxito
+      await this.seedDataService.seedAllData();
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      // Redirigir al inicio
       this.router.navigate(['/shop']);
     } catch (error) {
       this.isLoading = false;

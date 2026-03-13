@@ -1,156 +1,72 @@
-import { Routes } from "@angular/router";
-import { AdminComponent } from "./admin.component";
-import { authGuard } from "@core/guards/auth.guard";
+import { Routes } from '@angular/router';
+import { AdminComponent } from './admin.component';
 
-export const adminRoutes: Routes = [
+export const ADMIN_ROUTES: Routes = [
   {
-    path: "login",
-    loadComponent: () =>
-      import("./components/login/login.component").then((m) =>
-        m.LoginComponent
-      ),
-  },
-  {
-    path: "",
+    path: '',
     component: AdminComponent,
-    canActivate: [authGuard],
     children: [
       {
-        path: "",
-        redirectTo: "dashboard",
-        pathMatch: "full",
+        path: 'dashboard',
+        loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
-        path: "dashboard",
-        loadComponent: () =>
-          import("./components/dashboard/dashboard.component").then(
-            (m) => m.DashboardComponent,
-          ),
+        path: 'products',
+        loadComponent: () => import('./components/products/products-list/products-list.component').then(m => m.ProductsListComponent)
       },
       {
-        path: "products",
-        children: [
-          {
-            path: "",
-            loadComponent: () =>
-              import(
-                "./components/products/products-list/products-list.component"
-              ).then((m) => m.ProductsListComponent),
-          },
-          {
-            path: "create",
-            loadComponent: () =>
-              import(
-                "./components/products/product-create/product-create.component"
-              ).then((m) => m.ProductCreateComponent),
-          },
-          {
-            path: "detail/:id",
-            loadComponent: () =>
-              import(
-                "./components/products/product-detail/product-detail.component"
-              ).then((m) => m.ProductDetailComponent),
-          },
-          {
-            path: "edit/:id",
-            loadComponent: () =>
-              import(
-                "./components/products/product-create/product-create.component"
-              ).then((m) => m.ProductCreateComponent),
-          },
-        ],
+        path: 'products/create',
+        loadComponent: () => import('./components/products/product-create/product-create.component').then(m => m.ProductCreateComponent)
       },
       {
-        path: "categories",
-        loadComponent: () =>
-          import(
-            "./components/categories/categories-list/categories-list.component"
-          ).then((m) => m.CategoriesListComponent),
+        path: 'products/:id',
+        loadComponent: () => import('./components/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
       },
       {
-        path: "attributes",
-        loadComponent: () =>
-          import(
-            "./components/attributes/attributes-list/attributes-list.component"
-          ).then((m) => m.AttributesListComponent),
+        path: 'categories',
+        loadComponent: () => import('./components/categories/categories-list/categories-list.component').then(m => m.CategoriesListComponent)
       },
       {
-        path: "orders",
-        children: [
-          {
-            path: "",
-            loadComponent: () =>
-              import("./components/orders/orders-list/orders-list.component")
-                .then(
-                  (m) => m.OrdersListComponent,
-                ),
-          },
-          {
-            path: "detail/:id",
-            loadComponent: () =>
-              import(
-                "./components/orders/order-detail/order-detail.component"
-              ).then((m) => m.OrderDetailComponent),
-          },
-        ],
+        path: 'attributes',
+        loadComponent: () => import('./components/attributes/attributes-list/attributes-list.component').then(m => m.AttributesListComponent)
       },
       {
-        path: "customers",
-        loadComponent: () =>
-          import("./components/client/clients-list/clients-list.component")
-            .then(
-              (m) => m.ClientsListComponent,
-            ),
+        path: 'orders',
+        loadComponent: () => import('./components/orders/orders-list/orders-list.component').then(m => m.OrdersListComponent)
       },
       {
-        path: "clients/:email/details",
-        loadComponent: () =>
-          import(
-            "./components/client/client-details/client-details.component"
-          ).then((m) => m.ClientDetailsComponent),
+        path: 'orders/:id',
+        loadComponent: () => import('./components/orders/order-detail/order-detail.component').then(m => m.OrderDetailComponent)
       },
       {
-        path: "gestion-nosotros",
-        loadComponent: () =>
-          import(
-            "./components/about-us-management/about-us-management.component"
-          ).then((m) => m.AboutUsManagementComponent),
+        path: 'customers',
+        loadComponent: () => import('./components/client/clients-list/clients-list.component').then(m => m.ClientsListComponent)
       },
       {
-        path: "account",
-        loadComponent: () =>
-          import("./components/account/account.component").then(
-            (m) => m.AccountComponent,
-          ),
+        path: 'customers/:id',
+        loadComponent: () => import('./components/client/client-details/client-details.component').then(m => m.ClientDetailsComponent)
       },
       {
-        path: "home-management",
-        loadComponent: () =>
-          import("./components/home-management/home-management.component").then(
-            (m) => m.HomeManagementComponent,
-          ),
+        path: 'home-management',
+        loadComponent: () => import('./components/home-management/home-management.component').then(m => m.HomeManagementComponent)
       },
       {
-        path: "gestion-footer",
-        loadComponent: () =>
-          import(
-            "./components/footer-management/footer-management.component"
-          ).then((m) => m.FooterManagementComponent),
+        path: 'gestion-nosotros',
+        loadComponent: () => import('./components/about-us-management/about-us-management.component').then(m => m.AboutUsManagementComponent)
       },
       {
-        path: "email-management",
-        loadComponent: () =>
-          import(
-            "./components/email-management/email-management.component"
-          ).then((m) => m.EmailManagementComponent),
+        path: 'gestion-footer',
+        loadComponent: () => import('./components/footer-management/footer-management.component').then(m => m.FooterManagementComponent)
       },
       {
-        path: "init-data",
-        loadComponent: () =>
-          import(
-            "./components/init-data/init-data.component"
-          ).then((m) => m.InitDataComponent),
+        path: 'email-management',
+        loadComponent: () => import('./components/email-management/email-management.component').then(m => m.EmailManagementComponent)
       },
-    ],
-  },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      }
+    ]
+  }
 ];

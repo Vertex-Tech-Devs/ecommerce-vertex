@@ -167,115 +167,209 @@
   display: none;
 }
 
-/* ESTILOS PARA GALERÍA DE MINIATURAS HERO */
-.hero-thumbnails-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 1rem;
-  margin: 1rem 0;
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.75rem;
-  }
-}
-
-.hero-thumbnail-item {
+/* ===== DRAG & DROP ZONE ===== */
+.hero-drop-zone {
+  position: relative;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  border: 2px dashed rgba(vars.$accent-blue, 0.4);
+  border-radius: vars.$border-radius-lg;
+  background-color: rgba(vars.$dark-bg-primary, 0.25);
+  cursor: pointer;
+  transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+  text-align: center;
+  user-select: none;
+
+  &:hover,
+  &.drag-over {
+    border-color: vars.$accent-blue;
+    background-color: rgba(vars.$accent-blue, 0.06);
+    box-shadow: 0 0 0 4px rgba(vars.$accent-blue, 0.1);
+  }
+
+  &.drop-zone--full {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 }
 
-.thumbnail-image-wrapper {
+.drop-zone-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(vars.$accent-blue, 0.15), rgba(vars.$accent-purple, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+
+.drop-icon {
+  font-size: 1.75rem;
+  color: vars.$accent-blue;
+}
+
+.drop-title {
+  font-size: 0.95rem;
+  font-weight: vars.$font-weight-medium;
+  color: vars.$text-light;
+  margin: 0;
+
+  .text-accent {
+    color: vars.$accent-blue;
+    font-weight: vars.$font-weight-semibold;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.drop-subtitle {
+  font-size: 0.78rem;
+  color: vars.$text-muted-dark;
+  margin: 0;
+}
+
+.drop-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: vars.$font-weight-bold;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
+/* ===== IMAGE SLOTS ===== */
+.hero-slots-wrapper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.hero-slot {
   position: relative;
-  width: 100%;
   aspect-ratio: 16 / 9;
-  overflow: hidden;
   border-radius: vars.$border-radius-md;
-  border: 2px solid rgba(vars.$accent-blue, 0.3);
-  background-color: rgba(vars.$dark-bg-primary, 0.3);
-  cursor: pointer;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  &:hover {
-    border-color: vars.$accent-blue;
-    box-shadow: 0 4px 12px rgba(vars.$accent-blue, 0.2);
-    transform: translateY(-2px);
+  &--filled {
+    border: 2px solid rgba(vars.$accent-blue, 0.3);
+    background: vars.$dark-bg-primary;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      border-color: vars.$accent-blue;
+
+      .slot-overlay {
+        opacity: 1;
+      }
+    }
   }
 
-  .thumbnail-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  .thumbnail-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
+  &--empty {
+    border: 2px dashed rgba(vars.$text-muted-dark, 0.35);
+    background: rgba(vars.$dark-bg-primary, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    cursor: pointer;
+    color: rgba(vars.$text-muted-dark, 0.5);
+    font-size: 1.4rem;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 
-    .image-number {
-      background: vars.$accent-purple;
-      color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: vars.$font-weight-bold;
-      font-size: 0.9rem;
+    &:hover {
+      border-color: vars.$accent-blue;
+      color: vars.$accent-blue;
+      background-color: rgba(vars.$accent-blue, 0.05);
     }
-  }
-
-  &:hover .thumbnail-overlay {
-    opacity: 1;
   }
 }
 
-.thumbnail-controls {
+.slot-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.slot-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
   display: flex;
-  gap: 0.25rem;
+  align-items: center;
   justify-content: center;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
 
-  .btn {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.75rem;
-    flex: 1;
+.slot-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  padding: 0;
 
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.12);
   }
 
-  .btn-outline-secondary {
-    border-color: vars.$accent-blue;
-    color: vars.$accent-blue;
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  &--danger {
+    background: rgba(220, 53, 69, 0.5);
 
     &:hover:not(:disabled) {
-      background: vars.$accent-blue;
-      border-color: vars.$accent-blue;
-      color: white;
+      background: rgba(220, 53, 69, 0.85);
     }
   }
+}
 
-  .btn-outline-danger {
-    border-color: #dc3545;
-    color: #dc3545;
-
-    &:hover:not(:disabled) {
-      background: #dc3545;
-      border-color: #dc3545;
-      color: white;
-    }
-  }
+.slot-badge {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  background: rgba(0, 0, 0, 0.65);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: vars.$font-weight-bold;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
