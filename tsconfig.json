@@ -19,6 +19,9 @@
       "@shared/*": [
         "src/app/shared/*"
       ],
+      "@domains/*": [
+        "src/app/domains/*"
+      ],
       "@features/*": [
         "src/app/features/*"
       ],

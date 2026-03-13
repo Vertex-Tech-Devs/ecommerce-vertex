@@ -1,85 +1,108 @@
-# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
-
-# Compiled output
-/dist
+# Build & Dist
+dist/
+.angular/
+.sass-cache/
+coverage/
+*.js.map
 /tmp
 /out-tsc
 /bazel-out
+.nyc_output/
+.jest_cache/
 
-# Node
+# Dependencies
 node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Build output
-dist/
-
-# Environment files (GENERADOS AUTOMÁTICAMENTE)
-src/environments/environment.ts
-src/environments/environment.prod.ts
-src/environments/environment.development.ts
-
-# Firebase
-.firebase/
-.firebaserc
-firebase-debug.log
-
-# IDEs and editors
+# IDE & Editors
 .idea/
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-*.sublime-project
-
-# Visual Studio Code
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-.history/*
-*.vscode
+*.swp
+*.swo
+*~
+.sublime-workspace
+.sublime-project
+.history/
+*.iml
+*.iws
+*.ipr
+.gradle
 
-# Miscellaneous
-/.angular/cache
-.sass-cache/
-/connect.lock
-/coverage
-/libpeerconnection.log
-testem.log
-/typings
-
-# MacOS
+# OS & System
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.directory
+._*
+
+# Environment & Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+src/environments/environment.ts
+src/environments/environment.prod.ts
+src/environments/environment.production.ts
+
+# Firebase Secrets (CRITICAL)
+.firebase/
+serviceAccountKey.json
+firebase-config.json
+.runtimeconfig.json
+functions/.env
+functions/.env.local
+functions/.env.*
+!functions/.env.example
+functions/lib/
+firebase-debug.log
+
+# Private Keys (CRITICAL)
+*.pem
+*.key
+*.p12
+*.p8
+*.cert
+*.crt
+*.jks
+private/
+secrets/
+credentials.json
+
+# Testing
+test-results/
+*.lcov
 
 # Logs
 npm-debug.log*
+npm-err.log*
 yarn-debug.log*
 yarn-error.log*
+ng-debug.log*
+ng-err.log*
+testem.log
+lerna-debug.log*
 
-# Misc & Secrets
-*.tgz
-*.env
-.env.*
+# Temporary
+*.tmp
+*.bak
+*.backup
+.tmp*/
+tmp*/
+temp*/
 
-# System files
-Thumbs.db
-
-.angular
-firebase-local-data
-package-lock.json
-lib/
-.env
+# Misc
+.npm/
 .npmrc
-
-# Functions & Scripts secrets
-serviceAccountKey.json
-seed.js
-scripts/seed-database.js
-
-# Scripts de Aprovisionamiento (Locales)
-*.sh
-setup-dev-injection.sh
-fix-environments.sh
-scripts/
+.node-gyp/
+firebase-local-data/
+emulator-data/
+.cache/
+.local/

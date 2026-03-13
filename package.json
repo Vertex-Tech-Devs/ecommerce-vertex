@@ -3,15 +3,23 @@
   "version": "1.0.0",
   "scripts": {
     "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
-    "clean": "rm -rf dist functions/lib functions/.npmrc",
-    "build:functions": "npm run build --prefix functions",
-    "update:functions:deps": "cd functions && npm install firebase-functions@latest firebase-admin@latest && cd ..",
-    "generate:hero-images": "node scripts/generate-example-images.js",
-    "upload:hero-images": "node scripts/upload-hero-images-hq.js",
-    "deploy:prod": "npm run clean && npm run build -- --configuration production && npm run build:functions && firebase deploy --project production --only hosting:ecommerce-vertex,functions",
-    "deploy:dev": "npm run clean && npm run build -- --configuration development && npm run build:functions && firebase deploy --project development --only hosting:ecommerce-vertex,functions"
+    "dev": "ng serve",
+    "build": "ng build --configuration production",
+    "test": "ng test --watch=false --code-coverage",
+    "validate": "npm run lint && npm run typecheck && npm test && npm run build",
+    "fix": "eslint src --ext .ts,.html --fix && prettier --write \"src/**/*.{ts,html,scss}\"",
+    "e2e": "cypress run --e2e",
+    "e2e:open": "cypress open --e2e",
+    "deploy:dev": "npm run clean && npm run build:dev && npm run build:fn && firebase deploy --project development --only hosting:ecommerce-vertex,functions",
+    "deploy:prod": "npm run clean && npm run build && npm run build:fn && firebase deploy --project production --only hosting:ecommerce-vertex,functions",
+    "clean": "rm -rf dist functions/lib coverage",
+    "prepare": "husky install",
+    "lint": "eslint src --ext .ts,.html",
+    "typecheck": "tsc --noEmit",
+    "build:dev": "ng build --configuration development",
+    "build:fn": "npm run build --prefix functions",
+    "push": "npm run lint && npm run typecheck && ng test --watch=false",
+    "ci": "npm run lint && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage && npm run build"
   },
   "dependencies": {
     "@angular/animations": "^20.0.0",
@@ -39,7 +47,130 @@
     "@angular-devkit/build-angular": "^20.0.0",
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
+    "@angular-eslint/builder": "^20.0.0",
+    "@angular-eslint/eslint-plugin": "^20.0.0",
+    "@angular-eslint/eslint-plugin-template": "^20.0.0",
+    "@angular-eslint/template-parser": "^20.0.0",
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@types/jasmine": "^5.1.0",
+    "cypress": "^14.0.0",
+    "eslint": "^9.0.0",
+    "husky": "^9.0.0",
+    "jasmine-core": "^5.1.0",
+    "karma": "^6.4.0",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-jasmine-html-reporter": "^2.1.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0",
     "typescript": "5.8.3"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
+    "trailingComma": "es5",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "htmlWhitespaceSensitivity": "css",
+    "endOfLine": "lf"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.html": [
+      "prettier --write"
+    ],
+    "*.scss": [
+      "prettier --write"
+    ]
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "type-enum": [
+        2,
+        "always",
+        [
+          "feat",
+          "fix",
+          "docs",
+          "style",
+          "refactor",
+          "perf",
+          "test",
+          "ci",
+          "chore",
+          "revert"
+        ]
+      ],
+      "type-case": [
+        2,
+        "always",
+        "lowercase"
+      ],
+      "type-empty": [
+        2,
+        "never"
+      ],
+      "scope-case": [
+        2,
+        "always",
+        "lowercase"
+      ],
+      "subject-case": [
+        2,
+        "never",
+        [
+          "start-case",
+          "pascal-case",
+          "upper-case"
+        ]
+      ],
+      "subject-empty": [
+        2,
+        "never"
+      ],
+      "subject-full-stop": [
+        2,
+        "never",
+        "."
+      ],
+      "subject-exclamation-mark": [
+        2,
+        "never"
+      ],
+      "header-max-length": [
+        2,
+        "always",
+        72
+      ],
+      "body-leading-blank": [
+        2,
+        "always"
+      ],
+      "footer-leading-blank": [
+        2,
+        "always"
+      ],
+      "footer-token-reference": [
+        2,
+        "always"
+      ]
+    }
   },
   "private": true
 }
