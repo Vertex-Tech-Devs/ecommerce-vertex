@@ -158,9 +158,14 @@
 
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="section-title mb-0">Variantes y Stock</h5>
-            <button (click)="addVariant()" type="button" class="btn btn-success" [disabled]="variantAttributes.length === 0">
-              <i class="bi bi-plus-lg me-2"></i>Añadir Variante
-            </button>
+            <div class="btn-group" role="group">
+              <button (click)="generateVariantCombinations()" type="button" class="btn btn-info btn-sm" [disabled]="variantAttributes.length === 0" title="Generar todas las combinaciones automáticamente">
+                <i class="bi bi-stars me-1"></i>Generar Combinaciones
+              </button>
+              <button (click)="addVariant()" type="button" class="btn btn-success btn-sm" [disabled]="variantAttributes.length === 0" title="Añadir una variante manualmente">
+                <i class="bi bi-plus-lg me-1"></i>Añadir Manual
+              </button>
+            </div>
           </div>
 
           @if (productForm.get('variants')?.touched && productForm.get('variants')?.invalid) {

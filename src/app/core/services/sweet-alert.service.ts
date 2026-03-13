@@ -36,6 +36,19 @@ export class SweetAlertService {
     });
   }
 
+  warning(title: string, message: string): void {
+    Swal.fire({
+      icon: 'warning',
+      title: title,
+      text: message,
+      confirmButtonText: 'Ok',
+      timer: 4000,
+      timerProgressBar: true,
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false
+    });
+  }
 
   confirm(title: string, text: string, icon: SweetAlertIcon = 'warning'): Promise<boolean> {
     return Swal.fire({

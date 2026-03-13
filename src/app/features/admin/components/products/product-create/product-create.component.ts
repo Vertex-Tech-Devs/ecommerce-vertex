@@ -204,6 +204,77 @@ export class ProductCreateComponent implements OnInit {
     this.variants.removeAt(index);
   }
 
+  /**
+   * Generates all possible variant combinations based on selected attributes
+   * Example: Color (Red, Blue) x Size (S, M) = 4 combinations
+   */
+  public generateVariantCombinations(): void {
+    this.attributes$.pipe(take(1)).subscribe(allAttributes => {
+      const selectedIds = this.variantAttributes.value;
+      
+      if (selectedIds.length === 0) {
+        this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
+        return;
+      }
+
+      // Get selected attributes with their values
+      const selectedAttrs = allAttributes.filter(a => selectedIds.includes(a.id));
+      
+      if (selectedAttrs.length === 0) {
+        this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
+        return;
+      }
+
+      // Generate all combinations
+      const combinations = this.generateCombinations(selectedAttrs);
+      
+      if (combinations.length === 0) {
+        this.sweetAlertService.warning('Aviso', 'No se pueden generar combinaciones con los atributos seleccionados.');
+        return;
+      }
+
+      // Clear existing variants
+      while (this.variants.length > 0) {
+        this.variants.removeAt(0);
+      }
+
+      // Add variants for each combination
+      combinations.forEach(combo => {
+        const group = this.fb.group({
+          id: [null],
+          attributes: this.fb.group(combo, Validators.required),
+          stock: [0, [Validators.required, Validators.min(0)]],
+        });
+        this.variants.push(group);
+      });
+
+      this.sweetAlertService.success('¡Éxito!', `Se generaron ${combinations.length} variantes.`);
+    });
+  }
+
+  private generateCombinations(attributes: Attribute[]): Array<{ [key: string]: string }> {
+    if (attributes.length === 0) return [];
+    
+    const result: Array<{ [key: string]: string }> = [{}];
+
+    attributes.forEach(attr => {
+      const newResult: Array<{ [key: string]: string }> = [];
+      
+      result.forEach(existing => {
+        attr.values.forEach(value => {
+          newResult.push({
+            ...existing,
+            [attr.id!]: value
+          });
+        });
+      });
+      
+      result.splice(0, result.length, ...newResult);
+    });
+
+    return result;
+  }
+
   addImage(imageUrl: string = ''): void {
     this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
   }

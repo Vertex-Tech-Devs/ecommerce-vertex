@@ -16,12 +16,13 @@
 - [Quick Start](#quick-start)
 - [Architecture](#architecture)
 - [Development Workflow](#development-workflow)
-- [Git Workflow & Push Flow](#git-workflow--push-flow)
 - [Code Standards](#code-standards)
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [Security](#security)
+- [Resources](#resources)
+- [License](#license)
 - [Version History](#version-history)
 
 ---
@@ -142,40 +143,44 @@ Data (APIs & Persistence)
 
 ## Development Workflow
 
-### Daily Workflow
+### Quick Reference: Daily Workflow
 
-1. **Branch**: `git checkout -b feature/description`
-2. **Code**: Make changes locally (`npm start` for dev server)
-3. **Test**: Run `npm test` (watch mode)
-4. **Validate**: `npm run quality` before push
-5. **Commit**: `git commit -m "feat(scope): description"` (Conventional Commits)
-6. **Push**: `git push origin feature/description`
-7. **PR**: Create pull request → CI/CD validation
-8. **Merge**: Approve & merge when checks pass
+```bash
+# 1. Create feature branch
+git checkout -b feature/my-feature
+
+# 2. Code & test locally
+npm start                    # Dev server at http://localhost:4200
+npm test                     # Tests in watch mode
+
+# 3. Quality check before commit
+npm run quality             # Runs: lint + typecheck + test + build
+
+# 4. Commit (hooks auto-validate)
+git add .
+git commit -m "feat(scope): description"  # Conventional Commits
+
+# 5. Push (pre-push auto-validates)
+git push origin feature/my-feature
+
+# 6. GitHub Actions CI/CD runs (8 parallel jobs, ~15 min)
+# 7. Create PR (requires 1 approval)
+# 8. Merge when ready
+# 9. Deploy: develop → auto | staging/main → manual
+```
 
 ### Branching Strategy
 
-| Type | Pattern | From | To | Pre-Push |
+| Type | Pattern | From | To | Protection |
 |------|---------|------|-----|----------|
-| Feature | `feature/description` | develop | develop | ✅ Validate |
-| Bugfix | `bugfix/description` | develop | develop | ✅ Validate |
-| Hotfix | `hotfix/description` | main | main | ✅ Validate |
-| Release | `release/version` | develop | main | ✅ Validate |
+| Feature | `feature/description` | develop | develop | ✅ Validate on push |
+| Bugfix | `bugfix/description` | develop | develop | ✅ Validate on push |
+| Hotfix | `hotfix/description` | main | main | ✅ Validate on push |
+| Release | `release/version` | develop | main | ❌ PR only |
 
-**Branch Protection**:
-- 🟢 **develop** (DEV): Auto-fix + validate on push
-  - Format/linting auto-corrected
-  - TypeScript & tests must pass
-  - Direct push allowed (for your team)
+### Conventional Commits Format
 
-- 🔴 **main** (PRODUCTION): Push BLOCKED
-  - Only merge via GitHub PR (develop → main)
-  - Requires team approval
-  - GitHub Actions auto-deploys after merge
-
-### Commit Conventions
-
-```
+```bash
 <type>(<scope>): <subject>
 
 <body>
@@ -183,193 +188,59 @@ Data (APIs & Persistence)
 <footer>
 ```
 
-**Types**: feat, fix, docs, style, refactor, perf, test, ci, chore
+**Types**: `feat, fix, docs, style, refactor, perf, test, ci, chore`
 
 **Examples**:
 ```bash
 feat(auth): add two-factor authentication
 fix(cart): correct total calculation with discounts
-docs(readme): update setup instructions
 refactor(services): simplify firestore queries
-perf(bundle): optimize component lazy loading
-test(auth): add unit tests for login
 ```
 
 **Rules**:
-- One logical change per commit
-- Subject: 50 chars max, imperative mood ("add" not "added")
+- Subject: 50 chars max, imperative mood, no period
 - Explain WHY, not WHAT
 - Reference issues: `Fixes #123` in footer
 
 ### Development Commands
 
 ```bash
-# Daily Development
-npm start                 # Dev server (http://localhost:4200)
-npm test                  # Tests + coverage
+npm start                 # Dev server
+npm test                  # Tests (watch mode)
+npm run quality           # Full validation: lint + typecheck + test + build
+npm run lint              # Check linting
+npm run lint:fix          # Auto-fix code
+npm run typecheck         # TypeScript check
 npm run build             # Production build
+npm run clean             # Clean artifacts
 
-# Optional Validation (before pushing)
-npm run validate          # Full check: lint + typecheck + test + build
-npm run fix               # Auto-fix code (also runs on push)
+npm run e2e               # E2E tests (Cypress)
+npm run e2e:open          # Cypress UI for debugging
 
-# E2E Testing
-npm run e2e               # Run E2E tests (Cypress)
-npm run e2e:open          # Open Cypress UI for debugging
-
-# Deployment
 npm run deploy:dev        # Deploy to development
+npm run deploy:staging    # Deploy to staging
 npm run deploy:prod       # Deploy to production
-
-# Advanced/Utils
-npm run lint              # Check linting only
-npm run typecheck         # TypeScript check only
-npm run clean             # Clean build artifacts
 ```
 
----
-- [ ] No `console.log()` or `debugger` statements
-- [ ] Documentation updated
-- [ ] Commit messages follow Conventional Commits
-- [ ] Build succeeds (`npm run build`)
+### Automatic Validations
 
----
+**Pre-commit** (on `git commit`):
+- ✅ ESLint auto-fix
+- ✅ Prettier formatting
+- ✅ Commitlint validation
 
-## Git Workflow & Push Flow
-
-### Complete Push & Validation Flow
-
-```
-LOCAL DEVELOPMENT                 GIT COMMIT                PRE-PUSH (AUTOMATIC)
-├─ Code locally              ├─ git add .               ├─ npm run lint
-├─ npm start (dev server)    ├─ git commit -m "..."     ├─ npm run typecheck
-├─ npm test (watch)          │                           ├─ npm run test:once
-└─ npm run lint:fix          ✅ HUSKY PRE-COMMIT       └─ (Auto on git push)
-                             ├─ ESLint --fix
-                             ├─ Prettier format    
-                             ├─ Commitlint validate
-                             └─ Commit created
-
-GIT PUSH                      CI/CD PIPELINE (PARALLEL)
-├─ git push origin feat/...   ├─ ✅ Linting (1m)
-│                             ├─ ✅ Type Check (1m)
-└─ Pre-push runs auto         ├─ ✅ Unit Tests (2m)
-   (if fails → push blocked)  ├─ ✅ Build (2m)
-                              ├─ ✅ Security (1m)
-                              ├─ ✅ E2E Tests (PR only)
-                              ├─ ✅ Functions (1m)
-                              └─ ✅ Performance (PR only)
-
-CODE REVIEW               MERGE & DEPLOY
-├─ Min 1 approval         ├─ develop → auto Firebase dev
-├─ All checks pass        ├─ staging → manual Firebase staging
-└─ Approve merge          └─ main → manual Firebase prod
-```
-
-### Developer Workflow (Day-to-Day)
-
-```bash
-# 1. New feature
-git checkout -b feature/my-feature
-
-# 2. Code & test locally
-npm start                    # Dev server
-npm test                     # Watch tests
-
-# 3. Quality check before commit
-npm run quality             # Runs: lint + typecheck + test + build
-
-# 4. Commit (hooks run automatically)
-git add .
-git commit -m "feat(scope): description"
-# ✅ ESLint fix, Prettier format, Commitlint validate
-
-# 5. Push (pre-push validates automatically)
-git push origin feature/my-feature
-# ✅ Lint, TypeScript, Tests run automatically
-# ❌ If fails → Fix locally, push again
-
-# 6. GitHub Actions CI/CD (10-15 min, 8 jobs parallel)
-# ✅ All pass → Ready for PR review
-
-# 7. Code review & merge
-# ✅ Approved → Merge to develop/staging/main
-
-# 8. Automatic/Manual deployment
-# develop → auto deploy (5 min)
-# staging → manual (10 min)
-# main → manual + lead sign-off (5 min)
-```
-
-### Commit Format (Conventional Commits)
-
-```bash
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-**Types**: feat, fix, docs, style, refactor, perf, test, ci, chore
-
-**Examples**:
-```bash
-feat(auth): add two-factor authentication
-fix(cart): correct total calculation with discounts
-docs(readme): update setup instructions
-refactor(services): simplify firestore queries
-perf(bundle): optimize component lazy loading
-test(auth): add unit tests for login
-```
-
-### Quality Gates (All Must Pass)
-
-| Check | Tool | Auto | Required |
-|-------|------|------|----------|
-| Lint | ESLint | Pre-commit | ✅ Yes |
-| Format | Prettier | Pre-commit | ✅ Yes |
-| Type | TypeScript | Pre-push | ✅ Yes |
-| Tests | Jasmine/Karma | Pre-push | ✅ Yes (80%+) |
-| Build | Angular CLI | CI/CD | ✅ Yes |
-| Security | npm audit | CI/CD | ✅ Yes |
-| E2E | Cypress | CI/CD (PR) | ✅ PR only |
-| Performance | Lighthouse | CI/CD (PR) | ✅ PR only |
-
-### How It Works
-
-**Pre-commit Hooks (Automatic on `git commit`)**:
-```bash
-✅ ESLint --fix      (auto-fix issues)
-✅ Prettier          (format code)
-✅ Commitlint        (validate message format)
-→ If all pass: commit created
-→ If any fail: commit blocked, fix and retry
-```
-
-**Pre-push Validation (Automatic on `git push`)**:
-```bash
-Branch: develop (DEV)
-  🔧 npm run fix        (Auto-fix ESLint + Prettier)
-  ✅ npm run lint       (ESLint validation)
-  ✅ npm run typecheck  (TypeScript --strict)
-  ✅ npm run test       (Unit tests, 80%+ coverage required)
-  → If ALL pass: push allowed
-  → If ANY fail: push blocked, fix locally and retry
-
-Branch: main (PRODUCTION)
-  ❌ PUSH BLOCKED automatically
-  → Must merge via GitHub PR (develop → main)
-  → Requires team approval
-  → GitHub Actions auto-deploys
-```
+**Pre-push** (on `git push`, develop & hotfix only):
+- ✅ ESLint validation
+- ✅ TypeScript strict check
+- ✅ Unit tests (80%+ coverage required)
+- ❌ If any fail: push blocked, fix locally and retry
 
 **Deployment by Branch**:
-| Branch | Deploy | Approval | Time |
-|--------|--------|----------|------|
-| develop | Auto | None | 5m |
-| staging | Manual | Lead review | 10m |
-| main | Manual | Lead + 2 approvals | 5m |
+| Branch | Deploy | Approval |
+|--------|--------|----------|
+| develop | Automatic | None |
+| staging | Manual | Lead review |
+| main | Manual + blocked | Lead + 2 approvals |
 
 ---
 
@@ -378,52 +249,43 @@ Branch: main (PRODUCTION)
 ### Principles
 
 - **Language**: English only
-- **TypeScript**: 5.8+, strict mode, no `any`
-- **Comments**: Minimal, self-documenting code (explain WHY, not WHAT)
-- **Functions**: Max 40 lines, max 5 parameters, explicit types
+- **TypeScript**: 5.8+ strict mode, no `any`
+- **Comments**: Minimal, self-documenting (explain WHY, not WHAT)
+- **Functions**: Max 40 lines, max 5 parameters
 - **Files**: Max 300 lines, single responsibility
 - **Naming**: camelCase variables, PascalCase types, UPPER_SNAKE_CASE constants
 - **Async**: Signals > RxJS > Promises
-- **Testing**: Minimum 70% coverage, max 80%
+- **Testing**: Minimum 70% coverage
 
 ### Code Examples
 
 ```typescript
-// ✅ GOOD: Clear naming, explicit types
-const USER_MAX_RETRIES = 3;
-const userName = 'John';
-type UserProfile = { name: string; email: string };
+// ✅ GOOD
+const MAX_RETRIES = 3;
+readonly count = signal(0);
 
 function calculateTotal(items: CartItem[]): number {
   return items.reduce((sum, item) => sum + item.price, 0);
 }
 
-// ✅ GOOD: Signals for state
-readonly count = signal(0);
-
-// ✅ GOOD: Observable cleanup
+// ✅ Observable cleanup
 constructor(private destroyed$ = inject(DestroyRef)) {}
-this.service.data$
-  .pipe(takeUntilDestroyed(this.destroyed$))
-  .subscribe();
+this.service.data$.pipe(takeUntilDestroyed(this.destroyed$)).subscribe();
 
-// ❌ AVOID: Untyped, nested subscriptions, manual unsubscribe
-const x: any = something;
+// ❌ AVOID
+const x: any = something;  // untyped
 this.service.data$.subscribe(() => {
-  this.other$.subscribe();  // NESTED
+  this.other$.subscribe();  // nested subscriptions
 });
-subscription.unsubscribe(); // USE takeUntil instead
+subscription.unsubscribe(); // use takeUntil instead
 ```
 
 ### Configuration
 
-All tools consolidated in `package.json`:
-
-- **ESLint**: Strict TypeScript rules (see `.eslintrc.json`)
-- **Prettier**: 100 char width, single quotes, trailing commas
-- **Pre-commit**: Auto-fix linting on commit
-- **Commitlint**: Validates Conventional Commits format
-- **Code Reference**: `.codeagent.json` for detailed standards
+- **ESLint**: Strict TypeScript rules (`.eslintrc.json`)
+- **Prettier**: 100 char width, single quotes, trailing commas (`package.json`)
+- **Pre-commit**: Auto-fix linting on commit (Husky)
+- **Commitlint**: Validates Conventional Commits
 
 **Setup**: `npm run prepare` (one-time)
 
@@ -524,6 +386,45 @@ npm run e2e:open      # Interactive E2E debugging
 | **dev** | develop | Basic | Auto |
 | **staging** | staging | Full + E2E | Manual |
 | **prod** | main | All + perf | Manual + sign-off |
+
+### Environment Configuration
+
+**Two ENV files for different contexts:**
+
+#### 1. `.env.ecommerce-vertex-dev` (Firebase Cloud Functions)
+- **Use case**: Production/staging deployments on Firebase
+- **Credentials**: Real MercadoPago test tokens
+- **URLs**: Firebase-hosted URLs (https://ecommerce-vertex-dev.web.app)
+- **Git**: Ignored via .gitignore (never commit real credentials)
+- **Setup**: Manually set from MercadoPago dashboard
+  
+```bash
+MERCADOPAGO_ACCESSTOKEN=APP_USR-YOUR_TEST_TOKEN
+MERCADOPAGO_WEBHOOK_URL=https://us-central1-ecommerce-vertex-dev.cloudfunctions.net/mercadoPagoWebhookHandler
+SITE_URL=https://ecommerce-vertex-dev.web.app
+```
+
+#### 2. `.env.local` (Development - localhost:4200)
+- **Use case**: Local development on `npm start`
+- **Credentials**: Same test tokens, routes to localhost
+- **URLs**: Localhost URLs (http://localhost:4200, localhost:5001)
+- **Git**: Ignored via .gitignore
+- **Setup**: Copy from `.env.local` file in repo
+  
+```bash
+# Before npm start on localhost:
+cp functions/.env.local functions/.env.ecommerce-vertex-dev
+
+npm start
+```
+
+**Environment File Structure:**
+```
+functions/
+├── .env.example              # Template (tracked in git)
+├── .env.local               # Development template (for localhost)
+└── .env.ecommerce-vertex-dev # Active (ignored in git)
+```
 
 ### Deployment Steps
 
@@ -687,107 +588,73 @@ git rebase --continue
 
 ---
 
-## Development Standards Summary
+## Contributing
 
-### What We Follow
+### How to Contribute
 
-1. **Code Quality**: ESLint strict mode + TypeScript 5.8+ strict
-2. **Formatting**: Prettier (100 char width, single quotes, trailing commas)
-3. **Commits**: Conventional Commits with automated validation
-4. **Testing**: 70%+ coverage minimum (Jasmine + Karma + Cypress)
-5. **Architecture**: Domain-Driven Design + Clean Architecture layers
-6. **Async**: Signals > RxJS Observables > Promises
-7. **Comments**: Minimal, explaining WHY not WHAT
-8. **Naming**: camelCase vars, PascalCase types, UPPER_SNAKE_CASE constants
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/description`
+3. Follow code standards (see [Code Standards](#code-standards))
+4. Write tests (>70% coverage)
+5. Run quality checks: `npm run quality`
+6. Commit: `git commit -m "feat(scope): description"` (Conventional Commits)
+7. Create Pull Request with description
+8. Address review feedback
+9. Merge when all checks pass
 
-### The Complete Development Process
+### Requirements
 
-```
-NEW FEATURE → CODE LOCALLY → TEST LOCALLY → COMMIT (hooks) 
-  → VALIDATE (pre-push) → PUSH → CI/CD (8 jobs) → REVIEW 
-  → APPROVE → MERGE → AUTO/MANUAL DEPLOY → MONITOR
-```
+- TypeScript strict mode
+- Conventional Commits format
+- Minimum 70% test coverage
+- DDD patterns in features
+- ESLint + Prettier compliance
 
-### Quality Gates (All Must Pass)
+### Code of Conduct
 
-| Gate | Tool | Action |
-|------|------|--------|
-| Linting | ESLint | Fix async (pre-commit) |
-| Type Safety | TypeScript | Via npm run typecheck |
-| Unit Tests | Jasmine/Karma | 70%+ coverage required |
-| Format Check | Prettier | Fix async (pre-commit) |
-| Build | Angular CLI | Production build must succeed |
-| Security | npm audit | No critical vulnerabilities |
-| E2E Tests | Cypress | Critical flows on PR/staging/prod |
-| Performance | Lighthouse | Initial load < 2s on PR |
-
-### Files You Need to Know
-
-| File | Purpose |
-|------|---------|
-| `README.md` | You are here - complete guide |
-| `PUSH_FLOW.md` | Detailed push flow & CI/CD explanation |
-| `.codeagent.json` | Code standards reference (for AI) |
-| `.eslintrc.json` | ESLint rules configuration |
-| `package.json` | Prettier, lint-staged, commitlint config |
-| `karma.conf.js` | Unit test configuration |
-| `cypress.config.ts` | E2E test configuration |
-| `.github/workflows/ci-cd.yml` | GitHub Actions pipeline |
-
-### Example Workflow (Start to Finish)
-
-```bash
-# 1. Create feature
-git checkout -b feature/add-product-search
-
-# 2. Code & test
-npm start                # Dev server
-npm test                 # Tests watch mode
-
-# 3. Before commit
-npm run quality          # Full validation
-
-# 4. Commit (hooks run automatically)
-git add .
-git commit -m "feat(product): add search functionality"
-# ✅ ESLint fix, Prettier format, Commitlint validate
-
-# 5. Pre-push validation
-npm run pre-push
-# ✅ Lint check, TypeScript check, Unit tests
-
-# 6. Push to GitHub
-git push origin feature/add-product-search
-# ▶️ GitHub Actions starts (8 parallel jobs)
-# ✅ All pass → Ready for review
-# ❌ One fails → Check logs, fix locally, push again
-
-# 7. Create PR (template auto-loads)
-# - Fill description
-# - Reference issue if any
-# - Add notes for reviewer
-
-# 8. Approval & Merge
-# - Min 1 approval
-# - All CI checks must pass
-# - Squash/rebase commit
-
-# 9. Deploy
-# develop → Auto to dev Firebase
-# staging → Manual to staging Firebase
-# main → Manual to prod Firebase (lead sign-off)
-```
+- Be respectful and professional
+- Provide constructive feedback
+- Focus on code, not the person
+- Help others succeed
 
 ---
 
-| Metric | Value |
-|--------|-------|
-| Lines of Code | ~50,000 |
-| Components | ~45 |
-| Services | ~18 |
-| Test Coverage | 75%+ |
-| Bundle Size | 450KB (gzipped) |
-| Initial Load | < 2s |
+## Security
+
+### Reporting Vulnerabilities
+
+🔒 **Do NOT open public issues for security vulnerabilities!**
+
+1. Email: security@vertex-tech.com
+2. Include: Description, steps to reproduce, impact
+3. Wait: 72 hours for response
+4. Do not share details publicly until patched
+
+### Security Best Practices
+
+- ✅ Never commit `.env` files with secrets
+- ✅ Use environment-specific configs
+- ✅ Validate all user inputs
+- ✅ Sanitize data before display
+- ✅ Use HTTPS in production
+- ✅ Keep dependencies updated
+- ✅ Review `firestore.rules` regularly
+- ✅ Enable 2FA on Firebase Console
+- ✅ Rotate API keys periodically
+- ✅ OWASP Top 10 compliant
+- ✅ GDPR data handling ready
+- ✅ Role-based access control (RBAC)
+
+### Security Features Implemented
+
+- Firebase Authentication with JWT
+- Role-based access control (RBAC)
+- Firestore security rules enforced
+- Type safety with TypeScript
+- XSS protection with Angular sanitization
+- HTTPS/TLS for all communications
+- Environment variables for sensitive data
+- Regular dependency security audits
 
 ---
 
@@ -798,7 +665,7 @@ git push origin feature/add-product-search
 - 🔥 [Firebase Documentation](https://firebase.google.com/docs)
 - 📝 [Conventional Commits](https://www.conventionalcommits.org/)
 - 📖 [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- 🤖 [AI Agent Guidelines](./.agent.md) - For AI agents only
+- 🤖 [AI Agent Guidelines](./.agent.md)
 
 ---
 

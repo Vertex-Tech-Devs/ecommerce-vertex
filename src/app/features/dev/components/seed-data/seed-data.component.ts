@@ -23,6 +23,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
               <li>✓ Crea 5 atributos globales (talles, colores, material)</li>
               <li>✓ Crea 5 categorías de indumentaria y calzado</li>
               <li>✓ Genera 25 productos con precios, descripciones y 4 imágenes cada uno</li>
+              <li>✓ Genera automáticamente todas las variantes (combinaciones de talles y colores)</li>
               <li>✓ Configura el banner hero con <strong>5 imágenes</strong> (slots completos)</li>
               <li>✓ Crea 3 categorías destacadas en la home</li>
               <li>✓ Agrega 20 clientes con datos realistas argentinos</li>
@@ -59,8 +60,8 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
                 <div class="stat-label">Productos</div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">5</div>
-                <div class="stat-label">Fotos Hero</div>
+                <div class="stat-number">~500+</div>
+                <div class="stat-label">Variantes</div>
               </div>
               <div class="stat-item">
                 <div class="stat-number">20</div>

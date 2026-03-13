@@ -18,6 +18,11 @@ service cloud.firestore {
     match /products/{productId} {
       allow read: if true;
       allow write: if isAdmin();
+      
+      match /variants/{variantId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
     }
 
     match /categories/{categoryId} {
@@ -64,6 +69,12 @@ service cloud.firestore {
       allow update: if isAuthenticated() &&
         (resource.data.userId == request.auth.uid || isAdmin());
       allow delete: if isAdmin();
+      
+      match /items/{itemId} {
+        allow read: if isAuthenticated() &&
+          (get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid || isAdmin());
+        allow write: if isAdmin();
+      }
     }
 
     match /reviews/{reviewId} {

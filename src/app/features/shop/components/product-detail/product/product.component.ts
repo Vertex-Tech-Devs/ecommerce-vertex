@@ -178,12 +178,29 @@ export class ProductComponent implements OnInit {
   }
 
   public getValuesForAttribute(attr: AttributeSelection): string[] {
-    return this.allPossibleValues.get(attr.id) || [];
+    // First try to get from allPossibleValues (generated from variants)
+    const variantValues = this.allPossibleValues.get(attr.id) || [];
+    
+    // If no variants have values yet, show all possible values from the attribute definition
+    if (variantValues.length === 0) {
+      const allAttr = this.allAttributes().find(a => a.id === attr.id);
+      return allAttr?.values || [];
+    }
+    
+    return variantValues;
   }
 
   public isOptionVisible(attributeId: string, value: string): boolean {
     const attr = this.attributes().find(a => a.id === attributeId);
     if (!attr) return false;
+    
+    // If no variants exist yet, show all values
+    if (this.variants.length === 0) {
+      const allAttr = this.allAttributes().find(a => a.id === attributeId);
+      return allAttr?.values.includes(value) || false;
+    }
+    
+    // Otherwise check if value is in available values for this attribute
     return attr.values.includes(value);
   }
 

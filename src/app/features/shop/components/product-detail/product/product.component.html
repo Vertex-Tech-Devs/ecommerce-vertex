@@ -8,7 +8,7 @@
           </div>
           @if (galleryImages().length > 1) {
             <div class="thumbnail-container">
-              @for (img of galleryImages(); track img) {
+              @for (img of galleryImages(); track $index) {
                 <img
                   [src]="img"
                   [alt]="product.name + ' thumbnail'"
@@ -25,11 +25,11 @@
           <p class="product-price">{{ product.price | currency:'ARS':'$' }}</p>
           <p class="product-description">{{ product.description }}</p>
 
-          @for(attr of attributes(); track attr.id) {
+          @for(attr of attributes(); track attr.id + '_' + $index) {
             <div class="variant-selector">
               <label class="selector-label">{{ attr.name }}:</label>
               <div class="options-container">
-                @for (value of getValuesForAttribute(attr); track value) {
+                @for (value of getValuesForAttribute(attr); track value + '_' + $index) {
                   @if (isOptionVisible(attr.id, value)) {
                     <button
                       class="option-btn"

@@ -1,6 +1,6 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import {
-  Firestore, collection, addDoc, setDoc, doc, getDocs, deleteDoc,
+  Firestore, collection, addDoc, setDoc, doc, getDocs, deleteDoc, updateDoc,
 } from '@angular/fire/firestore';
 import { SweetAlertService } from './sweet-alert.service';
 
@@ -39,6 +39,7 @@ const FEAT = {
 
 interface SeedProduct { id: string; name: string; finalPrice: number; image: string; categoryName: string; }
 interface SeedClient  { id: string; fullName: string; email: string; phone: string; }
+interface Attribute   { id: string; name: string; values: string[]; }
 
 // ─── service ──────────────────────────────────────────────────────────────────
 
@@ -127,6 +128,32 @@ export class SeedDataService {
   }
 
   // ── products ──────────────────────────────────────────────────────────────
+
+  /** Generate all combinations for variant attributes */
+  private generateVariantCombinations(
+    attributes: Attribute[],
+    variantAttrIds: string[]
+  ): Array<{ [key: string]: string }> {
+    const selectedAttrs = attributes.filter(a => variantAttrIds.includes(a.id || ''));
+    if (selectedAttrs.length === 0) return [];
+
+    let result: Array<{ [key: string]: string }> = [{}];
+
+    selectedAttrs.forEach(attr => {
+      const newResult: Array<{ [key: string]: string }> = [];
+      result.forEach(existing => {
+        attr.values.forEach(value => {
+          newResult.push({
+            ...existing,
+            [attr.id!]: value
+          });
+        });
+      });
+      result = newResult;
+    });
+
+    return result;
+  }
 
   private async seedProducts(cats: Record<string, { id: string; name: string }>): Promise<SeedProduct[]> {
     const catalogue = [
@@ -298,13 +325,32 @@ export class SeedDataService {
     ];
 
     const seeded: SeedProduct[] = [];
+    
+    // First, load all attributes once
+    const attrsSnap = await this.run(() => getDocs(collection(this.firestore, 'attributes')));
+    const allAttrs = attrsSnap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        name: data['name'],
+        values: data['values'] || []
+      } as Attribute;
+    });
+
+    // Map attribute names to IDs for variant generation
+    const attrNameToId: Record<string, string> = {};
+    allAttrs.forEach(attr => {
+      // Map both exact name and lowercase slug
+      attrNameToId[attr.name] = attr.id;
+      if (attr.name.includes('(')) {
+        const slug = attr.name.split('(')[0].trim().toLowerCase();
+        attrNameToId[slug] = attr.id;
+      }
+    });
+
     for (const cat of catalogue) {
       const catData = cats[cat.slug];
       if (!catData) continue;
-      const isAcc = cat.slug === 'accesorios';
-      const inStock = isAcc
-        ? { color: cat.colors }
-        : { talle: cat.talles, color: cat.colors };
 
       for (const item of cat.items) {
         const mainImg = u(item.imgs[0], 600, 600);
@@ -313,7 +359,8 @@ export class SeedDataService {
           ? Math.round(item.price * (1 - item.discount / 100))
           : item.price;
 
-        const ref = await this.run(() =>
+        // Create product
+        const productRef = await this.run(() =>
           addDoc(collection(this.firestore, 'products'), {
             name:             item.name,
             description:      item.desc,
@@ -323,15 +370,60 @@ export class SeedDataService {
             finalPrice:       fp,
             image:            mainImg,
             images:           [mainImg, ...extraImgs],
-            totalStock:       80,
-            inStockAttributes: inStock,
-            variantAttributes: cat.variants,
+            totalStock:       0,
+            inStockAttributes: {},
+            variantAttributes: cat.variants.map(v => attrNameToId[v]).filter(Boolean),
             featured:         item.featured,
             active:           true,
             createdAt:        new Date(),
           })
         );
-        seeded.push({ id: ref.id, name: item.name, finalPrice: fp, image: mainImg, categoryName: catData.name });
+
+        // Generate and create variants
+        const variantAttrIds = cat.variants
+          .map(v => attrNameToId[v])
+          .filter(Boolean);
+
+        if (variantAttrIds.length > 0) {
+          const combinations = this.generateVariantCombinations(allAttrs, variantAttrIds);
+          
+          // Create a variant for each combination with random stock
+          let totalStock = 0;
+          const inStockAttributes: Record<string, string[]> = {};
+
+          for (const combo of combinations) {
+            const stock = Math.floor(Math.random() * 80) + 5; // 5-85 units per variant
+            totalStock += stock;
+
+            // Track which attribute values have stock
+            Object.entries(combo).forEach(([attrId, value]) => {
+              if (!inStockAttributes[attrId]) {
+                inStockAttributes[attrId] = [];
+              }
+              if (!inStockAttributes[attrId].includes(value)) {
+                inStockAttributes[attrId].push(value);
+              }
+            });
+
+            await this.run(() =>
+              addDoc(collection(productRef, 'variants'), {
+                attributes: combo,
+                stock: stock,
+                productId: productRef.id
+              })
+            );
+          }
+
+          // Update product with total stock and in-stock attributes
+          await this.run(() =>
+            updateDoc(productRef, {
+              totalStock,
+              inStockAttributes
+            })
+          );
+        }
+
+        seeded.push({ id: productRef.id, name: item.name, finalPrice: fp, image: mainImg, categoryName: catData.name });
       }
     }
     return seeded;
