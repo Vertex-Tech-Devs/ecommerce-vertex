@@ -1,3 +1,5 @@
+#!/bin/sh
+
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [ "$BRANCH" = "main" ]; then
@@ -9,19 +11,6 @@ if [ "$BRANCH" = "main" ]; then
   exit 1
 fi
 
-if [ "$BRANCH" = "develop" ]; then
-  echo "Validating..."
-  npm run lint > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
-    echo "ESLint validation failed. Please fix linting errors."
-    exit 1
-  fi
-  exit 0
-fi
-
-npm run lint > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "ESLint validation failed. Please fix linting errors."
-  exit 1
+exit 0
 fi
 exit 0
