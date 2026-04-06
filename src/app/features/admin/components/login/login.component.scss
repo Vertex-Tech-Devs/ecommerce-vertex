@@ -1,18 +1,10 @@
 @use 'variables' as vars;
 @use "sass:color";
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .login-container {
@@ -20,33 +12,33 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 1rem;
-  background-color: vars.$dark-bg-primary;
+  padding: var(--space-4, 1rem);
+  background: linear-gradient(135deg, #eef2ff 0%, #F4F7FE 50%, #e0f2fe 100%);
 }
 
 .card-gradient-wrapper {
   padding: 2px;
-  border-radius: 14px;
+  border-radius: var(--radius-xl, 14px);
   background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
   background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
-  box-shadow: 0 8px 32px rgba(vars.$accent-purple, 0.3);
+  animation: gradient-shift 8s ease infinite;
+  box-shadow: 0 8px 40px rgba(vars.$accent-purple, 0.15), 0 2px 12px rgba(0, 0, 0, 0.06);
   width: 100%;
   max-width: 450px;
 }
 
 .card {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-lg, 12px);
   overflow: hidden;
-  background-color: vars.$dark-bg-secondary;
+  background-color: #ffffff;
 }
 
 .login-card-header {
   background: transparent;
-  color: #fff;
-  padding: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: vars.$text-light;
+  padding: var(--space-6, 1.5rem);
+  border-bottom: 1px solid vars.$glass-border;
 
   h2 {
     font-weight: 400;
@@ -57,15 +49,15 @@
 }
 
 .form-title {
-  color: #f0f0f0;
-  font-weight: 500;
+  color: vars.$text-light;
+  font-weight: vars.$font-weight-medium;
 }
 
 .form-label {
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #a0a0a0;
+  color: vars.$text-muted-dark;
   letter-spacing: 0.5px;
 }
 
@@ -74,14 +66,14 @@
   color: white;
   font-weight: 600;
   padding: 12px 20px;
-  border-radius: 8px;
+  border-radius: var(--radius-md, 8px);
   border: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+  transition: all var(--transition-base, 0.3s ease);
+  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.25);
 
   &:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.35);
   }
 
   &:disabled {
@@ -93,27 +85,24 @@
 .form-control {
   display: block;
   width: 100%;
-  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 5%);
-  border: 1px solid #444;
-  border-radius: 8px;
-  color: #fff;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: #f9fafb;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  color: vars.$input-dark-text;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   padding: 0.75rem 1rem;
 
-  &::placeholder {
-    color: #888;
-  }
+  &::placeholder { color: vars.$input-dark-placeholder; }
 }
 
 .password-input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 5%);
-  border: 1px solid #444;
-  border-radius: 8px;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-
+  background-color: #f9fafb;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   .form-control {
     background-color: transparent;
@@ -122,9 +111,7 @@
     flex-grow: 1;
     padding-right: 2.75rem;
 
-    &:focus {
-      outline: none;
-    }
+    &:focus { outline: none; }
   }
 }
 
@@ -138,38 +125,32 @@
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  color: #888;
+  color: vars.$text-muted-dark;
   line-height: 1;
-  transition: color 0.2s ease-in-out;
+  transition: color 0.2s ease;
 
-  &:hover {
-    color: #fff;
-  }
+  &:hover { color: vars.$text-light; }
 }
 
 .form-control:focus,
 .password-input-wrapper:focus-within {
   border-color: vars.$accent-purple;
-  box-shadow: 0 0 0 0.2rem rgba(vars.$accent-purple, 0.25);
+  box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
 }
 
 .form-control.is-invalid,
 .is-invalid-wrapper {
-  border-color: #e57373;
-  box-shadow: 0 0 0 0.2rem rgba(229, 115, 115, 0.25);
+  border-color: vars.$accent-red;
+  box-shadow: 0 0 0 3px rgba(vars.$accent-red, 0.12);
 
-  .password-toggle-icon {
-    color: #e57373;
-  }
+  .password-toggle-icon { color: vars.$accent-red; }
 }
 
 .alert-custom {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f0f0f0;
-  border-radius: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: vars.$accent-red;
+  border-radius: var(--radius-md, 8px);
 
-  a {
-    color: vars.$accent-blue;
-  }
+  a { color: vars.$accent-blue; }
 }

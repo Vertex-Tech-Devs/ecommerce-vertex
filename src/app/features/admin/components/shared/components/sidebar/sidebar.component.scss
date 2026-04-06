@@ -1,84 +1,120 @@
 @use "sass:color";
 @use 'variables' as vars;
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  background-color: vars.$dark-bg-secondary;
-  border-right: 1px solid rgba(vars.$text-light, 0.1);
-  box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+  height: 100%;
+  background: linear-gradient(180deg, #0f172a 0%, #1a2540 100%);  // hardcoded dark
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);              // hardcoded light-on-dark border
+
+  // Subtle gradient accent along top
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #818cf8, #67e8f9, #818cf8); // indigo-400 → cyan-300 — vivid on dark\n
+    background-size: 200% 200%;
+    animation: gradient-shift 6s ease infinite;
+    opacity: 0.7;
+  }
 }
 
-.nav-links {
+.sidebar__nav {
   list-style: none;
-  padding: 1rem 0;
+  padding: var(--space-8, 2rem) 0 var(--space-4, 1rem);
   margin: 0;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.sidebar-link {
+.sidebar__link {
   display: flex;
   align-items: center;
-  padding: 0.85rem 2rem;
-  margin-bottom: 0.5rem;
+  padding: 0.8rem 1.25rem;
+  margin: 0 0.75rem;
   text-decoration: none;
-  border-radius: 0;
   position: relative;
   cursor: pointer;
+  border-radius: var(--radius-md, 8px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   span,
   i {
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: vars.$font-weight-medium;
-    color: vars.$text-muted-dark;
-    transition: color 0.3s ease;
+    color: rgba(241, 245, 249, 0.55);     // hardcoded white-on-dark
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   i {
-    font-size: 1.25rem;
-    margin-right: 1rem;
-    width: 24px;
+    font-size: 1.15rem;
+    margin-right: var(--space-4, 1rem);
+    width: 22px;
+    text-align: center;
   }
 
-  &:hover:not(.active) {
+  &:hover:not(.sidebar__link--active) {
+    background: rgba(129, 140, 248, 0.1);  // indigo-400 tint — visible on dark
 
-    span,
+    span {
+      color: rgba(241, 245, 249, 0.9);  // hardcoded
+    }
+
     i {
-      background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
-      background-size: 200% 200%;
-      animation: gradient-animation 6s ease infinite;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      color: #a5b4fc;  // indigo-300 — bright on dark
     }
   }
 
-  &.active {
-    color: vars.$text-light;
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue);
-    background-size: 200% 200%;
-    animation: gradient-animation 6s ease infinite;
+  &:focus-visible {
+    outline: 2px solid #818cf8;   // indigo-400 — bright focus on dark
+    outline-offset: -2px;
+  }
 
-    span,
+  &--active {
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.18), rgba(99, 189, 248, 0.12)); // hardcoded indigo-400 tones
+    box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.2), 0 2px 8px rgba(79, 70, 229, 0.15);
+
+    // Active indicator bar on the left
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: linear-gradient(180deg, #818cf8, #67e8f9); // indigo-400 → cyan-300
+      box-shadow: 0 0 10px rgba(129, 140, 248, 0.6);
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    span {
+      color: #f1f5f9;                          // hardcoded white
+      font-weight: vars.$font-weight-semibold;
+    }
+
     i {
-      color: vars.$text-light;
-      background: none;
-      -webkit-background-clip: initial;
-      background-clip: initial;
+      color: #a5b4fc;  // indigo-300 — bright icon on dark
+      filter: drop-shadow(0 0 4px rgba(129, 140, 248, 0.5));
     }
   }
 }

@@ -2,14 +2,14 @@
 @use 'sass:color';
 
 .modal-header-custom {
-  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   color: white;
   border-bottom: none;
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem var(--space-6, 1.5rem);
 
   .modal-title {
     font-weight: vars.$font-weight-semibold;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.02em;
   }
 
   .btn-close {
@@ -21,36 +21,50 @@
       opacity: 1;
       transform: scale(1.1);
     }
+
+    &:focus-visible {
+      outline: 2px solid vars.$glass-border;
+      outline-offset: 2px;
+    }
   }
 }
 
 .modal-body {
-  padding: 2rem;
-  background-color: #f4f6f9;
+  padding: var(--space-8, 2rem);
+  background: vars.$glass-bg;
+  color: vars.$text-light;
 
   .form-label {
-    font-weight: vars.$font-weight-medium;
-    color: #495057;
+    font-weight: vars.$font-weight-semibold;
+    color: rgba(vars.$text-light, 0.5);
     margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
   }
 
   .form-control {
-    border: 1px solid #dfe3e8;
-    border-radius: vars.$border-radius-sm;
+    background-color: vars.$input-dark-bg;
+    color: vars.$input-dark-text;
+    border: 1px solid vars.$input-dark-border;
+    border-radius: var(--radius-sm, 6px);
     padding: 0.75rem 1rem;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder { color: vars.$input-dark-placeholder; }
 
     &:focus {
+      background-color: #f3f4f6;
       border-color: vars.$accent-purple;
-      box-shadow: 0 0 0 0.25rem rgba(vars.$accent-purple, 0.15);
+      box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+      color: vars.$text-light;
     }
 
     &.is-invalid {
       border-color: vars.$accent-red;
 
       &:focus {
-        box-shadow: 0 0 0 0.25rem rgba(vars.$accent-red, 0.15);
+        box-shadow: 0 0 0 3px rgba(vars.$accent-red, 0.15);
       }
     }
   }
@@ -58,45 +72,43 @@
 
 .modal-subtitle {
   font-weight: 600;
-  color: #333;
+  color: vars.$text-light;
   font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  margin-top: 1.5rem;
-  
-  &:first-of-type {
-    margin-top: 0;
-  }
+  margin-bottom: var(--space-2, 0.5rem);
+  margin-top: var(--space-6, 1.5rem);
+
+  &:first-of-type { margin-top: 0; }
 }
 
 .modal-description {
   font-size: 0.9rem;
-  color: #6c757d;
-  margin-bottom: 1rem;
+  color: rgba(vars.$text-light, 0.5);
+  margin-bottom: var(--space-4, 1rem);
 }
 
 .form-content-card {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border: 1px solid #dfe3e8;
-  border-radius: vars.$border-radius-md;
-  
+  background: #f9fafb;
+  padding: var(--space-6, 1.5rem);
+  border: 1px solid vars.$glass-border;
+  border-radius: var(--radius-md, 8px);
+
   @media (min-width: vars.$breakpoint-md) {
-    padding: 2rem;
+    padding: var(--space-8, 2rem);
   }
 }
 
 .attributes-grid-container {
-  background-color: #f8f9fa;
-  border: 1px solid #dfe3e8;
-  border-radius: vars.$border-radius-sm;
-  padding: 1.5rem;
+  background: #f9fafb;
+  border: 1px solid vars.$glass-border;
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-6, 1.5rem);
 }
 
 .attributes-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem 1rem;
-  
+
   @media (max-width: vars.$breakpoint-sm) {
     grid-template-columns: 1fr;
   }
@@ -108,7 +120,7 @@
   align-items: center;
   gap: 0.75rem;
   min-height: 2.25rem;
-  
+
   .form-check-input {
     width: 3rem;
     height: 1.6rem;
@@ -116,14 +128,14 @@
     margin-left: 0;
     flex-shrink: 0;
     cursor: pointer;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    background-color: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
-    
+
     &:focus {
       border-color: rgba(vars.$accent-blue, 0.5);
-      box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+      box-shadow: 0 0 0 3px rgba(vars.$accent-blue, 0.15);
       background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
     }
 
@@ -136,52 +148,62 @@
 
   .form-check-label {
     cursor: pointer;
-    color: #343a40;
+    color: rgba(vars.$text-light, 0.8);
     font-weight: 500;
   }
 }
 
-
 .modal-footer {
-  background-color: #f4f6f9;
-  border-top: 1px solid #e9ecef;
-  padding: 1rem 1.5rem;
+  background: vars.$admin-surface;
+  border-top: 1px solid vars.$glass-border;
+  padding: 1rem var(--space-6, 1.5rem);
 
   .btn {
     font-weight: vars.$font-weight-semibold;
     padding: 0.6rem 1.25rem;
-    border-radius: vars.$border-radius-sm;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-sm, 6px);
+    transition: all var(--transition-base, 0.3s ease);
   }
 
   .btn-secondary {
     background-color: transparent;
-    border: 2px solid vars.$accent-red;
+    border: 1px solid rgba(vars.$accent-red, 0.5);
     color: vars.$accent-red;
-    padding: calc(0.6rem - 2px) calc(1.25rem - 2px);
 
     &:hover {
-      background-color: vars.$accent-red;
+      background-color: rgba(vars.$accent-red, 0.12);
       border-color: vars.$accent-red;
-      color: white;
+      color: vars.$accent-red;
       transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+      box-shadow: 0 4px 12px rgba(vars.$accent-red, 0.18);
+    }
+
+    &:focus-visible {
+      outline: 2px solid vars.$accent-red;
+      outline-offset: 2px;
     }
   }
 
   .btn-save-gradient {
-    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.2);
     border: none;
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.25);
+      box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.3);
+      filter: brightness(1.1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid vars.$accent-purple;
+      outline-offset: 2px;
     }
 
     &:disabled {
-      background: #ccc;
+      background: #f1f5f9;
+      color: rgba(vars.$text-light, 0.35);
       box-shadow: none;
       transform: none;
       cursor: not-allowed;

@@ -1,58 +1,55 @@
 @if (footerData$ | async; as footerData) {
-  <footer class="shop-footer">
-    <div class="container footer-container">
+  <footer class="shop-footer" role="contentinfo">
+    <div class="footer__container">
 
-      <div class="footer-contact">
-        <p class="contact-title">Contacto:</p>
+      <div class="footer__contact">
+        <p class="footer__heading">Contacto</p>
 
         @if (footerData.contactPhone) {
-          <div class="contact-item">
-            <i class="bi bi-telephone-fill"></i>
+          <address class="footer__item">
+            <i class="bi bi-telephone" aria-hidden="true"></i>
             <a [href]="'tel:' + footerData.contactPhone">{{ footerData.contactPhone }}</a>
-          </div>
+          </address>
         }
 
         @if (footerData.contactEmail) {
-          <div class="contact-item">
-            <i class="bi bi-envelope-fill"></i>
+          <address class="footer__item">
+            <i class="bi bi-envelope" aria-hidden="true"></i>
             <a [href]="'mailto:' + footerData.contactEmail">{{ footerData.contactEmail }}</a>
-          </div>
+          </address>
         }
       </div>
 
-      <div class="footer-copyright">
+      <div class="footer__copyright">
         <p>&copy; {{ currentYear }} {{ footerData.copyrightText }}</p>
       </div>
 
-      <div class="social-links">
-
+      <nav class="footer__social" aria-label="Redes sociales">
         @if (footerData.socialInstagramUrl) {
           <a [href]="footerData.socialInstagramUrl" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
-            <i class="bi bi-instagram"></i>
+            <i class="bi bi-instagram" aria-hidden="true"></i>
           </a>
         }
-
         @if (footerData.socialFacebookUrl) {
           <a [href]="footerData.socialFacebookUrl" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook">
-            <i class="bi bi-facebook"></i>
+            <i class="bi bi-facebook" aria-hidden="true"></i>
           </a>
         }
-
         @if (footerData.socialWhatsAppUrl) {
           <a [href]="footerData.socialWhatsAppUrl" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp">
-            <i class="bi bi-whatsapp"></i>
+            <i class="bi bi-whatsapp" aria-hidden="true"></i>
           </a>
         }
-      </div>
+      </nav>
 
     </div>
   </footer>
 } @else {
-  <footer class="shop-footer">
-    <div class="container footer-container">
-       <div class="footer-copyright">
-          <p>Cargando configuración...</p>
-       </div>
+  <footer class="shop-footer" role="contentinfo">
+    <div class="footer__container">
+      <div class="footer__copyright">
+        <p>Cargando configuración...</p>
+      </div>
     </div>
   </footer>
 }

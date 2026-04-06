@@ -2,14 +2,14 @@
 @use 'sass:color';
 
 .modal-header-custom {
-  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   color: white;
   border-bottom: none;
-  padding: 1.25rem 1.5rem;
+  padding: 1.25rem var(--space-6, 1.5rem);
 
   .modal-title {
     font-weight: vars.$font-weight-semibold;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.02em;
   }
 
   .btn-close {
@@ -21,94 +21,124 @@
       opacity: 1;
       transform: scale(1.1);
     }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 2px;
+    }
   }
 }
 
 .modal-body {
-  padding: 2rem;
+  padding: var(--space-8, 2rem);
+  background: vars.$glass-bg;
+  color: vars.$text-light;
 
   .form-label {
-    font-weight: vars.$font-weight-medium;
-    color: #495057;
+    font-weight: vars.$font-weight-semibold;
+    color: rgba(vars.$text-light, 0.5);
     margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
   }
 
   .form-control {
-    border: 1px solid #dfe3e8;
-    border-radius: vars.$border-radius-sm;
+    background-color: vars.$input-dark-bg;
+    color: vars.$input-dark-text;
+    border: 1px solid vars.$input-dark-border;
+    border-radius: var(--radius-sm, 6px);
     padding: 0.75rem 1rem;
-    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &::placeholder { color: vars.$input-dark-placeholder; }
 
     &:focus {
+      background-color: #f3f4f6;
       border-color: vars.$accent-purple;
-      box-shadow: 0 0 0 0.25rem rgba(vars.$accent-purple, 0.15);
+      box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+      color: vars.$text-light;
     }
 
     &.is-invalid {
       border-color: vars.$accent-red;
 
       &:focus {
-        box-shadow: 0 0 0 0.25rem rgba(vars.$accent-red, 0.15);
+        box-shadow: 0 0 0 3px rgba(vars.$accent-red, 0.15);
       }
     }
   }
-  
+
   .input-group {
     .form-control {
       border-right: 0;
-      &:focus {
-        z-index: 1;
-      }
+      &:focus { z-index: 1; }
     }
+
     .btn {
-      border-color: #dfe3e8;
+      border-color: vars.$input-dark-border;
+      color: rgba(vars.$text-light, 0.5);
+      transition: background-color 0.2s ease, color 0.2s ease;
+
       &:hover {
-        background-color: color.adjust(vars.$accent-red, $alpha: -0.9);
+        background-color: rgba(vars.$accent-red, 0.12);
+        color: vars.$accent-red;
       }
     }
   }
 }
 
 .modal-footer {
-  background-color: #f4f6f9;
-  border-top: 1px solid #e9ecef;
-  padding: 1rem 1.5rem;
+  background: vars.$admin-surface;
+  border-top: 1px solid vars.$glass-border;
+  padding: 1rem var(--space-6, 1.5rem);
 
   .btn {
     font-weight: vars.$font-weight-semibold;
     padding: 0.6rem 1.25rem;
-    border-radius: vars.$border-radius-sm;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-sm, 6px);
+    transition: all var(--transition-base, 0.3s ease);
   }
 
   .btn-secondary {
     background-color: transparent;
-    border: 2px solid vars.$accent-red;
+    border: 1px solid rgba(vars.$accent-red, 0.5);
     color: vars.$accent-red;
-    padding: calc(0.6rem - 2px) calc(1.25rem - 2px);
 
     &:hover {
-      background-color: vars.$accent-red;
+      background-color: rgba(vars.$accent-red, 0.12);
       border-color: vars.$accent-red;
-      color: white;
+      color: vars.$accent-red;
       transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+      box-shadow: 0 4px 12px rgba(vars.$accent-red, 0.18);
+    }
+
+    &:focus-visible {
+      outline: 2px solid vars.$accent-red;
+      outline-offset: 2px;
     }
   }
 
   .btn-save-gradient {
-    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.2);
     border: none;
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.25);
+      box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.3);
+      filter: brightness(1.1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid vars.$accent-purple;
+      outline-offset: 2px;
     }
 
     &:disabled {
-      background: #ccc;
+      background: #f1f5f9;
+      color: rgba(vars.$text-light, 0.35);
       box-shadow: none;
       transform: none;
       cursor: not-allowed;

@@ -1,14 +1,14 @@
-<div class="dashboard-container">
+<div class="admin-shell" role="application" aria-label="Panel de administración">
   <app-sidebar [ngClass]="{'sidebar-open': isSidebarOpen}"
                [isOpen]="isSidebarOpen"
                (linkClicked)="closeSidebarOnOverlayClick()">
   </app-sidebar>
 
-  <div class="main-content-wrapper" [ngClass]="{'sidebar-active': isSidebarOpen}" (click)="closeSidebarOnOverlayClick()">
+  <div class="admin-shell__main" [ngClass]="{'admin-shell__main--dimmed': isSidebarOpen}" (click)="closeSidebarOnOverlayClick()">
     <app-header (toggleSidebarEvent)="toggleSidebar()"></app-header>
 
-    <div class="main-content-area">
+    <main class="admin-shell__content">
       <router-outlet></router-outlet>
-    </div>
+    </main>
   </div>
 </div>

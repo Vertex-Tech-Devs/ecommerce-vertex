@@ -1,6 +1,6 @@
-<div class="container-fluid my-4">
+<section class="order-detail" aria-label="Detalle de pedido">
   <div class="card-gradient-wrapper">
-    <div class="card list-card shadow-sm">
+    <div class="card list-card">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
           <div class="page-title-container">
@@ -10,7 +10,7 @@
             }
           </div>
           <button (click)="goBack()" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Volver a la lista
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a la lista
           </button>
         </div>
 
@@ -20,7 +20,7 @@
               <div class="card details-sub-card">
                 <div class="card-header">
                   <h5 class="card-title mb-0">
-                    <i class="bi bi-card-list me-2"></i>
+                    <i class="bi bi-card-list me-2" aria-hidden="true"></i>
                     Resumen del Pedido
                   </h5>
                 </div>
@@ -59,7 +59,7 @@
               <div class="card details-sub-card">
                 <div class="card-header">
                   <h5 class="card-title mb-0">
-                    <i class="bi bi-truck me-2"></i>
+                    <i class="bi bi-truck me-2" aria-hidden="true"></i>
                     Información del Cliente y Envío
                   </h5>
                 </div>
@@ -88,7 +88,7 @@
               <div class="card details-sub-card">
                 <div class="card-header">
                   <h5 class="card-title mb-0">
-                    <i class="bi bi-box-seam me-2"></i>
+                    <i class="bi bi-box-seam me-2" aria-hidden="true"></i>
                     Productos Comprados
                   </h5>
                 </div>
@@ -127,7 +127,7 @@
               <div class="card details-sub-card">
                  <div class="card-header">
                   <h5 class="card-title mb-0">
-                    <i class="bi bi-cash-coin me-2"></i>
+                    <i class="bi bi-cash-coin me-2" aria-hidden="true"></i>
                     Resumen de Costos
                   </h5>
                 </div>
@@ -158,7 +158,7 @@
                   </div>
                   <div class="d-flex justify-content-end mt-3">
                   <button (click)="generateReceipt(order)" class="btn btn-secondary">
-                    <i class="bi bi-receipt"></i> Ver Recibo
+                    <i class="bi bi-receipt" aria-hidden="true"></i> Ver Recibo
                   </button>
               </div>
                 </div>
@@ -175,4 +175,4 @@
       </div>
     </div>
   </div>
-</div>
+</section>

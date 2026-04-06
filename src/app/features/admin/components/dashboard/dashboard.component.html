@@ -1,13 +1,13 @@
 <div class="dashboard-wrapper">
-  <div id="page-content-wrapper">
+  <div class="dashboard">
     <div class="container-fluid my-4">
-      <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard del Administrador</h1>
+      <header class="dashboard__header">
+        <h1 class="dashboard__title">Dashboard del Administrador</h1>
         <hr />
-      </div>
+      </header>
 
-      <section class="mb-5">
-        <h2 class="section-title">Resumen Rápido</h2>
+      <section class="mb-5" aria-label="Métricas resumidas">
+        <h2 class="dashboard__section-title">Resumen Rápido</h2>
 
         @if ({ monthly: monthlyMetrics$ | async, global: globalMetrics$ | async }; as metrics) {
           @if(metrics.monthly && metrics.global) {
@@ -77,8 +77,8 @@
         }
       </section>
 
-      <section class="mb-5">
-        <h2 class="section-title">Tareas Pendientes</h2>
+      <section class="mb-5" aria-label="Tareas pendientes">
+        <h2 class="dashboard__section-title">Tareas Pendientes</h2>
         <div class="row g-4">
           <div class="col-12 col-lg-6">
             <div class="card h-100 shadow-sm">
@@ -151,8 +151,8 @@
         </div>
       </section>
 
-      <section>
-        <h2 class="section-title">Actividad Reciente</h2>
+      <section aria-label="Actividad reciente">
+        <h2 class="dashboard__section-title">Actividad Reciente</h2>
         <div class="row g-4">
           <div class="col-12 col-lg-6 col-xl-4">
             <div class="card h-100 shadow-sm">

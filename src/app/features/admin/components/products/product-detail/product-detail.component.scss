@@ -1,64 +1,67 @@
 @use "variables" as vars;
 @use "sass:color";
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+.product-detail {
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  animation: float-in 0.4s ease-out;
 }
 
 .card-gradient-wrapper {
-  padding: 2px;
-  border-radius: vars.$border-radius-lg;
-  background: linear-gradient(90deg,
-      vars.$accent-purple,
-      vars.$accent-blue,
-      vars.$accent-purple );
+  padding: 1px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
   background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
+  // animation removed for clean light theme
+  box-shadow: vars.$admin-card-shadow;
 }
 
 .details-card {
   border: none;
-  border-radius: calc(#{vars.$border-radius-lg} - 2px);
-  background-color: #f4f6f9;
+  border-radius: calc(var(--radius-lg, 12px) - 1px);
+  background: vars.$glass-bg;
+  color: vars.$text-light;
 
   .card-header {
     background-color: transparent;
-    border-bottom: 1px solid #dfe3e8;
+    border-bottom: 1px solid vars.$glass-border;
     font-weight: 500;
+    color: rgba(vars.$text-light, 0.7);
   }
 
   .card-body {
-    padding: 1.5rem;
+    padding: var(--space-6, 1.5rem);
 
     @media (min-width: vars.$breakpoint-md) {
-      padding: 2.5rem;
+      padding: var(--space-10, 2.5rem);
     }
   }
 }
 
 .page-title {
   font-weight: vars.$font-weight-bold;
-  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  letter-spacing: -0.01em;
 }
 
 .image-container {
-  background-color: #ffffff;
-  border-radius: vars.$border-radius-md;
+  background: #f9fafb;
+  border-radius: var(--radius-md, 8px);
   padding: 1rem;
-  border: 1px solid #dfe3e8;
+  border: 1px solid vars.$glass-border;
 
   .img-fluid {
     max-height: 350px;
@@ -72,18 +75,12 @@
     align-items: center;
     justify-content: center;
     height: 350px;
-    color: #adb5bd;
-    background-color: #e9ecef;
-    border-radius: vars.$border-radius-sm;
+    color: rgba(vars.$text-light, 0.3);
+    background: #f9fafb;
+    border-radius: var(--radius-sm, 6px);
 
-    .bi {
-      font-size: 4rem;
-    }
-
-    span {
-      margin-top: 0.5rem;
-      font-weight: 500;
-    }
+    .bi { font-size: 4rem; }
+    span { margin-top: 0.5rem; font-weight: 500; }
   }
 }
 
@@ -93,31 +90,30 @@
 }
 
 .details-list {
-
-  dt,
-  dd {
+  dt, dd {
     padding: 0.75rem 0;
     margin: 0;
   }
 
-  >div {
+  > div {
     display: grid;
     grid-template-columns: 150px 1fr;
     align-items: start;
-    border-bottom: 1px solid #dfe3e8;
+    border-bottom: 1px solid vars.$glass-border;
 
-    &:last-child {
-      border-bottom: none;
-    }
+    &:last-child { border-bottom: none; }
   }
 
   dt {
     font-weight: vars.$font-weight-semibold;
-    color: #495057;
+    color: rgba(vars.$text-light, 0.5);
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
   }
 
   dd {
-    color: #1c2a42;
+    color: vars.$table-dark-text;
 
     &.price {
       font-weight: vars.$font-weight-bold;
@@ -131,79 +127,60 @@
 .btn-danger {
   font-weight: vars.$font-weight-semibold;
   padding: 0.6rem 1.25rem;
-  border-radius: vars.$border-radius-md;
-  transition: all 0.3s ease;
+  border-radius: var(--radius-md, 8px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-  &:hover {
-    transform: translateY(-2px);
-  }
+  &:hover { transform: translateY(-2px); }
 }
 
 .btn-primary {
-  background-color: vars.$accent-blue;
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   border: none;
+  color: #fff;
 
-  &:hover {
-    box-shadow: 0 4px 15px rgba(vars.$accent-blue, 0.3);
-  }
+  &:hover { box-shadow: 0 8px 20px rgba(vars.$accent-purple, 0.3); }
 }
 
 .btn-danger {
   background-color: transparent;
-  border: 2px solid vars.$accent-red;
+  border: 1px solid rgba(vars.$accent-red, 0.5);
   color: vars.$accent-red;
-  padding: calc(0.6rem - 2px) calc(1.25rem - 2px);
 
   &:hover {
     background-color: vars.$accent-red;
     border-color: vars.$accent-red;
     color: white;
-    box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.2);
+    box-shadow: 0 4px 15px rgba(vars.$accent-red, 0.25);
   }
 }
 
 .btn-outline-secondary {
-  border: 2px solid vars.$accent-blue;
-  color: vars.$accent-blue;
+  border: 1px solid rgba(vars.$accent-purple, 0.4);
+  color: vars.$accent-purple;
   background-color: transparent;
   font-weight: vars.$font-weight-semibold;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 
   &:hover {
-    color: white;
+    color: #fff;
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     border-color: transparent;
-    background: linear-gradient(90deg,
-        vars.$accent-purple,
-        vars.$accent-blue,
-        vars.$accent-purple );
-    background-size: 200% 200%;
-    animation: gradient-animation 4s ease infinite;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.25);
   }
 }
 
 @media (max-width: 991.98px) {
-  .details-list>div {
-    grid-template-columns: 120px 1fr;
-  }
+  .details-list > div { grid-template-columns: 120px 1fr; }
 }
 
 @media (max-width: 767.98px) {
-  .details-list>div {
+  .details-list > div {
     grid-template-columns: 1fr;
     grid-row-gap: 0.25rem;
   }
 
-  .details-list dt {
-    padding-bottom: 0;
-  }
-
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .product-name {
-    font-size: 1.25rem;
-  }
+  .details-list dt { padding-bottom: 0; }
+  .page-title { font-size: 1.5rem; }
+  .product-name { font-size: 1.25rem; }
 }

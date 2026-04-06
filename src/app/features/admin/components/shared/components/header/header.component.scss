@@ -1,18 +1,10 @@
 @use 'variables' as vars;
 @use "sass:color";
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .admin-header {
@@ -20,198 +12,184 @@
   top: 0;
   z-index: 10;
   height: vars.$header-height;
-  padding: 1rem 1.5rem;
+  padding: var(--space-4, 1rem) var(--space-6, 1.5rem);
   display: flex;
   align-items: center;
-
-  background-color: vars.$dark-bg-primary;
-  background-image:
-    radial-gradient(ellipse 50% 100px at 0% 100%, rgba(123, 104, 238, 0.1), transparent),
-    radial-gradient(ellipse 50% 100px at 100% 100%, rgba(0, 123, 255, 0.1), transparent);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-
-  box-shadow: 0 1px 0 rgba(vars.$accent-purple, 0.2);
+  background: rgba(vars.$dark-bg-primary, 0.6);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid vars.$glass-border;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 0 vars.$glass-border;
 }
 
-.header-content {
+.header__content {
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.header-left,
-.header-right {
+.header__left,
+.header__right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4, 1rem);
 }
 
-.welcome-message {
+.header__welcome {
   display: none;
-  font-size: 1.25rem;
-  font-weight: vars.$font-weight-light;
-  color: vars.$text-muted-dark;
+  font-size: 1rem;
+  font-weight: vars.$font-weight-regular;
+  color: rgba(vars.$text-light, 0.5);
+  letter-spacing: 0.02em;
 }
 
-.user-menu-wrapper {
+.header__user-menu {
   position: relative;
   padding: 2px;
-  border-radius: vars.$border-radius-md;
+  border-radius: var(--radius-md, 8px);
   background: transparent;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
-    background-size: 200% 200%;
-    animation: gradient-animation 8s ease infinite;
-    box-shadow: 0 0 20px rgba(vars.$accent-purple, 0.5);
+    background: #f3f4f6;
+    border-radius: var(--radius-md, 8px);
 
-    .user-dropdown-toggle {
-      background-color: vars.$dark-bg-secondary;
+    .header__user-btn {
+      background: transparent;
     }
 
-    .user-icon,
-    .user-name {
-      background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
-      background-size: 200% 200%;
-      animation: gradient-animation 8s ease infinite;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    .header__user-icon,
+    .header__user-name {
+      color: vars.$accent-purple;
     }
   }
 }
 
-.user-dropdown-toggle {
+.header__user-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   background-color: transparent;
   border: none;
   color: vars.$text-light;
-  padding: 0.5rem 1rem;
+  padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
   cursor: pointer;
-  border-radius: calc(#{vars.$border-radius-md} - 2px);
-  transition: background-color 0.2s ease-in-out;
+  border-radius: calc(var(--radius-md, 8px) - 2px);
+  transition: all 0.25s ease;
 
-  .user-name,
-  .user-icon {
-    transition: color 0.3s ease;
-  }
-
-  .user-name {
+  .header__user-name {
     font-weight: vars.$font-weight-medium;
+    font-size: 0.9rem;
+    transition: color 0.25s ease;
   }
 
-  .user-icon {
-    font-size: 1.5rem;
+  .header__user-icon {
+    font-size: 1.35rem;
+    color: rgba(vars.$text-light, 0.7);
+    transition: color 0.25s ease;
   }
 
-  .dropdown-caret {
-    font-size: 0.8rem;
-    color: vars.$text-muted-dark;
-    transition: transform 0.3s ease;
+  .header__caret {
+    font-size: 0.75rem;
+    color: rgba(vars.$text-light, 0.4);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  &[aria-expanded="true"] .dropdown-caret {
+  &[aria-expanded="true"] .header__caret {
     transform: rotate(180deg);
   }
 }
 
-.dropdown-menu {
+.header__dropdown {
   padding: 0;
-  border: none;
-  background: none;
-  border-radius: vars.$border-radius-md;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  border: 1px solid vars.$glass-border;
+  background: #ffffff;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
   margin-top: 0.75rem !important;
   overflow: hidden;
-
-  .dropdown-gradient-wrapper {
-    padding: 1px;
-    background: linear-gradient(160deg, vars.$accent-blue, vars.$accent-purple, vars.$accent-blue);
-    background-size: 200% 200%;
-    animation: gradient-animation 6s ease infinite;
-    border-radius: inherit;
-  }
-
-  .dropdown-content {
-    background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 2%);
-    border-radius: calc(#{vars.$border-radius-md} - 1px);
-    padding: 0.5rem;
-  }
-
-  .dropdown-item {
-    color: vars.$text-muted-dark;
-    padding: 0.75rem 1rem;
-    border-radius: vars.$border-radius-sm;
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-
-    &:hover,
-    &:focus {
-      background: linear-gradient(90deg, rgba(vars.$accent-purple, 0.2), rgba(vars.$accent-blue, 0.2));
-      color: vars.$text-light;
-      transform: translateX(5px);
-    }
-
-    .bi {
-      width: 20px;
-    }
-  }
-
-  .dropdown-divider {
-    height: 1px;
-    margin: 0.5rem;
-    border: none;
-    background-image: linear-gradient(to right, transparent, rgba(vars.$accent-purple, 0.4), transparent);
-  }
 }
 
-.menu-toggle-wrapper {
-  position: relative;
-  padding: 2px;
-  border-radius: vars.$border-radius-sm;
+.header__dropdown-wrapper {
+  padding: 0;
   background: transparent;
-  transition: all 0.3s ease;
+  border-radius: inherit;
+}
 
-  &:hover {
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
-    background-size: 200% 200%;
-    animation: gradient-animation 8s ease infinite;
+.header__dropdown-content {
+  background: #ffffff;
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-2, 0.5rem);
+}
+
+.header__dropdown-item {
+  color: vars.$text-muted-dark;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-sm, 6px);
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: #f3f4f6;
+    color: vars.$text-light;
+    transform: translateX(4px);
+  }
+
+  .bi {
+    width: 20px;
   }
 }
 
-.menu-toggle {
-  background: vars.$dark-bg-secondary;
-  border: 1px solid rgba(vars.$text-light, 0.15);
-  border-radius: calc(#{vars.$border-radius-sm} - 2px);
-  color: vars.$text-light;
-  font-size: 1.5rem;
-  padding: 0.5rem 0.75rem;
+.header__dropdown-divider {
+  height: 1px;
+  margin: var(--space-2, 0.5rem);
+  border: none;
+  background: vars.$glass-border;
+}
+
+.header__menu-toggle {
+  background: transparent;
+  border: 1px solid vars.$glass-border;
+  border-radius: var(--radius-md, 8px);
+  color: vars.$text-muted-dark;
+  font-size: 1.4rem;
+  padding: var(--space-2, 0.5rem) 0.7rem;
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition: all 0.25s ease;
   display: flex;
 
   &:hover {
+    background: #f3f4f6;
+    border-color: vars.$glass-border-hover;
     color: vars.$text-light;
-    border-color: transparent;
+  }
+
+  &:focus-visible {
+    outline: 2px solid vars.$accent-purple;
+    outline-offset: 2px;
   }
 }
 
 @media (min-width: vars.$breakpoint-md) {
   .admin-header {
-    padding: 1rem 2rem;
+    padding: var(--space-4, 1rem) var(--space-10, 2.5rem);
   }
 
-  .welcome-message {
+  .header__welcome {
     display: inline;
   }
 
-  .menu-toggle-wrapper {
+  .header__menu-toggle {
     display: none !important;
   }
 }

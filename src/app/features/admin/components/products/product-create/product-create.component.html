@@ -1,8 +1,8 @@
-<div class="container my-5">
+<section class="product-create" aria-label="Formulario de producto">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0 page-title">{{ pageTitle }}</h2>
     <button class="btn btn-outline-secondary" (click)="onCancel()">
-      <i class="bi bi-arrow-left"></i>
+      <i class="bi bi-arrow-left" aria-hidden="true"></i>
       {{ isEditMode ? 'Volver al Detalle' : 'Volver a la Lista' }}
     </button>
   </div>
@@ -93,7 +93,7 @@
             <div class="d-flex justify-content-between align-items-center mb-2">
               <label class="form-label mb-0">Galería de Imágenes Adicionales</label>
               <button (click)="addImage()" type="button" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-plus-lg"></i> Añadir otra imagen
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> Añadir otra imagen
               </button>
             </div>
             @for (imageControl of images.controls; track i; let i = $index) {
@@ -103,7 +103,7 @@
                     <img [src]="imageControl.value" alt="Vista previa de galería">
                   } @else {
                     <div class="gallery-placeholder">
-                      <i class="bi bi-image"></i>
+                      <i class="bi bi-image" aria-hidden="true"></i>
                     </div>
                   }
                 </div>
@@ -118,7 +118,7 @@
                 </div>
                 <div class="gallery-action">
                   <button (click)="removeImage(i)" type="button" class="btn btn-outline-danger" title="Eliminar imagen">
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
@@ -130,7 +130,7 @@
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="section-title mb-0">Atributos de Variantes</h5>
             <button (click)="openAttributeModal()" type="button" class="btn btn-outline-primary btn-sm">
-              <i class="bi bi-plus-lg"></i> Crear Atributo
+              <i class="bi bi-plus-lg" aria-hidden="true"></i> Crear Atributo
             </button>
           </div>
           
@@ -160,10 +160,10 @@
             <h5 class="section-title mb-0">Variantes y Stock</h5>
             <div class="btn-group" role="group">
               <button (click)="generateVariantCombinations()" type="button" class="btn btn-info btn-sm" [disabled]="variantAttributes.length === 0" title="Generar todas las combinaciones automáticamente">
-                <i class="bi bi-stars me-1"></i>Generar Combinaciones
+                <i class="bi bi-stars me-1" aria-hidden="true"></i>Generar Combinaciones
               </button>
               <button (click)="addVariant()" type="button" class="btn btn-success btn-sm" [disabled]="variantAttributes.length === 0" title="Añadir una variante manualmente">
-                <i class="bi bi-plus-lg me-1"></i>Añadir Manual
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Añadir Manual
               </button>
             </div>
           </div>
@@ -205,7 +205,7 @@
                 
                 <div class="variant-action-item">
                   <button (click)="removeVariant(i)" type="button" class="btn btn-danger btn-sm" title="Eliminar Variante">
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </div>
               </div>
@@ -225,4 +225,4 @@
       </div>
     </div>
   </div>
-</div>
+</section>

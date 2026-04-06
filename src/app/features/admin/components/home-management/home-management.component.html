@@ -1,3 +1,4 @@
+<section class="home-management" aria-label="Gestión de la página de inicio">
 <div class="container-fluid my-4">
   <div class="card-gradient-wrapper">
     <div class="card list-card shadow-sm">
@@ -11,7 +12,7 @@
           <div class="card-gradient-wrapper mb-4">
             <div class="card details-sub-card">
               <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-images me-2"></i>Carrusel Hero (Imágenes Principales)</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero (Imágenes Principales)</h5>
               </div>
               <div class="card-body">
                 <!-- Input de archivos oculto -->
@@ -36,7 +37,7 @@
                   (click)="heroImages.length < 5 && heroImagesInput.click()"
                 >
                   <div class="drop-zone-icon-wrap">
-                    <i class="bi bi-cloud-arrow-up drop-icon"></i>
+                    <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
                   </div>
                   <p class="drop-title">
                     @if (heroImages.length < 5) {
@@ -59,13 +60,13 @@
                         <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image">
                         <div class="slot-overlay">
                           <button type="button" class="slot-btn" (click)="moveHeroImageUp(i)" [disabled]="i === 0" title="Mover izquierda">
-                            <i class="bi bi-chevron-left"></i>
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
                           </button>
                           <button type="button" class="slot-btn slot-btn--danger" (click)="removeHeroImage(i)" title="Eliminar">
-                            <i class="bi bi-trash3"></i>
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
                           </button>
                           <button type="button" class="slot-btn" (click)="moveHeroImageDown(i)" [disabled]="i === heroImages.length - 1" title="Mover derecha">
-                            <i class="bi bi-chevron-right"></i>
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
                           </button>
                         </div>
                         <span class="slot-badge">{{ i + 1 }}</span>
@@ -73,7 +74,7 @@
                     }
                     @for (_ of emptySlots; track $index) {
                       <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
-                        <i class="bi bi-plus-lg"></i>
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
                       </div>
                     }
                   </div>
@@ -83,7 +84,7 @@
 
                 <!-- Configuración del Carrusel -->
                 <div formGroupName="carouselSettings">
-                  <h6 class="mb-3"><i class="bi bi-gear me-2"></i>Configuración del Carrusel</h6>
+                  <h6 class="mb-3"><i class="bi bi-gear me-2" aria-hidden="true"></i>Configuración del Carrusel</h6>
                   <div class="row">
                     <div class="col-md-6 mb-3">
                       <label for="carouselInterval" class="form-label">Intervalo de Transición (ms)</label>
@@ -135,9 +136,9 @@
           <div class="card-gradient-wrapper">
             <div class="card details-sub-card">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="bi bi-tags me-2"></i>Categorías Destacadas (Máx. 3)</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-tags me-2" aria-hidden="true"></i>Categorías Destacadas (Máx. 3)</h5>
                 <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addFeaturedCategory()" [disabled]="featuredCategories.length >= 3">
-                  <i class="bi bi-plus-lg"></i> Añadir
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Añadir
                 </button>
               </div>
               <div class="card-body" formArrayName="featuredCategories">
@@ -160,7 +161,7 @@
                         <label [for]="'categoryImageFile' + i" class="form-label">Imagen</label>
                         <div>
                            <label [for]="'categoryImageFile' + i" class="file-input-label w-100 text-center">
-                            <i class="bi bi-upload"></i> Cambiar
+                            <i class="bi bi-upload" aria-hidden="true"></i> Cambiar
                            </label>
                           <input type="file" [id]="'categoryImageFile' + i" class="file-input" (change)="onFileSelected($event, i)" accept="image/png, image/jpeg, image/webp">
                         </div>
@@ -179,7 +180,7 @@
                       <div class="col-md-1">
                         <label class="form-label d-block">&nbsp;</label>
                         <button type="button" class="btn btn-outline-danger w-100" (click)="removeFeaturedCategory(i)" title="Eliminar">
-                          <i class="bi bi-trash"></i>
+                          <i class="bi bi-trash" aria-hidden="true"></i>
                         </button>
                       </div>
                     </div>
@@ -207,3 +208,4 @@
     </div>
   </div>
 </div>
+</section>

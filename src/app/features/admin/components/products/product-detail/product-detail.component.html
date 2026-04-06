@@ -1,4 +1,4 @@
-<div class="container-fluid mt-4">
+<section class="product-detail" aria-label="Detalle de producto">
   @if (data$ | async; as data) {
     <div class="row">
       <div class="col-12">
@@ -7,7 +7,7 @@
             Detalles de: {{ data.product.name }}
           </h2>
           <button (click)="goBack()" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Volver a la lista
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a la lista
           </button>
         </div>
 
@@ -24,7 +24,7 @@
                         <img [src]="data.product.image" class="img-fluid" alt="Imagen principal del producto" />
                       } @else {
                         <div class="no-image-placeholder">
-                          <i class="bi bi-image"></i>
+                          <i class="bi bi-image" aria-hidden="true"></i>
                           <span>Sin Imagen Principal</span>
                         </div>
                       }
@@ -120,8 +120,8 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4 mb-4">
-            <button (click)="editProduct(data.product.id)" class="btn btn-primary"><i class="bi bi-pencil-square"></i> Editar</button>
-            <button (click)="confirmDeleteProduct(data.product)" class="btn btn-danger"><i class="bi bi-trash"></i> Eliminar</button>
+            <button (click)="editProduct(data.product.id)" class="btn btn-primary"><i class="bi bi-pencil-square" aria-hidden="true"></i> Editar</button>
+            <button (click)="confirmDeleteProduct(data.product)" class="btn btn-danger"><i class="bi bi-trash" aria-hidden="true"></i> Eliminar</button>
           </div>
         </div>
       </div>
@@ -132,4 +132,4 @@
       Cargando detalles del producto...
     </div>
   }
-</div>
+</section>

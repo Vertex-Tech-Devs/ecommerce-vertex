@@ -1,129 +1,137 @@
 @use 'variables' as vars;
 @use 'sass:color';
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+.home-management {
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  animation: float-in 0.4s ease-out;
 }
 
 .card-gradient-wrapper {
-  padding: 2px;
-  border-radius: vars.$border-radius-lg;
-  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  padding: 1px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
   background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
+  // animation removed for clean light theme
+  box-shadow: vars.$admin-card-shadow;
 }
 
 .list-card {
   border: none;
-  border-radius: calc(#{vars.$border-radius-lg} - 2px);
-  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 3%);
+  border-radius: calc(var(--radius-lg, 12px) - 1px);
+  background: vars.$glass-bg;
   color: vars.$text-light;
-}
 
-.list-card .card-body {
-  padding: 1.5rem;
-}
+  .card-body {
+    padding: var(--space-6, 1.5rem);
 
-@media (min-width: 768px) {
-  .list-card .card-body {
-    padding: 2rem;
+    @media (min-width: 768px) {
+      padding: var(--space-8, 2rem);
+    }
   }
 }
 
 .page-title-container .card-title {
   font-weight: vars.$font-weight-bold;
-  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  letter-spacing: -0.01em;
 }
 
 .details-sub-card {
-  border: none;
+  border: 1px solid vars.$glass-border;
   box-shadow: none;
-  border-radius: vars.$border-radius-md;
-  background-color: color.adjust(vars.$dark-bg-secondary, $lightness: 3%);
-}
+  border-radius: var(--radius-md, 8px);
+  background: #f9fafb;
 
-.details-sub-card .card-header {
-  background-color: transparent;
-  border-bottom: 1px solid rgba(vars.$text-light, 0.1);
-}
+  .card-header {
+    background-color: transparent;
+    border-bottom: 1px solid vars.$glass-border;
 
-.details-sub-card .card-header .card-title {
-  font-size: 1.1rem;
-  color: vars.$accent-blue;
-  background: none;
-  font-weight: vars.$font-weight-semibold;
-}
+    .card-title {
+      font-size: 1.1rem;
+      color: vars.$text-light;
+      background: none;
+      font-weight: vars.$font-weight-semibold;
+    }
+  }
 
-.details-sub-card .form-label {
-  color: vars.$text-light;
-  font-weight: vars.$font-weight-medium;
-  font-size: 0.9rem;
+  .form-label {
+    color: rgba(vars.$text-light, 0.5);
+    font-weight: vars.$font-weight-semibold;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
 }
 
 .featured-category-item {
-  border: 1px solid rgba(vars.$text-light, 0.1);
-  background-color: rgba(vars.$dark-bg-primary, 0.3);
-  border-radius: vars.$border-radius-sm;
-  padding: 1rem;
+  border: 1px solid vars.$glass-border;
+  background: #f9fafb;
+  border-radius: var(--radius-sm, 6px);
+  padding: var(--space-4, 1rem);
 }
 
 .text-muted-custom {
-  color: vars.$text-muted-dark !important;
+  color: rgba(vars.$text-light, 0.45) !important;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, color.adjust(vars.$accent-purple, $lightness: 5%), vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, color.adjust(vars.$accent-purple, $lightness: -5%));
   color: white;
   font-weight: 600;
   border: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.2);
-}
+  transition: all var(--transition-base, 0.3s ease);
+  box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.2);
 
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.3);
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.3);
+    filter: brightness(1.1);
+  }
 }
 
 .btn-outline-secondary {
-  border: 2px solid vars.$accent-blue;
+  border: 1px solid rgba(vars.$accent-blue, 0.4);
   color: vars.$accent-blue;
   background-color: transparent;
   font-weight: vars.$font-weight-semibold;
-  transition: all 0.3s ease;
-}
+  transition: all var(--transition-base, 0.3s ease);
 
-.btn-outline-secondary:hover {
-  color: white;
-  border-color: transparent;
-  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
-  background-size: 200% 200%;
-  animation: gradient-animation 4s ease infinite;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.3);
+  &:hover {
+    color: white;
+    border-color: transparent;
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.25);
+  }
+
+  &:focus-visible {
+    outline: 2px solid vars.$accent-blue;
+    outline-offset: 2px;
+  }
 }
 
 .image-preview-container {
   position: relative;
   max-width: 450px;
-  margin: 1.5rem auto;
-  border: 2px dashed rgba(vars.$text-light, 0.2);
-  border-radius: vars.$border-radius-md;
-  padding: 1rem;
-  background-color: rgba(vars.$dark-bg-primary, 0.2);
+  margin: var(--space-6, 1.5rem) auto;
+  border: 2px dashed vars.$glass-border;
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-4, 1rem);
+  background: #f9fafb;
   min-height: 150px;
   display: flex;
   flex-direction: column;
@@ -132,40 +140,34 @@
 
   img {
     height: auto;
-    border-radius: vars.$border-radius-sm;
+    border-radius: var(--radius-sm, 6px);
   }
 
-  .no-preview-text {
-    color: vars.$text-muted-dark;
-  }
+  .no-preview-text { color: rgba(vars.$text-light, 0.35); }
 }
 
 .file-input-label {
   cursor: pointer;
-  background-color: vars.$accent-blue;
+  background: linear-gradient(135deg, vars.$accent-blue, vars.$accent-purple);
   color: white;
   padding: 0.6rem 1.2rem;
-  border-radius: vars.$border-radius-sm;
+  border-radius: var(--radius-sm, 6px);
   display: inline-flex;
   align-items: center;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base, 0.3s ease);
   font-weight: vars.$font-weight-medium;
-  box-shadow: 0 2px 8px rgba(vars.$accent-blue, 0.3);
+  box-shadow: 0 2px 8px rgba(vars.$accent-blue, 0.08);
 
   &:hover {
-    background-color: color.adjust(vars.$accent-blue, $lightness: 5%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(vars.$accent-blue, 0.4);
+    box-shadow: 0 4px 12px rgba(vars.$accent-blue, 0.35);
+    filter: brightness(1.1);
   }
 
-  i {
-    margin-right: 0.5rem;
-  }
+  i { margin-right: 0.5rem; }
 }
 
-.file-input {
-  display: none;
-}
+.file-input { display: none; }
 
 /* ===== DRAG & DROP ZONE ===== */
 .hero-drop-zone {
@@ -174,11 +176,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 2.5rem 1.5rem;
-  border: 2px dashed rgba(vars.$accent-blue, 0.4);
-  border-radius: vars.$border-radius-lg;
-  background-color: rgba(vars.$dark-bg-primary, 0.25);
+  gap: var(--space-2, 0.5rem);
+  padding: 2.5rem var(--space-6, 1.5rem);
+  border: 2px dashed rgba(vars.$accent-blue, 0.08);
+  border-radius: var(--radius-lg, 12px);
+  background: #f9fafb;
   cursor: pointer;
   transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
   text-align: center;
@@ -187,8 +189,8 @@
   &:hover,
   &.drag-over {
     border-color: vars.$accent-blue;
-    background-color: rgba(vars.$accent-blue, 0.06);
-    box-shadow: 0 0 0 4px rgba(vars.$accent-blue, 0.1);
+    background: rgba(vars.$accent-blue, 0.06);
+    box-shadow: 0 0 0 4px rgba(vars.$accent-blue, 0.08);
   }
 
   &.drop-zone--full {
@@ -216,7 +218,7 @@
 .drop-title {
   font-size: 0.95rem;
   font-weight: vars.$font-weight-medium;
-  color: vars.$text-light;
+  color: rgba(vars.$text-light, 0.8);
   margin: 0;
 
   .text-accent {
@@ -229,7 +231,7 @@
 
 .drop-subtitle {
   font-size: 0.78rem;
-  color: vars.$text-muted-dark;
+  color: rgba(vars.$text-light, 0.4);
   margin: 0;
 }
 
@@ -264,40 +266,38 @@
 .hero-slot {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: vars.$border-radius-md;
+  border-radius: var(--radius-md, 8px);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &--filled {
-    border: 2px solid rgba(vars.$accent-blue, 0.3);
-    background: vars.$dark-bg-primary;
+    border: 1px solid rgba(vars.$accent-blue, 0.2);
+    background: #f9fafb;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
       border-color: vars.$accent-blue;
 
-      .slot-overlay {
-        opacity: 1;
-      }
+      .slot-overlay { opacity: 1; }
     }
   }
 
   &--empty {
-    border: 2px dashed rgba(vars.$text-muted-dark, 0.35);
-    background: rgba(vars.$dark-bg-primary, 0.2);
+    border: 2px dashed vars.$glass-border;
+    background: #f9fafb;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: rgba(vars.$text-muted-dark, 0.5);
+    color: rgba(vars.$text-light, 0.25);
     font-size: 1.4rem;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 
     &:hover {
       border-color: vars.$accent-blue;
       color: vars.$accent-blue;
-      background-color: rgba(vars.$accent-blue, 0.05);
+      background: rgba(vars.$accent-blue, 0.06);
     }
   }
 }
@@ -313,7 +313,7 @@
 .slot-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
