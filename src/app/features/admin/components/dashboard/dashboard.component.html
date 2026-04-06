@@ -108,7 +108,7 @@
                             @default { <span>{{ order.status | titlecase }}</span> }
                           }
                         </span>
-                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Pedido">
+                        <a [routerLink]="['/admin/orders', order.id]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Pedido">
                           <i class="bi bi-arrow-right-circle"></i>
                         </a>
                       </li>
@@ -166,7 +166,7 @@
                           <span class="fw-bold">{{ order.clientName }}</span>
                           <small class="d-block text-muted">{{ order.total | currency : "ARS" : "$" }} - {{ order.orderDate | date : "short" }}</small>
                         </div>
-                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-info ms-auto flex-shrink-0" title="Ver Pedido">
+                        <a [routerLink]="['/admin/orders', order.id]" class="btn btn-sm btn-outline-info ms-auto flex-shrink-0" title="Ver Pedido">
                           <i class="bi bi-arrow-right-circle"></i>
                         </a>
                       </li>
@@ -192,7 +192,7 @@
                           <span class="fw-bold">{{ client.fullName }}</span>
                           <small class="d-block text-truncate">{{ client.email }}</small>
                         </div>
-                        <a [routerLink]="['/admin/clients', client.email, 'details']" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Cliente">
+                        <a [routerLink]="['/admin/customers', client.email]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Cliente">
                           <i class="bi bi-person-fill"></i>
                         </a>
                       </li>
@@ -218,7 +218,7 @@
                           <span class="fw-bold">{{ product.name }}</span>
                           <small class="d-block text-muted">{{ product.price | currency : "ARS" : "$" }} - {{ product.createdAt | date : "shortDate" }}</small>
                         </div>
-                        <a [routerLink]="['/admin/products/detail', product.id]" class="btn btn-sm btn-outline-success ms-auto flex-shrink-0" title="Ver Producto">
+                        <a [routerLink]="['/admin/products', product.id]" class="btn btn-sm btn-outline-success ms-auto flex-shrink-0" title="Ver Producto">
                           <i class="bi bi-eye"></i>
                         </a>
                       </li>

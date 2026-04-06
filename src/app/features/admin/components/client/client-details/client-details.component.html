@@ -7,7 +7,7 @@
           <h2 class="card-title mb-0">
             Detalles del Cliente
           </h2>
-          <button class="btn btn-outline-secondary btn-sm" (click)="goBackToList()">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="goBackToList()">
             <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Clientes
           </button>
         </div>
@@ -68,7 +68,7 @@
                       </span>
                     </td>
                     <td data-label="Acciones" class="text-center">
-                      <button class="btn btn-outline-primary btn-sm" [routerLink]="['/admin/orders/detail', order.id]" title="Ver Detalles del Pedido">
+                      <button class="btn btn-outline-primary btn-sm" [routerLink]="['/admin/orders', order.id]" title="Ver Detalles del Pedido">
                         <i class="bi bi-eye" aria-hidden="true"></i>
                       </button>
                     </td>

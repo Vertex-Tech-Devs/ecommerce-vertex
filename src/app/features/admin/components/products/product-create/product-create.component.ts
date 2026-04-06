@@ -377,7 +377,7 @@ export class ProductCreateComponent implements OnInit {
           variantIdsToDelete
         );
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
-        this.router.navigate(['/admin/products/detail', this.productId]);
+        this.router.navigate(['/admin/products', this.productId]);
 
       } else {
         const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = formValue.variants.map((v: any) => ({
@@ -387,7 +387,7 @@ export class ProductCreateComponent implements OnInit {
 
         const newProductId = await this.productService.createProductWithVariants(productData, variantsData);
         this.sweetAlertService.success('¡Éxito!', 'Producto creado.');
-        this.router.navigate(['/admin/products/detail', newProductId]);
+        this.router.navigate(['/admin/products', newProductId]);
       }
     } catch (error) {
       console.error('Error submitting product:', error);
@@ -399,7 +399,7 @@ export class ProductCreateComponent implements OnInit {
 
   onCancel(): void {
     if (this.isEditMode && this.productId) {
-      this.router.navigate(['/admin/products/detail', this.productId]);
+      this.router.navigate(['/admin/products', this.productId]);
     } else {
       this.router.navigate(['/admin/products']);
     }

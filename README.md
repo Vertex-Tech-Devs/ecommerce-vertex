@@ -677,6 +677,33 @@ MIT License - see LICENSE file
 
 ## Version History
 
+### v1.1.0 (April 6, 2026)
+
+**Admin UI & Routing Bugfixes**
+
+**Style**
+- Migrated admin panel from dark glassmorphism to professional light theme with persistent dark sidebar
+- Accent palette upgraded to WCAG AA-compliant 600-level colors (indigo/sky/red/emerald/amber)
+- Fixed login page white-on-white text, invisible inputs and alerts
+- Fixed dashboard list-group buttons, confirm-delete cancel button, switch toggles
+- Fixed account divider, product-detail row borders, image upload dashed borders
+- Fixed header dropdown, user menu hover and menu-toggle dark artifacts
+- Removed `backdrop-filter` blur and animated gradient borders from all solid-white surfaces
+- Replaced `rgba` sub-card backgrounds with static `#f9fafb` across 24+ files
+- Updated global scrollbar, modal shadow and `.text-muted` for light theme
+
+**Fix**
+- Resolved admin navigation: broken links redirected all clicks to the shop via `**` wildcard
+- Added missing admin routes: `products/edit/:id`, `account`, `customers/:email`
+- Corrected all `routerLink` segments: `/orders/detail/`, `/products/detail/`, `/products/edit/`, `/clients/`
+- Fixed `navigate()` calls in `product-create`: 3 occurrences of non-existent `/products/detail/` route
+- Fixed `navigate()` in `orders-list`: non-existent `/orders/edit/` route
+- Added `type="button"` to all back/cancel buttons to prevent accidental form submit
+- Fixed `href="#"` in login component — added `preventDefault()`
+- Fixed `customers` route param name `:id` → `:email` to match component expectations
+
+---
+
 ### v1.0.0 (March 13, 2026) 🎉
 
 **Production Release**

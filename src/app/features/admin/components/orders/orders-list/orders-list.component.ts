@@ -113,7 +113,7 @@ export class OrdersListComponent implements OnInit {
   }
 
   editOrder(order: Order): void {
-    this._router.navigate(['/admin/orders/edit', order.id]);
+    this._router.navigate(['/admin/orders', order.id]);
   }
 
   deleteOrder(order: Order): void {

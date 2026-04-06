@@ -17,7 +17,7 @@
 
         @if (isAlreadyLogged) {
           <div class="alert alert-custom alert-info">
-            Ya has iniciado sesión. <a href="#" (click)="logout()">Cerrar sesión</a> para usar otra cuenta.
+            Ya has iniciado sesión. <a href="#" (click)="logout(); $event.preventDefault()">Cerrar sesión</a> para usar otra cuenta.
           </div>
         }
 

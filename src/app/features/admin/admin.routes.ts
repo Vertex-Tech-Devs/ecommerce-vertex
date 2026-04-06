@@ -19,6 +19,10 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./components/products/product-create/product-create.component').then(m => m.ProductCreateComponent)
       },
       {
+        path: 'products/edit/:id',
+        loadComponent: () => import('./components/products/product-create/product-create.component').then(m => m.ProductCreateComponent)
+      },
+      {
         path: 'products/:id',
         loadComponent: () => import('./components/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
       },
@@ -43,7 +47,7 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./components/client/clients-list/clients-list.component').then(m => m.ClientsListComponent)
       },
       {
-        path: 'customers/:id',
+        path: 'customers/:email',
         loadComponent: () => import('./components/client/client-details/client-details.component').then(m => m.ClientDetailsComponent)
       },
       {
@@ -61,6 +65,10 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'email-management',
         loadComponent: () => import('./components/email-management/email-management.component').then(m => m.EmailManagementComponent)
+      },
+      {
+        path: 'account',
+        loadComponent: () => import('./components/account/account.component').then(m => m.AccountComponent)
       },
       {
         path: '',
