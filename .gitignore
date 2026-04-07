@@ -106,3 +106,4 @@ firebase-local-data/
 emulator-data/
 .cache/
 .local/
+settings.json

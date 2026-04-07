@@ -1,11 +1,22 @@
-<header class="shop-header" [class.sidebar-is-open]="isMenuOpen()" role="banner">
-  <div class="sidebar-backdrop" [class.active]="isMenuOpen()" (click)="closeMenu()" aria-hidden="true"></div>
+<header class="header"
+        [class.header--scrolled]="isScrolled()"
+        [class.sidebar-is-open]="isMenuOpen()"
+        role="banner">
+
+  <div class="header__backdrop"
+       [class.header__backdrop--active]="isMenuOpen()"
+       (click)="closeMenu()"
+       aria-hidden="true">
+  </div>
 
   <div class="header__container">
     <a routerLink="/shop" class="header__brand" aria-label="Ir al inicio">Vertex</a>
 
-    <button class="header__toggle" (click)="toggleMenu()" [attr.aria-expanded]="isMenuOpen()" aria-label="Menú de navegación">
-      <i class="bi bi-list" aria-hidden="true"></i>
+    <button class="header__toggle"
+            (click)="toggleMenu()"
+            [attr.aria-expanded]="isMenuOpen()"
+            aria-label="Menú de navegación">
+      <i class="bi" [ngClass]="isMenuOpen() ? 'bi-x-lg' : 'bi-list'" aria-hidden="true"></i>
     </button>
 
     <nav class="header__nav" [class.header__nav--open]="isMenuOpen()" aria-label="Navegación principal">
@@ -18,7 +29,7 @@
       <a routerLink="/shop/cart" class="header__cart" aria-label="Carrito de compras">
         <i class="bi bi-bag" aria-hidden="true"></i>
         @if (cartItemCount() > 0) {
-          <span class="header__cart-badge" aria-label="{{ cartItemCount() }} productos en el carrito">{{ cartItemCount() }}</span>
+          <span class="header__cart-badge">{{ cartItemCount() }}</span>
         }
       </a>
     </div>
