@@ -17,7 +17,7 @@
     box-shadow: var(--shadow-md);
 
     .header__container {
-      height: 60px;
+      height: var(--header-height-scrolled, 60px);
     }
   }
 }
@@ -30,7 +30,7 @@
   margin: 0 auto;
   padding: 0 var(--space-6);
   height: var(--header-height);
-  transition: height 0.3s ease;
+  transition: height var(--transition-base);
 }
 
 .header__brand {
