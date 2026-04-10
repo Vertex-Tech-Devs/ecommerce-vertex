@@ -13,13 +13,14 @@
     "deploy:dev": "npm run clean && npm run build:dev && npm run build:fn && firebase deploy --project development --only hosting:ecommerce-vertex,functions",
     "deploy:prod": "npm run clean && npm run build && npm run build:fn && firebase deploy --project production --only hosting:ecommerce-vertex,functions",
     "clean": "rm -rf dist functions/lib coverage",
-    "prepare": "husky install",
+    "prepare": "husky",
     "lint": "eslint src --ext .ts,.html",
     "typecheck": "tsc --noEmit",
     "build:dev": "ng build --configuration development",
     "build:fn": "npm run build --prefix functions",
     "push": "npm run lint && npm run typecheck && ng test --watch=false",
-    "ci": "npm run lint && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage && npm run build"
+    "ci": "npm run lint && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage && npm run build",
+    "postinstall": "cd functions && npm install"
   },
   "dependencies": {
     "@angular/animations": "^20.0.0",
