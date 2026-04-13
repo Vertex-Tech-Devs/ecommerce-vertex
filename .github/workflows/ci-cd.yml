@@ -157,6 +157,7 @@ jobs:
           name: e2e-results
           path: cypress/videos
           retention-days: 5
+          if-no-files-found: ignore
 
   functions-build:
     name: Firebase Functions Build
