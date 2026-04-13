@@ -12,6 +12,10 @@
     "experimentalDecorators": true,
     "isolatedModules": true,
     "baseUrl": "./",
+    "types": [
+      "jasmine",
+      "node"
+    ],
     "paths": {
       "@core/*": [
         "src/app/core/*"
