@@ -77,7 +77,6 @@ export class AuthService {
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
-      console.log('Contraseña actualizada exitosamente en Firebase.');
       return true;
 
     } catch (error) {
