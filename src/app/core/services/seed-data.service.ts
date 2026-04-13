@@ -82,7 +82,7 @@ export class SeedDataService {
     const cols = ['products', 'categories', 'clients', 'orders', 'attributes'];
     for (const col of cols) {
       const snap = await this.run(() => getDocs(collection(this.firestore, col)));
-      for (const d of snap.docs) await this.run(() => deleteDoc(d.ref));
+      for (const d of snap.docs) { await this.run(() => deleteDoc(d.ref)); }
     }
     for (const [c, d] of [['siteContent','homePage'], ['pages','aboutUs'], ['configuracion','footer']] as const) {
       await this.run(() => deleteDoc(doc(this.firestore, c, d)));
