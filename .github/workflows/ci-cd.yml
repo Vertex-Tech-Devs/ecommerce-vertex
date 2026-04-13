@@ -7,7 +7,7 @@ on:
     branches: [main, develop, staging]
 
 env:
-  NODE_VERSION: "18"
+  NODE_VERSION: "20"
   COVERAGE_THRESHOLD: 70
 
 jobs:
