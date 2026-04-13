@@ -86,13 +86,14 @@ export class CheckoutComponent implements OnInit {
       } else {
         throw new Error(paymentResult.error || 'No se pudo obtener la URL de pago.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error en el proceso de checkout:', error);
-      
+
       let errorMessage = 'Ocurrió un error inesperado al procesar tu pago.';
-      if (error.code === 'resource-exhausted' || error.message.includes('insuficiente')) {
-        errorMessage = `¡Stock insuficiente! ${error.message}. Por favor, revisa tu carrito.`;
-      } else if (error.message.includes('precio inválido')) {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'resource-exhausted' || (err.message ?? '').includes('insuficiente')) {
+        errorMessage = `¡Stock insuficiente! ${err.message}. Por favor, revisa tu carrito.`;
+      } else if ((err.message ?? '').includes('precio inválido')) {
          errorMessage = `Uno de los productos en tu carrito tiene un precio inválido. Por favor, revisa tu carrito.`;
       }
 

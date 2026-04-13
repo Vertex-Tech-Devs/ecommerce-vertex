@@ -42,7 +42,7 @@ export class EmailSettingsService {
     return setDoc(docRef, settings, { merge: true });
   }
 
-  sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<any> {
+  sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
     const sendTestEmailFn = httpsCallable(
       this.functions,
       'sendAdvancedTestEmail'

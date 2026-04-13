@@ -82,7 +82,7 @@ export class SeedDataService {
     const cols = ['products', 'categories', 'clients', 'orders', 'attributes'];
     for (const col of cols) {
       const snap = await this.run(() => getDocs(collection(this.firestore, col)));
-      for (const d of snap.docs) await this.run(() => deleteDoc(d.ref));
+      for (const d of snap.docs) { await this.run(() => deleteDoc(d.ref)); }
     }
     for (const [c, d] of [['siteContent','homePage'], ['pages','aboutUs'], ['configuracion','footer']] as const) {
       await this.run(() => deleteDoc(doc(this.firestore, c, d)));
@@ -99,7 +99,7 @@ export class SeedDataService {
       { name: 'Color',             values: ['Negro','Blanco','Gris','Azul','Rojo','Verde','Beige','Marrón','Rosa','Caqui'] },
       { name: 'Material',          values: ['Algodón','Poliéster','Lino','Cuero','Denim','Lana'] },
     ];
-    for (const a of list) await this.run(() => addDoc(collection(this.firestore, 'attributes'), a));
+    for (const a of list) { await this.run(() => addDoc(collection(this.firestore, 'attributes'), a)); }
   }
 
   // ── categories ────────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ export class SeedDataService {
     variantAttrIds: string[]
   ): Array<{ [key: string]: string }> {
     const selectedAttrs = attributes.filter(a => variantAttrIds.includes(a.id || ''));
-    if (selectedAttrs.length === 0) return [];
+    if (selectedAttrs.length === 0) { return []; }
 
     let result: Array<{ [key: string]: string }> = [{}];
 
@@ -350,7 +350,7 @@ export class SeedDataService {
 
     for (const cat of catalogue) {
       const catData = cats[cat.slug];
-      if (!catData) continue;
+      if (!catData) { continue; }
 
       for (const item of cat.items) {
         const mainImg = u(item.imgs[0], 600, 600);
@@ -518,7 +518,7 @@ export class SeedDataService {
         const p = prods[line.prodIdx] ?? prods[0];
         subtotal += p.finalPrice * line.qty;
         const attrs: Record<string,string> = { color: line.color };
-        if (line.talle) attrs['talle'] = line.talle;
+        if (line.talle) { attrs['talle'] = line.talle; }
         return {
           productId: p.id, variantId: `var-${p.id}`, productName: p.name,
           quantity: line.qty, price: p.finalPrice, productImage: p.image, attributes: attrs,

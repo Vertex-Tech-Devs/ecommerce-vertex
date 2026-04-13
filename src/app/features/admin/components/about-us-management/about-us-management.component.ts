@@ -87,13 +87,13 @@ export class AboutUsManagementComponent implements OnInit {
   }
 
   addFeatureCard(cardData?: AboutUsFeatureCard): void {
-    if (this.featureCards.length >= 2) return;
+    if (this.featureCards.length >= 2) { return; }
     const cardGroup = this.createFeatureCardGroup(cardData || null);
     this.featureCards.push(cardGroup);
   }
 
   removeFeatureCard(index: number): void {
-    if (this.featureCards.length <= 1) return;
+    if (this.featureCards.length <= 1) { return; }
     this.featureCards.removeAt(index);
     this.aboutUsForm.markAsDirty();
   }

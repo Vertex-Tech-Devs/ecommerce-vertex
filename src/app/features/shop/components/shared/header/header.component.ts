@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
@@ -11,9 +11,17 @@ import { CartService } from '@core/services/cart.service';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  cartService = inject(CartService);
-  cartItemCount = this.cartService.itemCount;
-  isMenuOpen = signal(false);
+  private readonly cartService = inject(CartService);
+
+  readonly cartItemCount = this.cartService.itemCount;
+  readonly isMenuOpen = signal(false);
+  readonly isScrolled = signal(false);
+
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    const scrollOffset = window.pageYOffset || document.documentElement.scrollTop || 0;
+    this.isScrolled.set(scrollOffset > 20);
+  }
 
   toggleMenu(): void {
     this.isMenuOpen.update(value => !value);

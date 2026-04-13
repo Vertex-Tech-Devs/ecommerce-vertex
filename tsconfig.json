@@ -12,6 +12,10 @@
     "experimentalDecorators": true,
     "isolatedModules": true,
     "baseUrl": "./",
+    "types": [
+      "jasmine",
+      "node"
+    ],
     "paths": {
       "@core/*": [
         "src/app/core/*"
@@ -38,5 +42,14 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "dist",
+    "functions",
+    "cypress",
+    "**/*.cy.ts",
+    "cypress.config.ts" // <-- EXCLUIMOS TAMBIÉN LA CONFIG DE CYPRESS
+  ]
 }

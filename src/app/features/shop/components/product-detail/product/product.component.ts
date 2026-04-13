@@ -192,7 +192,7 @@ export class ProductComponent implements OnInit {
 
   public isOptionVisible(attributeId: string, value: string): boolean {
     const attr = this.attributes().find(a => a.id === attributeId);
-    if (!attr) return false;
+    if (!attr) { return false; }
     
     // If no variants exist yet, show all values
     if (this.variants.length === 0) {

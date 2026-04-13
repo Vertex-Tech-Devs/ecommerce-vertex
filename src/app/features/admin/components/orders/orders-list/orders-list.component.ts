@@ -120,10 +120,10 @@ export class OrdersListComponent implements OnInit {
     if (confirm(`¿Estás seguro de que quieres eliminar el pedido ${order.id}?`)) {
       from(this._orderService.deleteOrder(order.id)).subscribe({
         next: () => {
-          console.log('Pedido eliminado con éxito:', order.id);
+          console.warn('Pedido eliminado con éxito:', order.id);
           this.refreshTrigger.next();
         },
-        error: (error: any) => {
+        error: (error: unknown) => {
           console.error('Error al eliminar el pedido:', error);
         }
       });

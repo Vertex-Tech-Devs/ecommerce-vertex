@@ -1,46 +1,34 @@
-// ============================================
-// SHOP HEADER — Premium minimal design
-// ============================================
-
-.sidebar-backdrop {
+.header {
   position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 998;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
-  backdrop-filter: blur(4px);
-
-  &.active {
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
-.shop-header {
-  background: #fff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  padding: 0;
-  position: sticky;
   top: 0;
+  left: 0;
+  width: 100%;
   z-index: 1000;
-  transition: box-shadow var(--transition-base);
+  background-color: var(--shop-surface);
+  transition: var(--header-transition);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-  &:hover {
-    box-shadow: 0 1px 12px rgba(0, 0, 0, 0.06);
+  &--scrolled {
+    background-color: var(--header-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-md);
+
+    .header__container {
+      height: var(--header-height-scrolled, var(--header-height));
+    }
   }
 }
 
 .header__container {
-  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
   max-width: 1280px;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-6);
-  height: 64px;
+  padding: 0 var(--space-6);
+  height: var(--header-height);
+  transition: height var(--header-transition);
 }
 
 .header__brand {
@@ -49,41 +37,20 @@
   color: var(--text-primary);
   text-decoration: none;
   letter-spacing: -0.5px;
-  transition: opacity var(--transition-fast);
   z-index: 1001;
-
-  &:hover {
-    opacity: 0.7;
-  }
 }
 
 .header__nav {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-8);
 
   a {
-    margin: 0 var(--space-6);
     text-decoration: none;
     color: var(--text-secondary);
     font-weight: 500;
-    font-size: 0.9rem;
-    letter-spacing: 0.02em;
-    transition: color var(--transition-base);
+    font-size: 0.95rem;
+    transition: color var(--transition-fast);
     position: relative;
-    padding-bottom: 4px;
-
-    &::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -2px;
-      left: 50%;
-      background-color: var(--text-primary);
-      transition: width var(--transition-base), left var(--transition-base);
-      border-radius: 1px;
-    }
 
     &:hover {
       color: var(--text-primary);
@@ -91,11 +58,16 @@
 
     &.header__nav-link--active {
       color: var(--text-primary);
-      font-weight: 600;
 
       &::after {
-        width: 100%;
+        content: '';
+        position: absolute;
+        bottom: -4px;
         left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--text-primary);
+        border-radius: 2px;
       }
     }
   }
@@ -104,58 +76,71 @@
 .header__actions {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
 }
 
 .header__cart {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--text-primary);
   position: relative;
+  display: flex;
+  align-items: center;
   text-decoration: none;
-  transition: opacity var(--transition-fast);
-  display: flex;
-  align-items: center;
 
-  &:hover {
-    opacity: 0.65;
+  &:visited {
+    color: var(--text-primary);
   }
-}
 
-.header__cart-badge {
-  position: absolute;
-  top: -6px;
-  right: -10px;
-  background-color: var(--text-primary);
-  color: #fff;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1;
+  &-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: var(--text-primary);
+    color: #fff;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .header__toggle {
   display: none;
   background: none;
   border: none;
+  font-size: 1.75rem;
   color: var(--text-primary);
-  font-size: 1.6rem;
   cursor: pointer;
   z-index: 1001;
-  padding: var(--space-1);
 }
 
-// ============================================
-// RESPONSIVE — Mobile sidebar nav
-// ============================================
+.header__backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+
+  &--active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
+  }
+}
+
 @media (max-width: 768px) {
   .header__container {
-    height: 56px;
-    padding: var(--space-3) var(--space-4);
+    padding: 0 var(--space-4);
+  }
+
+  .header__toggle {
+    display: block;
   }
 
   .header__brand {
@@ -164,46 +149,28 @@
     transform: translateX(-50%);
   }
 
-  .header__toggle {
-    display: flex;
-    align-items: center;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-  }
-
   .header__nav {
     position: fixed;
     top: 0;
     left: 0;
-    width: 260px;
+    width: 280px;
     height: 100vh;
     background: #fff;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    display: flex;
-    gap: var(--space-8);
+    padding: var(--space-16) var(--space-8);
     transform: translateX(-100%);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 999;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+    gap: var(--space-8);
 
     &--open {
       transform: translateX(0);
     }
 
     a {
-      font-size: 1.15rem;
-      margin: 0;
-      color: var(--text-primary);
-
-      &::after {
-        bottom: -4px;
-      }
+      font-size: 1.25rem;
     }
-  }
-
-  .shop-header.sidebar-is-open .header__toggle {
-    visibility: hidden;
-    opacity: 0;
   }
 }

@@ -1,4 +1,5 @@
 /// <reference types="jasmine" />
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 🧪 Testing Utilities y Helpers
@@ -163,7 +164,7 @@ export function setupServiceTest(serviceClass: any, mocks?: any) {
 export function setupComponentTest(componentClass: any, mocks?: any) {
   const TestBed = require('@angular/core/testing').TestBed;
   const imports = [componentClass];
-  const providers = [];
+  const providers: any[] = [];
 
   if (mocks) {
     Object.entries(mocks).forEach(([key, value]) => {
@@ -171,9 +172,9 @@ export function setupComponentTest(componentClass: any, mocks?: any) {
     });
   }
 
-  TestBed.configureTestingModule({ 
+  TestBed.configureTestingModule({
     imports,
-    providers 
+    providers
   });
   
   const fixture = TestBed.createComponent(componentClass);

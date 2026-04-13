@@ -55,11 +55,11 @@ export class PaymentService {
         init_point: result.data.init_point
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error al crear la preferencia de pago:', error);
       return {
         success: false,
-        error: error.message || 'Error al conectar con el servicio de pago.'
+        error: (error as Error).message || 'Error al conectar con el servicio de pago.'
       };
     }
   }

@@ -60,7 +60,7 @@ export class LoginComponent implements OnInit {
       next: () => {
         this.router.navigate(['/admin']);
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         this.authErrorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
         this.isSubmitting = false;
       }

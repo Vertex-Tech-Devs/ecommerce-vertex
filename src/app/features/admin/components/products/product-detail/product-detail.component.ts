@@ -99,7 +99,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   confirmDeleteProduct(product: Product): void {
-    if (!product || !product.id) return;
+    if (!product || !product.id) { return; }
 
     this.bsModalRef = this.modalService.show(ConfirmDeleteModalComponent, {
       initialState: {

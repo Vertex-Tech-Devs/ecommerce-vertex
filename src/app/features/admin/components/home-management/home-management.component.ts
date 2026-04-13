@@ -153,9 +153,9 @@ export class HomeManagementComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
-    if (this.heroImages.length >= this.MAX_HERO_IMAGES) return;
+    if (this.heroImages.length >= this.MAX_HERO_IMAGES) { return; }
     const files = event.dataTransfer?.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) { return; }
     const fakeEvent = { target: { files } } as unknown as Event;
     this.onHeroImagesSelected(fakeEvent);
   }
@@ -206,7 +206,7 @@ export class HomeManagementComponent implements OnInit {
 
   onHeroImagesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (!input.files) return;
+    if (!input.files) { return; }
 
     const newFiles = Array.from(input.files);
     const validFiles: File[] = [];

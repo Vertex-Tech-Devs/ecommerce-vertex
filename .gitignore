@@ -12,7 +12,6 @@ coverage/
 
 # Dependencies
 node_modules/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -106,3 +105,4 @@ firebase-local-data/
 emulator-data/
 .cache/
 .local/
+settings.json

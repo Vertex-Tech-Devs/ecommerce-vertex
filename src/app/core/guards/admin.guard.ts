@@ -10,7 +10,7 @@ export const AdminGuard: CanActivateFn = () => {
   return authState(auth).pipe(
     take(1),
     switchMap(user => {
-      if (!user) return of(false);
+      if (!user) { return of(false); }
       return from(user.getIdTokenResult());
     }),
     map(result => {

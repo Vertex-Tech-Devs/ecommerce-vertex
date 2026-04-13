@@ -39,7 +39,7 @@ export class ProductService {
   getProducts(): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, this.collectionPath);
-      return (collectionData(collectionRef, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(collectionRef, { idField: 'id' }) as Observable<Product[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Product))
       );
     });
@@ -51,9 +51,9 @@ export class ProductService {
       if (categoryId && categoryId !== 'all') {
         constraints.push(where('categoryId', '==', categoryId));
       }
-      
+
       const q = query(collection(this.firestore, this.collectionPath), ...constraints);
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Product))
       );
     });
@@ -62,7 +62,7 @@ export class ProductService {
   getProductById(id: string): Observable<Product | undefined> {
     return runInInjectionContext(this.injector, () => {
       const docRef = doc(this.firestore, `${this.collectionPath}/${id}`);
-      return (docData(docRef, { idField: 'id' }) as Observable<any | undefined>).pipe(
+      return (docData(docRef, { idField: 'id' }) as Observable<Product | undefined>).pipe(
         map(item => (item ? (convertTimestampsToDates(item) as Product) : undefined))
       );
     });
@@ -160,7 +160,7 @@ export class ProductService {
         where('totalStock', '<=', threshold),
         orderBy('totalStock', 'asc')
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Product))
       );
     });
@@ -173,7 +173,7 @@ export class ProductService {
         orderBy('createdAt', 'desc'),
         limit(count)
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Product))
       );
     });

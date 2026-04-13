@@ -28,7 +28,7 @@ export class FirestoreService<T extends BaseEntity> {
   getAll(path: string): Observable<T[]> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, path);
-      return (collectionData(collectionRef, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(collectionRef, { idField: 'id' }) as Observable<T[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as T))
       );
     });
@@ -37,7 +37,7 @@ export class FirestoreService<T extends BaseEntity> {
   get(path: string, id: string): Observable<T | undefined> {
     return runInInjectionContext(this.injector, () => {
       const documentRef = doc(this.firestore, `${path}/${id}`);
-      return (docData(documentRef, { idField: 'id' }) as Observable<any | undefined>).pipe(
+      return (docData(documentRef, { idField: 'id' }) as Observable<T | undefined>).pipe(
         map(item => (item ? (convertTimestampsToDates(item) as T) : undefined))
       );
     });

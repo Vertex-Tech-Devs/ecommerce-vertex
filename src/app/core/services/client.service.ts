@@ -32,7 +32,7 @@ export class ClientService {
         collection(this.firestore, this.ordersCollectionPath),
         where('clientEmail', '==', email)
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Order))
       );
     });
@@ -66,7 +66,7 @@ export class ClientService {
         orderBy('lastOrderDate', 'desc'),
         limit(count)
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Client[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Client))
       );
     });

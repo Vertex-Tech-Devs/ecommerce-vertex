@@ -125,7 +125,7 @@ export class MakeAdminComponent implements OnInit {
   }
 
   async makeAdmin(): Promise<void> {
-    if (!this.currentUser?.email) return;
+    if (!this.currentUser?.email) { return; }
 
     this.step = 'writing';
     this.errorMessage = '';
@@ -140,9 +140,9 @@ export class MakeAdminComponent implements OnInit {
       this.step = 'waiting';
       await this.pollForAdminClaim();
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       this.step = 'error';
-      this.errorMessage = err.message ?? 'Error desconocido.';
+      this.errorMessage = (err as Error).message ?? 'Error desconocido.';
     }
   }
 
