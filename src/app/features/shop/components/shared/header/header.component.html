@@ -25,7 +25,7 @@
     </nav>
 
     <div class="header__actions">
-      <a routerLink="/shop/cart" class="header__cart" aria-label="Carrito de compras">
+      <a routerLink="/shop/cart" class="header__cart" [attr.aria-label]="cartItemCount() > 0 ? 'Carrito de compras, ' + cartItemCount() + ' productos' : 'Carrito de compras'">
         <i class="bi bi-bag" aria-hidden="true"></i>
         @if (cartItemCount() > 0) {
           <span class="header__cart-badge">{{ cartItemCount() }}</span>

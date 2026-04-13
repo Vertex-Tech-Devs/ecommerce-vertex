@@ -1,5 +1,3 @@
-@use 'variables' as vars;
-
 .header {
   position: fixed;
   top: 0;
@@ -17,7 +15,7 @@
     box-shadow: var(--shadow-md);
 
     .header__container {
-      height: var(--header-height-scrolled, 60px);
+      height: var(--header-height-scrolled, var(--header-height));
     }
   }
 }
@@ -30,7 +28,7 @@
   margin: 0 auto;
   padding: 0 var(--space-6);
   height: var(--header-height);
-  transition: height var(--transition-base);
+  transition: height var(--header-transition);
 }
 
 .header__brand {
@@ -85,6 +83,12 @@
   color: var(--text-primary);
   position: relative;
   display: flex;
+  align-items: center;
+  text-decoration: none;
+
+  &:visited {
+    color: var(--text-primary);
+  }
 
   &-badge {
     position: absolute;
@@ -121,11 +125,12 @@
   z-index: 998;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
 
   &--active {
     opacity: 1;
     visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
   }
 }
 

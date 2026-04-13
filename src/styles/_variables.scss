@@ -158,7 +158,7 @@ $card-header-latest-products-bg: linear-gradient(135deg, #047857, #059669);
   --font-family: #{$font-family-primary};
 }
 
-@media (max-width: 768px) {
+@media (max-width: #{$breakpoint-md}) {
   :root {
     --header-height: #{$header-height-mobile};
   }
