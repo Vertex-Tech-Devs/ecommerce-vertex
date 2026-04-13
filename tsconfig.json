@@ -47,6 +47,8 @@
     "node_modules",
     "tmp",
     "dist",
-    "functions"
+    "functions",
+    "cypress",
+    "**/*.cy.ts"
   ]
 }
