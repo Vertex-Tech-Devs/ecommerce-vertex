@@ -26,24 +26,20 @@ export class AdminComponent implements OnInit {
   toggleSidebar(): void {
     if (window.innerWidth < this.breakpointMd) {
       this.isSidebarOpen = !this.isSidebarOpen;
-      console.log('Sidebar toggled. isSidebarOpen:', this.isSidebarOpen);
     } else {
       this.isSidebarOpen = false;
-      console.log('Attempted to toggle sidebar in desktop view. isSidebarOpen kept as:', this.isSidebarOpen);
     }
   }
 
   closeSidebarOnOverlayClick(): void {
     if (this.isSidebarOpen && window.innerWidth < this.breakpointMd) {
       this.isSidebarOpen = false;
-      console.log('Sidebar closed by overlay click or link click. isSidebarOpen:', this.isSidebarOpen);
     }
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
     this.checkScreenSizeForInitialState();
-    console.log('Window resized. New width:', window.innerWidth, 'isSidebarOpen:', this.isSidebarOpen);
   }
 
   private checkScreenSizeForInitialState(): void {
