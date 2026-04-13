@@ -1,4 +1,5 @@
 /// <reference types="jasmine" />
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * 🧪 Testing Utilities y Helpers

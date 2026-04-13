@@ -59,7 +59,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
     currentIndex: number = 0;
     isAutoplayActive: boolean = true;
-    private autoplayInterval: any = null;
+    private autoplayInterval: ReturnType<typeof setInterval> | null = null;
     private touchStartX: number = 0;
     private touchEndX: number = 0;
 

@@ -39,7 +39,6 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
       switchMap(params => {
         this.clientEmail = params.get('email');
         if (this.clientEmail) {
-          console.log('Cargando detalles para el cliente con email:', this.clientEmail);
           this.loadClientDetails(this.clientEmail);
           return this._clientService.getOrdersByClientEmail(this.clientEmail);
         } else {

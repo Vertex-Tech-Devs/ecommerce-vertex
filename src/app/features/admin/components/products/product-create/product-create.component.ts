@@ -253,7 +253,7 @@ export class ProductCreateComponent implements OnInit {
   }
 
   private generateCombinations(attributes: Attribute[]): Array<{ [key: string]: string }> {
-    if (attributes.length === 0) return [];
+    if (attributes.length === 0) { return []; }
     
     const result: Array<{ [key: string]: string }> = [{}];
 
@@ -285,7 +285,7 @@ export class ProductCreateComponent implements OnInit {
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
+    if (!file) { return; }
 
     this.uploadProgress = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
@@ -300,7 +300,7 @@ export class ProductCreateComponent implements OnInit {
   onGalleryFileSelected(event: Event, index: number): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
-    if (!file || !control) return;
+    if (!file || !control) { return; }
 
     this.galleryUploadProgress[index] = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
@@ -352,6 +352,7 @@ export class ProductCreateComponent implements OnInit {
         const variantIdsToDelete: string[] = [];
         const currentVariantIds = new Set<string>();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formValue.variants.forEach((variant: any) => {
           if (variant.id) {
             const { price, ...rest } = variant;
@@ -380,6 +381,7 @@ export class ProductCreateComponent implements OnInit {
         this.router.navigate(['/admin/products', this.productId]);
 
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = formValue.variants.map((v: any) => ({
           attributes: v.attributes,
           stock: v.stock

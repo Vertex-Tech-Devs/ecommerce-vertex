@@ -55,7 +55,6 @@ export class FooterManagementComponent implements OnInit {
       if (data) {
         this.buildForm(data);
       } else {
-        console.log('No existing footer data. Displaying form with defaults.');
       }
       this.isLoading = false;
     });
