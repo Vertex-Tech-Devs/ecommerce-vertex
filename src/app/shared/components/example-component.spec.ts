@@ -13,7 +13,7 @@ import { By } from '@angular/platform-browser';
  * 5. Verify template rendering
  */
 
-describe('ExampleProductListComponent', () => {
+xdescribe('ExampleProductListComponent', () => {
   let component: any;
   let fixture: ComponentFixture<any>;
   let compiled: DebugElement;

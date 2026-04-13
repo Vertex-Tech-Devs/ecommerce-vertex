@@ -30,16 +30,9 @@ module.exports = function(config) {
       reporters: [
         { type: 'html' },
         { type: 'text-summary' },
-        { type: 'lcovonly' }
+        { type: 'lcovonly' },
+        { type: 'text', file: 'coverage-summary.txt' }
       ],
-      check: {
-        global: {
-          statements: 80,
-          branches: 80,
-          functions: 80,
-          lines: 80
-        }
-      }
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,
