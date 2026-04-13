@@ -49,6 +49,7 @@
     "dist",
     "functions",
     "cypress",
-    "**/*.cy.ts"
+    "**/*.cy.ts",
+    "cypress.config.ts" // <-- EXCLUIMOS TAMBIÉN LA CONFIG DE CYPRESS
   ]
 }
