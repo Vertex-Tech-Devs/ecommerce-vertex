@@ -31,7 +31,9 @@ module.exports = function(config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'lcovonly' },
-        { type: 'text', file: 'coverage-summary.txt' }
+        { type: 'text', file: 'coverage-summary.txt' },
+        { type: 'json' },
+        { type: 'json-summary' }
       ],
     },
     reporters: ['progress', 'kjhtml', 'coverage'],

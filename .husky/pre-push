@@ -4,13 +4,29 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 if [ "$BRANCH" = "main" ]; then
   echo ""
-  echo "PRODUCTION BRANCH PROTECTED"
-  echo "Cannot push directly to main"
-  echo "Use GitHub PR to deploy"
+  echo "✖ Direct push to main is not allowed."
+  echo "  Open a PR from develop."
   echo ""
   exit 1
 fi
 
-exit 0
+echo ""
+echo "Running pre-push checks..."
+echo ""
+
+npm run lint
+LINT_STATUS=$?
+
+npm run typecheck
+TYPE_STATUS=$?
+
+echo ""
+
+if [ $LINT_STATUS -ne 0 ] || [ $TYPE_STATUS -ne 0 ]; then
+  echo "✖ Pre-push checks failed. Fix the errors above before pushing."
+  echo ""
+  exit 1
 fi
-exit 0
+
+echo "✔ All checks passed."
+echo ""
