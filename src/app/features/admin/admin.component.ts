@@ -38,7 +38,7 @@ export class AdminComponent implements OnInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event: Event): void {
+  onResize(_event: Event): void {
     this.checkScreenSizeForInitialState();
   }
 

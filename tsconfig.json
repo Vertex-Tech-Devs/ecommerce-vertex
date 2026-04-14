@@ -2,11 +2,12 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
+    "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
@@ -50,6 +51,6 @@
     "functions",
     "cypress",
     "**/*.cy.ts",
-    "cypress.config.ts" // <-- EXCLUIMOS TAMBIÉN LA CONFIG DE CYPRESS
+    "cypress.config.ts"
   ]
 }
