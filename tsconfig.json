@@ -50,6 +50,7 @@
     "functions",
     "cypress",
     "**/*.cy.ts",
-    "cypress.config.ts"
+    "cypress.config.ts",
+    "karma.conf.js"
   ]
 }
