@@ -9,10 +9,20 @@
     "types": [
       "jasmine",
       "node"
-    ]
+    ],
+    "paths": {
+      "@core/*": ["./src/app/core/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@domains/*": ["./src/app/domains/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@environments/*": ["./src/environments/*"]
+    }
   },
   "include": [
     "src/**/*.spec.ts",
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
