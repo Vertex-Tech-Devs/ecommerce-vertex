@@ -113,40 +113,4 @@ export class HomeContentService {
     dataToSave.lastUpdated = new Date();
     return setDoc(docRef, dataToSave, { merge: true });
   }
-
-  async initializeTestData(): Promise<void> {
-    const docRef = doc(this.firestore, this.docPath);
-    const testData: HeroBanner = {
-      heroImages: [
-        "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=1400&h=500&fit=crop&crop=center",
-        "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1400&h=500&fit=crop&crop=center",
-        "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&h=500&fit=crop&crop=center",
-      ],
-      carouselSettings: {
-        interval: 6000,
-        showIndicators: true,
-      },
-      title: "Bienvenido a Vertex",
-      buttonText: "Comprar Ahora",
-      buttonLink: "/shop/catalog",
-      featuredCategories: [
-        {
-          categoryId: "electronics",
-          name: "Electrónica",
-          slug: "electronics",
-          imageUrl:
-            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop",
-        },
-        {
-          categoryId: "accessories",
-          name: "Accesorios",
-          slug: "accessories",
-          imageUrl:
-            "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop",
-        },
-      ],
-      lastUpdated: new Date(),
-    };
-    return setDoc(docRef, testData, { merge: true });
-  }
 }

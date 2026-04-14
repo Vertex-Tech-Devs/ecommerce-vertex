@@ -4,7 +4,6 @@
     "outDir": "./out-tsc/spec",
     "target": "ES2022",
     "declaration": false,
-    "downlevelIteration": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "types": [

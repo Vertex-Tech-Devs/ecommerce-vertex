@@ -10,12 +10,8 @@ import {
   where,
   orderBy,
   limit,
-  Timestamp,
   WithFieldValue,
   QueryConstraint,
-  addDoc,
-  updateDoc,
-  DocumentReference,
 } from 'firebase/firestore';
 import { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';

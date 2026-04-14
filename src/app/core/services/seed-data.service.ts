@@ -3,6 +3,7 @@ import {
   Firestore, collection, addDoc, setDoc, doc, getDocs, deleteDoc, updateDoc,
 } from '@angular/fire/firestore';
 import { SweetAlertService } from './sweet-alert.service';
+import { Attribute } from '@core/models/attribute.model';
 
 // ─── image helpers ────────────────────────────────────────────────────────────
 
@@ -39,7 +40,6 @@ const FEAT = {
 
 interface SeedProduct { id: string; name: string; finalPrice: number; image: string; categoryName: string; }
 interface SeedClient  { id: string; fullName: string; email: string; phone: string; }
-interface Attribute   { id: string; name: string; values: string[]; }
 
 // ─── service ──────────────────────────────────────────────────────────────────
 
@@ -340,6 +340,7 @@ export class SeedDataService {
     // Map attribute names to IDs for variant generation
     const attrNameToId: Record<string, string> = {};
     allAttrs.forEach(attr => {
+      if (!attr.id) { return; }
       // Map both exact name and lowercase slug
       attrNameToId[attr.name] = attr.id;
       if (attr.name.includes('(')) {

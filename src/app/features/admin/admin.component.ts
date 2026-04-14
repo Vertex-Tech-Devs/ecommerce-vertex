@@ -1,14 +1,13 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { RouterModule } from '@angular/router';
 import { HeaderComponent } from './components/shared/components/header/header.component';
 import { SidebarComponent } from './components/shared/components/sidebar/sidebar.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterModule, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
 })

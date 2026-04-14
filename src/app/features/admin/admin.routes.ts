@@ -55,11 +55,11 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./components/home-management/home-management.component').then(m => m.HomeManagementComponent)
       },
       {
-        path: 'gestion-nosotros',
+        path: 'about-management',
         loadComponent: () => import('./components/about-us-management/about-us-management.component').then(m => m.AboutUsManagementComponent)
       },
       {
-        path: 'gestion-footer',
+        path: 'footer-management',
         loadComponent: () => import('./components/footer-management/footer-management.component').then(m => m.FooterManagementComponent)
       },
       {

@@ -46,7 +46,7 @@
         <section class="section" aria-label="Categorías destacadas">
           <h2 class="section__title">Categorías Destacadas</h2>
           <div class="category-grid" [ngClass]="{'category-grid--scroll': banner.featuredCategories.length > 2}">
-            @for (category of banner.featuredCategories; track $index) {
+            @for (category of banner.featuredCategories; track category.categoryId) {
               <a [routerLink]="['/shop/catalog']" [queryParams]="{ category: category.categoryId }" class="category-card" [attr.aria-label]="'Ver categoría ' + category.name">
                 <div class="category-card__image" [style.backgroundImage]="'url(' + category.imageUrl + ')'" role="img" [attr.aria-label]="category.name"></div>
                 <span class="category-card__label">{{ category.name }}</span>

@@ -38,12 +38,12 @@
                           @for (status of statusOptions; track status) {
                             <option [value]="status">
                               @switch (status) {
-                                @case ('pending') { <span>Pendiente</span> }
-                                @case ('processing') { <span>Procesando</span> }
-                                @case ('shipped') { <span>Enviado</span> }
-                                @case ('delivered') { <span>Entregado</span> }
-                                @case ('cancelled') { <span>Cancelado</span> }
-                                @default { <span>{{ status | titlecase }}</span> }
+                                @case ('pending') { Pendiente }
+                                @case ('processing') { Procesando }
+                                @case ('shipped') { Enviado }
+                                @case ('delivered') { Entregado }
+                                @case ('cancelled') { Cancelado }
+                                @default { {{ status | titlecase }} }
                               }
                             </option>
                           }
@@ -150,7 +150,7 @@
                           </tr>
                           <tr class="fw-bold total-row">
                             <td>Total Pagado:</td>
-                            <td classD="text-end">{{ order.total | currency:'ARS':'$' }}</td>
+                            <td class="text-end">{{ order.total | currency:'ARS':'$' }}</td>
                           </tr>
                         </tbody>
                       </table>

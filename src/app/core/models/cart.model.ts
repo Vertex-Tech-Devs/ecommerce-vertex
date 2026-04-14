@@ -1,4 +1,4 @@
-export interface ICartItem {
+export interface CartItem {
   id: string;
   productId: string;
   variantId: string;
@@ -10,7 +10,7 @@ export interface ICartItem {
   stock: number;
 }
 
-export interface ICart {
-  items: ICartItem[];
+export interface Cart {
+  items: CartItem[];
   total: number;
 }

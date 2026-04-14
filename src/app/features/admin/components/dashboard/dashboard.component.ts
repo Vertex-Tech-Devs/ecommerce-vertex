@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { Observable, combineLatest, map, catchError, of } from 'rxjs';
 import { RouterModule } from '@angular/router';
@@ -20,7 +20,8 @@ import { Client } from '@core/models/client.model';
   ],
   standalone: true,
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrl: './dashboard.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit {
   private productService = inject(ProductService);

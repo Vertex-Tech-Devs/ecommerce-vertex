@@ -7,9 +7,7 @@ export const checkoutGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (cartService.itemCount() === 0) {
-    console.warn('Acceso a /checkout denegado: El carrito está vacío. Redirigiendo...');
-    router.navigate(['/shop/cart']);
-    return false;
+    return router.createUrlTree(['/shop/cart']);
   }
   return true;
 };

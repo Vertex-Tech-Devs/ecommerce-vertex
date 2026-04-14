@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Product, ProductVariant } from '@core/models/product.model';
-import { ICart, ICartItem } from '@core/models/cart.model';
+import { Cart, CartItem } from '@core/models/cart.model';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
 import { take } from 'rxjs';
@@ -14,7 +14,7 @@ export class CartService {
   private readonly CART_STORAGE_KEY = 'my_cart';
 
   private attributeMap = new Map<string, string>();
-  cart = signal<ICart>(this.getCartFromStorage());
+  cart = signal<Cart>(this.getCartFromStorage());
 
   itemCount = computed(() => this.cart().items.reduce((acc, item) => acc + item.quantity, 0));
 
@@ -35,11 +35,11 @@ export class CartService {
     });
   }
 
-  private getCartFromStorage(): ICart {
+  private getCartFromStorage(): Cart {
     try {
       const cartJson = localStorage.getItem(this.CART_STORAGE_KEY);
       if (cartJson) {
-        const cart = JSON.parse(cartJson) as ICart;
+        const cart = JSON.parse(cartJson) as Cart;
         if (!cart.items) {
           return { items: [], total: 0 };
         }
@@ -52,7 +52,7 @@ export class CartService {
     return { items: [], total: 0 };
   }
 
-  private saveCartToStorage(cart: ICart): void {
+  private saveCartToStorage(cart: Cart): void {
     try {
       localStorage.setItem(this.CART_STORAGE_KEY, JSON.stringify(cart));
     } catch (error) {
@@ -60,7 +60,7 @@ export class CartService {
     }
   }
 
-  private calculateTotal(items: ICartItem[]): number {
+  private calculateTotal(items: CartItem[]): number {
     return items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   }
 
@@ -87,7 +87,7 @@ export class CartService {
     
     this.cart.update(currentCart => {
       const existingItem = currentCart.items.find(item => item.id === cartItemId);
-      let newItems: ICartItem[];
+      let newItems: CartItem[];
 
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
@@ -100,7 +100,7 @@ export class CartService {
         );
       } else {
         const variantDescription = this.getVariantDescription(variant.attributes);
-        const newItem: ICartItem = {
+        const newItem: CartItem = {
           id: cartItemId,
           productId: product.id,
           variantId: variant.id,

@@ -234,9 +234,7 @@ export class ProductCreateComponent implements OnInit {
       }
 
       // Clear existing variants
-      while (this.variants.length > 0) {
-        this.variants.removeAt(0);
-      }
+      this.variants.clear();
 
       // Add variants for each combination
       combinations.forEach(combo => {

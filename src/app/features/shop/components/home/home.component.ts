@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { RouterModule } from "@angular/router";
 import { Observable } from "rxjs";
@@ -15,6 +15,7 @@ import { CarouselComponent } from "@shared/components/carousel/carousel.componen
   imports: [CommonModule, RouterModule, CurrencyPipe, CarouselComponent],
   templateUrl: "./home.component.html",
   styleUrls: ["./home.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent implements OnInit {
   private homeContentService = inject(HomeContentService);

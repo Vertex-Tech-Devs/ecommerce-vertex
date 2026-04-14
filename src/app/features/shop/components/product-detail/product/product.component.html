@@ -63,7 +63,7 @@
             <div class="quantity-picker">
               <button class="quantity-picker__btn" (click)="decreaseQuantity()" [disabled]="quantity() <= 1" aria-label="Disminuir cantidad">−</button>
               <span class="quantity-picker__value">{{ quantity() }}</span>
-              <button class="quantity-picker__btn" (click)="increaseQuantity()" [disabled]="!selectedVariant() || quantity() >= (selectedVariant()?.stock || 1)" aria-label="Aumentar cantidad">+</button>
+              <button class="quantity-picker__btn" (click)="increaseQuantity()" [disabled]="isMaxQuantityReached" aria-label="Aumentar cantidad">+</button>
             </div>
 
             <button

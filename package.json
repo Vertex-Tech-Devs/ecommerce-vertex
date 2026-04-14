@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "scripts": {
     "start": "ng serve",
-    "dev": "ng serve",
     "build": "ng build --configuration production",
     "test": "ng test --watch=false --code-coverage",
     "validate": "npm run lint && npm run typecheck && npm test && npm run build",
@@ -22,7 +21,7 @@
     "build:fn": "npm run build --prefix functions",
     "push": "npm run lint && npm run typecheck && ng test --watch=false",
     "ci": "npm run lint && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage && npm run build",
-    "postinstall": "(cp src/environments/environment.example.ts src/environments/environment.ts || echo 'Environment already exists') && (cd functions && npm install || echo 'Functions install skipped')"
+    "postinstall": "(cp src/environments/environment.example.ts src/environments/environment.ts 2>/dev/null || true) && ([ -z \"$CI\" ] && [ -d \"functions\" ] && (cd functions && npm install) || true)"
   },
   "dependencies": {
     "@angular/animations": "^20.0.0",
@@ -37,8 +36,6 @@
     "bootstrap": "5.3.7",
     "bootstrap-icons": "1.13.1",
     "firebase": "^11.8.1",
-    "firebase-admin": "^13.7.0",
-    "http-proxy-agent": "^8.0.0",
     "ngx-bootstrap": "20.0.2",
     "ngx-quill": "^28.0.1",
     "quill": "^2.0.2",
@@ -64,6 +61,7 @@
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.0.0",
+    "http-proxy-agent": "^8.0.0",
     "jasmine-core": "^5.1.0",
     "karma": "^6.4.0",
     "karma-chrome-launcher": "^3.2.0",

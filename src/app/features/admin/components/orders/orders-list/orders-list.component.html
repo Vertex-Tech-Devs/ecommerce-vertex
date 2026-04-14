@@ -24,12 +24,12 @@
               @for (status of statusOptions.slice(1); track status) {
                 <option [value]="status">
                   @switch (status) {
-                    @case ('pending') { <span>Pendiente</span> }
-                    @case ('processing') { <span>Procesando</span> }
-                    @case ('shipped') { <span>Enviado</span> }
-                    @case ('delivered') { <span>Entregado</span> }
-                    @case ('cancelled') { <span>Cancelado</span> }
-                    @default { <span>{{ status | titlecase }}</span> }
+                    @case ('pending') { Pendiente }
+                    @case ('processing') { Procesando }
+                    @case ('shipped') { Enviado }
+                    @case ('delivered') { Entregado }
+                    @case ('cancelled') { Cancelado }
+                    @default { {{ status | titlecase }} }
                   }
                 </option>
               }

@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { of, switchMap, combineLatest } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Product, ProductVariant } from '@core/models/product.model';
 import { ProductService } from '@core/services/product.service';
 import { CartService } from '@core/services/cart.service';
@@ -21,13 +22,15 @@ interface AttributeSelection {
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe],
   templateUrl: './product.component.html',
-  styleUrls: ['./product.component.scss']
+  styleUrls: ['./product.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductComponent implements OnInit {
+export class ProductComponent {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
   private cartService = inject(CartService);
   private attributeService = inject(AttributeService);
+  private destroyRef = inject(DestroyRef);
 
   public product: Product | undefined;
   public variants: ProductVariant[] = [];
@@ -46,8 +49,6 @@ export class ProductComponent implements OnInit {
     this.loadProductData();
   }
 
-  ngOnInit(): void { }
-
   private loadProductData(): void {
     this.route.paramMap.pipe(
       switchMap(params => {
@@ -60,6 +61,8 @@ export class ProductComponent implements OnInit {
         }
         return of(null);
       })
+    ).pipe(
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(data => {
       if (data && data.productData) {
         this.product = data.productData.product;
@@ -224,5 +227,10 @@ export class ProductComponent implements OnInit {
     if (this.product && variant) {
       this.cartService.addItem(this.product, variant, this.quantity());
     }
+  }
+
+  get isMaxQuantityReached(): boolean {
+    const variant = this.selectedVariant();
+    return !variant || this.quantity() >= (variant.stock || 1);
   }
 }

@@ -4,7 +4,7 @@
       <div class="cart__items-card">
         <h1 class="cart__title">Tu Carrito</h1>
         <div class="cart__items-list">
-          @for (item of cart().items; track trackByItemId($index, item)) {
+          @for (item of cart().items; track item.id) {
             <article class="cart-item">
               <img [src]="item.image || 'assets/placeholder.png'" [alt]="item.name" class="cart-item__image">
               <div class="cart-item__details">

@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
-import { ICartItem } from '@core/models/cart.model';
+import { CartItem } from '@core/models/cart.model';
 
 @Component({
   selector: 'app-cart',
@@ -13,7 +13,8 @@ import { ICartItem } from '@core/models/cart.model';
     CurrencyPipe
   ],
   templateUrl: './cart.component.html',
-  styleUrls: ['./cart.component.scss']
+  styleUrls: ['./cart.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartComponent {
   cartService = inject(CartService);
@@ -25,7 +26,7 @@ export class CartComponent {
     this.router.navigate(['/shop/checkout']);
   }
 
-  onUpdateQuantity(item: ICartItem, event: Event): void {
+  onUpdateQuantity(item: CartItem, event: Event): void {
     const inputElement = event.target as HTMLInputElement;
     let newQuantity = parseInt(inputElement.value, 10);
 
@@ -48,9 +49,5 @@ export class CartComponent {
 
   onRemoveItem(itemId: string): void {
     this.cartService.removeItem(itemId);
-  }
-
-  trackByItemId(index: number, item: ICartItem): string {
-    return item.id;
   }
 }

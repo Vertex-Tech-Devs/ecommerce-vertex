@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, CurrencyPipe, TitleCasePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
@@ -25,6 +25,7 @@ import { Category } from '@core/models/category.model';
     TruncatePipe
   ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsListComponent implements OnInit, OnDestroy {
   public products$!: Observable<Product[]>;
@@ -86,11 +87,12 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         this.totalPages = Math.ceil(this.totalProducts / itemsPerPage);
 
         if (currentPage > this.totalPages && this.totalPages > 0) {
-          this.currentPageSubject.next(this.totalPages);
-          currentPage = this.totalPages;
+          const corrected = this.totalPages;
+          currentPage = corrected;
+          Promise.resolve().then(() => this.currentPageSubject.next(corrected));
         } else if (this.totalPages === 0 && currentPage !== 1) {
-          this.currentPageSubject.next(1);
           currentPage = 1;
+          Promise.resolve().then(() => this.currentPageSubject.next(1));
         }
 
         const startIndex = (currentPage - 1) * itemsPerPage;

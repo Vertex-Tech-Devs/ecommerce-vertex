@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ICartItem } from '@core/models/cart.model';
+import { CartItem } from '@core/models/cart.model';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 
 export interface PaymentResponse {
@@ -31,9 +31,7 @@ interface PreferenceResponseData {
 export class PaymentService {
   private functions: Functions = inject(Functions);
 
-  constructor() { }
-
-  async initiatePayment(items: ICartItem[], orderId: string): Promise<PaymentResponse> {
+  async initiatePayment(items: CartItem[], orderId: string): Promise<PaymentResponse> {
     try {
       const preferenceItems = items.map(item => ({
         productId: item.productId,

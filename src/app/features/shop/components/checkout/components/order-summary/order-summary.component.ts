@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ICartItem } from '@core/models/cart.model';
+import { CartItem } from '@core/models/cart.model';
 
 @Component({
   selector: 'app-order-summary',
@@ -10,6 +10,6 @@ import { ICartItem } from '@core/models/cart.model';
   styleUrls: ['./order-summary.component.scss']
 })
 export class OrderSummaryComponent {
-  @Input() items: ICartItem[] = [];
+  @Input() items: CartItem[] = [];
   @Input() total: number = 0;
 }

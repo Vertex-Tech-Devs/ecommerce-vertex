@@ -7,6 +7,7 @@ import {
     Input,
     OnDestroy,
     OnInit,
+    inject,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
@@ -59,11 +60,10 @@ export class CarouselComponent implements OnInit, OnDestroy {
 
     currentIndex: number = 0;
     isAutoplayActive: boolean = true;
+    private cdr = inject(ChangeDetectorRef);
     private autoplayInterval: ReturnType<typeof setInterval> | null = null;
     private touchStartX: number = 0;
     private touchEndX: number = 0;
-
-    constructor(private cdr: ChangeDetectorRef) {}
 
     ngOnInit(): void {
         if (this.images.length > 1) {
