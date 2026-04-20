@@ -261,6 +261,18 @@ jobs:
           name: dist-prod-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
 
+      - name: Generate functions environment file
+        env:
+          MERCADOPAGO_ACCESSTOKEN: ${{ secrets.MERCADOPAGO_ACCESSTOKEN }}
+          MERCADOPAGO_WEBHOOK_URL: ${{ secrets.MERCADOPAGO_WEBHOOK_URL }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          cat > functions/.env.ecommerce-vertex << EOF
+          MERCADOPAGO_ACCESSTOKEN=${MERCADOPAGO_ACCESSTOKEN}
+          MERCADOPAGO_WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
+          SITE_URL=${SITE_URL}
+          EOF
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
