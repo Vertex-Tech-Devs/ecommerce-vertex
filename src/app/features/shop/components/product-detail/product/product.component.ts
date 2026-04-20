@@ -32,8 +32,8 @@ export class ProductComponent {
   private attributeService = inject(AttributeService);
   private destroyRef = inject(DestroyRef);
 
-  public product: Product | undefined;
-  public variants: ProductVariant[] = [];
+  public product = signal<Product | undefined>(undefined);
+  public variants = signal<ProductVariant[]>([]);
   public quantity = signal(1);
 
   public mainImage = signal('');
@@ -50,103 +50,109 @@ export class ProductComponent {
   }
 
   private loadProductData(): void {
-    this.route.paramMap.pipe(
-      switchMap(params => {
-        const productId = params.get('id');
-        if (productId) {
-          return combineLatest({
-            productData: this.productService.getProductWithVariants(productId),
-            attributes: this.attributeService.getAttributes()
-          });
+    this.route.paramMap
+      .pipe(
+        switchMap((params) => {
+          const productId = params.get('id');
+          if (productId) {
+            return combineLatest({
+              productData: this.productService.getProductWithVariants(productId),
+              attributes: this.attributeService.getAttributes(),
+            });
+          }
+          return of(null);
+        })
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        if (data && data.productData) {
+          this.product.set(data.productData.product);
+          this.variants.set(data.productData.variants.filter((v) => v.stock > 0));
+          this.allAttributes.set(data.attributes);
+
+          const product = this.product();
+          if (product) {
+            this.mainImage.set(product.image);
+            this.galleryImages.set([product.image, ...(product.images || [])]);
+            this.initializeAttributes();
+          }
         }
-        return of(null);
-      })
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(data => {
-      if (data && data.productData) {
-        this.product = data.productData.product;
-        this.variants = data.productData.variants.filter(v => v.stock > 0);
-        this.allAttributes.set(data.attributes);
-        
-        if (this.product) {
-          this.mainImage.set(this.product.image);
-          this.galleryImages.set([this.product.image, ...(this.product.images || [])]);
-          this.initializeAttributes();
-        }
-      }
-    });
+      });
   }
 
   private initializeAttributes(): void {
-    if (!this.product || !this.product.variantAttributes) {
+    const product = this.product();
+    if (!product || !product.variantAttributes) {
       this.selectedVariant.set(null);
       return;
     }
 
     this.allPossibleValues.clear();
 
-    const attributeSelections: AttributeSelection[] = this.product.variantAttributes.map(attrId => {
-      const attr = this.allAttributes().find(a => a.id === attrId);
+    const variants = this.variants();
+    const attributeSelections: AttributeSelection[] = product.variantAttributes.map((attrId) => {
+      const attr = this.allAttributes().find((a) => a.id === attrId);
       const attrName = attr?.name || attrId;
-      
-      const allValuesForAttr = [...new Set(this.variants.map(v => v.attributes[attrId]))].sort();
+
+      const allValuesForAttr = [...new Set(variants.map((v) => v.attributes[attrId]))].sort();
       this.allPossibleValues.set(attrId, allValuesForAttr);
-      
+
       return {
         id: attrId,
         name: attrName,
         values: allValuesForAttr,
         allValues: allValuesForAttr,
-        selectedValue: null
+        selectedValue: null,
       };
     });
 
     this.attributes.set(attributeSelections);
-    
-    if (this.product.variantAttributes.length === 0 && this.variants.length === 1) {
-      this.selectedVariant.set(this.variants[0]);
+
+    if (product.variantAttributes.length === 0 && variants.length === 1) {
+      this.selectedVariant.set(variants[0]);
     } else {
       this.selectedVariant.set(undefined);
     }
   }
 
   selectAttribute(attributeId: string, value: string): void {
-    this.attributes.update(currentAttributes => 
-      currentAttributes.map(attr => {
+    this.attributes.update((currentAttributes) =>
+      currentAttributes.map((attr) => {
         if (attr.id === attributeId) {
-          return { ...attr, selectedValue: (attr.selectedValue === value) ? null : value };
+          return { ...attr, selectedValue: attr.selectedValue === value ? null : value };
         }
         return attr;
       })
     );
-    
+
     this.updateAvailableOptions();
     this.findSelectedVariant();
   }
 
   private updateAvailableOptions(): void {
     const selectedAttributes = this.attributes()
-      .filter(a => a.selectedValue)
-      .reduce((acc, a) => {
-        acc[a.id] = a.selectedValue;
-        return acc;
-      }, {} as { [key: string]: string | null });
+      .filter((a) => a.selectedValue)
+      .reduce(
+        (acc, a) => {
+          acc[a.id] = a.selectedValue;
+          return acc;
+        },
+        {} as { [key: string]: string | null }
+      );
 
-    this.attributes.update(currentAttributes => 
-      currentAttributes.map(attr => {
-        
+    this.attributes.update((currentAttributes) =>
+      currentAttributes.map((attr) => {
         const otherSelectedAttributes = { ...selectedAttributes };
         delete otherSelectedAttributes[attr.id];
 
-        const possibleVariants = this.variants.filter(v => {
-          return Object.entries(otherSelectedAttributes).every(([attrId, value]) => 
-            v.attributes[attrId] === value
+        const possibleVariants = this.variants().filter((v) => {
+          return Object.entries(otherSelectedAttributes).every(
+            ([attrId, value]) => v.attributes[attrId] === value
           );
         });
 
-        const availableValues = [...new Set(possibleVariants.map(v => v.attributes[attr.id]))];
-        
+        const availableValues = [...new Set(possibleVariants.map((v) => v.attributes[attr.id]))];
+
         let newSelectedValue = attr.selectedValue;
         if (attr.selectedValue && !availableValues.includes(attr.selectedValue)) {
           newSelectedValue = null;
@@ -158,24 +164,27 @@ export class ProductComponent {
   }
 
   private findSelectedVariant(): void {
-    const allSelected = this.attributes().every(a => a.selectedValue);
+    const allSelected = this.attributes().every((a) => a.selectedValue);
     if (!allSelected) {
       this.selectedVariant.set(undefined);
       return;
     }
 
-    const selection = this.attributes().reduce((acc, a) => {
-      acc[a.id] = a.selectedValue;
-      return acc;
-    }, {} as { [key: string]: string | null });
+    const selection = this.attributes().reduce(
+      (acc, a) => {
+        acc[a.id] = a.selectedValue;
+        return acc;
+      },
+      {} as { [key: string]: string | null }
+    );
 
-    const variant = this.variants.find(v => {
+    const variant = this.variants().find((v) => {
       return Object.entries(selection).every(([key, value]) => v.attributes[key] === value);
     });
 
     this.selectedVariant.set(variant || null);
     if (variant) {
-      this.mainImage.set(variant.image || this.product?.image || '');
+      this.mainImage.set(variant.image || this.product()?.image || '');
       this.quantity.set(1);
     }
   }
@@ -183,26 +192,28 @@ export class ProductComponent {
   public getValuesForAttribute(attr: AttributeSelection): string[] {
     // First try to get from allPossibleValues (generated from variants)
     const variantValues = this.allPossibleValues.get(attr.id) || [];
-    
+
     // If no variants have values yet, show all possible values from the attribute definition
     if (variantValues.length === 0) {
-      const allAttr = this.allAttributes().find(a => a.id === attr.id);
+      const allAttr = this.allAttributes().find((a) => a.id === attr.id);
       return allAttr?.values || [];
     }
-    
+
     return variantValues;
   }
 
   public isOptionVisible(attributeId: string, value: string): boolean {
-    const attr = this.attributes().find(a => a.id === attributeId);
-    if (!attr) { return false; }
-    
+    const attr = this.attributes().find((a) => a.id === attributeId);
+    if (!attr) {
+      return false;
+    }
+
     // If no variants exist yet, show all values
-    if (this.variants.length === 0) {
-      const allAttr = this.allAttributes().find(a => a.id === attributeId);
+    if (this.variants().length === 0) {
+      const allAttr = this.allAttributes().find((a) => a.id === attributeId);
       return allAttr?.values.includes(value) || false;
     }
-    
+
     // Otherwise check if value is in available values for this attribute
     return attr.values.includes(value);
   }
@@ -212,20 +223,21 @@ export class ProductComponent {
   }
 
   decreaseQuantity(): void {
-    this.quantity.update(q => (q > 1 ? q - 1 : 1));
+    this.quantity.update((q) => (q > 1 ? q - 1 : 1));
   }
 
   increaseQuantity(): void {
     const variant = this.selectedVariant();
     if (variant) {
-      this.quantity.update(q => (q < variant.stock ? q + 1 : q));
+      this.quantity.update((q) => (q < variant.stock ? q + 1 : q));
     }
   }
 
   addToCart(): void {
+    const product = this.product();
     const variant = this.selectedVariant();
-    if (this.product && variant) {
-      this.cartService.addItem(this.product, variant, this.quantity());
+    if (product && variant) {
+      this.cartService.addItem(product, variant, this.quantity());
     }
   }
 

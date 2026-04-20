@@ -1,31 +1,32 @@
-@if (product) {
+@if (product(); as p) {
   <article class="product-detail">
     <div class="product-detail__card">
       <div class="product-detail__grid">
         <div class="product-gallery">
           <div class="product-gallery__main">
-            <img [src]="mainImage()" [alt]="product.name" class="product-gallery__image fade-in">
+            <img [src]="mainImage()" [alt]="p.name" class="product-gallery__image fade-in" />
           </div>
           @if (galleryImages().length > 1) {
             <div class="product-gallery__thumbs">
               @for (img of galleryImages(); track $index) {
                 <img
                   [src]="img"
-                  [alt]="product.name + ' miniatura'"
+                  [alt]="p.name + ' miniatura'"
                   class="product-gallery__thumb"
                   [class.product-gallery__thumb--active]="img === mainImage()"
-                  (click)="changeMainImage(img)">
+                  (click)="changeMainImage(img)"
+                />
               }
             </div>
           }
         </div>
 
         <div class="product-info">
-          <h1 class="product-info__title">{{ product.name }}</h1>
-          <p class="product-info__price">{{ product.price | currency:'ARS':'$' }}</p>
-          <p class="product-info__description">{{ product.description }}</p>
+          <h1 class="product-info__title">{{ p.name }}</h1>
+          <p class="product-info__price">{{ p.price | currency: 'ARS' : '$' }}</p>
+          <p class="product-info__description">{{ p.description }}</p>
 
-          @for(attr of attributes(); track attr.id + '_' + $index) {
+          @for (attr of attributes(); track attr.id + '_' + $index) {
             <div class="variant-selector">
               <label class="variant-selector__label">{{ attr.name }}:</label>
               <div class="variant-selector__options">
@@ -34,7 +35,8 @@
                     <button
                       class="variant-selector__btn"
                       [class.variant-selector__btn--active]="value === attr.selectedValue"
-                      (click)="selectAttribute(attr.id, value)">
+                      (click)="selectAttribute(attr.id, value)"
+                    >
                       {{ value }}
                     </button>
                   }
@@ -61,15 +63,30 @@
 
           <div class="purchase-actions">
             <div class="quantity-picker">
-              <button class="quantity-picker__btn" (click)="decreaseQuantity()" [disabled]="quantity() <= 1" aria-label="Disminuir cantidad">−</button>
+              <button
+                class="quantity-picker__btn"
+                (click)="decreaseQuantity()"
+                [disabled]="quantity() <= 1"
+                aria-label="Disminuir cantidad"
+              >
+                −
+              </button>
               <span class="quantity-picker__value">{{ quantity() }}</span>
-              <button class="quantity-picker__btn" (click)="increaseQuantity()" [disabled]="isMaxQuantityReached" aria-label="Aumentar cantidad">+</button>
+              <button
+                class="quantity-picker__btn"
+                (click)="increaseQuantity()"
+                [disabled]="isMaxQuantityReached"
+                aria-label="Aumentar cantidad"
+              >
+                +
+              </button>
             </div>
 
             <button
               class="add-to-cart"
               (click)="addToCart()"
-              [disabled]="!selectedVariant() || selectedVariant()?.stock === 0">
+              [disabled]="!selectedVariant() || selectedVariant()?.stock === 0"
+            >
               @if (selectedVariant() === undefined) {
                 <span>Selecciona una variante</span>
               } @else if (!selectedVariant()) {
