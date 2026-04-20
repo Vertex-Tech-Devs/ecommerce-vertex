@@ -1,31 +1,55 @@
 <div class="home-page">
   @if (heroBanner$ | async; as banner) {
-    @if (banner.imageUrl) {
-      <section class="hero-banner" [style.backgroundImage]="'url(' + banner.imageUrl + ')'">
-        <div class="hero-content">
-          @if (banner.title) {
-            <h1 class="hero-title">{{ banner.title }}</h1>
-          }
-          @if (banner.buttonText && banner.buttonLink) {
-            <a [routerLink]="banner.buttonLink" class="btn hero-btn">
-              {{ banner.buttonText }}
-            </a>
-          }
-        </div>
+    <!-- HERO SECTION -->
+    @if (banner.heroImages && banner.heroImages.length > 0) {
+      <section class="hero" aria-label="Banner principal">
+        @if (isCarousel(banner)) {
+          <app-carousel 
+            [images]="banner.heroImages"
+            [interval]="banner.carouselSettings?.interval || 6000"
+            [showIndicators]="banner.carouselSettings?.showIndicators !== false"
+            [showArrows]="true"
+            [aspectRatio]="'16 / 9'"
+          ></app-carousel>
+        } @else {
+          <div class="hero__static">
+            <img 
+              [src]="getStaticImage(banner)" 
+              [alt]="banner.title || 'Hero banner'"
+              class="hero__image"
+              loading="eager"
+              decoding="sync"
+            />
+          </div>
+        }
+
+        @if (banner.title || (banner.buttonText && banner.buttonLink)) {
+          <div class="hero__overlay">
+            <div class="hero__content">
+              @if (banner.title) {
+                <h1 class="hero__title">{{ banner.title }}</h1>
+              }
+              @if (banner.buttonText && banner.buttonLink) {
+                <a [routerLink]="banner.buttonLink" class="hero__cta">
+                  {{ banner.buttonText }}
+                </a>
+              }
+            </div>
+          </div>
+        }
       </section>
     }
 
+    <!-- FEATURED CATEGORIES -->
     <div class="home-container">
       @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
-        <section class="featured-content py-5">
-          <h2 class="section-title">Categorías Destacadas</h2>
-          <div
-            class="category-grid"
-            [ngClass]="{'has-scroll': banner.featuredCategories.length > 2}">
-            @for (category of banner.featuredCategories; track $index) {
-              <a [routerLink]="['/shop/catalog']" [queryParams]="{ category: category.categoryId }" class="category-card">
-                <div class="category-image" [style.backgroundImage]="'url(' + category.imageUrl + ')'"></div>
-                <span class="category-name">{{ category.name }}</span>
+        <section class="section" aria-label="Categorías destacadas">
+          <h2 class="section__title">Categorías Destacadas</h2>
+          <div class="category-grid" [ngClass]="{'category-grid--scroll': banner.featuredCategories.length > 2}">
+            @for (category of banner.featuredCategories; track category.categoryId) {
+              <a [routerLink]="['/shop/catalog']" [queryParams]="{ category: category.categoryId }" class="category-card" [attr.aria-label]="'Ver categoría ' + category.name">
+                <div class="category-card__image" [style.backgroundImage]="'url(' + category.imageUrl + ')'" role="img" [attr.aria-label]="category.name"></div>
+                <span class="category-card__label">{{ category.name }}</span>
               </a>
             }
           </div>
@@ -34,32 +58,30 @@
     </div>
   }
 
+  <!-- NEW ARRIVALS -->
   <div class="home-container">
-    <section class="featured-content py-5">
-      <h2 class="section-title">Nuevos Ingresos</h2>
+    <section class="section" aria-label="Nuevos ingresos">
+      <h2 class="section__title">Nuevos Ingresos</h2>
       @if (newArrivals$ | async; as products) {
         <div class="product-grid">
           @for (product of products; track product.id) {
-            <a [routerLink]="['/shop/product', product.id]" class="product-card-link">
-              <div class="product-card">
-                <div class="product-image-wrapper">
-                  <img [src]="product.image" [alt]="product.name" class="product-image">
-                </div>
-                <div class="product-info">
-                  <h3 class="product-name">{{ product.name }}</h3>
-                  <p class="product-price">{{ product.price | currency:'ARS':'$' }}</p>
-                </div>
+            <a [routerLink]="['/shop/product', product.id]" class="product-card" [attr.aria-label]="product.name">
+              <div class="product-card__image-wrap">
+                <img [src]="product.image" [alt]="product.name" class="product-card__image" loading="lazy">
+              </div>
+              <div class="product-card__body">
+                <h3 class="product-card__name">{{ product.name }}</h3>
+                <p class="product-card__price">{{ product.price | currency:'ARS':'$' }}</p>
               </div>
             </a>
           } @empty {
-            <p class="text-center text-muted empty-state">No hay productos nuevos para mostrar en este momento.</p>
+            <p class="empty-state" role="status">No hay productos nuevos para mostrar en este momento.</p>
           }
         </div>
       } @else {
-        <div class="text-center">
-          <div class="spinner-border" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
+        <div class="loading-state" role="status">
+          <div class="spinner-border" aria-hidden="true"></div>
+          <span class="visually-hidden">Cargando...</span>
         </div>
       }
     </section>

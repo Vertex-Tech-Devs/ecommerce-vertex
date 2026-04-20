@@ -1,33 +1,34 @@
-<header class="admin-header">
-  <div class="header-content">
-    <div class="header-left">
-      <div class="menu-toggle-wrapper">
-        <button class="menu-toggle" (click)="onToggleSidebar($event)">
-          <i class="bi bi-list"></i>
-        </button>
-      </div>
-      <span class="welcome-message">Bienvenido</span>
+<header class="admin-header" role="banner">
+  <div class="header__content">
+    <div class="header__left">
+      <button class="header__menu-toggle"
+              (click)="onToggleSidebar($event)"
+              aria-label="Abrir o cerrar menú lateral"
+              type="button">
+        <i class="bi bi-list"></i>
+      </button>
+      <span class="header__welcome">Bienvenido</span>
     </div>
 
-    <div class="header-right">
-      <div class="user-menu-wrapper">
-        <button class="user-dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <span class="user-name">{{ userName$ | async }}</span>
-          <i class="bi bi-person-circle user-icon"></i>
-          <i class="bi bi-chevron-down dropdown-caret"></i>
+    <div class="header__right">
+      <div class="header__user-menu">
+        <button class="header__user-btn" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+          <span class="header__user-name">{{ userName$ | async }}</span>
+          <i class="bi bi-person-circle header__user-icon"></i>
+          <i class="bi bi-chevron-down header__caret"></i>
         </button>
 
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-          <div class="dropdown-gradient-wrapper">
-            <div class="dropdown-content">
+        <ul class="dropdown-menu dropdown-menu-end header__dropdown" aria-labelledby="userDropdown">
+          <div class="header__dropdown-wrapper">
+            <div class="header__dropdown-content">
               <li>
-                <a class="dropdown-item" routerLink="/admin/account">
+                <a class="header__dropdown-item" routerLink="/admin/account">
                   <i class="bi bi-person-gear me-2"></i>Mi Perfil
                 </a>
               </li>
-              <li><hr class="dropdown-divider"></li>
+              <li><hr class="header__dropdown-divider"></li>
               <li>
-                <button class="dropdown-item" type="button" (click)="logout()">
+                <button class="header__dropdown-item" type="button" (click)="logout()">
                   <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
                 </button>
               </li>

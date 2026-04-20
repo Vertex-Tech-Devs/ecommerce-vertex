@@ -5,7 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { WithFieldValue } from '@angular/fire/firestore';
 import { OrderSummaryComponent } from './components/order-summary/order-summary.component';
 import { CartService } from '@core/services/cart.service';
-import { ICartItem } from '@core/models/cart.model';
+import { CartItem } from '@core/models/cart.model';
 import { PaymentService } from '@core/services/payment.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { OrderService } from '@core/services/order.service';
@@ -34,8 +34,6 @@ export class CheckoutComponent implements OnInit {
 
   public checkoutForm!: FormGroup;
   public isProcessingPayment = signal(false);
-
-  constructor() {}
 
   ngOnInit(): void {
     this.checkoutForm = this.fb.group({
@@ -86,13 +84,14 @@ export class CheckoutComponent implements OnInit {
       } else {
         throw new Error(paymentResult.error || 'No se pudo obtener la URL de pago.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error en el proceso de checkout:', error);
-      
+
       let errorMessage = 'Ocurrió un error inesperado al procesar tu pago.';
-      if (error.code === 'resource-exhausted' || error.message.includes('insuficiente')) {
-        errorMessage = `¡Stock insuficiente! ${error.message}. Por favor, revisa tu carrito.`;
-      } else if (error.message.includes('precio inválido')) {
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'resource-exhausted' || (err.message ?? '').includes('insuficiente')) {
+        errorMessage = `¡Stock insuficiente! ${err.message}. Por favor, revisa tu carrito.`;
+      } else if ((err.message ?? '').includes('precio inválido')) {
          errorMessage = `Uno de los productos en tu carrito tiene un precio inválido. Por favor, revisa tu carrito.`;
       }
 
@@ -101,7 +100,7 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
-  private async createOrder(cartItems: ICartItem[], total: number): Promise<string> {
+  private async createOrder(cartItems: CartItem[], total: number): Promise<string> {
     const { contactInfo, shippingInfo } = this.checkoutForm.value;
 
     const orderItems: OrderItem[] = cartItems.map(item => ({

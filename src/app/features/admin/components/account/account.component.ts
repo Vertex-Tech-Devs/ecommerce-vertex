@@ -68,9 +68,10 @@ export class AccountComponent implements OnInit {
           text: 'Por favor, inicia sesión de nuevo con tus nuevas credenciales.'
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Ocurrió un error inesperado al cambiar la contraseña.';
-      switch (error.code) {
+      const authError = error as { code?: string; message?: string };
+      switch (authError.code) {
         case 'auth/invalid-credential':
         case 'auth/wrong-password':
           errorMessage = 'La contraseña actual es incorrecta. Por favor, verifica tus credenciales.';
@@ -85,7 +86,7 @@ export class AccountComponent implements OnInit {
           errorMessage = 'La nueva contraseña es demasiado débil. Debe tener al menos 6 caracteres.';
           break;
         default:
-          errorMessage = `Error: ${error.message || 'Error desconocido'}`;
+          errorMessage = `Error: ${authError.message || 'Error desconocido'}`;
           break;
       }
       this.sweetAlertService.error('Error al cambiar contraseña', errorMessage);

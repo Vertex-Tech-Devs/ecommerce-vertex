@@ -1,63 +1,67 @@
 @use 'variables' as vars;
 @use 'sass:color';
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+.email-management {
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  animation: float-in 0.4s ease-out;
 }
 
 .card-gradient-wrapper {
-  padding: 2px;
-  border-radius: vars.$border-radius-lg;
-  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  padding: 1px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
   background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
+  // animation removed for clean light theme
+  box-shadow: vars.$admin-card-shadow;
 }
 
 .list-card {
   border: none;
-  border-radius: calc(#{vars.$border-radius-lg} - 2px);
-  background-color: #f4f6f9;
-  color: #212529;
+  border-radius: calc(var(--radius-lg, 12px) - 1px);
+  background: vars.$glass-bg;
+  color: vars.$text-light;
 }
 
 .page-title-container {
-  padding-bottom: 0.5rem;
+  padding-bottom: var(--space-2, 0.5rem);
   text-align: left;
-  margin-bottom: 1.5rem !important;
+  margin-bottom: var(--space-6, 1.5rem) !important;
 }
 
 .page-title-container .card-title {
   font-weight: vars.$font-weight-bold;
-  background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+  background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   display: inline-block;
+  letter-spacing: -0.01em;
 }
 
 .details-sub-card {
-  border: none;
+  border: 1px solid vars.$glass-border;
   box-shadow: none;
-  border-radius: vars.$border-radius-md;
-  background-color: #ffffff;
+  border-radius: var(--radius-md, 8px);
+  background: #f9fafb;
 
   .card-header {
     background-color: transparent;
-    border-bottom: 1px solid #dfe3e8;
+    border-bottom: 1px solid vars.$glass-border;
 
     .card-title {
       font-size: 1.1rem;
-      color: #343a40;
+      color: vars.$text-light;
       font-weight: vars.$font-weight-semibold;
       display: flex;
       align-items: center;
@@ -73,31 +77,39 @@
 
 .form-label,
 .form-check-label {
-  color: #495057;
-  font-weight: 500;
+  color: rgba(vars.$text-light, 0.5);
+  font-weight: vars.$font-weight-semibold;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
 }
 
 .form-control {
-  background-color: #ffffff;
-  color: #1c2a42;
-  border: 1px solid #dfe3e8;
-  border-radius: vars.$border-radius-md;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: vars.$input-dark-bg;
+  color: vars.$input-dark-text;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   padding: 0.5rem 1rem;
 
-  &:hover {
-    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+  &::placeholder { color: vars.$input-dark-placeholder; }
+
+  &:hover:not(:disabled) {
+    border-color: rgba(vars.$accent-purple, 0.3);
   }
 
   &:focus {
-    border-color: vars.$accent-blue;
-    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+    background-color: #f3f4f6;
+    border-color: vars.$accent-purple;
+    box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+    color: vars.$text-light;
   }
 }
 
+// Keep Quill editor light for WYSIWYG editing
 quill-editor {
   display: block;
-  border-radius: vars.$border-radius-md;
+  border-radius: var(--radius-md, 8px);
   overflow: hidden;
 
   .ql-toolbar {
@@ -123,21 +135,21 @@ quill-editor {
 .editor-wrapper {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.5rem;
+  gap: var(--space-6, 1.5rem);
 
-  >quill-editor {
+  > quill-editor {
     flex: 1 1 450px;
     min-width: 300px;
   }
 
-  >.placeholder-assistant {
+  > .placeholder-assistant {
     flex: 1 1 240px;
     max-width: 100%;
     align-self: flex-start;
-    border: 1px solid #dfe3e8;
-    border-radius: vars.$border-radius-md;
-    padding: 1rem;
-    background-color: #f8f9fa;
+    border: 1px solid vars.$glass-border;
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-4, 1rem);
+    background: #f9fafb;
 
     @media (min-width: 1200px) {
       flex-basis: 280px;
@@ -149,23 +161,19 @@ quill-editor {
 .placeholder-assistant {
   h6 {
     font-weight: vars.$font-weight-semibold;
-    color: #495057;
+    color: rgba(vars.$text-light, 0.6);
     margin-top: 0;
     margin-bottom: 0.75rem;
-    border-bottom: 1px solid #dfe3e8;
-    padding-bottom: 0.5rem;
+    border-bottom: 1px solid vars.$glass-border;
+    padding-bottom: var(--space-2, 0.5rem);
   }
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
+  ul { list-style: none; padding: 0; margin: 0; }
 
   li {
     padding: 0.35rem 0.5rem;
     margin-bottom: 0.25rem;
-    border-radius: vars.$border-radius-sm;
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     transition: background-color 0.2s ease, color 0.2s ease;
 
@@ -176,26 +184,19 @@ quill-editor {
     }
 
     &:hover {
-      background-color: color.scale(vars.$accent-blue, $alpha: -90%);
+      background: rgba(vars.$accent-blue, 0.1);
 
-      code {
-        color: vars.$accent-blue;
-      }
+      code { color: vars.$accent-blue; }
     }
   }
 }
 
-.modal-backdrop.show {
-  opacity: 0.5;
-}
-
-.modal.show {
-  display: block;
-}
+.modal-backdrop.show { opacity: 0.5; }
+.modal.show { display: block; }
 
 .modal-content,
 .modal-gradient-wrapper,
-.modal-gradient-wrapper>form {
+.modal-gradient-wrapper > form {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -204,52 +205,50 @@ quill-editor {
   border: none;
 }
 
-.modal-gradient-wrapper>form {
-  background-color: #f4f6f9;
-  border-radius: calc(#{vars.$border-radius-lg} - 2px);
+.modal-gradient-wrapper > form {
+  background: vars.$glass-bg;
+  border-radius: calc(var(--radius-lg, 12px) - 1px);
+  color: vars.$text-light;
 }
 
-
 .modal-header {
-  border-bottom: 1px solid #dee2e6;
-  padding: 1rem 1.5rem;
+  border-bottom: 1px solid vars.$glass-border;
+  padding: 1rem var(--space-6, 1.5rem);
   flex-shrink: 0;
 
   .modal-title {
     font-weight: vars.$font-weight-bold;
     font-size: 1.25rem;
-    color: #343a40;
+    color: vars.$text-light;
   }
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: var(--space-6, 1.5rem);
   overflow-y: auto;
   flex-grow: 1;
 
   h6 {
     font-weight: vars.$font-weight-semibold;
     color: vars.$accent-blue;
-    margin-top: 1rem;
+    margin-top: var(--space-4, 1rem);
     margin-bottom: 0.75rem;
 
-    &:first-child {
-      margin-top: 0;
-    }
+    &:first-child { margin-top: 0; }
   }
 
   hr {
-    margin: 1.5rem 0;
-    border-top: 1px solid #dee2e6;
+    margin: var(--space-6, 1.5rem) 0;
+    border-top: 1px solid vars.$glass-border;
   }
 }
 
 .modal-footer {
-  background-color: #ffffff;
-  border-top: 1px solid #dee2e6;
-  padding: 1rem 1.5rem;
-  border-bottom-left-radius: calc(#{vars.$border-radius-lg} - 2px);
-  border-bottom-right-radius: calc(#{vars.$border-radius-lg} - 2px);
+  background: vars.$admin-surface;
+  border-top: 1px solid vars.$glass-border;
+  padding: 1rem var(--space-6, 1.5rem);
+  border-bottom-left-radius: calc(var(--radius-lg, 12px) - 1px);
+  border-bottom-right-radius: calc(var(--radius-lg, 12px) - 1px);
   flex-shrink: 0;
 }
 
@@ -258,42 +257,42 @@ quill-editor {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  border-top: 1px solid #dfe3e8;
-  padding-top: 1.5rem;
-  margin-top: 2rem;
+  gap: var(--space-6, 1.5rem);
+  border-top: 1px solid vars.$glass-border;
+  padding-top: var(--space-6, 1.5rem);
+  margin-top: var(--space-8, 2rem);
 }
 
 .save-button-wrapper {
   position: relative;
-  padding: 2px;
-  border-radius: vars.$border-radius-md;
+  padding: 1px;
+  border-radius: var(--radius-md, 8px);
   background: transparent;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base, 0.3s ease);
   flex-grow: 1;
   flex-basis: 200px;
   min-width: fit-content;
 
   .btn-primary {
-    background: linear-gradient(135deg, color.adjust(vars.$accent-purple, $lightness: 5%), vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, color.adjust(vars.$accent-purple, $lightness: -5%));
     color: white;
     font-weight: 600;
     border: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(vars.$accent-purple, 0.2);
+    transition: all var(--transition-base, 0.3s ease);
+    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.2);
     width: 100%;
   }
 
   &:hover:not(:has(:disabled)) {
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.5), rgba(vars.$accent-blue, 0.4), rgba(vars.$accent-purple, 0.5));
     background-size: 200% 200%;
-    animation: gradient-animation 8s ease infinite;
-    box-shadow: 0 0 20px rgba(vars.$accent-purple, 0.5);
+    // animation removed for clean light theme
+    box-shadow: vars.$glow-purple-sm;
 
     .btn-primary {
-      background-color: vars.$dark-bg-secondary;
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(vars.$accent-purple, 0.3);
+      filter: brightness(1.1);
     }
   }
 }

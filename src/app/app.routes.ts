@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
+import { AdminGuard } from '@core/guards/admin.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'shop',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    redirectTo: 'shop'
   },
   {
     path: 'shop',
@@ -12,6 +13,25 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./features/admin/components/login/login.component').then(m => m.LoginComponent)
+      },
+      {
+        path: '_dev',
+        canActivate: [AdminGuard],
+        loadChildren: () => import('./features/dev/dev.routes').then(m => m.DEV_ROUTES)
+      },
+      {
+        path: '',
+        canActivate: [AdminGuard],
+        loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
+      }
+    ]
+  },
+  {
+    path: '**',
+    redirectTo: 'shop'
   }
 ];

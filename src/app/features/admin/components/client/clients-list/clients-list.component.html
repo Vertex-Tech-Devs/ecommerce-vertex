@@ -1,3 +1,4 @@
+<section class="clients-list" aria-label="Directorio de clientes">
 <div class="container-fluid my-4">
   <div class="card-gradient-wrapper">
     <div class="card list-card shadow-sm">
@@ -54,7 +55,7 @@
                         (click)="viewClientHistory(client.email)"
                         title="Ver Historial de Pedidos"
                       >
-                        <i class="bi bi-eye"></i>
+                        <i class="bi bi-eye" aria-hidden="true"></i>
                       </button>
                     </td>
                   </tr>
@@ -63,12 +64,12 @@
                     <td colspan="5" class="text-center text-muted-custom py-5">
                       @if (searchTermSubject | async) {
                         <div>
-                          <i class="bi bi-search fs-2 d-block mb-2"></i>
+                          <i class="bi bi-search fs-2 d-block mb-2" aria-hidden="true"></i>
                           No se encontraron clientes que coincidan.
                         </div>
                       } @else {
                         <div>
-                          <i class="bi bi-person-slash fs-2 d-block mb-2"></i>
+                          <i class="bi bi-person-slash fs-2 d-block mb-2" aria-hidden="true"></i>
                           Aún no hay clientes para mostrar.
                         </div>
                       }
@@ -119,3 +120,4 @@
     </div>
   </div>
 </div>
+</section>

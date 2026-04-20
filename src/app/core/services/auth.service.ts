@@ -23,11 +23,11 @@ export class AuthService {
   public currentUser$ = user(this.auth);
 
   public isAdmin$: Observable<boolean> = this.currentUser$.pipe(
-    switchMap(user => {
-      if (!user) {
+    switchMap(currentUser => {
+      if (!currentUser) {
         return of(false);
       }
-      return from(user.getIdTokenResult());
+      return from(currentUser.getIdTokenResult());
     }),
     map(tokenResult => {
       if (tokenResult && typeof tokenResult === 'object') {
@@ -36,8 +36,6 @@ export class AuthService {
       return false;
     })
   );
-
-  constructor() { }
 
   login(email: string, password: string) {
     return from(signInWithEmailAndPassword(this.auth, email, password));
@@ -62,22 +60,21 @@ export class AuthService {
 
   isAuthenticated(): Observable<boolean> {
     return this.currentUser$.pipe(
-      map(user => !!user)
+      map(currentUser => !!currentUser)
     );
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
-    const user: User | null = this.auth.currentUser;
+    const currentUser: User | null = this.auth.currentUser;
 
-    if (!user || !user.email) {
+    if (!currentUser || !currentUser.email) {
       throw new Error('No hay usuario autenticado o el email no está disponible.');
     }
 
     try {
-      const credential = EmailAuthProvider.credential(user.email, currentPassword);
-      await reauthenticateWithCredential(user, credential);
-      await updatePassword(user, newPassword);
-      console.log('Contraseña actualizada exitosamente en Firebase.');
+      const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, newPassword);
       return true;
 
     } catch (error) {

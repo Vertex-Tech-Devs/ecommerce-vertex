@@ -2,28 +2,32 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
+    "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "isolatedModules": true,
-    "baseUrl": "./",
+    "types": ["jasmine"],
     "paths": {
       "@core/*": [
-        "src/app/core/*"
+        "./src/app/core/*"
       ],
       "@shared/*": [
-        "src/app/shared/*"
+        "./src/app/shared/*"
+      ],
+      "@domains/*": [
+        "./src/app/domains/*"
       ],
       "@features/*": [
-        "src/app/features/*"
+        "./src/app/features/*"
       ],
       "@environments/*": [
-        "src/environments/*"
+        "./src/environments/*"
       ]
     },
     "lib": [
@@ -35,5 +39,15 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "dist",
+    "functions",
+    "cypress",
+    "**/*.cy.ts",
+    "cypress.config.ts",
+    "karma.conf.js"
+  ]
 }

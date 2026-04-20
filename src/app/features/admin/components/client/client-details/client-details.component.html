@@ -1,3 +1,4 @@
+<section class="client-details" aria-label="Detalles del cliente">
 <div class="container-fluid my-4">
   <div class="card-gradient-wrapper">
     <div class="card list-card shadow-sm">
@@ -6,8 +7,8 @@
           <h2 class="card-title mb-0">
             Detalles del Cliente
           </h2>
-          <button class="btn btn-outline-secondary btn-sm" (click)="goBackToList()">
-            <i class="bi bi-arrow-left"></i> Volver a Clientes
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="goBackToList()">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Clientes
           </button>
         </div>
 
@@ -16,7 +17,7 @@
             <div class="card details-sub-card">
               <div class="card-header">
                 <h3 class="card-title mb-0">
-                  <i class="bi bi-person-circle me-2"></i>
+                  <i class="bi bi-person-circle me-2" aria-hidden="true"></i>
                   {{ clientDetails.fullName }}
                 </h3>
               </div>
@@ -36,7 +37,7 @@
           </div>
         }
 
-        <h4><i class="bi bi-receipt-cutoff me-2"></i>Historial de Pedidos</h4>
+        <h4><i class="bi bi-receipt-cutoff me-2" aria-hidden="true"></i>Historial de Pedidos</h4>
         <div class="table-responsive">
           <table class="table table-hover align-middle details-table">
             <thead>
@@ -67,8 +68,8 @@
                       </span>
                     </td>
                     <td data-label="Acciones" class="text-center">
-                      <button class="btn btn-outline-primary btn-sm" [routerLink]="['/admin/orders/detail', order.id]" title="Ver Detalles del Pedido">
-                        <i class="bi bi-eye"></i>
+                      <button class="btn btn-outline-primary btn-sm" [routerLink]="['/admin/orders', order.id]" title="Ver Detalles del Pedido">
+                        <i class="bi bi-eye" aria-hidden="true"></i>
                       </button>
                     </td>
                   </tr>
@@ -101,3 +102,4 @@
     </div>
   }
 </div>
+</section>

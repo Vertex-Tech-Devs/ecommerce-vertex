@@ -1,13 +1,13 @@
 <div class="dashboard-wrapper">
-  <div id="page-content-wrapper">
+  <div class="dashboard">
     <div class="container-fluid my-4">
-      <div class="dashboard-header">
-        <h1 class="dashboard-title">Dashboard del Administrador</h1>
+      <header class="dashboard__header">
+        <h1 class="dashboard__title">Dashboard del Administrador</h1>
         <hr />
-      </div>
+      </header>
 
-      <section class="mb-5">
-        <h2 class="section-title">Resumen Rápido</h2>
+      <section class="mb-5" aria-label="Métricas resumidas">
+        <h2 class="dashboard__section-title">Resumen Rápido</h2>
 
         @if ({ monthly: monthlyMetrics$ | async, global: globalMetrics$ | async }; as metrics) {
           @if(metrics.monthly && metrics.global) {
@@ -77,8 +77,8 @@
         }
       </section>
 
-      <section class="mb-5">
-        <h2 class="section-title">Tareas Pendientes</h2>
+      <section class="mb-5" aria-label="Tareas pendientes">
+        <h2 class="dashboard__section-title">Tareas Pendientes</h2>
         <div class="row g-4">
           <div class="col-12 col-lg-6">
             <div class="card h-100 shadow-sm">
@@ -108,7 +108,7 @@
                             @default { <span>{{ order.status | titlecase }}</span> }
                           }
                         </span>
-                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Pedido">
+                        <a [routerLink]="['/admin/orders', order.id]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Pedido">
                           <i class="bi bi-arrow-right-circle"></i>
                         </a>
                       </li>
@@ -151,8 +151,8 @@
         </div>
       </section>
 
-      <section>
-        <h2 class="section-title">Actividad Reciente</h2>
+      <section aria-label="Actividad reciente">
+        <h2 class="dashboard__section-title">Actividad Reciente</h2>
         <div class="row g-4">
           <div class="col-12 col-lg-6 col-xl-4">
             <div class="card h-100 shadow-sm">
@@ -166,7 +166,7 @@
                           <span class="fw-bold">{{ order.clientName }}</span>
                           <small class="d-block text-muted">{{ order.total | currency : "ARS" : "$" }} - {{ order.orderDate | date : "short" }}</small>
                         </div>
-                        <a [routerLink]="['/admin/orders/detail', order.id]" class="btn btn-sm btn-outline-info ms-auto flex-shrink-0" title="Ver Pedido">
+                        <a [routerLink]="['/admin/orders', order.id]" class="btn btn-sm btn-outline-info ms-auto flex-shrink-0" title="Ver Pedido">
                           <i class="bi bi-arrow-right-circle"></i>
                         </a>
                       </li>
@@ -192,7 +192,7 @@
                           <span class="fw-bold">{{ client.fullName }}</span>
                           <small class="d-block text-truncate">{{ client.email }}</small>
                         </div>
-                        <a [routerLink]="['/admin/clients', client.email, 'details']" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Cliente">
+                        <a [routerLink]="['/admin/customers', client.email]" class="btn btn-sm btn-outline-primary ms-auto flex-shrink-0" title="Ver Cliente">
                           <i class="bi bi-person-fill"></i>
                         </a>
                       </li>
@@ -218,7 +218,7 @@
                           <span class="fw-bold">{{ product.name }}</span>
                           <small class="d-block text-muted">{{ product.price | currency : "ARS" : "$" }} - {{ product.createdAt | date : "shortDate" }}</small>
                         </div>
-                        <a [routerLink]="['/admin/products/detail', product.id]" class="btn btn-sm btn-outline-success ms-auto flex-shrink-0" title="Ver Producto">
+                        <a [routerLink]="['/admin/products', product.id]" class="btn btn-sm btn-outline-success ms-auto flex-shrink-0" title="Ver Producto">
                           <i class="bi bi-eye"></i>
                         </a>
                       </li>

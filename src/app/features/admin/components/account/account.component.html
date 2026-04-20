@@ -1,11 +1,11 @@
-<div class="container my-4">
+<section class="account" aria-label="Mi Cuenta">
   <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
       <div class="card-gradient-wrapper">
-        <div class="card shadow-sm rounded-3">
-          <div class="card-header account-card-header text-center">
+        <div class="card">
+          <header class="card-header account-card-header text-center">
             <h2 class="mb-0 page-title">Mi Cuenta</h2>
-          </div>
+          </header>
           <div class="card-body p-4">
             <h4 class="form-title text-center mb-4">Cambiar Contraseña</h4>
 
@@ -80,8 +80,8 @@
             <hr class="form-divider" />
 
             <div class="text-center">
-              <button class="btn btn-outline-danger" (click)="logout()">
-                <i class="bi bi-box-arrow-right me-2"></i>
+              <button class="btn btn-outline-danger" (click)="logout()" aria-label="Cerrar sesión">
+                <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>
                 Cerrar Sesión
               </button>
             </div>
@@ -90,4 +90,4 @@
       </div>
     </div>
   </div>
-</div>
+</section>

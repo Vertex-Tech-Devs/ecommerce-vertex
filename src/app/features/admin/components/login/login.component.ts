@@ -1,10 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { take } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +22,7 @@ export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   loginForm!: FormGroup;
   authErrorMessage = '';
@@ -38,7 +40,9 @@ export class LoginComponent implements OnInit {
       this.isAlreadyLogged = isAuth;
     });
 
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(params => {
       if (params['authError']) {
         this.authErrorMessage = 'Debes iniciar sesión para acceder al panel de administración.';
       }
@@ -60,7 +64,7 @@ export class LoginComponent implements OnInit {
       next: () => {
         this.router.navigate(['/admin']);
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         this.authErrorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
         this.isSubmitting = false;
       }

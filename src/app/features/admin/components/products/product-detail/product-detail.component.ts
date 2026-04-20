@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Product, ProductVariant } from 'src/app/core/models/product.model';
-import { ProductService } from 'src/app/core/services/product.service';
+import { Product, ProductVariant } from '@core/models/product.model';
+import { ProductService } from '@core/services/product.service';
 import { Observable, EMPTY, combineLatest, of } from 'rxjs';
 import { switchMap, catchError, map, tap } from 'rxjs/operators';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
@@ -99,7 +99,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   confirmDeleteProduct(product: Product): void {
-    if (!product || !product.id) return;
+    if (!product || !product.id) { return; }
 
     this.bsModalRef = this.modalService.show(ConfirmDeleteModalComponent, {
       initialState: {

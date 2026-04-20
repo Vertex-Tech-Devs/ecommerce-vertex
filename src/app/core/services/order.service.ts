@@ -71,7 +71,7 @@ export class OrderService {
         where('orderDate', '>=', startOfMonth)
       );
 
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Order)),
         map(ordersInCurrentMonth => {
           
@@ -94,9 +94,13 @@ export class OrderService {
         collectionRef,
         where('status', 'in', ['pending', 'processing'])
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Order)),
-        map(orders => orders.sort((a, b) => a.orderDate.getTime() - b.orderDate.getTime()))
+        map(orders => orders.sort((a, b) => {
+          const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
+          const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
+          return dateA - dateB;
+        }))
       );
     });
   }
@@ -109,7 +113,7 @@ export class OrderService {
         orderBy('orderDate', 'desc'),
         limit(count)
       );
-      return (collectionData(q, { idField: 'id' }) as Observable<any[]>).pipe(
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map(items => items.map(item => convertTimestampsToDates(item) as Order))
       );
     });

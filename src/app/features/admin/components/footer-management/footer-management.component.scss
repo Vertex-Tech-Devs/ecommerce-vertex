@@ -1,24 +1,26 @@
 @use 'variables' as vars;
 @use 'sass:color';
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  100% {
-    background-position: 0% 50%;
-  }
+.footer-management {
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  animation: float-in 0.4s ease-out;
 }
 
 .product-list-card {
   position: relative;
-  border-radius: vars.$border-radius-lg;
-  padding: 2px;
+  border-radius: var(--radius-lg, 12px);
+  padding: 1px;
   background: transparent;
 
   &::before {
@@ -27,71 +29,79 @@
     inset: 0;
     z-index: 1;
     border-radius: inherit;
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
     background-size: 200% 200%;
-    animation: gradient-animation 8s ease infinite;
+    // animation removed for clean light theme
   }
 
-  >.card-body {
+  > .card-body {
     position: relative;
     z-index: 2;
-    background-color: #f4f6f9;
-    border-radius: calc(#{vars.$border-radius-lg} - 2px);
-    padding: 1.5rem;
+    background: vars.$glass-bg;
+    border-radius: calc(var(--radius-lg, 12px) - 1px);
+    padding: var(--space-6, 1.5rem);
+    color: vars.$text-light;
 
-    @media(min-width: vars.$breakpoint-md) {
-      padding: 2rem;
+    @media (min-width: vars.$breakpoint-md) {
+      padding: var(--space-8, 2rem);
     }
   }
 
-  >.card {
+  > .card {
     position: relative;
     z-index: 2;
-    background-color: #ffffff;
-    border-radius: calc(#{vars.$border-radius-lg} - 2px);
+    background: vars.$glass-bg;
+    border-radius: calc(var(--radius-lg, 12px) - 1px);
     border: none;
+    color: vars.$text-light;
   }
 
   .card-title {
     font-weight: vars.$font-weight-bold;
-    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    letter-spacing: -0.01em;
   }
 }
 
 .form-control,
 .form-select {
-  background-color: #ffffff;
-  color: #1c2a42;
-  border: 1px solid #dfe3e8;
-  border-radius: vars.$border-radius-md;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: vars.$input-dark-bg;
+  color: vars.$input-dark-text;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   padding: 0.5rem 1rem;
 
-  &:hover {
-    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+  &::placeholder { color: vars.$input-dark-placeholder; }
+
+  &:hover:not(:disabled) {
+    border-color: rgba(vars.$accent-purple, 0.3);
   }
 
   &:focus {
-    border-color: vars.$accent-blue;
-    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+    background-color: #f3f4f6;
+    border-color: vars.$accent-purple;
+    box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+    color: vars.$text-light;
   }
 }
 
 .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 
 .img-thumbnail {
   max-height: 150px;
   object-fit: cover;
-  background-color: #fff;
-  border: 1px solid #dfe3e8;
+  background-color: #f9fafb;
+  border: 1px solid vars.$glass-border;
 }
 
 .card.bg-light {
-  background-color: #ffffff !important;
-  border: 1px solid #dfe3e8;
+  background: #f9fafb !important;
+  border: 1px solid vars.$glass-border;
+  color: vars.$text-light;
 }

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Order } from '@core/models/order.model';
@@ -6,12 +6,14 @@ import { OrderService } from '@core/services/order.service';
 import { Observable, BehaviorSubject, combineLatest, from, of } from 'rxjs';
 import { map, debounceTime, distinctUntilChanged, switchMap, catchError, startWith } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
 
 @Component({
   selector: 'app-orders-list',
   templateUrl: './orders-list.component.html',
   styleUrls: ['./orders-list.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,
@@ -24,6 +26,7 @@ import { FormsModule } from '@angular/forms';
 export class OrdersListComponent implements OnInit {
   private _orderService = inject(OrderService);
   private _router = inject(Router);
+  private _sweetAlertService = inject(SweetAlertService);
 
   public currentPageSubject = new BehaviorSubject<number>(1);
   public itemsPerPageSubject = new BehaviorSubject<number>(10);
@@ -113,20 +116,24 @@ export class OrdersListComponent implements OnInit {
   }
 
   editOrder(order: Order): void {
-    this._router.navigate(['/admin/orders/edit', order.id]);
+    this._router.navigate(['/admin/orders', order.id]);
   }
 
   deleteOrder(order: Order): void {
-    if (confirm(`¿Estás seguro de que quieres eliminar el pedido ${order.id}?`)) {
-      from(this._orderService.deleteOrder(order.id)).subscribe({
-        next: () => {
-          console.log('Pedido eliminado con éxito:', order.id);
-          this.refreshTrigger.next();
-        },
-        error: (error: any) => {
-          console.error('Error al eliminar el pedido:', error);
-        }
-      });
-    }
+    this._sweetAlertService.confirm(
+      'Eliminar Pedido',
+      `¿Estás seguro de que quieres eliminar el pedido ${order.id}?`
+    ).then(confirmed => {
+      if (confirmed) {
+        from(this._orderService.deleteOrder(order.id)).subscribe({
+          next: () => {
+            this.refreshTrigger.next();
+          },
+          error: (error: unknown) => {
+            console.error('Error al eliminar el pedido:', error);
+          }
+        });
+      }
+    });
   }
 }

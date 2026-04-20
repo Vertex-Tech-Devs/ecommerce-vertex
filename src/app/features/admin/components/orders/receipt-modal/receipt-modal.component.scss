@@ -1,24 +1,16 @@
 @use 'variables' as vars;
 @use 'sass:color';
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 :host-context(.modal-receipt-wrapper) ::ng-deep .modal-content {
   position: relative;
   border: none;
-  border-radius: vars.$border-radius-lg;
+  border-radius: var(--radius-lg, 12px);
   overflow: hidden;
   background-color: transparent;
 
@@ -27,11 +19,11 @@
     position: absolute;
     z-index: -1;
     inset: 0;
-    padding: 2px;
+    padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.4), rgba(vars.$accent-blue, 0.3), rgba(vars.$accent-purple, 0.4));
     background-size: 200% 200%;
-    animation: gradient-animation 8s ease infinite;
+    // animation removed for clean light theme
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
@@ -43,11 +35,10 @@
   }
 }
 
-
 .modal-header {
-  background-color: vars.$dark-bg-secondary;
+  background: vars.$admin-surface;
   color: vars.$text-light;
-  border-bottom: 2px solid vars.$accent-purple;
+  border-bottom: 1px solid vars.$glass-border;
 }
 
 .modal-body {
@@ -55,26 +46,33 @@
 }
 
 .modal-footer {
-  background-color: vars.$dark-bg-secondary;
-  border-top: 1px solid rgba(vars.$text-light, 0.1);
+  background: vars.$admin-surface;
+  border-top: 1px solid vars.$glass-border;
 
   .btn-primary {
-    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     border: none;
+    border-radius: var(--radius-md, 8px);
+    transition: all var(--transition-base, 0.3s ease);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.3);
+      filter: brightness(1.1);
+    }
   }
 }
-
 
 .receipt-body {
   font-family: 'Inter', sans-serif;
   color: #333;
-  padding: 2rem;
+  padding: var(--space-8, 2rem);
 }
 
 .receipt-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6, 1.5rem);
 
   .store-name {
     font-weight: 700;
@@ -91,19 +89,18 @@
 .customer-details {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: var(--space-8, 2rem);
+  margin-bottom: var(--space-8, 2rem);
 
   h5 {
     font-weight: 600;
     color: #555;
     border-bottom: 1px solid #eee;
-    padding-bottom: 0.5rem;
+    padding-bottom: var(--space-2, 0.5rem);
     margin-bottom: 1rem;
   }
 
-  p,
-  address {
+  p, address {
     margin: 0;
     line-height: 1.6;
   }
@@ -111,7 +108,7 @@
 
 .items-table,
 .totals-summary {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6, 1.5rem);
 
   .table {
     th {
@@ -119,8 +116,7 @@
       font-weight: 600;
     }
 
-    td,
-    th {
+    td, th {
       border-color: #dee2e6;
       vertical-align: middle;
     }
@@ -134,10 +130,7 @@
   table {
     width: 40%;
     min-width: 280px;
-
-    td {
-      border: none;
-    }
+    td { border: none; }
   }
 
   .total-row {
@@ -146,16 +139,11 @@
   }
 }
 
-
 @media print {
-  body * {
-    visibility: hidden;
-  }
+  body * { visibility: hidden; }
 
   .receipt-body,
-  .receipt-body * {
-    visibility: visible;
-  }
+  .receipt-body * { visibility: visible; }
 
   .receipt-body {
     position: absolute;
@@ -169,7 +157,5 @@
   }
 
   .modal-header,
-  .modal-footer {
-    display: none !important;
-  }
+  .modal-footer { display: none !important; }
 }

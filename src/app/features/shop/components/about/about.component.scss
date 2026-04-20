@@ -1,23 +1,25 @@
-@use 'variables' as vars;
-@use 'sass:color';
+// ============================================
+// ABOUT — Premium Brand Story
+// ============================================
 
 :host {
   display: block;
-  background: linear-gradient(45deg, #fd5c2bed, #f4c11af1, #ff4b1ef6);
-  color: vars.$text-light;
+  background-color: var(--shop-bg);
+  color: var(--text-primary);
 }
 
-.about-page {
+.about {
   width: 100%;
 }
 
-.about-container {
-  max-width: 1200px;
+.about__container {
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 var(--space-6);
 }
 
-.hero-banner {
+// Hero banner
+.about-hero {
   width: 100%;
   height: 50vh;
   min-height: 350px;
@@ -28,126 +30,144 @@
   justify-content: center;
   text-align: center;
   position: relative;
-  padding: 2rem 1.5rem;
-  border-bottom: 2px solid #7f0d81;
+  padding: var(--space-8) var(--space-6);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.5) 100%);
+  }
 }
 
-.hero-banner::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 10, 20, 0.5);
-  backdrop-filter: blur(2px);
-}
-
-.hero-content {
+.about-hero__content {
   position: relative;
   z-index: 1;
-  max-width: 800px;
+  max-width: 700px;
   color: #fff;
 }
 
-.hero-title {
-  font-size: 3rem;
+.about-hero__title {
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 700;
-  margin-bottom: 1rem;
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-  color: vars.$text-light;
+  margin: 0 0 var(--space-3);
+  color: #fff;
+  letter-spacing: -0.02em;
 }
 
-.hero-subtitle {
-  font-size: 1.5rem;
+.about-hero__subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
   font-weight: 300;
   color: rgba(255, 255, 255, 0.9);
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-  margin-top: 0.5rem;
+  margin: 0;
 }
 
-.section-title {
+// Sections
+.about__section {
+  padding: var(--space-16) 0 var(--space-12);
+}
+
+.about__section-title {
   text-align: center;
-  font-size: 2.5rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 700;
-  margin-bottom: 3rem;
-  color: vars.$text-light;
+  margin-bottom: var(--space-12);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
-.our-story {
-  .story-text .dynamic-description {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: vars.$text-light;
-    white-space: pre-wrap;
-  }
+// Story grid
+.about__story-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  align-items: center;
 
-  strong {
-    color: #ff5722;
+  @media (min-width: 992px) {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-12);
   }
 }
 
-.mission-vision-grid,
-.contact-grid {
+.about__story-image {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  display: block;
+}
+
+.about__story-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+// Feature cards
+.about__cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
+  gap: var(--space-6);
 }
 
-.info-card {
-  background: linear-gradient(90deg, #fd7e14, #f44814, 0.25);
-  box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.3);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 2.5rem 2rem;
+.about-card {
+  background: var(--shop-surface);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-8);
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
 }
 
-.card-icon {
-  font-size: 3rem;
-  color: #ff5722;
-  margin-bottom: 1.5rem;
+.about-card__icon {
+  font-size: 2.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-5);
+  display: block;
 }
 
-.card-title {
-  font-size: 1.5rem;
+.about-card__title {
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: #f4f2f4;
+  margin-bottom: var(--space-3);
+  color: var(--text-primary);
 }
 
-.card-text {
-  color: #000000;
-  line-height: 1.6;
+.about-card__text {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
 }
 
-.loading-container {
+// Loading
+.about__loading {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 80vh;
 
   .spinner-border {
-    width: 3rem;
-    height: 3rem;
+    width: 2rem;
+    height: 2rem;
+    color: var(--text-muted);
   }
 }
 
 @media (max-width: 768px) {
-  .hero-banner {
+  .about-hero {
     height: 40vh;
-    min-height: 300px;
+    min-height: 280px;
   }
 
-  .hero-title {
-    font-size: 2.5rem;
-  }
-
-  .section-title {
-    font-size: 2.1rem;
+  .about__section {
+    padding: var(--space-10) 0 var(--space-8);
   }
 }

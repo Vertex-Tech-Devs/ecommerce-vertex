@@ -19,7 +19,7 @@ export class AboutUsService {
 
   getAboutUsData(): Observable<AboutUsData | undefined> {
     return runInInjectionContext(this.injector, () => {
-      return (docData(this.docRef) as Observable<any>).pipe(
+      return (docData(this.docRef) as Observable<AboutUsData | undefined>).pipe(
         map(data => convertTimestampsToDates(data) as AboutUsData | undefined)
       );
     });

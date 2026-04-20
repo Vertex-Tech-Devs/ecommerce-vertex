@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener, ChangeDetectorRef, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
@@ -8,7 +8,7 @@ import { map, startWith, debounceTime, take, switchMap, distinctUntilChanged } f
 import { Product } from '@core/models/product.model';
 import { Category } from '@core/models/category.model';
 import { Attribute } from '@core/models/attribute.model';
-import { ProductService, ProductFilters } from '@core/services/product.service';
+import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
 import { AttributeService } from '@core/services/attribute.service';
 
@@ -17,7 +17,8 @@ import { AttributeService } from '@core/services/attribute.service';
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe, ReactiveFormsModule],
   templateUrl: './catalog.component.html',
-  styleUrls: ['./catalog.component.scss']
+  styleUrls: ['./catalog.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent implements OnInit {
   private productService = inject(ProductService);
@@ -25,7 +26,6 @@ export class CatalogComponent implements OnInit {
   private attributeService = inject(AttributeService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
-  private cdr = inject(ChangeDetectorRef);
 
   public paginatedProducts$!: Observable<Product[]>;
   public categories$!: Observable<Category[]>;
@@ -43,7 +43,7 @@ export class CatalogComponent implements OnInit {
   public totalPages = 0;
   public currentPage = 1;
 
-  private itemsPerPage = new BehaviorSubject<number>(this.isMobile() ? 12 : 12);
+  private itemsPerPage = new BehaviorSubject<number>(12);
 
   constructor() {
     this.filterForm = this.fb.group({
@@ -54,17 +54,8 @@ export class CatalogComponent implements OnInit {
     });
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event): void {
-    this.itemsPerPage.next(this.isMobile() ? 12 : 12);
-  }
-
   ngOnInit(): void {
     this.loadInitialDataAndInitializeForm();
-  }
-
-  private isMobile(): boolean {
-    return window.innerWidth < 992;
   }
 
   private loadInitialDataAndInitializeForm(): void {
@@ -219,7 +210,6 @@ export class CatalogComponent implements OnInit {
       map(([products, page, itemsPerPageValue]) => {
         this.totalPages = Math.ceil(products.length / itemsPerPageValue);
         this.currentPage = page;
-        this.cdr.detectChanges();
 
         const startIndex = (page - 1) * itemsPerPageValue;
         const endIndex = startIndex + itemsPerPageValue;
@@ -264,5 +254,13 @@ export class CatalogComponent implements OnInit {
     if (page >= 1 && page <= this.totalPages) {
       this.pageSubject.next(page);
     }
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.filterForm.get('category')?.value !== 'all';
   }
 }

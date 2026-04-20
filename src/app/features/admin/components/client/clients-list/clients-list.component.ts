@@ -99,6 +99,6 @@ export class ClientsListComponent implements OnInit {
   }
 
   viewClientHistory(email: string): void {
-    this._router.navigate(['/admin/clients', email, 'details']);
+    this._router.navigate(['/admin/customers', email]);
   }
 }

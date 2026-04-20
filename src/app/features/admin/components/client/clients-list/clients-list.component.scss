@@ -1,197 +1,176 @@
 @use 'variables' as vars;
 @use 'sass:color';
 
-@keyframes gradient-animation {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.clients-list {
+  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
+  animation: float-in 0.4s ease-out;
+}
+
+// ── Glass Card Wrapper ──────────────────────────
 .card-gradient-wrapper {
-  padding: 2px;
-  border-radius: vars.$border-radius-lg;
-  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  padding: 1px;
+  border-radius: var(--radius-lg, 12px);
+  background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
   background-size: 200% 200%;
-  animation: gradient-animation 8s ease infinite;
+  // animation removed for clean light theme
+  box-shadow: vars.$admin-card-shadow;
 }
 
 .list-card {
   border: none;
-  border-radius: calc(#{vars.$border-radius-lg} - 2px);
-  background-color: #f4f6f9;
+  border-radius: calc(var(--radius-lg, 12px) - 1px);
+  background: vars.$glass-bg;
+  color: vars.$text-light;
 
   .card-body {
-    padding: 1.5rem;
+    padding: var(--space-6, 1.5rem);
 
-    @media(min-width: vars.$breakpoint-md) {
-      padding: 2rem;
+    @media (min-width: vars.$breakpoint-md) {
+      padding: var(--space-8, 2rem);
     }
   }
 
   .card-title {
     font-weight: vars.$font-weight-bold;
-    background: linear-gradient(45deg, vars.$accent-blue, vars.$accent-purple);
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    letter-spacing: -0.01em;
   }
 }
 
+// ── Dark Form Inputs ────────────────────────────
 .form-control,
 .form-select {
-  background-color: #ffffff;
-  color: #1c2a42;
-  border: 1px solid #dfe3e8;
-  border-radius: vars.$border-radius-md;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: vars.$input-dark-bg;
+  color: vars.$input-dark-text;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   padding: 0.5rem 1rem;
 
+  &::placeholder { color: vars.$input-dark-placeholder; }
+
   &:hover {
-    border-color: color.adjust(vars.$accent-purple, $lightness: 15%, $saturation: -10%);
+    border-color: rgba(vars.$accent-purple, 0.3);
   }
 
   &:focus {
-    border-color: vars.$accent-blue;
-    box-shadow: 0 0 0 0.25rem rgba(vars.$accent-blue, 0.25);
+    background-color: #f3f4f6;
+    border-color: vars.$accent-purple;
+    box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+    color: vars.$text-light;
   }
 }
 
+// ── Dark Table ──────────────────────────────────
 .client-table {
-  $table-text-dark: #1c2a42;
-  $table-border-soft: #dfe3e8;
-  $table-hover-bg-soft: rgba(233, 236, 239, 0.7);
-
   &.table {
     --bs-table-bg: transparent;
-    --bs-table-border-color: #{$table-border-soft};
-    --bs-table-color: #{$table-text-dark};
-    --bs-table-hover-color: #{$table-text-dark};
-    --bs-table-hover-bg: #{$table-hover-bg-soft};
+    --bs-table-border-color: #{vars.$table-dark-border};
+    --bs-table-color: #{vars.$table-dark-text};
+    --bs-table-hover-color: #{vars.$table-dark-text};
+    --bs-table-hover-bg: #{vars.$table-dark-hover};
   }
 
   thead th {
     font-weight: vars.$font-weight-semibold;
+    color: rgba(vars.$text-light, 0.45);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    border-bottom-width: 1px;
   }
 
   tbody tr {
-    position: relative;
-    border-radius: vars.$border-radius-md;
-    transition: transform 0.2s ease-in-out;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-md, 8px);
     cursor: pointer;
 
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      border-radius: inherit;
-      padding: 1px;
-      background: linear-gradient(120deg, vars.$accent-blue, vars.$accent-purple, vars.$accent-blue);
-      background-size: 200% 200%;
-      animation: gradient-animation 6s ease infinite;
-      opacity: 0;
-      transition: opacity 0.4s ease-in-out;
-    }
-
     &:hover {
-      transform: translateY(-2px);
+      background: rgba(vars.$accent-purple, 0.06);
+      transform: translateY(-1px);
 
-      td {
-        color: #000;
-        font-weight: 500;
-      }
-
-      &::after {
-        opacity: 1;
-      }
+      td { color: vars.$text-light; }
     }
   }
 }
 
-.text-muted-custom {
-  color: #6c757d;
-}
+.text-muted-custom { color: rgba(vars.$text-light, 0.4) !important; }
 
+// ── Pagination ──────────────────────────────────
 .pagination {
   .page-item .page-link {
     border-radius: 50% !important;
-    margin: 0 4px;
+    margin: 0 3px;
     border: none;
     font-weight: vars.$font-weight-semibold;
-    color: #6c757d;
-    transition: all 0.3s ease;
-    width: 38px;
-    height: 38px;
+    color: rgba(vars.$text-light, 0.4);
+    background: transparent;
+    transition: all 0.25s ease;
+    width: 36px;
+    height: 36px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
 
     &:hover {
-      background-color: #e9ecef;
-      color: vars.$accent-purple;
-      transform: translateY(-2px);
+      background: rgba(vars.$accent-purple, 0.12);
+      color: vars.$text-light;
+      transform: translateY(-1px);
     }
 
-    &:focus {
-      box-shadow: none;
+    &:focus-visible {
+      outline: 2px solid vars.$accent-purple;
+      outline-offset: 2px;
     }
   }
 
   .page-item.active .page-link {
-    background-color: vars.$accent-purple;
+    background: linear-gradient(135deg, vars.$accent-purple, vars.$accent-blue);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.4);
-    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(vars.$accent-purple, 0.12);
+    transform: translateY(-2px);
   }
 
   .page-item.disabled .page-link {
     background-color: transparent;
-    color: #ced4da;
+    color: rgba(vars.$text-light, 0.15);
     cursor: default;
-
-    &:hover {
-      transform: none;
-      background-color: transparent;
-    }
+    &:hover { transform: none; background-color: transparent; }
   }
 }
 
+// ── Mobile Cards ────────────────────────────────
 @media (max-width: 768px) {
   .client-table {
-    thead {
-      display: none;
-    }
-
-    tbody,
-    tr,
-    td {
-      display: block;
-      width: 100%;
-    }
+    thead { display: none; }
+    tbody, tr, td { display: block; width: 100%; }
 
     tr {
-      background-color: #ffffff;
-      border-radius: vars.$border-radius-md;
+      background: #f9fafb;
+      border: 1px solid vars.$glass-border;
+      border-radius: var(--radius-md, 8px);
       margin-bottom: 1rem;
       padding: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      border: 1px solid #f0f0f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
       &:hover {
+        background: rgba(vars.$accent-purple, 0.05);
         transform: none;
-
-        &::after {
-          opacity: 1;
-        }
       }
     }
 
@@ -202,27 +181,31 @@
       text-align: right !important;
       padding: 0.75rem 1rem;
       border: none;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.04);
       position: relative;
       z-index: 1;
+      color: vars.$table-dark-text;
 
       &:first-child {
-        border-top-left-radius: vars.$border-radius-md;
-        border-top-right-radius: vars.$border-radius-md;
+        border-top-left-radius: var(--radius-md, 8px);
+        border-top-right-radius: var(--radius-md, 8px);
       }
 
       &:last-child {
         border-bottom: none;
-        border-bottom-left-radius: vars.$border-radius-md;
-        border-bottom-right-radius: vars.$border-radius-md;
+        border-bottom-left-radius: var(--radius-md, 8px);
+        border-bottom-right-radius: var(--radius-md, 8px);
       }
 
       &::before {
         content: attr(data-label);
         font-weight: 600;
         text-align: left;
-        color: #495057;
+        color: rgba(vars.$text-light, 0.45);
         margin-right: 1rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
       }
     }
   }

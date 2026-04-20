@@ -1,3 +1,4 @@
+<section class="home-management" aria-label="Gestión de la página de inicio">
 <div class="container-fluid my-4">
   <div class="card-gradient-wrapper">
     <div class="card list-card shadow-sm">
@@ -7,60 +8,137 @@
         </div>
 
         <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
+          <!-- SECCIÓN CARRUSEL HERO -->
           <div class="card-gradient-wrapper mb-4">
             <div class="card details-sub-card">
               <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-image me-2"></i>Banner Principal (Hero)</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero (Imágenes Principales)</h5>
               </div>
               <div class="card-body">
-                <div class="mb-3 text-center">
-                  <label for="bannerImage" class="form-label">Cambiar Imagen del Banner</label>
-                  <div>
-                    <label for="bannerImage" class="file-input-label">
-                      <i class="bi bi-upload"></i> Seleccionar archivo
-                    </label>
-                    <input type="file" id="bannerImage" class="file-input" (change)="onFileSelected($event, 'main')" accept="image/png, image/jpeg, image/webp">
+                <!-- Input de archivos oculto -->
+                <input
+                  #heroImagesInput
+                  type="file"
+                  class="d-none"
+                  (change)="onHeroImagesSelected($event)"
+                  accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
+                  multiple
+                  [disabled]="heroImages.length >= 5"
+                >
+
+                <!-- Zona de carga drag & drop -->
+                <div
+                  class="hero-drop-zone"
+                  [class.drag-over]="isDragOver"
+                  [class.drop-zone--full]="heroImages.length >= 5"
+                  (dragover)="onDragOver($event)"
+                  (dragleave)="onDragLeave()"
+                  (drop)="onDrop($event)"
+                  (click)="heroImages.length < 5 && heroImagesInput.click()"
+                >
+                  <div class="drop-zone-icon-wrap">
+                    <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
                   </div>
-                  <div class="form-text mt-2 text-muted-custom">Sube una nueva imagen para reemplazar la actual.</div>
+                  <p class="drop-title">
+                    @if (heroImages.length < 5) {
+                      Arrastrá imágenes aquí&ensp;·&ensp;<span class="text-accent">hacé clic para explorar</span>
+                    } @else {
+                      <span class="text-muted-custom">Límite alcanzado</span>
+                    }
+                  </p>
+                  <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB &nbsp;·&nbsp; Proporción 16:9 recomendada</p>
+                  @if (heroImages.length > 0) {
+                    <span class="drop-badge">{{ heroImages.length }}/5</span>
+                  }
                 </div>
 
-                <div class="image-preview-container">
-                  @if (bannerPreviewUrl || imageUrl?.value) {
-                    <p class="form-text text-muted text-center">Vista Previa:</p>
-                  }
-                  @if (bannerPreviewUrl) {
-                    <img [src]="bannerPreviewUrl" alt="Previsualización del nuevo banner" class="img-fluid rounded">
-                  } @else if (imageUrl?.value) {
-                    <img [src]="imageUrl?.value" alt="Banner actual" class="img-fluid rounded">
-                  } @else {
-                    <p class="no-preview-text">No hay imagen cargada.</p>
-                  }
+                <!-- Slots de previsualización -->
+                @if (heroImagePreviews.length > 0 || true) {
+                  <div class="hero-slots-wrapper mt-4">
+                    @for (preview of heroImagePreviews; track $index; let i = $index) {
+                      <div class="hero-slot hero-slot--filled">
+                        <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image">
+                        <div class="slot-overlay">
+                          <button type="button" class="slot-btn" (click)="moveHeroImageUp(i)" [disabled]="i === 0" title="Mover izquierda">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                          </button>
+                          <button type="button" class="slot-btn slot-btn--danger" (click)="removeHeroImage(i)" title="Eliminar">
+                            <i class="bi bi-trash3" aria-hidden="true"></i>
+                          </button>
+                          <button type="button" class="slot-btn" (click)="moveHeroImageDown(i)" [disabled]="i === heroImages.length - 1" title="Mover derecha">
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                          </button>
+                        </div>
+                        <span class="slot-badge">{{ i + 1 }}</span>
+                      </div>
+                    }
+                    @for (_ of emptySlots; track $index) {
+                      <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <hr class="mt-4">
+
+                <!-- Configuración del Carrusel -->
+                <div formGroupName="carouselSettings">
+                  <h6 class="mb-3"><i class="bi bi-gear me-2" aria-hidden="true"></i>Configuración del Carrusel</h6>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="carouselInterval" class="form-label">Intervalo de Transición (ms)</label>
+                      <input 
+                        type="number" 
+                        id="carouselInterval" 
+                        class="form-control" 
+                        formControlName="interval"
+                        min="1000"
+                        max="10000"
+                        step="500"
+                        placeholder="4000"
+                      >
+                      <small class="form-text text-muted">
+                        Tiempo entre cambios de imagen en milisegundos. Rango: 1000-10000. Default: 4000
+                      </small>
+                      @if (carouselIntervalControl?.invalid && carouselIntervalControl?.touched) {
+                        <div class="invalid-feedback d-block">
+                          El intervalo debe estar entre 1000 y 10000 ms.
+                        </div>
+                      }
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="showIndicators" class="form-label d-block">Indicadores Visuales</label>
+                      <div class="form-check form-switch">
+                        <input 
+                          class="form-check-input" 
+                          type="checkbox" 
+                          id="showIndicators" 
+                          formControlName="showIndicators"
+                        >
+                        <label class="form-check-label" for="showIndicators">
+                          Mostrar puntos de navegación
+                        </label>
+                      </div>
+                      <small class="form-text text-muted d-block">
+                        Los puntos ayudan al usuario a navegar entre imágenes.
+                      </small>
+                    </div>
+                  </div>
                 </div>
+
                 <hr>
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label for="title" class="form-label">Título General (Opcional)</label>
-                    <input type="text" id="title" class="form-control" formControlName="title" placeholder="Ej: ¡Nueva Colección!">
-                  </div>
-                  <div class="col-md-6 mb-3">
-                    <label for="buttonText" class="form-label">Texto del Botón (Opcional)</label>
-                    <input type="text" id="buttonText" class="form-control" formControlName="buttonText" placeholder="Ej: Ver ahora">
-                  </div>
-                </div>
-                <div>
-                  <label for="buttonLink" class="form-label">Enlace del Botón (Opcional)</label>
-                  <input type="text" id="buttonLink" class="form-control" formControlName="buttonLink" placeholder="Ej: /shop/catalog">
-                </div>
               </div>
             </div>
           </div>
 
+          <!-- SECCIÓN CATEGORÍAS DESTACADAS -->
           <div class="card-gradient-wrapper">
             <div class="card details-sub-card">
               <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="bi bi-tags me-2"></i>Categorías Destacadas (Máx. 3)</h5>
+                <h5 class="card-title mb-0"><i class="bi bi-tags me-2" aria-hidden="true"></i>Categorías Destacadas (Máx. 3)</h5>
                 <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addFeaturedCategory()" [disabled]="featuredCategories.length >= 3">
-                  <i class="bi bi-plus-lg"></i> Añadir
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Añadir
                 </button>
               </div>
               <div class="card-body" formArrayName="featuredCategories">
@@ -83,7 +161,7 @@
                         <label [for]="'categoryImageFile' + i" class="form-label">Imagen</label>
                         <div>
                            <label [for]="'categoryImageFile' + i" class="file-input-label w-100 text-center">
-                            <i class="bi bi-upload"></i> Cambiar
+                            <i class="bi bi-upload" aria-hidden="true"></i> Cambiar
                            </label>
                           <input type="file" [id]="'categoryImageFile' + i" class="file-input" (change)="onFileSelected($event, i)" accept="image/png, image/jpeg, image/webp">
                         </div>
@@ -102,7 +180,7 @@
                       <div class="col-md-1">
                         <label class="form-label d-block">&nbsp;</label>
                         <button type="button" class="btn btn-outline-danger w-100" (click)="removeFeaturedCategory(i)" title="Eliminar">
-                          <i class="bi bi-trash"></i>
+                          <i class="bi bi-trash" aria-hidden="true"></i>
                         </button>
                       </div>
                     </div>
@@ -118,7 +196,7 @@
           </div>
 
           <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty">
+            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0">
               @if (isSubmitting) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
               }
@@ -130,3 +208,4 @@
     </div>
   </div>
 </div>
+</section>

@@ -204,6 +204,75 @@ export class ProductCreateComponent implements OnInit {
     this.variants.removeAt(index);
   }
 
+  /**
+   * Generates all possible variant combinations based on selected attributes
+   * Example: Color (Red, Blue) x Size (S, M) = 4 combinations
+   */
+  public generateVariantCombinations(): void {
+    this.attributes$.pipe(take(1)).subscribe(allAttributes => {
+      const selectedIds = this.variantAttributes.value;
+      
+      if (selectedIds.length === 0) {
+        this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
+        return;
+      }
+
+      // Get selected attributes with their values
+      const selectedAttrs = allAttributes.filter(a => selectedIds.includes(a.id));
+      
+      if (selectedAttrs.length === 0) {
+        this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
+        return;
+      }
+
+      // Generate all combinations
+      const combinations = this.generateCombinations(selectedAttrs);
+      
+      if (combinations.length === 0) {
+        this.sweetAlertService.warning('Aviso', 'No se pueden generar combinaciones con los atributos seleccionados.');
+        return;
+      }
+
+      // Clear existing variants
+      this.variants.clear();
+
+      // Add variants for each combination
+      combinations.forEach(combo => {
+        const group = this.fb.group({
+          id: [null],
+          attributes: this.fb.group(combo, Validators.required),
+          stock: [0, [Validators.required, Validators.min(0)]],
+        });
+        this.variants.push(group);
+      });
+
+      this.sweetAlertService.success('¡Éxito!', `Se generaron ${combinations.length} variantes.`);
+    });
+  }
+
+  private generateCombinations(attributes: Attribute[]): Array<{ [key: string]: string }> {
+    if (attributes.length === 0) { return []; }
+    
+    const result: Array<{ [key: string]: string }> = [{}];
+
+    attributes.forEach(attr => {
+      const newResult: Array<{ [key: string]: string }> = [];
+      
+      result.forEach(existing => {
+        attr.values.forEach(value => {
+          newResult.push({
+            ...existing,
+            [attr.id!]: value
+          });
+        });
+      });
+      
+      result.splice(0, result.length, ...newResult);
+    });
+
+    return result;
+  }
+
   addImage(imageUrl: string = ''): void {
     this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
   }
@@ -214,7 +283,7 @@ export class ProductCreateComponent implements OnInit {
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
+    if (!file) { return; }
 
     this.uploadProgress = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
@@ -229,7 +298,7 @@ export class ProductCreateComponent implements OnInit {
   onGalleryFileSelected(event: Event, index: number): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
-    if (!file || !control) return;
+    if (!file || !control) { return; }
 
     this.galleryUploadProgress[index] = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
@@ -281,6 +350,7 @@ export class ProductCreateComponent implements OnInit {
         const variantIdsToDelete: string[] = [];
         const currentVariantIds = new Set<string>();
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formValue.variants.forEach((variant: any) => {
           if (variant.id) {
             const { price, ...rest } = variant;
@@ -306,9 +376,10 @@ export class ProductCreateComponent implements OnInit {
           variantIdsToDelete
         );
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
-        this.router.navigate(['/admin/products/detail', this.productId]);
+        this.router.navigate(['/admin/products', this.productId]);
 
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = formValue.variants.map((v: any) => ({
           attributes: v.attributes,
           stock: v.stock
@@ -316,7 +387,7 @@ export class ProductCreateComponent implements OnInit {
 
         const newProductId = await this.productService.createProductWithVariants(productData, variantsData);
         this.sweetAlertService.success('¡Éxito!', 'Producto creado.');
-        this.router.navigate(['/admin/products/detail', newProductId]);
+        this.router.navigate(['/admin/products', newProductId]);
       }
     } catch (error) {
       console.error('Error submitting product:', error);
@@ -328,7 +399,7 @@ export class ProductCreateComponent implements OnInit {
 
   onCancel(): void {
     if (this.isEditMode && this.productId) {
-      this.router.navigate(['/admin/products/detail', this.productId]);
+      this.router.navigate(['/admin/products', this.productId]);
     } else {
       this.router.navigate(['/admin/products']);
     }

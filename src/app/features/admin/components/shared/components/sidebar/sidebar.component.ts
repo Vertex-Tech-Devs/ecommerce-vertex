@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -9,15 +9,10 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterModule],
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent {
 
   @Input() isOpen: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
-
-  constructor() { }
-
-  ngOnInit() {
-  }
 
   onLinkClick(): void {
     this.linkClicked.emit();

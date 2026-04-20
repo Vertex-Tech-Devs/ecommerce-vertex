@@ -47,7 +47,7 @@ export class AttributeModalComponent implements OnInit {
   }
 
   addValue(): void {
-    if (this.values.length >= 50) return;
+    if (this.values.length >= 50) { return; }
     this.values.push(this.fb.control('', Validators.required));
   }
 
@@ -63,7 +63,7 @@ export class AttributeModalComponent implements OnInit {
     
     const formData = this.attributeForm.value;
     
-    const rawValues = this.values.getRawValue() as any[];
+    const rawValues = this.values.getRawValue() as string[];
 
     const cleanedValues: string[] = rawValues
       .map(val => String(val ?? '').trim())

@@ -1,70 +1,165 @@
-// -- General Layout and Component Variables --
-$admin-header-bg: #020202;
-$admin-header-text: #f9f7f7;
-
-// Variables for sidebar width, differentiating desktop from mobile/overlay
-$sidebar-width-desktop: 250px;
+$header-height: 72px;
+$sidebar-width-desktop: 260px;
 $sidebar-width-mobile-overlay: 280px;
-$header-height: 80px;
 
-// -- Dark Theme Colors --
-$dark-bg-primary: #1a1a2e;
-$dark-bg-secondary: #21213b;
+$header-height-mobile: 64px;
+$header-height-scrolled: 60px;
+$header-transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+$header-glass-bg: rgba(255, 255, 255, 0.85);
 
-// Gradients for card backgrounds
-$dark-bg-card-gradient-start: #2a2a47;
-$dark-bg-card-gradient-end: #1a1a2e;
+$admin-header-bg: #ffffff;
+$admin-header-text: #111827;
+$dark-bg-primary: #F4F7FE;
+$dark-bg-secondary: #ffffff;
+$dark-bg-card-gradient-start: #f8f9fc;
+$dark-bg-card-gradient-end: #eef2f7;
 
-// Text colors
-$text-light: #f8f9fa;
-$text-dark: #212529;
-$text-muted-dark: #adb5bd;
+$shop-bg: #f7f8fa;
+$shop-surface: #ffffff;
+$shop-surface-hover: #f0f2f5;
 
-// Accent colors (for buttons, links, important numbers, etc.)
-$accent-purple: #7b68ee;
-$accent-blue: #007bff;
-$accent-green: #28a745;
-$accent-red: #dc3545;
-$accent-yellow: #ffc107;
+$text-light: #111827;
+$text-dark: #1a1a2e;
+$text-muted-dark: #6b7280;
+$text-muted-light: #6b7280;
 
-// Shadows and rounded borders
-$border-radius-lg: 1rem;
-$border-radius-md: 0.75rem;
-$border-radius-sm: 0.5rem;
+$accent-purple: #4f46e5;
+$accent-blue: #0284c7;
+$accent-green: #059669;
+$accent-red: #dc2626;
+$accent-yellow: #d97706;
+$accent-orange: #ea580c;
+
+$brand-gradient: linear-gradient(135deg, $accent-orange, #ef4444);
+$brand-gradient-hover: linear-gradient(135deg, #fb923c, #f87171);
+
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 0.75rem;
+$space-4: 1rem;
+$space-5: 1.25rem;
+$space-6: 1.5rem;
+$space-8: 2rem;
+$space-10: 2.5rem;
+$space-12: 3rem;
+$space-16: 4rem;
+
+$radius-sm: 0.375rem;
+$radius-md: 0.5rem;
+$radius-lg: 0.75rem;
+$radius-xl: 1rem;
+$radius-2xl: 1.25rem;
+$radius-pill: 9999px;
+
+$border-radius-lg: $radius-xl;
+$border-radius-md: $radius-lg;
+$border-radius-sm: $radius-md;
 $border-radius-pill: 50%;
 
-$box-shadow-dark: 0 8px 24px rgba(0, 0, 0, 0.4);
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+$shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.16);
+$box-shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.45);
 
-// Typography (make sure to import the 'Inter' font in your main styles.scss)
-$font-family-primary: 'Inter', sans-serif;
+$glass-bg: #ffffff;
+$glass-bg-light: #f9fafb;
+$glass-border: #e2e8f0;
+$glass-border-hover: #cbd5e1;
+$glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+$admin-surface: #ffffff;
+$admin-surface-elevated: #ffffff;
+$admin-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 20px rgba(0, 0, 0, 0.06);
+$admin-card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.08), 0 16px 40px rgba(0, 0, 0, 0.08);
+
+$glow-purple-sm: 0 0 0 3px rgba(79, 70, 229, 0.12);
+$glow-purple: 0 0 0 3px rgba(79, 70, 229, 0.16), 0 2px 8px rgba(79, 70, 229, 0.1);
+$glow-purple-intense: 0 0 0 4px rgba(79, 70, 229, 0.2), 0 4px 16px rgba(79, 70, 229, 0.12);
+$glow-blue-sm: 0 0 0 3px rgba(2, 132, 199, 0.12);
+$glow-blue: 0 0 0 3px rgba(2, 132, 199, 0.16), 0 2px 8px rgba(2, 132, 199, 0.1);
+
+$table-dark-text: #374151;
+$table-dark-border: #f3f4f6;
+$table-dark-hover: rgba(79, 70, 229, 0.04);
+$input-dark-bg: #ffffff;
+$input-dark-border: #d1d5db;
+$input-dark-text: #111827;
+$input-dark-placeholder: #9ca3af;
+
+$font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 $font-weight-light: 300;
 $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 
-// -- Breakpoints for Responsive Design --
-$breakpoint-sm: 576px; // Small (mobile)
-$breakpoint-md: 768px; // Medium (tablets)
-$breakpoint-lg: 992px; // Large (desktops)
-$breakpoint-xl: 1200px; // Extra large (large desktops)
+$transition-fast: 0.15s ease;
+$transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-// -- Specific Variables for the Dashboard --
-$dashboard-header-text-color: $text-light;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-2xl: 1400px;
+
+$dashboard-header-text-color: #ffffff;
 $dashboard-section-title-color: $accent-purple;
+$card-header-sales-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+$card-header-orders-bg: linear-gradient(135deg, #0284c7, #0ea5e9);
+$card-header-clients-bg: linear-gradient(135deg, #059669, #10b981);
+$card-header-total-sales-bg: linear-gradient(135deg, #7c3aed, #9333ea);
+$card-header-total-orders-bg: linear-gradient(135deg, #4f46e5, #6366f1);
+$card-header-total-clients-bg: linear-gradient(135deg, #b45309, #d97706);
+$card-header-pending-orders-bg: linear-gradient(135deg, #c2410c, #ea580c);
+$card-header-low-stock-bg: linear-gradient(135deg, #b91c1c, #dc2626);
+$card-header-latest-orders-bg: linear-gradient(135deg, #0284c7, #4f46e5);
+$card-header-latest-clients-bg: linear-gradient(135deg, #0369a1, #0284c7);
+$card-header-latest-products-bg: linear-gradient(135deg, #047857, #059669);
 
-// Specific card header backgrounds (gradients) for each metric type
-$card-header-sales-bg: linear-gradient(135deg, #6c757d, #495057); // Gray for Sales
-$card-header-orders-bg: linear-gradient(135deg, #007bff, #0056b3); // Blue for Orders
-$card-header-clients-bg: linear-gradient(135deg, #28a745, #1e7e34); // Green for New Clients
+:root {
+  --header-height: #{$header-height};
+  --header-height-scrolled: #{$header-height-scrolled};
+  --header-transition: #{$header-transition};
+  --header-glass: #{$header-glass-bg};
 
-$card-header-total-sales-bg: linear-gradient(135deg, #6c757d, #495057); // Gray for Total Sales
-$card-header-total-orders-bg: linear-gradient(135deg, #343a40, #212529); // Black/Dark Gray for Total Orders
-$card-header-total-clients-bg: linear-gradient(135deg, #ffc107, #d39e00); // Yellow for Total Clients
+  --shop-bg: #{$shop-bg};
+  --shop-surface: #{$shop-surface};
+  --shop-surface-hover: #{$shop-surface-hover};
+  --text-primary: #{$text-dark};
+  --text-secondary: #{$text-muted-light};
+  --text-muted: #{$text-muted-dark};
+  --accent-brand: #{$accent-orange};
+  --accent-purple: #{$accent-purple};
+  --accent-blue: #{$accent-blue};
 
-$card-header-pending-orders-bg: linear-gradient(135deg, #ffc107, #d39e00); // Yellow for Pending Orders
-$card-header-low-stock-bg: linear-gradient(135deg, #dc3545, #b02a37); // Red for Low Stock Products
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-6: #{$space-6};
+  --space-8: #{$space-8};
+  --space-10: #{$space-10};
+  --space-12: #{$space-12};
+  --space-16: #{$space-16};
 
-$card-header-latest-orders-bg: linear-gradient(135deg, #17a2b8, #117a8b); // Cyan for Latest Orders
-$card-header-latest-clients-bg: linear-gradient(135deg, #007bff, #0056b3); // Blue for Latest Clients
-$card-header-latest-products-bg: linear-gradient(135deg, #28a745, #1e7e34); // Green for Latest Products
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+
+  --transition-fast: #{$transition-fast};
+  --transition-base: #{$transition-base};
+  --font-family: #{$font-family-primary};
+}
+
+@media (max-width: #{$breakpoint-md}) {
+  :root {
+    --header-height: #{$header-height-mobile};
+  }
+}

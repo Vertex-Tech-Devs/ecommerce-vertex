@@ -1,6 +1,6 @@
-<div class="container-fluid my-4">
+<section class="categories-list" aria-label="Gestión de categorías">
   <div class="card-gradient-wrapper">
-    <div class="card list-card shadow-sm">
+    <div class="card list-card">
       <div class="card-body">
         <h2 class="card-title text-center mb-4">Gestión de Categorías</h2>
 
@@ -26,13 +26,13 @@
                         class="btn btn-outline-primary btn-sm me-2"
                         (click)="openCategoryModal(category)"
                         title="Editar">
-                        <i class="bi bi-pencil-square"></i>
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
                       </button>
                       <button
                         class="btn btn-outline-danger btn-sm"
                         (click)="onDelete(category)"
                         title="Eliminar">
-                        <i class="bi bi-trash"></i>
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                       </button>
                     </td>
                   </tr>
@@ -40,7 +40,7 @@
                   <tr>
                     <td colspan="3">
                       <div class="text-center text-muted-custom py-5">
-                        <i class="bi bi-tags fs-2 d-block mb-2"></i>
+                        <i class="bi bi-tags fs-2 d-block mb-2" aria-hidden="true"></i>
                         <p class="lead">Aún no hay categorías creadas.</p>
                         <p>¡Crea la primera para empezar a organizar tus productos!</p>
                       </div>
@@ -60,11 +60,12 @@
       </div>
     </div>
   </div>
-</div>
+</section>
 
 <button
-  class="btn btn-primary btn-lg rounded-circle fab-button shadow-lg"
+  class="btn btn-primary btn-lg rounded-circle fab-button"
   (click)="openCategoryModal()"
-  title="Nueva Categoría">
-  <i class="bi bi-plus-lg"></i>
+  title="Nueva Categoría"
+  aria-label="Crear nueva categoría">
+  <i class="bi bi-plus-lg" aria-hidden="true"></i>
 </button>

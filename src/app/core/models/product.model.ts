@@ -16,17 +16,8 @@ export interface Product {
   image: string;
   images?: string[];
   createdAt: Date;
-  
+
   totalStock: number;
   inStockAttributes: { [key: string]: string[] };
   variantAttributes: string[];
-}
-
-export interface Review {
-  id: string;
-  userId: string;
-  userName: string;
-  rating: number;
-  comment: string;
-  createdAt: Date;
 }
