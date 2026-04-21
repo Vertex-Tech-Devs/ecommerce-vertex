@@ -7,7 +7,7 @@
   left: 0;
   width: vars.$sidebar-width-desktop;
   height: 100vh;
-  background: #0f172a; // Azul noche profundo
+  background: #0f172a;
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -37,7 +37,6 @@
   overflow-y: auto;
   overflow-x: hidden;
 
-  /* --- SCROLLBAR TECH-PREMIUM --- */
   &::-webkit-scrollbar {
     width: 5px;
     transition: width 0.3s ease;
@@ -48,7 +47,6 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    /* Degradado: Azul profundo -> Morado/Índigo -> Celeste */
     background: linear-gradient(
       180deg,
       rgba(37, 99, 235, 0.1) 0%,
@@ -67,7 +65,6 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      /* Hover: Colores más sólidos y eléctricos (sin rosa) */
       background: linear-gradient(
         180deg,
         #2563eb 0%,
@@ -80,7 +77,6 @@
     }
   }
 
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: #4f46e5 transparent;
 }
@@ -115,13 +111,13 @@
     color: #f1f5f9;
 
     i {
-      color: #3b82f6; // Azul brillante
+      color: #3b82f6;
       transform: translateX(3px);
     }
   }
 
   &--active {
-    background: rgba(37, 99, 235, 0.12); // Tinte azul
+    background: rgba(37, 99, 235, 0.12);
     color: #3b82f6;
     box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
 
