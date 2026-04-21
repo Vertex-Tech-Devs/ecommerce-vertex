@@ -6,104 +6,68 @@
   background: vars.$dark-bg-primary;
   color: vars.$text-light;
   font-family: vars.$font-family-primary;
-  overflow-x: hidden;
 }
 
 app-sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  width: vars.$sidebar-width-mobile-overlay;
+  width: vars.$sidebar-width-desktop;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.97);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 4px 0 32px rgba(15, 23, 42, 0.06);
   z-index: 1050;
-  transform: translateX(-100%);
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Estabilización del sidebar respecto al header */
-  padding-top: vars.$header-height;
-
-  &.sidebar-open {
-    transform: translateX(0);
-  }
-
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-  }
-
-  &.sidebar-open::before {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  transition: transform var(--transition-slow);
 }
 
 .admin-shell__main {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  margin-left: 0;
   min-height: 100vh;
-  transition: filter 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: vars.$sidebar-width-desktop;
+  transition:
+    margin-left var(--transition-slow),
+    filter var(--transition-base);
+  width: calc(100% - #{vars.$sidebar-width-desktop});
 
   &--dimmed {
-    filter: brightness(0.5) blur(2px);
-    position: relative;
-    z-index: 1040;
+    filter: brightness(0.6) blur(2px);
+    pointer-events: none;
   }
 }
 
 app-header {
+  position: sticky;
+  top: 0;
   height: vars.$header-height;
-  min-height: vars.$header-height;
   width: 100%;
-  z-index: 10;
-  box-sizing: border-box;
-  display: block;
+  z-index: 100;
+  background: var(--admin-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-shell__content {
-  flex-grow: 1;
-  padding: var(--space-6, 1.5rem) var(--space-4, 1rem);
-  overflow-y: auto;
+  flex: 1;
+  padding: var(--space-6);
+  background: vars.$dark-bg-primary;
 }
 
-@media (min-width: vars.$breakpoint-md) {
+@media (max-width: 1024px) {
   app-sidebar {
-    position: static;
-    width: vars.$sidebar-width-desktop;
-    min-width: vars.$sidebar-width-desktop;
-    transform: translateX(0);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
-    padding-top: 0;
+    width: vars.$sidebar-width-mobile-overlay;
+    transform: translateX(-100%);
 
-    &::before {
-      content: none;
+    &.sidebar-open {
+      transform: translateX(0);
+      box-shadow: 20px 0 60px rgba(0, 0, 0, 0.4);
     }
   }
 
   .admin-shell__main {
-    width: calc(100% - #{vars.$sidebar-width-desktop});
-    filter: none;
-    pointer-events: auto;
-    z-index: auto;
-    position: static;
+    margin-left: 0;
+    width: 100%;
   }
 
   .admin-shell__content {
-    padding: var(--space-8, 2rem) var(--space-10, 2.5rem);
+    padding: var(--space-4);
   }
 }

@@ -10,12 +10,10 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule],
 })
 export class SidebarComponent {
-
   @Input() isOpen: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
 
   onLinkClick(): void {
     this.linkClicked.emit();
   }
-
 }
