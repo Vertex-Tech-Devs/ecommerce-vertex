@@ -1,10 +1,19 @@
 <div class="admin-shell" role="application" aria-label="Panel de administración">
-  <app-sidebar [ngClass]="{'sidebar-open': isSidebarOpen}"
-               [isOpen]="isSidebarOpen"
-               (linkClicked)="closeSidebarOnOverlayClick()">
+  <div
+    class="admin-backdrop"
+    [class.admin-backdrop--active]="isSidebarOpen"
+    (click)="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+
+  <app-sidebar
+    [ngClass]="{ 'sidebar-open': isSidebarOpen }"
+    [isOpen]="isSidebarOpen"
+    (linkClicked)="closeSidebar()"
+  >
   </app-sidebar>
 
-  <div class="admin-shell__main" [ngClass]="{'admin-shell__main--dimmed': isSidebarOpen}" (click)="closeSidebarOnOverlayClick()">
+  <div class="admin-shell__main" [ngClass]="{ 'admin-shell__main--dimmed': isSidebarOpen }">
     <app-header (toggleSidebarEvent)="toggleSidebar()"></app-header>
 
     <main class="admin-shell__content">

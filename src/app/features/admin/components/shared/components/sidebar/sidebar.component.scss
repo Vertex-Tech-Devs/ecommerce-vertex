@@ -1,6 +1,24 @@
 @use 'sass:color';
 @use 'variables' as vars;
 
+.sidebar__backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-base);
+
+  &--active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
 .sidebar {
   position: fixed;
   top: 0;
@@ -50,10 +68,8 @@
     background: linear-gradient(
       180deg,
       rgba(37, 99, 235, 0.1) 0%,
-      // Azul
       rgba(79, 70, 229, 0.4) 50%,
-      // Morado/Índigo
-      rgba(6, 182, 212, 0.1) 100% // Celeste/Cian
+      rgba(6, 182, 212, 0.1) 100%
     );
     border-radius: 100px;
     transition: all 0.4s ease;
@@ -65,14 +81,7 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: linear-gradient(
-        180deg,
-        #2563eb 0%,
-        // Blue 600
-        #4f46e5 50%,
-        // Indigo 600 (Morado tech)
-        #0ea5e9 100% // Sky 500 (Celeste)
-      );
+      background: linear-gradient(180deg, #2563eb 0%, #4f46e5 50%, #0ea5e9 100%);
       box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
     }
   }
@@ -145,6 +154,10 @@
 }
 
 @media (max-width: 1024px) {
+  .sidebar__backdrop {
+    display: block;
+  }
+
   .sidebar {
     width: vars.$sidebar-width-mobile-overlay;
     transform: translateX(-100%);

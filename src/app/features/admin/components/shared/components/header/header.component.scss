@@ -1,5 +1,5 @@
 @use 'variables' as vars;
-@use "sass:color";
+@use 'sass:color';
 
 @keyframes gradient-shift {
   0% {
@@ -27,7 +27,9 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid vars.$glass-border;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 0 vars.$glass-border;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 1px 0 vars.$glass-border;
 }
 
 .header__content {
@@ -50,6 +52,14 @@
   font-weight: vars.$font-weight-regular;
   color: rgba(vars.$text-light, 0.5);
   letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  &:hover {
+    color: vars.$accent-purple;
+    opacity: 1;
+  }
 }
 
 .header__user-menu {
@@ -104,7 +114,7 @@
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  &[aria-expanded="true"] .header__caret {
+  &[aria-expanded='true'] .header__caret {
     transform: rotate(180deg);
   }
 }
@@ -114,7 +124,9 @@
   border: 1px solid vars.$glass-border;
   background: #ffffff;
   border-radius: var(--radius-lg, 12px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.05);
   margin-top: 0.75rem !important;
   overflow: hidden;
 }

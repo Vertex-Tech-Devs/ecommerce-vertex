@@ -6,6 +6,25 @@
   background: vars.$dark-bg-primary;
   color: vars.$text-light;
   font-family: vars.$font-family-primary;
+  position: relative;
+}
+
+.admin-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1040;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-base);
+
+  &--active {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 app-sidebar {
@@ -31,7 +50,6 @@ app-sidebar {
 
   &--dimmed {
     filter: brightness(0.6) blur(2px);
-    pointer-events: none;
   }
 }
 
@@ -52,6 +70,10 @@ app-header {
 }
 
 @media (max-width: 1024px) {
+  .admin-backdrop {
+    display: block;
+  }
+
   app-sidebar {
     width: vars.$sidebar-width-mobile-overlay;
     transform: translateX(-100%);
@@ -65,6 +87,10 @@ app-header {
   .admin-shell__main {
     margin-left: 0;
     width: 100%;
+
+    &--dimmed {
+      pointer-events: none;
+    }
   }
 
   .admin-shell__content {
