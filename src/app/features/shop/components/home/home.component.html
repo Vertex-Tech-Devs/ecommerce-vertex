@@ -42,7 +42,9 @@
     <div class="home-container">
       @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
         <section class="section" aria-label="Categorías destacadas">
-          <h2 class="section__title">Categorías Destacadas</h2>
+          <a routerLink="/shop/catalog" class="section__title-link">
+            <h2 class="section__title">Categorías Destacadas</h2>
+          </a>
           <div
             class="category-grid"
             [ngClass]="{ 'category-grid--scroll': banner.featuredCategories.length > 2 }"
