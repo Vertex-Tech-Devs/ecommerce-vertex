@@ -19,7 +19,7 @@
                 <div class="summary-card__content">
                   <span class="summary-card__label">Ventas Mes</span>
                   <h3 class="summary-card__value">
-                    {{ metrics.monthly.sales | currency: 'ARS' : 'symbol' : '1.0-0' }}
+                    {{ metrics.monthly.sales | currency: 'ARS' : '$' : '1.0-0' }}
                   </h3>
                 </div>
               </div>
@@ -51,7 +51,7 @@
                 <div class="summary-card__content">
                   <span class="summary-card__label">Total Ventas</span>
                   <h3 class="summary-card__value">
-                    {{ metrics.global.totalSales | currency: 'ARS' : 'symbol' : '1.0-0' }}
+                    {{ metrics.global.totalSales | currency: 'ARS' : '$' : '1.0-0' }}
                   </h3>
                 </div>
               </div>
