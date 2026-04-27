@@ -7,7 +7,8 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
 import type { WithFieldValue } from '@angular/fire/firestore';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ProductService } from '@core/services/product.service';
@@ -416,12 +417,12 @@ export class ProductCreateComponent implements OnInit {
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
         void this.router.navigate(['/admin/products', this.productId]);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] =
-          formValue.variants.map((v: any) => ({
-            attributes: v.attributes,
-            stock: v.stock,
-          }));
+        const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = (
+          formValue.variants as { attributes: Record<string, string>; stock: number }[]
+        ).map((v) => ({
+          attributes: v.attributes,
+          stock: v.stock,
+        }));
 
         const newProductId = await this.productService.createProductWithVariants(
           productData,

@@ -8,7 +8,8 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import type { Product } from '@core/models/product.model';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';

@@ -9,7 +9,8 @@ import { of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ReceiptModalComponent } from '../receipt-modal/receipt-modal.component';
 

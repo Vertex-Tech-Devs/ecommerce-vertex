@@ -2,7 +2,8 @@ import type { OnInit, OnDestroy } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { Observable, Subscription } from 'rxjs';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import type { Attribute } from '@core/models/attribute.model';
 import { AttributeService } from '@core/services/attribute.service';

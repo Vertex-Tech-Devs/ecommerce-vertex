@@ -3,7 +3,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { Observable, Subscription } from 'rxjs';
 import { map } from 'rxjs';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 
 import type { Category } from '@core/models/category.model';
