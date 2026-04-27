@@ -1,9 +1,10 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
-import { Observable, firstValueFrom } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AboutUsData } from '@core/models/about-us.model';
+import type { AboutUsData } from '@core/models/about-us.model';
 import { StorageService } from './storage.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 
@@ -20,7 +21,7 @@ export class AboutUsService {
   getAboutUsData(): Observable<AboutUsData | undefined> {
     return runInInjectionContext(this.injector, () => {
       return (docData(this.docRef) as Observable<AboutUsData | undefined>).pipe(
-        map(data => convertTimestampsToDates(data) as AboutUsData | undefined)
+        map((data) => convertTimestampsToDates(data) as AboutUsData | undefined)
       );
     });
   }
@@ -35,9 +36,7 @@ export class AboutUsService {
     if (bannerFile) {
       const path = `pages/about-us/banner_${Date.now()}_${bannerFile.name}`;
       if (dataToSave.bannerImageUrl) {
-        await firstValueFrom(
-          this.storageService.deleteFileByUrl(dataToSave.bannerImageUrl)
-        );
+        await firstValueFrom(this.storageService.deleteFileByUrl(dataToSave.bannerImageUrl));
       }
       const upload = this.storageService.uploadFile(bannerFile, path);
       dataToSave.bannerImageUrl = await firstValueFrom(upload.downloadUrl$);
@@ -46,9 +45,7 @@ export class AboutUsService {
     if (centralFile) {
       const path = `pages/about-us/central_${Date.now()}_${centralFile.name}`;
       if (dataToSave.centralImageUrl) {
-        await firstValueFrom(
-          this.storageService.deleteFileByUrl(dataToSave.centralImageUrl)
-        );
+        await firstValueFrom(this.storageService.deleteFileByUrl(dataToSave.centralImageUrl));
       }
       const upload = this.storageService.uploadFile(centralFile, path);
       dataToSave.centralImageUrl = await firstValueFrom(upload.downloadUrl$);

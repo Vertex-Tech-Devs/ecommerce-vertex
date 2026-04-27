@@ -3,11 +3,11 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { of, switchMap, combineLatest } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Product, ProductVariant } from '@core/models/product.model';
+import type { Product, ProductVariant } from '@core/models/product.model';
 import { ProductService } from '@core/services/product.service';
 import { CartService } from '@core/services/cart.service';
 import { AttributeService } from '@core/services/attribute.service';
-import { Attribute } from '@core/models/attribute.model';
+import type { Attribute } from '@core/models/attribute.model';
 
 interface AttributeSelection {
   id: string;
@@ -32,17 +32,17 @@ export class ProductComponent {
   private attributeService = inject(AttributeService);
   private destroyRef = inject(DestroyRef);
 
-  public product = signal<Product | undefined>(undefined);
-  public variants = signal<ProductVariant[]>([]);
-  public quantity = signal(1);
+  product = signal<Product | undefined>(undefined);
+  variants = signal<ProductVariant[]>([]);
+  quantity = signal(1);
 
-  public mainImage = signal('');
-  public galleryImages = signal<string[]>([]);
+  mainImage = signal('');
+  galleryImages = signal<string[]>([]);
 
-  public attributes = signal<AttributeSelection[]>([]);
-  public selectedVariant = signal<ProductVariant | null | undefined>(undefined);
+  attributes = signal<AttributeSelection[]>([]);
+  selectedVariant = signal<ProductVariant | null | undefined>(undefined);
 
-  public allAttributes = signal<Attribute[]>([]);
+  allAttributes = signal<Attribute[]>([]);
   private allPossibleValues = new Map<string, string[]>();
 
   constructor() {
@@ -65,7 +65,7 @@ export class ProductComponent {
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
-        if (data && data.productData) {
+        if (data?.productData) {
           this.product.set(data.productData.product);
           this.variants.set(data.productData.variants.filter((v) => v.stock > 0));
           this.allAttributes.set(data.attributes);
@@ -73,7 +73,7 @@ export class ProductComponent {
           const product = this.product();
           if (product) {
             this.mainImage.set(product.image);
-            this.galleryImages.set([product.image, ...(product.images || [])]);
+            this.galleryImages.set([product.image, ...(product.images ?? [])]);
             this.initializeAttributes();
           }
         }
@@ -82,7 +82,7 @@ export class ProductComponent {
 
   private initializeAttributes(): void {
     const product = this.product();
-    if (!product || !product.variantAttributes) {
+    if (!product?.variantAttributes) {
       this.selectedVariant.set(null);
       return;
     }
@@ -92,7 +92,7 @@ export class ProductComponent {
     const variants = this.variants();
     const attributeSelections: AttributeSelection[] = product.variantAttributes.map((attrId) => {
       const attr = this.allAttributes().find((a) => a.id === attrId);
-      const attrName = attr?.name || attrId;
+      const attrName = attr?.name ?? attrId;
 
       const allValuesForAttr = [...new Set(variants.map((v) => v.attributes[attrId]))].sort();
       this.allPossibleValues.set(attrId, allValuesForAttr);
@@ -182,27 +182,27 @@ export class ProductComponent {
       return Object.entries(selection).every(([key, value]) => v.attributes[key] === value);
     });
 
-    this.selectedVariant.set(variant || null);
+    this.selectedVariant.set(variant ?? null);
     if (variant) {
-      this.mainImage.set(variant.image || this.product()?.image || '');
+      this.mainImage.set(variant.image ?? this.product()?.image ?? '');
       this.quantity.set(1);
     }
   }
 
-  public getValuesForAttribute(attr: AttributeSelection): string[] {
+  getValuesForAttribute(attr: AttributeSelection): string[] {
     // First try to get from allPossibleValues (generated from variants)
-    const variantValues = this.allPossibleValues.get(attr.id) || [];
+    const variantValues = this.allPossibleValues.get(attr.id) ?? [];
 
     // If no variants have values yet, show all possible values from the attribute definition
     if (variantValues.length === 0) {
       const allAttr = this.allAttributes().find((a) => a.id === attr.id);
-      return allAttr?.values || [];
+      return allAttr?.values ?? [];
     }
 
     return variantValues;
   }
 
-  public isOptionVisible(attributeId: string, value: string): boolean {
+  isOptionVisible(attributeId: string, value: string): boolean {
     const attr = this.attributes().find((a) => a.id === attributeId);
     if (!attr) {
       return false;
@@ -211,7 +211,7 @@ export class ProductComponent {
     // If no variants exist yet, show all values
     if (this.variants().length === 0) {
       const allAttr = this.allAttributes().find((a) => a.id === attributeId);
-      return allAttr?.values.includes(value) || false;
+      return allAttr?.values.includes(value) ?? false;
     }
 
     // Otherwise check if value is in available values for this attribute

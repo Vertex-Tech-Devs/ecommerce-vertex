@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
 import { BehaviorSubject } from 'rxjs';
 
 @Component({
@@ -16,11 +16,9 @@ export class ConfirmDeleteModalComponent {
   @Input() confirmButtonText: string = 'Confirmar';
   @Input() cancelButtonText: string = 'Cancelar';
 
+  onClose: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-  public onClose: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-
-
-  constructor(public bsModalRef: BsModalRef) { }
+  constructor(public bsModalRef: BsModalRef) {}
 
   onConfirm(): void {
     this.onClose.next(true);

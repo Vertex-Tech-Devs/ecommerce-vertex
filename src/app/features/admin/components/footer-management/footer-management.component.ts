@@ -1,8 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Observable, take } from 'rxjs';
-import { FooterData } from '@core/models/footer.model';
+import type { FormGroup, AbstractControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import type { Observable } from 'rxjs';
+import { take } from 'rxjs';
+import type { FooterData } from '@core/models/footer.model';
 import { FooterService } from '@core/services/footer.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 
@@ -11,10 +14,9 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './footer-management.component.html',
-  styleUrls: ['./footer-management.component.scss']
+  styleUrls: ['./footer-management.component.scss'],
 })
 export class FooterManagementComponent implements OnInit {
-
   private fb = inject(FormBuilder);
   private footerService = inject(FooterService);
   private alertService = inject(SweetAlertService);
@@ -37,21 +39,20 @@ export class FooterManagementComponent implements OnInit {
 
   private buildForm(data: FooterData | null = null): void {
     this.footerForm = this.fb.group({
+      contactPhone: [data?.contactPhone ?? ''],
+      contactEmail: [data?.contactEmail ?? '', [Validators.required, Validators.email]],
 
-      contactPhone: [data?.contactPhone || ''],
-      contactEmail: [data?.contactEmail || '', [Validators.required, Validators.email]],
+      socialInstagramUrl: [data?.socialInstagramUrl ?? '', [Validators.pattern(this.urlPattern)]],
+      socialFacebookUrl: [data?.socialFacebookUrl ?? '', [Validators.pattern(this.urlPattern)]],
+      socialWhatsAppUrl: [data?.socialWhatsAppUrl ?? '', [Validators.pattern(this.urlPattern)]],
 
-      socialInstagramUrl: [data?.socialInstagramUrl || '', [Validators.pattern(this.urlPattern)]],
-      socialFacebookUrl: [data?.socialFacebookUrl || '', [Validators.pattern(this.urlPattern)]],
-      socialWhatsAppUrl: [data?.socialWhatsAppUrl || '', [Validators.pattern(this.urlPattern)]],
-
-      copyrightText: [data?.copyrightText || '', Validators.required]
+      copyrightText: [data?.copyrightText ?? '', Validators.required],
     });
   }
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1)).subscribe(data => {
+    this.data$.pipe(take(1)).subscribe((data) => {
       if (data) {
         this.buildForm(data);
       } else {
@@ -60,17 +61,29 @@ export class FooterManagementComponent implements OnInit {
     });
   }
 
-  get email() { return this.footerForm.get('contactEmail'); }
-  get instagram() { return this.footerForm.get('socialInstagramUrl'); }
-  get facebook() { return this.footerForm.get('socialFacebookUrl'); }
-  get whatsapp() { return this.footerForm.get('socialWhatsAppUrl'); }
-  get copyright() { return this.footerForm.get('copyrightText'); }
-
+  get email(): AbstractControl | null {
+    return this.footerForm.get('contactEmail');
+  }
+  get instagram(): AbstractControl | null {
+    return this.footerForm.get('socialInstagramUrl');
+  }
+  get facebook(): AbstractControl | null {
+    return this.footerForm.get('socialFacebookUrl');
+  }
+  get whatsapp(): AbstractControl | null {
+    return this.footerForm.get('socialWhatsAppUrl');
+  }
+  get copyright(): AbstractControl | null {
+    return this.footerForm.get('copyrightText');
+  }
 
   onSubmit(): void {
     if (this.footerForm.invalid) {
       this.footerForm.markAllAsTouched();
-      this.alertService.error('Formulario Inválido', 'Revisa los campos, algunas URLs o el email no son válidos.');
+      this.alertService.error(
+        'Formulario Inválido',
+        'Revisa los campos, algunas URLs o el email no son válidos.'
+      );
       return;
     }
 
@@ -79,12 +92,13 @@ export class FooterManagementComponent implements OnInit {
 
     const formData = this.footerForm.value as FooterData;
 
-    this.footerService.saveFooterData(formData)
+    this.footerService
+      .saveFooterData(formData)
       .then(() => {
         this.alertService.success('¡Actualizado!', 'La información del footer ha sido guardada.');
         this.footerForm.markAsPristine();
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Error saving footer data:', err);
         this.alertService.error('Error', 'No se pudieron guardar los cambios.');
       })
@@ -94,10 +108,15 @@ export class FooterManagementComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.alertService.confirm('Descartar Cambios', '¿Quieres descartar los cambios no guardados y recargar los datos actuales?').then(confirmed => {
-      if (confirmed) {
-        this.loadDataIntoForm();
-      }
-    });
+    void this.alertService
+      .confirm(
+        'Descartar Cambios',
+        '¿Quieres descartar los cambios no guardados y recargar los datos actuales?'
+      )
+      .then((confirmed) => {
+        if (confirmed) {
+          this.loadDataIntoForm();
+        }
+      });
   }
 }

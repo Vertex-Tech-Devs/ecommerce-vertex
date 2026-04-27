@@ -22,6 +22,7 @@ module.exports = [
       '@typescript-eslint': typescriptEslintPlugin,
     },
     rules: {
+      // Angular selectors
       '@angular-eslint/directive-selector': [
         'error',
         { type: 'attribute', prefix: 'app', style: 'camelCase' },
@@ -30,13 +31,38 @@ module.exports = [
         'error',
         { type: 'element', prefix: 'app', style: 'kebab-case' },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+
+      // TypeScript strict rules
+      '@typescript-eslint/explicit-member-accessibility': [
+        'error',
+        { accessibility: 'no-public' },
+      ],
+      '@typescript-eslint/explicit-function-return-type': ['error'],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/await-thenable': 'error',
+      '@typescript-eslint/prefer-nullish-coalescing': 'error',
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+
+      // JavaScript best practices
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-debugger': 'warn',
-      'no-var': 'warn',
-      'prefer-const': 'warn',
-      eqeqeq: ['warn', 'always'],
-      curly: 'warn',
+      'no-debugger': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      eqeqeq: ['error', 'always'],
+      curly: 'error',
+      'brace-style': ['error', '1tbs'],
+      'quote-props': ['error', 'as-needed'],
+      'object-shorthand': ['error', 'always'],
+      'no-unneeded-ternary': 'error',
+
+      // Code quality
+      'max-classes-per-file': ['error', 1],
+      'max-lines': ['warn', { max: 300 }],
+      complexity: ['warn', { max: 15 }],
     },
   },
   {
@@ -48,7 +74,8 @@ module.exports = [
       '@angular-eslint/template': angularTemplatePlugin,
     },
     rules: {
-      '@angular-eslint/template/no-negated-async': 'warn',
+      '@angular-eslint/template/no-negated-async': 'error',
+      '@angular-eslint/template/use-track-by-function': 'error',
     },
   },
 ];

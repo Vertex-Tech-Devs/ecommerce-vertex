@@ -5,7 +5,6 @@
     "start": "ng serve",
     "build": "ng build --configuration production",
     "test": "ng test --watch=false --code-coverage",
-    "validate": "npm run lint && npm run typecheck && npm test && npm run build",
     "fix": "eslint src --fix && prettier --write \"src/**/*.{ts,html,scss}\"",
     "security:scan": "npm audit --audit-level=moderate",
     "e2e": "cypress run --e2e",
@@ -20,8 +19,6 @@
     "typecheck": "tsc --noEmit",
     "build:dev": "ng build --configuration development",
     "build:fn": "npm run build --prefix functions",
-    "push": "npm run lint && npm run typecheck && ng test --watch=false",
-    "ci": "npm run lint && ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage && npm run build",
     "postinstall": "(cp src/environments/environment.example.ts src/environments/environment.ts 2>/dev/null || true) && ([ -z \"$CI\" ] && [ -d \"functions\" ] && (cd functions && npm install) || true)"
   },
   "dependencies": {

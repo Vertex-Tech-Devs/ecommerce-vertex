@@ -1,7 +1,9 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import type { FormGroup, AbstractControl } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { take } from 'rxjs/operators';
@@ -10,12 +12,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+  styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -33,23 +32,26 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
+      password: ['', [Validators.required]],
     });
 
-    this.authService.isAuthenticated().pipe(take(1)).subscribe((isAuth) => {
-      this.isAlreadyLogged = isAuth;
-    });
+    this.authService
+      .isAuthenticated()
+      .pipe(take(1))
+      .subscribe((isAuth) => {
+        this.isAlreadyLogged = isAuth;
+      });
 
-    this.route.queryParams.pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params['authError']) {
         this.authErrorMessage = 'Debes iniciar sesión para acceder al panel de administración.';
       }
     });
   }
 
-  get formControls() { return this.loginForm.controls; }
+  get formControls(): { [key: string]: AbstractControl } {
+    return this.loginForm.controls;
+  }
 
   onSubmit(): void {
     if (this.loginForm.invalid) {
@@ -60,15 +62,18 @@ export class LoginComponent implements OnInit {
     this.isSubmitting = true;
     const { email, password } = this.loginForm.value;
 
-    this.authService.login(email, password).pipe(take(1)).subscribe({
-      next: () => {
-        this.router.navigate(['/admin']);
-      },
-      error: (err: unknown) => {
-        this.authErrorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
-        this.isSubmitting = false;
-      }
-    });
+    this.authService
+      .login(email, password)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          void this.router.navigate(['/admin']);
+        },
+        error: (_err: unknown) => {
+          this.authErrorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
+          this.isSubmitting = false;
+        },
+      });
   }
 
   async logout(): Promise<void> {

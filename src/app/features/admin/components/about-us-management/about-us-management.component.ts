@@ -1,8 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Observable, take } from 'rxjs';
-import { AboutUsData, AboutUsFeatureCard } from '@core/models/about-us.model';
+import type { FormGroup, FormArray } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import type { Observable } from 'rxjs';
+import { take } from 'rxjs';
+import type { AboutUsData, AboutUsFeatureCard } from '@core/models/about-us.model';
 import { AboutUsService } from '@core/services/about-us.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 
@@ -11,10 +14,9 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './about-us-management.component.html',
-  styleUrls: ['./about-us-management.component.scss']
+  styleUrls: ['./about-us-management.component.scss'],
 })
 export class AboutUsManagementComponent implements OnInit {
-
   private fb = inject(FormBuilder);
   private aboutUsService = inject(AboutUsService);
   private alertService = inject(SweetAlertService);
@@ -24,10 +26,10 @@ export class AboutUsManagementComponent implements OnInit {
   isLoading = true;
   isSubmitting = false;
 
-  public selectedBannerFile: File | null = null;
-  public bannerPreviewUrl: string | null = null;
-  public selectedCentralFile: File | null = null;
-  public centralPreviewUrl: string | null = null;
+  selectedBannerFile: File | null = null;
+  bannerPreviewUrl: string | null = null;
+  selectedCentralFile: File | null = null;
+  centralPreviewUrl: string | null = null;
 
   constructor() {
     this.data$ = this.aboutUsService.getAboutUsData();
@@ -40,20 +42,26 @@ export class AboutUsManagementComponent implements OnInit {
 
   private buildForm(data: AboutUsData | null = null): void {
     this.aboutUsForm = this.fb.group({
-      bannerTitle: [data?.bannerTitle || '', Validators.required],
-      bannerSubtitle: [data?.bannerSubtitle || ''],
-      bannerImageUrl: [data?.bannerImageUrl || '', [Validators.pattern('https?://.+')]],
+      bannerTitle: [data?.bannerTitle ?? '', Validators.required],
+      bannerSubtitle: [data?.bannerSubtitle ?? ''],
+      bannerImageUrl: [data?.bannerImageUrl ?? '', [Validators.pattern('https?://.+')]],
 
-      centralTitle: [data?.centralTitle || '', Validators.required],
-      centralImageUrl: [data?.centralImageUrl || '', [Validators.pattern('https?://.+')]],
-      centralDescription: [data?.centralDescription || '', [Validators.required, Validators.minLength(50), Validators.maxLength(1000)]],
+      centralTitle: [data?.centralTitle ?? '', Validators.required],
+      centralImageUrl: [data?.centralImageUrl ?? '', [Validators.pattern('https?://.+')]],
+      centralDescription: [
+        data?.centralDescription ?? '',
+        [Validators.required, Validators.minLength(50), Validators.maxLength(1000)],
+      ],
 
-      cardsSectionTitle: [data?.cardsSectionTitle || '', Validators.required],
-      featureCards: this.fb.array([], [Validators.required, Validators.minLength(1), Validators.maxLength(2)])
+      cardsSectionTitle: [data?.cardsSectionTitle ?? '', Validators.required],
+      featureCards: this.fb.array(
+        [],
+        [Validators.required, Validators.minLength(1), Validators.maxLength(2)]
+      ),
     });
 
     if (data?.featureCards && data.featureCards.length > 0) {
-      data.featureCards.forEach(card => this.addFeatureCard(card));
+      data.featureCards.forEach((card) => this.addFeatureCard(card));
     } else {
       this.addFeatureCard();
     }
@@ -61,7 +69,7 @@ export class AboutUsManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1)).subscribe(data => {
+    this.data$.pipe(take(1)).subscribe((data) => {
       if (data) {
         this.buildForm(data);
       } else {
@@ -81,26 +89,30 @@ export class AboutUsManagementComponent implements OnInit {
 
   private createFeatureCardGroup(card: AboutUsFeatureCard | null = null): FormGroup {
     return this.fb.group({
-      title: [card?.title || '', Validators.required],
-      content: [card?.content || '', Validators.required]
+      title: [card?.title ?? '', Validators.required],
+      content: [card?.content ?? '', Validators.required],
     });
   }
 
   addFeatureCard(cardData?: AboutUsFeatureCard): void {
-    if (this.featureCards.length >= 2) { return; }
-    const cardGroup = this.createFeatureCardGroup(cardData || null);
+    if (this.featureCards.length >= 2) {
+      return;
+    }
+    const cardGroup = this.createFeatureCardGroup(cardData ?? null);
     this.featureCards.push(cardGroup);
   }
 
   removeFeatureCard(index: number): void {
-    if (this.featureCards.length <= 1) { return; }
+    if (this.featureCards.length <= 1) {
+      return;
+    }
     this.featureCards.removeAt(index);
     this.aboutUsForm.markAsDirty();
   }
 
   onFileSelected(event: Event, type: 'banner' | 'central'): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
       const file = input.files[0];
       if (!file.type.startsWith('image/')) {
         this.alertService.error('Archivo no válido', 'Por favor, selecciona un archivo de imagen.');
@@ -109,7 +121,7 @@ export class AboutUsManagementComponent implements OnInit {
       }
 
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = (): void => {
         const previewUrl = reader.result as string;
         if (type === 'banner') {
           this.selectedBannerFile = file;
@@ -130,7 +142,10 @@ export class AboutUsManagementComponent implements OnInit {
   onSubmit(): void {
     if (this.aboutUsForm.invalid) {
       this.aboutUsForm.markAllAsTouched();
-      this.alertService.error('Formulario Inválido', 'Por favor, revisa todos los campos marcados en rojo.');
+      this.alertService.error(
+        'Formulario Inválido',
+        'Por favor, revisa todos los campos marcados en rojo.'
+      );
       return;
     }
 
@@ -139,20 +154,20 @@ export class AboutUsManagementComponent implements OnInit {
 
     const formData = this.aboutUsForm.value as AboutUsData;
 
-    this.aboutUsService.saveAboutUsData(
-      formData,
-      this.selectedBannerFile,
-      this.selectedCentralFile
-    )
+    this.aboutUsService
+      .saveAboutUsData(formData, this.selectedBannerFile, this.selectedCentralFile)
       .then(() => {
-        this.alertService.success('¡Guardado!', 'El contenido de la página "Nosotros" ha sido actualizado.');
+        this.alertService.success(
+          '¡Guardado!',
+          'El contenido de la página "Nosotros" ha sido actualizado.'
+        );
         this.aboutUsForm.markAsPristine();
         this.bannerPreviewUrl = null;
         this.centralPreviewUrl = null;
         this.selectedBannerFile = null;
         this.selectedCentralFile = null;
       })
-      .catch(err => {
+      .catch((err) => {
         console.error('Error saving data:', err);
         this.alertService.error('Error', 'No se pudieron guardar los cambios.');
       })

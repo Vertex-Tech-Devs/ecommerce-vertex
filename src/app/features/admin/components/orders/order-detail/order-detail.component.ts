@@ -1,13 +1,16 @@
-import { Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Order, OrderItem, OrderStatus } from '@core/models/order.model';
+import type { Order, OrderItem, OrderStatus } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
-import { Observable, of } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
 import { ReceiptModalComponent } from '../receipt-modal/receipt-modal.component';
 
 @Component({
@@ -41,12 +44,12 @@ export class OrderDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.order$ = this.route.paramMap.pipe(
-      switchMap(params => {
+      switchMap((params) => {
         this.orderId = params.get('id');
 
         if (this.orderId) {
           return this.orderService.getOrderById(this.orderId).pipe(
-            tap(order => {
+            tap((order) => {
               if (order) {
                 this.currentStatus = order.status;
               } else {
@@ -56,7 +59,7 @@ export class OrderDetailComponent implements OnInit {
           );
         } else {
           this.pageTitle = 'Error: ID de Pedido Faltante';
-          this.router.navigate(['/admin/orders']);
+          void this.router.navigate(['/admin/orders']);
           return of(undefined);
         }
       })
@@ -64,17 +67,18 @@ export class OrderDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/orders']);
+    void this.router.navigate(['/admin/orders']);
   }
 
   onStatusChange(event: Event): void {
     const newStatus = (event.target as HTMLSelectElement).value as OrderStatus;
     if (this.orderId && newStatus !== this.currentStatus) {
-      this.orderService.updateOrder(this.orderId, { status: newStatus })
+      this.orderService
+        .updateOrder(this.orderId, { status: newStatus })
         .then(() => {
           this.currentStatus = newStatus;
         })
-        .catch(error => {
+        .catch((error) => {
           console.error('Error al actualizar el estado del pedido:', error);
         });
     }
@@ -86,14 +90,14 @@ export class OrderDetailComponent implements OnInit {
 
   generateReceipt(order: Order): void {
     const initialState = {
-      order: order,
-      title: `Recibo del Pedido`
+      order,
+      title: `Recibo del Pedido`,
     };
 
     this.bsModalRef = this.modalService.show(ReceiptModalComponent, {
       initialState,
       class: 'modal-lg modal-dialog-centered modal-receipt-wrapper',
-      backdrop: 'static'
+      backdrop: 'static',
     });
   }
 }

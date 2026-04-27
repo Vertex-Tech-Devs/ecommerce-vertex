@@ -1,16 +1,8 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
-import {
-  collection,
-  doc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  DocumentReference,
-  UpdateData,
-  WithFieldValue,
-} from 'firebase/firestore';
-import { Observable } from 'rxjs';
+import type { DocumentReference, UpdateData, WithFieldValue } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import type { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 
@@ -29,7 +21,7 @@ export class FirestoreService<T extends BaseEntity> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, path);
       return (collectionData(collectionRef, { idField: 'id' }) as Observable<T[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as T))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as T))
       );
     });
   }
@@ -38,7 +30,7 @@ export class FirestoreService<T extends BaseEntity> {
     return runInInjectionContext(this.injector, () => {
       const documentRef = doc(this.firestore, `${path}/${id}`);
       return (docData(documentRef, { idField: 'id' }) as Observable<T | undefined>).pipe(
-        map(item => (item ? (convertTimestampsToDates(item) as T) : undefined))
+        map((item) => (item ? (convertTimestampsToDates(item) as T) : undefined))
       );
     });
   }

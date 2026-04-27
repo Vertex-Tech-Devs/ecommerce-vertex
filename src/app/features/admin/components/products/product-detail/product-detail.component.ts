@@ -1,15 +1,18 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Product, ProductVariant } from '@core/models/product.model';
+import type { Product, ProductVariant } from '@core/models/product.model';
 import { ProductService } from '@core/services/product.service';
-import { Observable, EMPTY, combineLatest, of } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { EMPTY, combineLatest } from 'rxjs';
 import { switchMap, catchError, map, tap } from 'rxjs/operators';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmDeleteModalComponent } from '@features/admin/components/shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { CategoryService } from '@core/services/category.service';
-import { Category } from '@core/models/category.model';
-import { Attribute } from '@core/models/attribute.model';
+import type { Category } from '@core/models/category.model';
+import type { Attribute } from '@core/models/attribute.model';
 import { AttributeService } from '@core/services/attribute.service';
 
 interface ProductDetailData {
@@ -27,9 +30,9 @@ interface ProductDetailData {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductDetailComponent implements OnInit {
-  public data$!: Observable<ProductDetailData>;
-  public variantAttributes = signal<{ id: string, name: string }[]>([]);
-  
+  data$!: Observable<ProductDetailData>;
+  variantAttributes = signal<{ id: string; name: string }[]>([]);
+
   private modalService = inject(BsModalService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -41,43 +44,43 @@ export class ProductDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.data$ = this.route.paramMap.pipe(
-      switchMap(params => {
+      switchMap((params) => {
         const productId = params.get('id');
         if (productId) {
           return combineLatest({
             data: this.productService.getProductWithVariants(productId),
             categories: this.categoryService.getCategories(),
-            attributes: this.attributeService.getAttributes().pipe(
-              tap(attrs => this.allAttributes = attrs)
-            )
+            attributes: this.attributeService
+              .getAttributes()
+              .pipe(tap((attrs) => (this.allAttributes = attrs))),
           }).pipe(
-            map(({ data, categories, attributes }) => {
+            map(({ data, categories, attributes: _attributes }) => {
               if (!data) {
                 throw new Error('Producto no encontrado');
               }
               const { product, variants } = data;
-              const category = categories.find(c => c.id === product.categoryId);
-              
-              const attributeData = product.variantAttributes.map(attrId => {
-                const attr = this.allAttributes.find(a => a.id === attrId);
+              const category = categories.find((c) => c.id === product.categoryId);
+
+              const attributeData = product.variantAttributes.map((attrId) => {
+                const attr = this.allAttributes.find((a) => a.id === attrId);
                 return {
                   id: attrId,
-                  name: attr?.name || 'Atributo'
+                  name: attr?.name ?? 'Atributo',
                 };
               });
               this.variantAttributes.set(attributeData);
 
               return { product, variants, category };
             }),
-            catchError(error => {
+            catchError((error) => {
               console.error('Error al cargar los detalles del producto:', error);
-              this.router.navigate(['/admin/products']);
+              void this.router.navigate(['/admin/products']);
               return EMPTY;
             })
           );
         } else {
           console.error('ID de producto no proporcionado en la ruta.');
-          this.router.navigate(['/admin/products']);
+          void this.router.navigate(['/admin/products']);
           return EMPTY;
         }
       })
@@ -85,21 +88,23 @@ export class ProductDetailComponent implements OnInit {
   }
 
   getVariantAttributeValue(variant: ProductVariant, attributeId: string): string {
-    return variant.attributes[attributeId] || 'N/A';
+    return variant.attributes[attributeId] ?? 'N/A';
   }
 
   goBack(): void {
-    this.router.navigate(['/admin/products']);
+    void this.router.navigate(['/admin/products']);
   }
 
   editProduct(productId: string | undefined): void {
     if (productId) {
-      this.router.navigate(['/admin/products/edit', productId]);
+      void this.router.navigate(['/admin/products/edit', productId]);
     }
   }
 
   confirmDeleteProduct(product: Product): void {
-    if (!product || !product.id) { return; }
+    if (!product?.id) {
+      return;
+    }
 
     this.bsModalRef = this.modalService.show(ConfirmDeleteModalComponent, {
       initialState: {
@@ -111,8 +116,8 @@ export class ProductDetailComponent implements OnInit {
 
     this.bsModalRef.content.onClose.subscribe((result: boolean) => {
       if (result) {
-        this.productService.deleteProduct(product.id).then(() => {
-          this.router.navigate(['/admin/products']);
+        void this.productService.deleteProduct(product.id).then(() => {
+          void this.router.navigate(['/admin/products']);
         });
       }
     });

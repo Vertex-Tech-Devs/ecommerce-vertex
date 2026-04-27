@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
+import type { User, UserCredential } from '@angular/fire/auth';
 import {
   Auth,
   signInWithEmailAndPassword,
@@ -7,9 +8,9 @@ import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
-  User
 } from '@angular/fire/auth';
-import { from, Observable, of } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { from, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import { user } from '@angular/fire/auth';
 import { SweetAlertService } from './sweet-alert.service';
@@ -20,16 +21,16 @@ export class AuthService {
   private router = inject(Router);
   private sweetAlertService = inject(SweetAlertService);
 
-  public currentUser$ = user(this.auth);
+  currentUser$ = user(this.auth);
 
-  public isAdmin$: Observable<boolean> = this.currentUser$.pipe(
-    switchMap(currentUser => {
+  isAdmin$: Observable<boolean> = this.currentUser$.pipe(
+    switchMap((currentUser) => {
       if (!currentUser) {
         return of(false);
       }
       return from(currentUser.getIdTokenResult());
     }),
-    map(tokenResult => {
+    map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
         return tokenResult.claims['admin'] === true;
       }
@@ -37,7 +38,7 @@ export class AuthService {
     })
   );
 
-  login(email: string, password: string) {
+  login(email: string, password: string): Observable<UserCredential> {
     return from(signInWithEmailAndPassword(this.auth, email, password));
   }
 
@@ -45,29 +46,29 @@ export class AuthService {
     try {
       await signOut(this.auth);
 
-      const title = options?.title || 'Sesión Cerrada';
-      const text = options?.text || 'Has sido redirigido a la página de inicio de sesión.';
+      const title = options?.title ?? 'Sesión Cerrada';
+      const text = options?.text ?? 'Has sido redirigido a la página de inicio de sesión.';
 
       this.sweetAlertService.success(title, text);
-      this.router.navigate(['/admin/login']);
-
+      void this.router.navigate(['/admin/login']);
     } catch (err) {
       console.error('Error al cerrar sesión:', err);
-      this.sweetAlertService.error('Error', 'No se pudo cerrar la sesión. Por favor, inténtalo de nuevo.');
+      this.sweetAlertService.error(
+        'Error',
+        'No se pudo cerrar la sesión. Por favor, inténtalo de nuevo.'
+      );
       throw err;
     }
   }
 
   isAuthenticated(): Observable<boolean> {
-    return this.currentUser$.pipe(
-      map(currentUser => !!currentUser)
-    );
+    return this.currentUser$.pipe(map((currentUser) => !!currentUser));
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
     const currentUser: User | null = this.auth.currentUser;
 
-    if (!currentUser || !currentUser.email) {
+    if (!currentUser?.email) {
       throw new Error('No hay usuario autenticado o el email no está disponible.');
     }
 
@@ -76,7 +77,6 @@ export class AuthService {
       await reauthenticateWithCredential(currentUser, credential);
       await updatePassword(currentUser, newPassword);
       return true;
-
     } catch (error) {
       console.error('Error en el proceso de cambio de contraseña:', error);
       throw error;
