@@ -97,7 +97,7 @@
               <div class="card-body">
                 @if (pendingOrders$ | async; as pendingOrders) {
                   <ul class="list-group list-group-flush">
-                    @for (order of pendingOrders; track order.id) {
+                    @for (order of pendingOrders | slice: 0 : 5; track order.id) {
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ order.clientName }}</span>
@@ -131,6 +131,11 @@
                       </p>
                     }
                   </ul>
+                  @if (pendingOrders.length > 5) {
+                    <div class="card-footer-action">
+                      <a routerLink="/admin/orders" class="btn-view-more">Ver todos los pedidos</a>
+                    </div>
+                  }
                 } @else {
                   <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm"></div>
@@ -147,7 +152,7 @@
               <div class="card-body">
                 @if (lowStockProducts$ | async; as lowStockProducts) {
                   <ul class="list-group list-group-flush">
-                    @for (product of lowStockProducts; track product.id) {
+                    @for (product of lowStockProducts | slice: 0 : 5; track product.id) {
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ product.name }}</span>
@@ -169,6 +174,13 @@
                       </p>
                     }
                   </ul>
+                  @if (lowStockProducts.length > 5) {
+                    <div class="card-footer-action">
+                      <a routerLink="/admin/products" class="btn-view-more"
+                        >Ver inventario completo</a
+                      >
+                    </div>
+                  }
                 } @else {
                   <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm"></div>
@@ -189,7 +201,7 @@
               <div class="card-body">
                 @if (latestOrders$ | async; as latestOrders) {
                   <ul class="list-group list-group-flush">
-                    @for (order of latestOrders; track order.id) {
+                    @for (order of latestOrders | slice: 0 : 5; track order.id) {
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ order.clientName }}</span>
@@ -210,6 +222,13 @@
                       <p class="text-center py-3 m-0 text-muted">Sin pedidos.</p>
                     }
                   </ul>
+                  @if (latestOrders.length > 5) {
+                    <div class="card-footer-action">
+                      <a routerLink="/admin/orders" class="btn-view-more"
+                        >Ver historial de ventas</a
+                      >
+                    </div>
+                  }
                 } @else {
                   <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm"></div>
@@ -224,7 +243,7 @@
               <div class="card-body">
                 @if (latestClients$ | async; as latestClients) {
                   <ul class="list-group list-group-flush">
-                    @for (client of latestClients; track client.id) {
+                    @for (client of latestClients | slice: 0 : 5; track client.id) {
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ client.fullName }}</span>
@@ -242,6 +261,13 @@
                       <p class="text-center py-3 m-0 text-muted">Sin clientes.</p>
                     }
                   </ul>
+                  @if (latestClients.length > 5) {
+                    <div class="card-footer-action">
+                      <a routerLink="/admin/customers" class="btn-view-more"
+                        >Ver base de clientes</a
+                      >
+                    </div>
+                  }
                 } @else {
                   <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm"></div>
@@ -256,7 +282,7 @@
               <div class="card-body">
                 @if (latestProducts$ | async; as latestProducts) {
                   <ul class="list-group list-group-flush">
-                    @for (product of latestProducts; track product.id) {
+                    @for (product of latestProducts | slice: 0 : 5; track product.id) {
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ product.name }}</span>
@@ -277,6 +303,13 @@
                       <p class="text-center py-3 m-0 text-muted">Sin productos.</p>
                     }
                   </ul>
+                  @if (latestProducts.length > 5) {
+                    <div class="card-footer-action">
+                      <a routerLink="/admin/products" class="btn-view-more"
+                        >Ver catálogo completo</a
+                      >
+                    </div>
+                  }
                 } @else {
                   <div class="text-center py-3">
                     <div class="spinner-border spinner-border-sm"></div>

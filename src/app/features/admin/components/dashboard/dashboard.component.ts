@@ -72,7 +72,7 @@ export class DashboardComponent implements OnInit {
       })
     );
 
-    this.lowStockProducts$ = this.productService.getProductsLowInStock(5).pipe(
+    this.lowStockProducts$ = this.productService.getProductsLowInStock(10).pipe(
       catchError((err) => {
         console.error('Error al cargar productos con bajo stock:', err);
         return of([]);
