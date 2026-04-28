@@ -35,6 +35,14 @@ module.exports = function(config) {
         { type: 'json' },
         { type: 'json-summary' }
       ],
+      check: {
+        global: {
+          statements: 40,
+          branches: 40,
+          functions: 40,
+          lines: 40,
+        },
+      },
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,

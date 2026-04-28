@@ -128,6 +128,43 @@ jobs:
         working-directory: functions
         continue-on-error: true
 
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate stub environment file
+        run: cp src/environments/environment.example.ts src/environments/environment.ts
+
+      - name: Start Angular dev server
+        run: npm start &
+        env:
+          CI: true
+
+      - name: Wait for server to be ready
+        run: npx wait-on http://localhost:4200 --timeout 60000
+
+      - name: Run E2E tests
+        run: npm run e2e:ci
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots-${{ github.sha }}
+          path: cypress/screenshots
+          retention-days: 3
+
   preview:
     name: Hosting Preview
     runs-on: ubuntu-latest
@@ -165,7 +202,7 @@ jobs:
   quality-gate:
     name: Quality Gate
     runs-on: ubuntu-latest
-    needs: [validate, unit-tests, build, functions-build, security-audit]
+    needs: [validate, unit-tests, build, functions-build, security-audit, e2e-tests]
     if: always()
     steps:
       - name: Report and evaluate
@@ -181,6 +218,7 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Lint & Type Check | ${{ needs.validate.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-tests.result == 'success' && '✅ Pass' || needs.e2e-tests.result == 'skipped' && '⏭ Skipped (push)' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Functions | ${{ needs.functions-build.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security Audit | ${{ needs.security-audit.result == 'success' && '✅ Pass' || '⚠️ See logs' }} |" >> $GITHUB_STEP_SUMMARY

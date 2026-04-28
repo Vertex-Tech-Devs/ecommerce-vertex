@@ -8,8 +8,9 @@ module.exports = [
   {
     ignores: ['projects/**/*', 'dist/**/*', 'coverage/**/*', 'node_modules/**/*', '.angular/**/*', '.husky/**/*'],
   },
+  // Application source code — strict Angular + TypeScript rules
   {
-    files: ['**/*.ts'],
+    files: ['src/**/*.ts'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -65,8 +66,29 @@ module.exports = [
       complexity: ['warn', { max: 15 }],
     },
   },
+  // Cypress E2E files — use cypress tsconfig, relaxed rules
   {
-    files: ['**/*.html'],
+    files: ['cypress/**/*.ts'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        project: ['cypress/tsconfig.json'],
+        createDefaultProgram: true,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslintPlugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+      'no-debugger': 'error',
+      'prefer-const': 'error',
+    },
+  },
+  {
+    files: ['src/**/*.html'],
     languageOptions: {
       parser: angularTemplateParser,
     },

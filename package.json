@@ -87,8 +87,11 @@
     "endOfLine": "lf"
   },
   "lint-staged": {
-    "*.ts": [
+    "src/**/*.ts": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "cypress/**/*.ts": [
       "prettier --write"
     ],
     "*.html": [
