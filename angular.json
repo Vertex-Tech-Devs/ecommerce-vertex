@@ -108,7 +108,15 @@
               "src/assets"
             ],
             "scripts": [],
-            "karmaConfig": "karma.conf.js"
+            "karmaConfig": "karma.conf.js",
+            "codeCoverageExclude": [
+              "src/environments/**",
+              "src/app/core/services/seed-data.service.ts",
+              "src/app/core/services/seed-products.service.ts",
+              "src/app/core/services/seed-orders.service.ts",
+              "src/app/core/services/seed-content.service.ts",
+              "**/*.spec.ts"
+            ]
           }
         },
         "lint": {

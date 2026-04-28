@@ -1,32 +1,28 @@
-import { Component, inject, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
-import { map, take } from "rxjs/operators";
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import type { FormArray, FormGroup, AbstractControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { map, take } from 'rxjs/operators';
 
-import { HomeContentService } from "@core/services/home-content.service";
-import { SweetAlertService } from "@core/services/sweet-alert.service";
-import { ImageValidationService } from "@core/services/image-validation.service";
-import { CategoryService } from "@core/services/category.service";
-import {
+import { HomeContentService } from '@core/services/home-content.service';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { ImageValidationService } from '@core/services/image-validation.service';
+import { CategoryService } from '@core/services/category.service';
+import type {
   CarouselSettings,
   FeaturedCategory,
   HeroBanner,
-} from "@core/models/home-content.model";
-import { Category } from "@core/models/category.model";
-import { Observable } from "rxjs";
+} from '@core/models/home-content.model';
+import type { Category } from '@core/models/category.model';
+import type { Observable } from 'rxjs';
 
 @Component({
-  selector: "app-home-management",
+  selector: 'app-home-management',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: "./home-management.component.html",
-  styleUrls: ["./home-management.component.scss"],
+  templateUrl: './home-management.component.html',
+  styleUrls: ['./home-management.component.scss'],
 })
 export class HomeManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -35,34 +31,30 @@ export class HomeManagementComponent implements OnInit {
   private imageValidationService = inject(ImageValidationService);
   private categoryService = inject(CategoryService);
 
-  public bannerForm!: FormGroup;
-  public isSubmitting = false;
-  public categories$!: Observable<Category[]>;
+  bannerForm!: FormGroup;
+  isSubmitting = false;
+  categories$!: Observable<Category[]>;
 
   // Carrusel de imágenes hero
-  public heroImages: string[] = [];
-  public selectedHeroFiles: File[] = [];
-  public heroImagePreviews: string[] = [];
-  public isDragOver = false;
-  public carouselSettings: CarouselSettings = {
+  heroImages: string[] = [];
+  selectedHeroFiles: File[] = [];
+  heroImagePreviews: string[] = [];
+  isDragOver = false;
+  carouselSettings: CarouselSettings = {
     interval: 4000,
     showIndicators: true,
   };
 
   // Legacy: Compatibilidad con banner único
-  public selectedBannerFile: File | null = null;
-  public bannerPreviewUrl: string | null = null;
-  public selectedCategoryFiles: (File | null)[] = [];
-  public categoryPreviewUrls: (string | null)[] = [];
+  selectedBannerFile: File | null = null;
+  bannerPreviewUrl: string | null = null;
+  selectedCategoryFiles: (File | null)[] = [];
+  categoryPreviewUrls: (string | null)[] = [];
 
   private categoryMap = new Map<string, { name: string; slug: string }>();
   private readonly MAX_HERO_IMAGES = 5;
-  private readonly ALLOWED_IMAGE_TYPES = [
-    "image/webp",
-    "image/jpeg",
-    "image/png",
-  ];
-  private readonly ALLOWED_EXTENSIONS = [".webp", ".jpg", ".jpeg", ".png"];
+  private readonly ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
+  private readonly ALLOWED_EXTENSIONS = ['.webp', '.jpg', '.jpeg', '.png'];
 
   ngOnInit(): void {
     this.initializeForm();
@@ -74,7 +66,7 @@ export class HomeManagementComponent implements OnInit {
           this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug })
         );
         return categories;
-      }),
+      })
     );
     this.loadContentData();
   }
@@ -90,8 +82,10 @@ export class HomeManagementComponent implements OnInit {
   }
 
   private loadContentData(): void {
-    this.homeContentService.getHeroBanner().pipe(take(1)).subscribe(
-      (content) => {
+    this.homeContentService
+      .getHeroBanner()
+      .pipe(take(1))
+      .subscribe((content) => {
         if (content) {
           // Cargar imágenes del carrusel
           if (content.heroImages && content.heroImages.length > 0) {
@@ -113,25 +107,22 @@ export class HomeManagementComponent implements OnInit {
           this.selectedCategoryFiles = [];
           this.categoryPreviewUrls = [];
           if (content.featuredCategories) {
-            content.featuredCategories.forEach((cat) =>
-              this.addFeaturedCategory(cat)
-            );
+            content.featuredCategories.forEach((cat) => this.addFeaturedCategory(cat));
           }
         }
-      },
-    );
+      });
   }
 
   get featuredCategories(): FormArray {
-    return this.bannerForm.get("featuredCategories") as FormArray;
+    return this.bannerForm.get('featuredCategories') as FormArray;
   }
 
   get carouselSettingsGroup(): FormGroup {
-    return this.bannerForm.get("carouselSettings") as FormGroup;
+    return this.bannerForm.get('carouselSettings') as FormGroup;
   }
 
-  get carouselIntervalControl() {
-    return this.carouselSettingsGroup.get("interval");
+  get carouselIntervalControl(): AbstractControl | null {
+    return this.carouselSettingsGroup.get('interval');
   }
   get emptySlots(): null[] {
     return Array(Math.max(0, this.MAX_HERO_IMAGES - this.heroImagePreviews.length)).fill(null);
@@ -153,22 +144,26 @@ export class HomeManagementComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
-    if (this.heroImages.length >= this.MAX_HERO_IMAGES) { return; }
+    if (this.heroImages.length >= this.MAX_HERO_IMAGES) {
+      return;
+    }
     const files = event.dataTransfer?.files;
-    if (!files || files.length === 0) { return; }
+    if (!files || files.length === 0) {
+      return;
+    }
     const fakeEvent = { target: { files } } as unknown as Event;
     this.onHeroImagesSelected(fakeEvent);
   }
-  get carouselShowIndicatorsControl() {
-    return this.carouselSettingsGroup.get("showIndicators");
+  get carouselShowIndicatorsControl(): AbstractControl | null {
+    return this.carouselSettingsGroup.get('showIndicators');
   }
 
   private newFeaturedCategory(category?: FeaturedCategory): FormGroup {
     return this.fb.group({
-      categoryId: [category?.categoryId || null, Validators.required],
-      name: [category?.name || ""],
-      slug: [category?.slug || ""],
-      imageUrl: [category?.imageUrl || "", [Validators.pattern("https?://.+")]],
+      categoryId: [category?.categoryId ?? null, Validators.required],
+      name: [category?.name ?? ''],
+      slug: [category?.slug ?? ''],
+      imageUrl: [category?.imageUrl ?? '', [Validators.pattern('https?://.+')]],
     });
   }
 
@@ -198,15 +193,17 @@ export class HomeManagementComponent implements OnInit {
   }
 
   private isValidImageFile(file: File): boolean {
-    return this.ALLOWED_IMAGE_TYPES.includes(file.type) ||
-      this.ALLOWED_EXTENSIONS.some((ext) =>
-        file.name.toLowerCase().endsWith(ext)
-      );
+    return (
+      this.ALLOWED_IMAGE_TYPES.includes(file.type) ||
+      this.ALLOWED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext))
+    );
   }
 
   onHeroImagesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (!input.files) { return; }
+    if (!input.files) {
+      return;
+    }
 
     const newFiles = Array.from(input.files);
     const validFiles: File[] = [];
@@ -215,8 +212,8 @@ export class HomeManagementComponent implements OnInit {
     for (const file of newFiles) {
       if (!this.isValidImageFile(file)) {
         this.sweetAlertService.error(
-          "Formato no permitido",
-          `El archivo "${file.name}" no es un formato permitido (WebP, JPG, PNG).`,
+          'Formato no permitido',
+          `El archivo "${file.name}" no es un formato permitido (WebP, JPG, PNG).`
         );
         continue;
       }
@@ -227,10 +224,10 @@ export class HomeManagementComponent implements OnInit {
     const totalImages = this.heroImages.length + validFiles.length;
     if (totalImages > this.MAX_HERO_IMAGES) {
       this.sweetAlertService.error(
-        "Límite de imágenes",
-        `Máximo ${this.MAX_HERO_IMAGES} imágenes permitidas. Tienes ${this.heroImages.length} actualmente.`,
+        'Límite de imágenes',
+        `Máximo ${this.MAX_HERO_IMAGES} imágenes permitidas. Tienes ${this.heroImages.length} actualmente.`
       );
-      input.value = "";
+      input.value = '';
       return;
     }
 
@@ -240,9 +237,9 @@ export class HomeManagementComponent implements OnInit {
       return { file, validation };
     });
 
-    Promise.all(validationPromises).then(async (results) => {
+    void Promise.all(validationPromises).then(async (results) => {
       const validatedFiles: File[] = [];
-      const invalidFiles: Array<{ file: File; validation: typeof results[0]['validation'] }> = [];
+      const invalidFiles: Array<{ file: File; validation: (typeof results)[0]['validation'] }> = [];
 
       results.forEach(({ file, validation }) => {
         if (!validation.valid) {
@@ -268,7 +265,7 @@ export class HomeManagementComponent implements OnInit {
         );
 
         if (!shouldContinue) {
-          input.value = "";
+          input.value = '';
           return;
         }
 
@@ -279,13 +276,13 @@ export class HomeManagementComponent implements OnInit {
       const filesToAdd = validatedFiles.length > 0 ? validatedFiles : validFiles;
 
       if (filesToAdd.length === 0) {
-        input.value = "";
+        input.value = '';
         return;
       }
 
       filesToAdd.forEach((file, index) => {
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = (): void => {
           const previewUrl = reader.result as string;
           this.heroImages.push(`file-${Date.now()}-${index}`); // Placeholder
           this.heroImagePreviews.push(previewUrl);
@@ -295,7 +292,7 @@ export class HomeManagementComponent implements OnInit {
         reader.readAsDataURL(file);
       });
 
-      input.value = "";
+      input.value = '';
     });
   }
 
@@ -342,34 +339,34 @@ export class HomeManagementComponent implements OnInit {
     }
   }
 
-  onFileSelected(event: Event, type: "main" | number): void {
+  onFileSelected(event: Event, type: 'main' | number): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
+    if (input.files?.[0]) {
       const file = input.files[0];
-      if (!file.type.startsWith("image/")) {
+      if (!file.type.startsWith('image/')) {
         this.sweetAlertService.error(
-          "Archivo no válido",
-          "Por favor, selecciona un archivo de imagen.",
+          'Archivo no válido',
+          'Por favor, selecciona un archivo de imagen.'
         );
-        input.value = "";
+        input.value = '';
         return;
       }
 
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = (): void => {
         const previewUrl = reader.result as string;
-        if (type === "main") {
+        if (type === 'main') {
           this.selectedBannerFile = file;
           this.bannerPreviewUrl = previewUrl;
         } else {
           this.selectedCategoryFiles[type] = file;
           this.categoryPreviewUrls[type] = previewUrl;
-          this.featuredCategories.at(type).get("imageUrl")?.setValue("");
+          this.featuredCategories.at(type).get('imageUrl')?.setValue('');
         }
         this.bannerForm.markAsDirty();
       };
       reader.readAsDataURL(file);
-      input.value = "";
+      input.value = '';
     }
   }
 
@@ -377,8 +374,8 @@ export class HomeManagementComponent implements OnInit {
     // Validar que haya al menos una imagen en el carrusel
     if (this.heroImages.length === 0) {
       this.sweetAlertService.error(
-        "Imágenes requeridas",
-        "Debes agregar al menos una imagen al carrusel hero.",
+        'Imágenes requeridas',
+        'Debes agregar al menos una imagen al carrusel hero.'
       );
       return;
     }
@@ -386,8 +383,8 @@ export class HomeManagementComponent implements OnInit {
     if (this.bannerForm.invalid) {
       this.bannerForm.markAllAsTouched();
       this.sweetAlertService.error(
-        "Formulario Inválido",
-        "Por favor revisa los campos marcados en rojo.",
+        'Formulario Inválido',
+        'Por favor revisa los campos marcados en rojo.'
       );
       return;
     }
@@ -409,13 +406,10 @@ export class HomeManagementComponent implements OnInit {
         contentData,
         this.selectedBannerFile,
         this.selectedCategoryFiles,
-        this.selectedHeroFiles,
+        this.selectedHeroFiles
       );
 
-      this.sweetAlertService.success(
-        "¡Éxito!",
-        "La configuración de la Home ha sido guardada.",
-      );
+      this.sweetAlertService.success('¡Éxito!', 'La configuración de la Home ha sido guardada.');
       this.bannerPreviewUrl = null;
       this.selectedBannerFile = null;
       this.selectedCategoryFiles.fill(null);
@@ -423,11 +417,8 @@ export class HomeManagementComponent implements OnInit {
       this.selectedHeroFiles = [];
       this.bannerForm.markAsPristine();
     } catch (error) {
-      console.error("Error saving home page content:", error);
-      this.sweetAlertService.error(
-        "Error",
-        "No se pudo guardar la configuración.",
-      );
+      console.error('Error saving home page content:', error);
+      this.sweetAlertService.error('Error', 'No se pudo guardar la configuración.');
     } finally {
       this.isSubmitting = false;
     }

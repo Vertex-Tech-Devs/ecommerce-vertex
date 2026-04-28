@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -15,10 +16,7 @@ describe('HeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
-      providers: [
-        provideRouter([]),
-        { provide: CartService, useValue: mockCartService },
-      ],
+      providers: [provideRouter([]), { provide: CartService, useValue: mockCartService }],
     }).compileComponents();
 
     mockCartService.itemCount.set(0);

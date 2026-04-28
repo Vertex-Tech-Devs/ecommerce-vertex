@@ -1,26 +1,27 @@
-import { Component, OnInit, inject } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import { Subject } from 'rxjs';
-import { Attribute } from '@core/models/attribute.model';
+import type { Attribute } from '@core/models/attribute.model';
 
 @Component({
   selector: 'app-attribute-modal',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './attribute-modal.component.html',
-  styleUrls: ['./attribute-modal.component.scss']
+  styleUrls: ['./attribute-modal.component.scss'],
 })
 export class AttributeModalComponent implements OnInit {
+  title: string = 'Nuevo Atributo';
+  attribute?: Attribute;
+  onClose: Subject<Partial<Attribute> | null> = new Subject();
 
-  public title: string = 'Nuevo Atributo';
-  public attribute?: Attribute;
-  public onClose: Subject<Partial<Attribute> | null> = new Subject();
-
-  public bsModalRef = inject(BsModalRef);
+  bsModalRef = inject(BsModalRef);
   private fb = inject(FormBuilder);
-  public attributeForm!: FormGroup;
+  attributeForm!: FormGroup;
 
   ngOnInit(): void {
     if (this.attribute) {
@@ -28,17 +29,16 @@ export class AttributeModalComponent implements OnInit {
     }
 
     this.attributeForm = this.fb.group({
-      name: [
-        this.attribute?.name || '',
-        [Validators.required, Validators.minLength(3)],
-      ],
+      name: [this.attribute?.name ?? '', [Validators.required, Validators.minLength(3)]],
       values: this.fb.array(
-        this.attribute?.values ? this.attribute.values.map(val => this.fb.control(val, Validators.required)) : []
-      )
+        this.attribute?.values
+          ? this.attribute.values.map((val) => this.fb.control(val, Validators.required))
+          : []
+      ),
     });
   }
 
-  get name() {
+  get name(): AbstractControl | null {
     return this.attributeForm.get('name');
   }
 
@@ -47,7 +47,9 @@ export class AttributeModalComponent implements OnInit {
   }
 
   addValue(): void {
-    if (this.values.length >= 50) { return; }
+    if (this.values.length >= 50) {
+      return;
+    }
     this.values.push(this.fb.control('', Validators.required));
   }
 
@@ -60,20 +62,20 @@ export class AttributeModalComponent implements OnInit {
       this.attributeForm.markAllAsTouched();
       return;
     }
-    
+
     const formData = this.attributeForm.value;
-    
+
     const rawValues = this.values.getRawValue() as string[];
 
     const cleanedValues: string[] = rawValues
-      .map(val => String(val ?? '').trim())
-      .filter(val => val.length > 0);
+      .map((val) => String(val ?? '').trim())
+      .filter((val) => val.length > 0);
 
     const uniqueValues: string[] = [...new Set(cleanedValues)];
 
     this.onClose.next({
       name: formData.name,
-      values: uniqueValues
+      values: uniqueValues,
     });
     this.bsModalRef.hide();
   }

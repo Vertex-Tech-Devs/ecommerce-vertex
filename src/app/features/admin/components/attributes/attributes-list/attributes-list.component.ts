@@ -1,8 +1,11 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import type { OnInit, OnDestroy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, Subscription } from 'rxjs';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { Attribute } from '@core/models/attribute.model';
+import type { Observable, Subscription } from 'rxjs';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import type { Attribute } from '@core/models/attribute.model';
 import { AttributeService } from '@core/services/attribute.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AttributeModalComponent } from '../attribute-modal/attribute-modal.component';
@@ -15,12 +18,11 @@ import { AttributeModalComponent } from '../attribute-modal/attribute-modal.comp
   styleUrls: ['./attributes-list.component.scss'],
 })
 export class AttributesListComponent implements OnInit, OnDestroy {
-
   private attributeService = inject(AttributeService);
   private modalService = inject(BsModalService);
   private sweetAlertService = inject(SweetAlertService);
 
-  public attributes$!: Observable<Attribute[]>;
+  attributes$!: Observable<Attribute[]>;
   private bsModalRef?: BsModalRef;
   private modalSubscription?: Subscription;
 
@@ -39,27 +41,35 @@ export class AttributesListComponent implements OnInit, OnDestroy {
       class: 'modal-lg modal-dialog-centered',
     });
 
-    this.modalSubscription = this.bsModalRef.content.onClose.subscribe((result: Partial<Attribute> | null) => {
-      if (result) {
-        if (attribute && attribute.id) {
-          this.updateAttribute(attribute.id, result);
-        } else {
-          this.addAttribute(result as Attribute);
+    this.modalSubscription = this.bsModalRef.content.onClose.subscribe(
+      (result: Partial<Attribute> | null) => {
+        if (result) {
+          if (attribute?.id) {
+            this.updateAttribute(attribute.id, result);
+          } else {
+            this.addAttribute(result as Attribute);
+          }
         }
       }
-    });
+    );
   }
 
   private addAttribute(attributeData: Attribute): void {
-    this.attributeService.addAttribute(attributeData)
+    this.attributeService
+      .addAttribute(attributeData)
       .then(() => this.sweetAlertService.success('¡Éxito!', 'Atributo creado correctamente.'))
-      .catch(err => this.sweetAlertService.error('Error', 'Hubo un problema al crear el atributo.'));
+      .catch((_err) =>
+        this.sweetAlertService.error('Error', 'Hubo un problema al crear el atributo.')
+      );
   }
 
   private updateAttribute(id: string, attributeData: Partial<Attribute>): void {
-    this.attributeService.updateAttribute(id, attributeData)
+    this.attributeService
+      .updateAttribute(id, attributeData)
       .then(() => this.sweetAlertService.success('¡Éxito!', 'Atributo actualizado correctamente.'))
-      .catch(err => this.sweetAlertService.error('Error', 'Hubo un problema al actualizar el atributo.'));
+      .catch((_err) =>
+        this.sweetAlertService.error('Error', 'Hubo un problema al actualizar el atributo.')
+      );
   }
 
   async onDelete(attribute: Attribute): Promise<void> {
@@ -72,7 +82,7 @@ export class AttributesListComponent implements OnInit, OnDestroy {
       try {
         await this.attributeService.deleteAttribute(attribute.id);
         this.sweetAlertService.success('Eliminado', 'El atributo ha sido eliminado.');
-      } catch (err) {
+      } catch {
         this.sweetAlertService.error('Error', 'Hubo un problema al eliminar el atributo.');
       }
     }

@@ -1,8 +1,8 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
-import { Observable } from 'rxjs';
-import { FooterData } from '@core/models/footer.model';
+import type { Observable } from 'rxjs';
+import type { FooterData } from '@core/models/footer.model';
 
 @Injectable({
   providedIn: 'root',

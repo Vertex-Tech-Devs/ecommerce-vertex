@@ -1,7 +1,7 @@
+import type { OnInit } from '@angular/core';
 import {
   ChangeDetectionStrategy,
   Component,
-  OnInit,
   inject,
   signal,
   HostListener,
@@ -9,13 +9,14 @@ import {
 } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, SlicePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Observable, combineLatest, map, catchError, of } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { combineLatest, map, catchError, of } from 'rxjs';
 import { ProductService } from '@core/services/product.service';
 import { OrderService } from '@core/services/order.service';
 import { ClientService } from '@core/services/client.service';
-import { Order } from '@core/models/order.model';
-import { Product } from '@core/models/product.model';
-import { Client } from '@core/models/client.model';
+import type { Order } from '@core/models/order.model';
+import type { Product } from '@core/models/product.model';
+import type { Client } from '@core/models/client.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,24 +31,24 @@ export class DashboardComponent implements OnInit {
   private orderService = inject(OrderService);
   private clientService = inject(ClientService);
 
-  public activeTab = signal<'orders' | 'clients' | 'products'>('orders');
-  public screenWidth = signal<number>(window.innerWidth);
-  public isMobile = computed(() => this.screenWidth() < 768);
+  activeTab = signal<'orders' | 'clients' | 'products'>('orders');
+  screenWidth = signal<number>(window.innerWidth);
+  isMobile = computed(() => this.screenWidth() < 768);
 
-  public monthlyMetrics$!: Observable<{ sales: number; orders: number; newClients: number }>;
-  public globalMetrics$!: Observable<{
+  monthlyMetrics$!: Observable<{ sales: number; orders: number; newClients: number }>;
+  globalMetrics$!: Observable<{
     totalSales: number;
     totalOrders: number;
     totalClients: number;
   }>;
-  public pendingOrders$!: Observable<Order[]>;
-  public lowStockProducts$!: Observable<Product[]>;
-  public latestOrders$!: Observable<Order[]>;
-  public latestClients$!: Observable<Client[]>;
-  public latestProducts$!: Observable<Product[]>;
+  pendingOrders$!: Observable<Order[]>;
+  lowStockProducts$!: Observable<Product[]>;
+  latestOrders$!: Observable<Order[]>;
+  latestClients$!: Observable<Client[]>;
+  latestProducts$!: Observable<Product[]>;
 
   @HostListener('window:resize')
-  onResize() {
+  onResize(): void {
     this.screenWidth.set(window.innerWidth);
   }
 
@@ -83,7 +84,7 @@ export class DashboardComponent implements OnInit {
     this.latestProducts$ = this.productService.getLatestProducts(10);
   }
 
-  setTab(tab: 'orders' | 'clients' | 'products') {
+  setTab(tab: 'orders' | 'clients' | 'products'): void {
     this.activeTab.set(tab);
   }
 }

@@ -36,9 +36,7 @@ export class ImageValidationService {
     // Validar tamaño de archivo
     if (file.size > this.MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      errors.push(
-        `El archivo es muy grande (${sizeMB}MB). Máximo permitido: 2MB.`
-      );
+      errors.push(`El archivo es muy grande (${sizeMB}MB). Máximo permitido: 2MB.`);
     }
 
     // Validar dimensiones de la imagen
@@ -66,7 +64,7 @@ export class ImageValidationService {
             `Redimensiona la imagen correctamente.`
         );
       }
-    } catch (error) {
+    } catch {
       errors.push('No se pudo validar las dimensiones de la imagen.');
     }
 
@@ -83,22 +81,20 @@ export class ImageValidationService {
   /**
    * Obtiene las dimensiones de una imagen
    */
-  private getImageDimensions(
-    file: File
-  ): Promise<{ width: number; height: number }> {
+  private getImageDimensions(file: File): Promise<{ width: number; height: number }> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = (e): void => {
         const img = new Image();
-        img.onload = () => {
+        img.onload = (): void => {
           resolve({ width: img.width, height: img.height });
         };
-        img.onerror = () => {
+        img.onerror = (): void => {
           reject(new Error('No se pudo cargar la imagen'));
         };
         img.src = e.target?.result as string;
       };
-      reader.onerror = () => {
+      reader.onerror = (): void => {
         reject(new Error('Error al leer el archivo'));
       };
       reader.readAsDataURL(file);

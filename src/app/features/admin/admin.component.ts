@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/shared/components/header/header.component';

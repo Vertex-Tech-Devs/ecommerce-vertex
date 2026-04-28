@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { DocumentReference, WithFieldValue } from '@angular/fire/firestore';
-import { Category } from '@core/models/category.model';
+import type { Observable } from 'rxjs';
+import type { DocumentReference, WithFieldValue } from '@angular/fire/firestore';
+import type { Category } from '@core/models/category.model';
 import { FirestoreService } from './firestore.service';
 
 @Injectable({
@@ -16,7 +16,10 @@ export class CategoryService {
   }
 
   addCategory(category: WithFieldValue<Omit<Category, 'id'>>): Promise<DocumentReference> {
-    return this.firestoreService.create(this.collectionPath, category) as Promise<DocumentReference>;
+    return this.firestoreService.create(
+      this.collectionPath,
+      category
+    ) as Promise<DocumentReference>;
   }
 
   updateCategory(id: string, category: Partial<Category>): Promise<void> {

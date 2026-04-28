@@ -2,9 +2,10 @@ import { Injectable, inject, Injector, runInInjectionContext } from '@angular/co
 import { Firestore, docData } from '@angular/fire/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { Functions } from '@angular/fire/functions';
-import { Functions as FirebaseFunctions, httpsCallable } from 'firebase/functions';
-import { Observable } from 'rxjs';
-import { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
+import type { Functions as FirebaseFunctions } from 'firebase/functions';
+import { httpsCallable } from 'firebase/functions';
+import type { Observable } from 'rxjs';
+import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
 
 export interface AdvancedTestEmailPayload {
   recipientEmail: string;
@@ -43,10 +44,7 @@ export class EmailSettingsService {
   }
 
   sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
-    const sendTestEmailFn = httpsCallable(
-      this.functions,
-      'sendAdvancedTestEmail'
-    );
+    const sendTestEmailFn = httpsCallable(this.functions, 'sendAdvancedTestEmail');
     return sendTestEmailFn(payload);
   }
 }

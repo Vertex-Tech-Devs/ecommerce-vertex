@@ -1,19 +1,10 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
-import { Observable, map } from 'rxjs';
-import {
-  Firestore,
-  collectionData,
-} from '@angular/fire/firestore';
-import {
-  DocumentReference,
-  WithFieldValue,
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-} from 'firebase/firestore';
-import { Order, OrderStatus } from '../models/order.model';
+import type { Observable } from 'rxjs';
+import { map } from 'rxjs';
+import { Firestore, collectionData } from '@angular/fire/firestore';
+import type { DocumentReference, WithFieldValue } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 
@@ -35,7 +26,9 @@ export class OrderService {
   }
 
   createOrder(order: WithFieldValue<Omit<Order, 'id'>>): Promise<DocumentReference<Order>> {
-    return this.firestoreService.create(this.collectionPath, order) as Promise<DocumentReference<Order>>;
+    return this.firestoreService.create(this.collectionPath, order) as Promise<
+      DocumentReference<Order>
+    >;
   }
 
   updateOrder(id: string, order: Partial<Order>): Promise<void> {
@@ -48,9 +41,9 @@ export class OrderService {
 
   getGlobalSalesAndOrders(): Observable<{ totalSales: number; totalOrders: number }> {
     return this.getOrders().pipe(
-      map(orders => {
+      map((orders) => {
         const totalSales = orders
-          .filter(order => order.status === 'delivered')
+          .filter((order) => order.status === 'delivered')
           .reduce((sum, order) => sum + order.total, 0);
         const totalOrders = orders.length;
         return { totalSales, totalOrders };
@@ -60,25 +53,21 @@ export class OrderService {
 
   getMonthlySalesAndOrders(): Observable<{ monthlySales: number; monthlyOrders: number }> {
     const CONFIRMED_SALES_STATUSES: OrderStatus[] = ['processing', 'shipped', 'delivered'];
-    
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(
-        collectionRef,
-        where('orderDate', '>=', startOfMonth)
-      );
+      const q = query(collectionRef, where('orderDate', '>=', startOfMonth));
 
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Order)),
-        map(ordersInCurrentMonth => {
-          
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
+        map((ordersInCurrentMonth) => {
           const monthlyOrdersCount = ordersInCurrentMonth.length;
-          
+
           const monthlySales = ordersInCurrentMonth
-            .filter(order => CONFIRMED_SALES_STATUSES.includes(order.status))
+            .filter((order) => CONFIRMED_SALES_STATUSES.includes(order.status))
             .reduce((sum, order) => sum + order.total, 0);
 
           return { monthlySales, monthlyOrders: monthlyOrdersCount };
@@ -90,17 +79,16 @@ export class OrderService {
   getPendingOrProcessingOrders(): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(
-        collectionRef,
-        where('status', 'in', ['pending', 'processing'])
-      );
+      const q = query(collectionRef, where('status', 'in', ['pending', 'processing']));
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Order)),
-        map(orders => orders.sort((a, b) => {
-          const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
-          const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
-          return dateA - dateB;
-        }))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
+        map((orders) =>
+          orders.sort((a, b) => {
+            const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
+            const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
+            return dateA - dateB;
+          })
+        )
       );
     });
   }
@@ -108,13 +96,9 @@ export class OrderService {
   getLatestOrders(count: number = 10): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(
-        collectionRef,
-        orderBy('orderDate', 'desc'),
-        limit(count)
-      );
+      const q = query(collectionRef, orderBy('orderDate', 'desc'), limit(count));
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Order))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Order))
       );
     });
   }

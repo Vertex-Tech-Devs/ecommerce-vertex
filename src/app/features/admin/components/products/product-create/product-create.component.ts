@@ -1,19 +1,24 @@
-import { Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Observable, combineLatest, map, of, startWith, switchMap, take, finalize, BehaviorSubject } from 'rxjs';
-import { WithFieldValue } from '@angular/fire/firestore';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import type { Observable } from 'rxjs';
+import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
+import type { WithFieldValue } from '@angular/fire/firestore';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
 import { StorageService } from '@core/services/storage.service';
-import { Product, ProductVariant } from '@core/models/product.model';
-import { Category } from '@core/models/category.model';
+import type { Product, ProductVariant } from '@core/models/product.model';
+import type { Category } from '@core/models/category.model';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AttributeService } from '@core/services/attribute.service';
-import { Attribute } from '@core/models/attribute.model';
+import type { Attribute } from '@core/models/attribute.model';
 import { AttributeModalComponent } from '@features/admin/components/attributes/attribute-modal/attribute-modal.component';
 
 @Component({
@@ -24,7 +29,6 @@ import { AttributeModalComponent } from '@features/admin/components/attributes/a
   styleUrls: ['./product-create.component.scss'],
 })
 export class ProductCreateComponent implements OnInit {
-
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
@@ -35,20 +39,20 @@ export class ProductCreateComponent implements OnInit {
   private storageService = inject(StorageService);
   private modalService = inject(BsModalService);
 
-  public productForm!: FormGroup;
-  public categories$!: Observable<Category[]>;
-  
+  productForm!: FormGroup;
+  categories$!: Observable<Category[]>;
+
   private attributesSubject = new BehaviorSubject<Attribute[]>([]);
-  public attributes$ = this.attributesSubject.asObservable();
+  attributes$ = this.attributesSubject.asObservable();
   private bsModalRef?: BsModalRef;
-  
-  public isSubmitting = false;
-  public isEditMode = false;
-  public productId: string | null = null;
-  public pageTitle = 'Crear Nuevo Producto';
-  
-  public uploadProgress: number | null = null;
-  public galleryUploadProgress: { [key: number]: number | null } = {};
+
+  isSubmitting = false;
+  isEditMode = false;
+  productId: string | null = null;
+  pageTitle = 'Crear Nuevo Producto';
+
+  uploadProgress: number | null = null;
+  galleryUploadProgress: { [key: number]: number | null } = {};
 
   private initialVariants: ProductVariant[] = [];
 
@@ -60,9 +64,12 @@ export class ProductCreateComponent implements OnInit {
   }
 
   private loadAttributes(): void {
-    this.attributeService.getAttributes().pipe(take(1)).subscribe(attrs => {
-      this.attributesSubject.next(attrs);
-    });
+    this.attributeService
+      .getAttributes()
+      .pipe(take(1))
+      .subscribe((attrs) => {
+        this.attributesSubject.next(attrs);
+      });
   }
 
   private initializeForm(): void {
@@ -89,68 +96,87 @@ export class ProductCreateComponent implements OnInit {
   }
 
   private loadProductForEdit(id: string): void {
-    this.productService.getProductWithVariants(id).pipe(take(1)).subscribe({
-      next: (data) => {
-        if (data) {
-          const { product, variants } = data;
-          this.initialVariants = variants;
-          this.pageTitle = `Editar: ${product.name}`;
-          
-          this.productForm.patchValue({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            categoryId: product.categoryId,
-            image: product.image,
-          });
+    this.productService
+      .getProductWithVariants(id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          if (data) {
+            const { product, variants } = data;
+            this.initialVariants = variants;
+            this.pageTitle = `Editar: ${product.name}`;
 
-          product.images?.forEach(img => this.images.push(this.fb.control(img)));
-          
-          product.variantAttributes?.forEach(attrId => this.variantAttributes.push(this.fb.control(attrId)));
+            this.productForm.patchValue({
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              categoryId: product.categoryId,
+              image: product.image,
+            });
 
-          variants.forEach(variant => this.addVariant(variant));
-        } else {
-          this.sweetAlertService.error('Error', 'Producto no encontrado.');
-          this.router.navigate(['/admin/products']);
-        }
-      },
-      error: () => {
-        this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
-        this.router.navigate(['/admin/products']);
-      },
-    });
+            product.images?.forEach((img) => this.images.push(this.fb.control(img)));
+
+            product.variantAttributes?.forEach((attrId) =>
+              this.variantAttributes.push(this.fb.control(attrId))
+            );
+
+            variants.forEach((variant) => this.addVariant(variant));
+          } else {
+            this.sweetAlertService.error('Error', 'Producto no encontrado.');
+            void this.router.navigate(['/admin/products']);
+          }
+        },
+        error: () => {
+          this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
+          void this.router.navigate(['/admin/products']);
+        },
+      });
   }
 
-  get name() { return this.productForm.get('name'); }
-  get price() { return this.productForm.get('price'); }
-  get categoryId() { return this.productForm.get('categoryId'); }
-  get image() { return this.productForm.get('image'); }
-  get variants(): FormArray { return this.productForm.get('variants') as FormArray; }
-  get images(): FormArray { return this.productForm.get('images') as FormArray; }
-  get variantAttributes(): FormArray { return this.productForm.get('variantAttributes') as FormArray; }
+  get name(): AbstractControl | null {
+    return this.productForm.get('name');
+  }
+  get price(): AbstractControl | null {
+    return this.productForm.get('price');
+  }
+  get categoryId(): AbstractControl | null {
+    return this.productForm.get('categoryId');
+  }
+  get image(): AbstractControl | null {
+    return this.productForm.get('image');
+  }
+  get variants(): FormArray {
+    return this.productForm.get('variants') as FormArray;
+  }
+  get images(): FormArray {
+    return this.productForm.get('images') as FormArray;
+  }
+  get variantAttributes(): FormArray {
+    return this.productForm.get('variantAttributes') as FormArray;
+  }
 
   onAttributeSelectionChange(): void {
-    this.attributes$.pipe(take(1)).subscribe(allAttributes => {
-      this.variantAttributes.valueChanges.pipe(
-        startWith(this.variantAttributes.value)
-      ).subscribe(selectedIds => {
-        this.variants.controls.forEach(control => {
-          const attributesGroup = control.get('attributes') as FormGroup;
-          const currentAttributeIds = Object.keys(attributesGroup.controls);
+    this.attributes$.pipe(take(1)).subscribe((_allAttributes) => {
+      this.variantAttributes.valueChanges
+        .pipe(startWith(this.variantAttributes.value))
+        .subscribe((selectedIds) => {
+          this.variants.controls.forEach((control) => {
+            const attributesGroup = control.get('attributes') as FormGroup;
+            const currentAttributeIds = Object.keys(attributesGroup.controls);
 
-          const idsToRemove = currentAttributeIds.filter(id => !selectedIds.includes(id));
-          idsToRemove.forEach(id => attributesGroup.removeControl(id));
+            const idsToRemove = currentAttributeIds.filter((id) => !selectedIds.includes(id));
+            idsToRemove.forEach((id) => attributesGroup.removeControl(id));
 
-          const idsToAdd = selectedIds.filter((id: string) => !currentAttributeIds.includes(id));
-          idsToAdd.forEach((id: string) => {
-            attributesGroup.addControl(id, this.fb.control(null, Validators.required));
+            const idsToAdd = selectedIds.filter((id: string) => !currentAttributeIds.includes(id));
+            idsToAdd.forEach((id: string) => {
+              attributesGroup.addControl(id, this.fb.control(null, Validators.required));
+            });
           });
         });
-      });
     });
   }
 
-  public onAttributeCheckboxChange(event: Event, attrId: string): void {
+  onAttributeCheckboxChange(event: Event, attrId: string): void {
     const isChecked = (event.target as HTMLInputElement).checked;
     if (isChecked) {
       this.variantAttributes.push(this.fb.control(attrId));
@@ -162,35 +188,39 @@ export class ProductCreateComponent implements OnInit {
     }
   }
 
-  public openAttributeModal(): void {
+  openAttributeModal(): void {
     this.bsModalRef = this.modalService.show(AttributeModalComponent, {
       class: 'modal-lg modal-dialog-centered',
     });
 
     this.bsModalRef.content.onClose.subscribe((result: Partial<Attribute> | null) => {
       if (result) {
-        this.attributeService.addAttribute(result as Attribute)
+        this.attributeService
+          .addAttribute(result as Attribute)
           .then(() => {
             this.sweetAlertService.success('¡Éxito!', 'Atributo creado.');
             this.loadAttributes();
           })
-          .catch(err => this.sweetAlertService.error('Error', 'No se pudo crear el atributo.'));
+          .catch((_err) => this.sweetAlertService.error('Error', 'No se pudo crear el atributo.'));
       }
     });
   }
 
   createVariantGroup(variant?: ProductVariant): FormGroup {
     const group = this.fb.group({
-      id: [variant?.id || null],
+      id: [variant?.id ?? null],
       attributes: this.fb.group({}),
-      stock: [variant?.stock || 0, [Validators.required, Validators.min(0)]],
+      stock: [variant?.stock ?? 0, [Validators.required, Validators.min(0)]],
     });
 
     const attributesGroup = group.get('attributes') as FormGroup;
     const selectedIds = this.variantAttributes.value;
-    
+
     selectedIds.forEach((id: string) => {
-      attributesGroup.addControl(id, this.fb.control(variant?.attributes[id] || null, Validators.required));
+      attributesGroup.addControl(
+        id,
+        this.fb.control(variant?.attributes[id] ?? null, Validators.required)
+      );
     });
 
     return group;
@@ -208,18 +238,18 @@ export class ProductCreateComponent implements OnInit {
    * Generates all possible variant combinations based on selected attributes
    * Example: Color (Red, Blue) x Size (S, M) = 4 combinations
    */
-  public generateVariantCombinations(): void {
-    this.attributes$.pipe(take(1)).subscribe(allAttributes => {
+  generateVariantCombinations(): void {
+    this.attributes$.pipe(take(1)).subscribe((allAttributes) => {
       const selectedIds = this.variantAttributes.value;
-      
+
       if (selectedIds.length === 0) {
         this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
         return;
       }
 
       // Get selected attributes with their values
-      const selectedAttrs = allAttributes.filter(a => selectedIds.includes(a.id));
-      
+      const selectedAttrs = allAttributes.filter((a) => selectedIds.includes(a.id));
+
       if (selectedAttrs.length === 0) {
         this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
         return;
@@ -227,9 +257,12 @@ export class ProductCreateComponent implements OnInit {
 
       // Generate all combinations
       const combinations = this.generateCombinations(selectedAttrs);
-      
+
       if (combinations.length === 0) {
-        this.sweetAlertService.warning('Aviso', 'No se pueden generar combinaciones con los atributos seleccionados.');
+        this.sweetAlertService.warning(
+          'Aviso',
+          'No se pueden generar combinaciones con los atributos seleccionados.'
+        );
         return;
       }
 
@@ -237,7 +270,7 @@ export class ProductCreateComponent implements OnInit {
       this.variants.clear();
 
       // Add variants for each combination
-      combinations.forEach(combo => {
+      combinations.forEach((combo) => {
         const group = this.fb.group({
           id: [null],
           attributes: this.fb.group(combo, Validators.required),
@@ -251,22 +284,24 @@ export class ProductCreateComponent implements OnInit {
   }
 
   private generateCombinations(attributes: Attribute[]): Array<{ [key: string]: string }> {
-    if (attributes.length === 0) { return []; }
-    
+    if (attributes.length === 0) {
+      return [];
+    }
+
     const result: Array<{ [key: string]: string }> = [{}];
 
-    attributes.forEach(attr => {
+    attributes.forEach((attr) => {
       const newResult: Array<{ [key: string]: string }> = [];
-      
-      result.forEach(existing => {
-        attr.values.forEach(value => {
+
+      result.forEach((existing) => {
+        attr.values.forEach((value) => {
           newResult.push({
             ...existing,
-            [attr.id!]: value
+            [attr.id!]: value,
           });
         });
       });
-      
+
       result.splice(0, result.length, ...newResult);
     });
 
@@ -283,14 +318,14 @@ export class ProductCreateComponent implements OnInit {
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) { return; }
+    if (!file) {
+      return;
+    }
 
     this.uploadProgress = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
-    progress$.subscribe(progress => this.uploadProgress = progress);
-    downloadUrl$.pipe(
-      finalize(() => this.uploadProgress = null)
-    ).subscribe(url => {
+    progress$.subscribe((progress) => (this.uploadProgress = progress));
+    downloadUrl$.pipe(finalize(() => (this.uploadProgress = null))).subscribe((url) => {
       this.productForm.get('image')?.setValue(url);
     });
   }
@@ -298,16 +333,18 @@ export class ProductCreateComponent implements OnInit {
   onGalleryFileSelected(event: Event, index: number): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
-    if (!file || !control) { return; }
+    if (!file || !control) {
+      return;
+    }
 
     this.galleryUploadProgress[index] = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
-    progress$.subscribe(progress => this.galleryUploadProgress[index] = progress);
-    downloadUrl$.pipe(
-      finalize(() => this.galleryUploadProgress[index] = null)
-    ).subscribe(url => {
-      control.setValue(url);
-    });
+    progress$.subscribe((progress) => (this.galleryUploadProgress[index] = progress));
+    downloadUrl$
+      .pipe(finalize(() => (this.galleryUploadProgress[index] = null)))
+      .subscribe((url) => {
+        control.setValue(url);
+      });
   }
 
   async onSubmit(): Promise<void> {
@@ -326,11 +363,11 @@ export class ProductCreateComponent implements OnInit {
       price: formValue.price,
       categoryId: formValue.categoryId,
       image: formValue.image,
-      images: formValue.images || [],
-      variantAttributes: formValue.variantAttributes || [],
+      images: formValue.images ?? [],
+      variantAttributes: formValue.variantAttributes ?? [],
       createdAt: new Date(),
       totalStock: 0,
-      inStockAttributes: {}
+      inStockAttributes: {},
     };
 
     try {
@@ -342,7 +379,7 @@ export class ProductCreateComponent implements OnInit {
           categoryId: formValue.categoryId,
           image: formValue.image,
           images: formValue.images,
-          variantAttributes: formValue.variantAttributes
+          variantAttributes: formValue.variantAttributes,
         };
 
         const variantsToUpdate: (Partial<ProductVariant> & { id: string })[] = [];
@@ -353,16 +390,18 @@ export class ProductCreateComponent implements OnInit {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         formValue.variants.forEach((variant: any) => {
           if (variant.id) {
-            const { price, ...rest } = variant;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { price: _price, ...rest } = variant;
             variantsToUpdate.push(rest);
             currentVariantIds.add(variant.id);
           } else {
-            const { id, price, ...newVariantData } = variant;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id: _id, price: _price2, ...newVariantData } = variant;
             variantsToAdd.push(newVariantData);
           }
         });
 
-        this.initialVariants.forEach(initialVariant => {
+        this.initialVariants.forEach((initialVariant) => {
           if (!currentVariantIds.has(initialVariant.id)) {
             variantIdsToDelete.push(initialVariant.id);
           }
@@ -376,18 +415,21 @@ export class ProductCreateComponent implements OnInit {
           variantIdsToDelete
         );
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
-        this.router.navigate(['/admin/products', this.productId]);
-
+        void this.router.navigate(['/admin/products', this.productId]);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = formValue.variants.map((v: any) => ({
+        const variantsData: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = (
+          formValue.variants as { attributes: Record<string, string>; stock: number }[]
+        ).map((v) => ({
           attributes: v.attributes,
-          stock: v.stock
+          stock: v.stock,
         }));
 
-        const newProductId = await this.productService.createProductWithVariants(productData, variantsData);
+        const newProductId = await this.productService.createProductWithVariants(
+          productData,
+          variantsData
+        );
         this.sweetAlertService.success('¡Éxito!', 'Producto creado.');
-        this.router.navigate(['/admin/products', newProductId]);
+        void this.router.navigate(['/admin/products', newProductId]);
       }
     } catch (error) {
       console.error('Error submitting product:', error);
@@ -399,9 +441,9 @@ export class ProductCreateComponent implements OnInit {
 
   onCancel(): void {
     if (this.isEditMode && this.productId) {
-      this.router.navigate(['/admin/products', this.productId]);
+      void this.router.navigate(['/admin/products', this.productId]);
     } else {
-      this.router.navigate(['/admin/products']);
+      void this.router.navigate(['/admin/products']);
     }
   }
 }

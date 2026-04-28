@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { DocumentReference } from '@angular/fire/firestore';
-import { Attribute } from '@core/models/attribute.model';
+import type { Observable } from 'rxjs';
+import type { DocumentReference } from '@angular/fire/firestore';
+import type { Attribute } from '@core/models/attribute.model';
 import { FirestoreService } from './firestore.service';
 
 @Injectable({
@@ -20,7 +20,10 @@ export class AttributeService {
   }
 
   addAttribute(attribute: Attribute): Promise<DocumentReference> {
-    return this.firestoreService.create(this.collectionPath, attribute) as Promise<DocumentReference>;
+    return this.firestoreService.create(
+      this.collectionPath,
+      attribute
+    ) as Promise<DocumentReference>;
   }
 
   updateAttribute(id: string, attribute: Partial<Attribute>): Promise<void> {

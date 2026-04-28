@@ -1,10 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { Order } from '@core/models/order.model';
+import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
-import { Observable, BehaviorSubject, combineLatest, from, of } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged, switchMap, catchError, startWith } from 'rxjs/operators';
+import type { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, from, of } from 'rxjs';
+import {
+  map,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  catchError,
+  startWith,
+} from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 
@@ -14,66 +23,61 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   styleUrls: ['./orders-list.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-    CurrencyPipe,
-    DatePipe,
-    TitleCasePipe
-  ],
+  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe, DatePipe, TitleCasePipe],
 })
 export class OrdersListComponent implements OnInit {
   private _orderService = inject(OrderService);
   private _router = inject(Router);
   private _sweetAlertService = inject(SweetAlertService);
 
-  public currentPageSubject = new BehaviorSubject<number>(1);
-  public itemsPerPageSubject = new BehaviorSubject<number>(10);
-  public searchTermSubject = new BehaviorSubject<string>('');
-  public filterStatusSubject = new BehaviorSubject<string>('all');
+  currentPageSubject = new BehaviorSubject<number>(1);
+  itemsPerPageSubject = new BehaviorSubject<number>(10);
+  searchTermSubject = new BehaviorSubject<string>('');
+  filterStatusSubject = new BehaviorSubject<string>('all');
 
   private refreshTrigger = new BehaviorSubject<void>(undefined);
 
-  public itemsPerPageOptions = [5, 10, 20, 50];
-  public statusOptions = ['all', 'pending', 'shipped', 'delivered', 'cancelled'];
+  itemsPerPageOptions = [5, 10, 20, 50];
+  statusOptions = ['all', 'pending', 'shipped', 'delivered', 'cancelled'];
 
-  public totalOrders = 0;
-  public totalPages = 0;
+  totalOrders = 0;
+  totalPages = 0;
 
-  public orders$!: Observable<Order[]>;
+  orders$!: Observable<Order[]>;
 
   ngOnInit(): void {
     this.orders$ = combineLatest([
       this.refreshTrigger.pipe(
-        switchMap(() => this._orderService.getOrders().pipe(
-          startWith([] as Order[]),
-          catchError(err => {
-            console.error('Error al cargar los pedidos:', err);
-            return of([] as Order[]);
-          })
-        ))
+        switchMap(() =>
+          this._orderService.getOrders().pipe(
+            startWith([] as Order[]),
+            catchError((err) => {
+              console.error('Error al cargar los pedidos:', err);
+              return of([] as Order[]);
+            })
+          )
+        )
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterStatusSubject,
       this.currentPageSubject,
-      this.itemsPerPageSubject
+      this.itemsPerPageSubject,
     ]).pipe(
       map(([orders, searchTerm, filterStatus, currentPage, itemsPerPage]) => {
-
         let filteredOrders = orders;
 
         if (searchTerm) {
           const lowerSearch = searchTerm.toLowerCase();
-          filteredOrders = orders.filter(order =>
-            order.clientName.toLowerCase().includes(lowerSearch) ||
-            order.id.toLowerCase().includes(lowerSearch) ||
-            order.status.toLowerCase().includes(lowerSearch)
+          filteredOrders = orders.filter(
+            (order) =>
+              order.clientName.toLowerCase().includes(lowerSearch) ||
+              order.id.toLowerCase().includes(lowerSearch) ||
+              order.status.toLowerCase().includes(lowerSearch)
           );
         }
 
         if (filterStatus !== 'all') {
-          filteredOrders = filteredOrders.filter(order => order.status === filterStatus);
+          filteredOrders = filteredOrders.filter((order) => order.status === filterStatus);
         }
 
         this.totalOrders = filteredOrders.length;
@@ -116,24 +120,23 @@ export class OrdersListComponent implements OnInit {
   }
 
   editOrder(order: Order): void {
-    this._router.navigate(['/admin/orders', order.id]);
+    void this._router.navigate(['/admin/orders', order.id]);
   }
 
   deleteOrder(order: Order): void {
-    this._sweetAlertService.confirm(
-      'Eliminar Pedido',
-      `¿Estás seguro de que quieres eliminar el pedido ${order.id}?`
-    ).then(confirmed => {
-      if (confirmed) {
-        from(this._orderService.deleteOrder(order.id)).subscribe({
-          next: () => {
-            this.refreshTrigger.next();
-          },
-          error: (error: unknown) => {
-            console.error('Error al eliminar el pedido:', error);
-          }
-        });
-      }
-    });
+    void this._sweetAlertService
+      .confirm('Eliminar Pedido', `¿Estás seguro de que quieres eliminar el pedido ${order.id}?`)
+      .then((confirmed) => {
+        if (confirmed) {
+          from(this._orderService.deleteOrder(order.id)).subscribe({
+            next: () => {
+              this.refreshTrigger.next();
+            },
+            error: (error: unknown) => {
+              console.error('Error al eliminar el pedido:', error);
+            },
+          });
+        }
+      });
   }
 }

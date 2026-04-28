@@ -1,12 +1,13 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import type { OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { ClientService } from '../../../../../core/services/client.service';
-import { Client } from '../../../../../core/models/client.model';
+import type { Client } from '../../../../../core/models/client.model';
+import type { Observable } from 'rxjs';
 import {
-  Observable,
   BehaviorSubject,
   combineLatest,
   map,
@@ -14,31 +15,27 @@ import {
   distinctUntilChanged,
   startWith,
   catchError,
-  of
+  of,
 } from 'rxjs';
 
 @Component({
   selector: 'app-clients-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-  ],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './clients-list.component.html',
   styleUrls: ['./clients-list.component.scss'],
 })
 export class ClientsListComponent implements OnInit {
-  public searchTermSubject = new BehaviorSubject<string>('');
-  public currentPageSubject = new BehaviorSubject<number>(1);
-  public itemsPerPageSubject = new BehaviorSubject<number>(10);
+  searchTermSubject = new BehaviorSubject<string>('');
+  currentPageSubject = new BehaviorSubject<number>(1);
+  itemsPerPageSubject = new BehaviorSubject<number>(10);
 
-  public itemsPerPageOptions = [5, 10, 20, 30];
+  itemsPerPageOptions = [5, 10, 20, 30];
 
-  public totalClients = 0;
-  public totalPages = 0;
+  totalClients = 0;
+  totalPages = 0;
 
-  public clients$!: Observable<Client[]>;
+  clients$!: Observable<Client[]>;
 
   private _clientService = inject(ClientService);
   private _router = inject(Router);
@@ -47,22 +44,23 @@ export class ClientsListComponent implements OnInit {
     this.clients$ = combineLatest([
       this._clientService.getClients().pipe(
         startWith([] as Client[]),
-        catchError(err => {
+        catchError((err) => {
           console.error('Error al cargar la lista de clientes:', err);
           return of([] as Client[]);
         })
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.currentPageSubject,
-      this.itemsPerPageSubject
+      this.itemsPerPageSubject,
     ]).pipe(
       map(([allClients, searchTerm, currentPage, itemsPerPage]) => {
         let filteredClients = allClients;
         if (searchTerm) {
           const lowerCaseSearchTerm = searchTerm.toLowerCase();
-          filteredClients = filteredClients.filter(client =>
-            client.fullName.toLowerCase().includes(lowerCaseSearchTerm) ||
-            client.email.toLowerCase().includes(lowerCaseSearchTerm)
+          filteredClients = filteredClients.filter(
+            (client) =>
+              client.fullName.toLowerCase().includes(lowerCaseSearchTerm) ||
+              client.email.toLowerCase().includes(lowerCaseSearchTerm)
           );
         }
 
@@ -99,6 +97,6 @@ export class ClientsListComponent implements OnInit {
   }
 
   viewClientHistory(email: string): void {
-    this._router.navigate(['/admin/customers', email]);
+    void this._router.navigate(['/admin/customers', email]);
   }
 }

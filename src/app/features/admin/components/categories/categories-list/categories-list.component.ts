@@ -1,13 +1,17 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import type { OnInit, OnDestroy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, Subscription, map } from 'rxjs';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import type { Observable, Subscription } from 'rxjs';
+import { map } from 'rxjs';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
+import { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
 
-import { Category } from '@core/models/category.model';
+import type { Category } from '@core/models/category.model';
 import { CategoryService } from '@core/services/category.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { CategoryModalComponent } from '../category-modal/category-modal.component';
-import { WithFieldValue } from '@angular/fire/firestore';
+import type { WithFieldValue } from '@angular/fire/firestore';
 import { AttributeService } from '@core/services/attribute.service';
 
 @Component({
@@ -18,23 +22,27 @@ import { AttributeService } from '@core/services/attribute.service';
   styleUrls: ['./categories-list.component.scss'],
 })
 export class CategoriesListComponent implements OnInit, OnDestroy {
-
   private categoryService = inject(CategoryService);
   private attributeService = inject(AttributeService);
   private modalService = inject(BsModalService);
   private sweetAlertService = inject(SweetAlertService);
 
-  public categories$!: Observable<Category[]>;
+  categories$!: Observable<Category[]>;
   private bsModalRef?: BsModalRef;
   private modalSubscription?: Subscription;
-  
-  public attributesMap: Map<string, string> = new Map();
+
+  attributesMap: Map<string, string> = new Map();
 
   ngOnInit(): void {
-    this.attributeService.getAttributes().pipe(
-      map(attributes => attributes.forEach(attr => this.attributesMap.set(attr.id!, attr.name)))
-    ).subscribe();
-    
+    this.attributeService
+      .getAttributes()
+      .pipe(
+        map((attributes) =>
+          attributes.forEach((attr) => this.attributesMap.set(attr.id!, attr.name))
+        )
+      )
+      .subscribe();
+
     this.categories$ = this.categoryService.getCategories();
   }
 
@@ -46,7 +54,7 @@ export class CategoriesListComponent implements OnInit, OnDestroy {
     if (!attributeIds || attributeIds.length === 0) {
       return 'Ninguno';
     }
-    return attributeIds.map(id => this.attributesMap.get(id) || 'ID Desconocido').join(', ');
+    return attributeIds.map((id) => this.attributesMap.get(id) ?? 'ID Desconocido').join(', ');
   }
 
   openCategoryModal(category?: Category): void {
@@ -56,30 +64,50 @@ export class CategoriesListComponent implements OnInit, OnDestroy {
       class: 'modal-lg modal-dialog-centered',
     });
 
-    this.modalSubscription = this.bsModalRef.content.onClose.subscribe((result: { name: string, slug: string, parentId: string | null, filterableAttributes: string[] } | null) => {
-      if (result) {
-        if (category && category.id) {
-          this.updateCategory(category.id, result);
-        } else {
-          this.addCategory(result);
+    this.modalSubscription = this.bsModalRef.content.onClose.subscribe(
+      (
+        result: {
+          name: string;
+          slug: string;
+          parentId: string | null;
+          filterableAttributes: string[];
+        } | null
+      ) => {
+        if (result) {
+          if (category?.id) {
+            this.updateCategory(category.id, result);
+          } else {
+            this.addCategory(result);
+          }
         }
       }
-    });
+    );
   }
 
-  private addCategory(categoryData: { name: string, slug: string, parentId: string | null, filterableAttributes: string[] }): void {
+  private addCategory(categoryData: {
+    name: string;
+    slug: string;
+    parentId: string | null;
+    filterableAttributes: string[];
+  }): void {
     const data: WithFieldValue<Omit<Category, 'id'>> = {
       ...categoryData,
     };
-    this.categoryService.addCategory(data)
+    this.categoryService
+      .addCategory(data)
       .then(() => this.sweetAlertService.success('¡Éxito!', 'Categoría creada correctamente.'))
-      .catch(err => this.sweetAlertService.error('Error', 'Hubo un problema al crear la categoría.'));
+      .catch((_err) =>
+        this.sweetAlertService.error('Error', 'Hubo un problema al crear la categoría.')
+      );
   }
 
   private updateCategory(id: string, categoryData: Partial<Category>): void {
-    this.categoryService.updateCategory(id, categoryData)
+    this.categoryService
+      .updateCategory(id, categoryData)
       .then(() => this.sweetAlertService.success('¡Éxito!', 'Categoría actualizada correctamente.'))
-      .catch(err => this.sweetAlertService.error('Error', 'Hubo un problema al actualizar la categoría.'));
+      .catch((_err) =>
+        this.sweetAlertService.error('Error', 'Hubo un problema al actualizar la categoría.')
+      );
   }
 
   async onDelete(category: Category): Promise<void> {
@@ -92,7 +120,7 @@ export class CategoriesListComponent implements OnInit, OnDestroy {
       try {
         await this.categoryService.deleteCategory(category.id);
         this.sweetAlertService.success('Eliminada', 'La categoría ha sido eliminada.');
-      } catch (err) {
+      } catch {
         this.sweetAlertService.error('Error', 'Hubo un problema al eliminar la categoría.');
       }
     }
