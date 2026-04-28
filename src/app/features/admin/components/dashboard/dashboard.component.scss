@@ -40,8 +40,8 @@
 hr {
   border: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
   margin: 1.5rem 0;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
 }
 
 .dashboard__section-title {
@@ -196,6 +196,31 @@ hr {
   }
 }
 
+.activity-picker {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 12px;
+
+    &.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+  }
+}
+
 .glass-card {
   height: 100%;
   display: flex;
@@ -221,36 +246,33 @@ hr {
 }
 
 .card-footer-action {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: auto;
+  padding-top: 1.5rem;
   text-align: center;
 }
 
 .btn-view-more {
   display: inline-block;
-  color: rgba(var(--glow-rgb), 0.8);
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-decoration: none;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  padding: 10px 20px;
   border-radius: 12px;
-  background: rgba(var(--glow-rgb), 0.05);
+  background: rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
 
   &:hover {
-    color: #fff;
-    background: rgba(var(--glow-rgb), 0.2);
+    background: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
   }
 }
 
 .list-group-item {
-  background: transparent !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
-  padding: 1rem 0;
+  padding: 1.25rem 0;
 
   .item-content {
     span {
@@ -260,7 +282,6 @@ hr {
 
     small {
       color: #94a3b8 !important;
-      font-size: 0.8rem;
     }
   }
 }
@@ -269,6 +290,7 @@ hr {
   padding: 0.7em 1.2em;
   font-weight: 800;
   border-radius: 12px;
+  text-transform: capitalize;
 }
 
 .btn-outline-primary,
