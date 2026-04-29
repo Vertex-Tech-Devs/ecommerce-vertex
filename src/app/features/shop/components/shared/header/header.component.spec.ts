@@ -76,6 +76,20 @@ describe('HeaderComponent', () => {
       component.onWindowScroll();
       expect(component.isScrolled()).toBeFalse();
     });
+
+    it('should use documentElement.scrollTop when pageYOffset is 0', () => {
+      spyOnProperty(window, 'pageYOffset', 'get').and.returnValue(0);
+      spyOnProperty(document.documentElement, 'scrollTop', 'get').and.returnValue(50);
+      component.onWindowScroll();
+      expect(component.isScrolled()).toBeTrue();
+    });
+
+    it('should remain not scrolled when both pageYOffset and scrollTop are 0', () => {
+      spyOnProperty(window, 'pageYOffset', 'get').and.returnValue(0);
+      spyOnProperty(document.documentElement, 'scrollTop', 'get').and.returnValue(0);
+      component.onWindowScroll();
+      expect(component.isScrolled()).toBeFalse();
+    });
   });
 
   describe('template', () => {

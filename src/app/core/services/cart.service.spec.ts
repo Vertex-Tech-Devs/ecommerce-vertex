@@ -95,6 +95,14 @@ describe('CartService', () => {
       expect(sweetAlertSpy.error).toHaveBeenCalled();
     });
 
+    it('should show error and not update when adding to existing item exceeds stock', () => {
+      service.addItem(makeProduct(), makeVariant({ stock: 5 }), 3);
+      service.addItem(makeProduct(), makeVariant({ stock: 5 }), 3); // 3+3=6 > 5
+
+      expect(service.cart().items[0].quantity).toBe(3);
+      expect(sweetAlertSpy.error).toHaveBeenCalled();
+    });
+
     it('should update itemCount computed signal', () => {
       service.addItem(makeProduct(), makeVariant(), 4);
       expect(service.itemCount()).toBe(4);
@@ -142,6 +150,13 @@ describe('CartService', () => {
 
       expect(service.cart().items[0].quantity).toBe(1);
     });
+
+    it('should do nothing when item id does not exist', () => {
+      service.addItem(makeProduct(), makeVariant(), 2);
+      service.updateQuantity('non-existent-id', 5);
+
+      expect(service.cart().items[0].quantity).toBe(2);
+    });
   });
 
   describe('clearCart()', () => {
@@ -182,6 +197,93 @@ describe('CartService', () => {
       const newService = TestBed.inject(CartService);
 
       expect(newService.cart().items.length).toBe(1);
+    });
+
+    it('should return empty cart when stored JSON has no items array', () => {
+      localStorage.setItem('my_cart', JSON.stringify({ total: 0 }));
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CartService,
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+        ],
+      });
+      const newService = TestBed.inject(CartService);
+
+      expect(newService.cart().items).toEqual([]);
+    });
+
+    it('should return empty cart when stored JSON is malformed', () => {
+      localStorage.setItem('my_cart', 'not-valid-json');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CartService,
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+        ],
+      });
+      const newService = TestBed.inject(CartService);
+
+      expect(newService.cart().items).toEqual([]);
+    });
+  });
+
+  describe('getVariantDescription()', () => {
+    it('should return formatted attribute names when attributeMap is loaded', () => {
+      attributeServiceSpy.getAttributes.and.returnValue(
+        of([{ id: 'color', name: 'Color', values: ['Red'] }])
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CartService,
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+        ],
+      });
+      const newService = TestBed.inject(CartService);
+
+      const description = newService.getVariantDescription({ color: 'Red' });
+      expect(description).toBe('Color: Red');
+    });
+
+    it('should fall back to attribute id when name is not in map', () => {
+      const description = service.getVariantDescription({ unknownId: 'Blue' });
+      expect(description).toBe('unknownId: Blue');
+    });
+
+    it('should ignore attributes without an id when loading', () => {
+      attributeServiceSpy.getAttributes.and.returnValue(
+        of([{ id: undefined as unknown as string, name: 'NoId', values: [] }])
+      );
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CartService,
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+        ],
+      });
+      const newService = TestBed.inject(CartService);
+      const description = newService.getVariantDescription({ x: 'y' });
+      expect(description).toBe('x: y');
+    });
+  });
+
+  describe('localStorage error handling', () => {
+    it('should not throw when localStorage.setItem fails', () => {
+      spyOn(Storage.prototype, 'setItem').and.throwError('QuotaExceededError');
+
+      expect(() => {
+        service.clearCart();
+        TestBed.flushEffects();
+      }).not.toThrow();
     });
   });
 });

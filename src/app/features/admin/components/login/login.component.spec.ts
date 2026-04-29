@@ -38,6 +38,11 @@ describe('LoginComponent', () => {
     fixture.detectChanges();
   });
 
+  it('formControls getter should return the form controls', () => {
+    expect(component.formControls['email']).toBeTruthy();
+    expect(component.formControls['password']).toBeTruthy();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
