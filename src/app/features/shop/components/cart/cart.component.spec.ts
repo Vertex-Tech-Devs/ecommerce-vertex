@@ -1,6 +1,6 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { CartComponent } from './cart.component';
 import { CartService } from '@core/services/cart.service';
@@ -23,7 +23,7 @@ describe('CartComponent', () => {
   let component: CartComponent;
   let fixture: ComponentFixture<CartComponent>;
   let cartServiceSpy: jasmine.SpyObj<CartService>;
-  let routerSpy: jasmine.SpyObj<Router>;
+  let router: Router;
 
   let cartSignal: ReturnType<typeof signal<Cart>>;
 
@@ -34,16 +34,13 @@ describe('CartComponent', () => {
       cart: cartSignal,
     });
 
-    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-    routerSpy.navigate.and.returnValue(Promise.resolve(true));
-
     await TestBed.configureTestingModule({
       imports: [CartComponent],
-      providers: [
-        { provide: CartService, useValue: cartServiceSpy },
-        { provide: Router, useValue: routerSpy },
-      ],
+      providers: [provideRouter([]), { provide: CartService, useValue: cartServiceSpy }],
     }).compileComponents();
+
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.returnValue(Promise.resolve(true));
 
     fixture = TestBed.createComponent(CartComponent);
     component = fixture.componentInstance;
@@ -69,7 +66,7 @@ describe('CartComponent', () => {
 
   it('goToCheckout() should navigate to /shop/checkout', () => {
     component.goToCheckout();
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/shop/checkout']);
+    expect(router.navigate).toHaveBeenCalledWith(['/shop/checkout']);
   });
 
   it('onRemoveItem() should call cartService.removeItem with the correct id', () => {

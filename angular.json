@@ -109,6 +109,11 @@
             ],
             "scripts": [],
             "karmaConfig": "karma.conf.js",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/styles"
+              ]
+            },
             "codeCoverageExclude": [
               "src/environments/**",
               "src/app/core/services/seed-data.service.ts",

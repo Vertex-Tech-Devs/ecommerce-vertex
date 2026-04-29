@@ -158,6 +158,7 @@ describe('CartService', () => {
   describe('localStorage persistence', () => {
     it('should persist the cart to localStorage on changes', () => {
       service.addItem(makeProduct(), makeVariant(), 1);
+      TestBed.flushEffects();
 
       const stored = localStorage.getItem('my_cart');
       expect(stored).toBeTruthy();
