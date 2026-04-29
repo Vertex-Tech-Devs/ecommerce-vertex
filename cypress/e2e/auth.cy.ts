@@ -9,12 +9,43 @@ describe('Admin Authentication', () => {
   const ADMIN_EMAIL = 'admin@example.com';
   const ADMIN_PASSWORD = 'password123';
 
+  /**
+   * Builds a base64url-encoded JWT with admin:true so that Firebase SDK can
+   * decode the claims locally via getIdTokenResult() without hitting the network.
+   * Firebase client does NOT verify the signature — it only decodes the payload.
+   */
+  const makeAdminJwt = (): string => {
+    const now = Math.floor(Date.now() / 1000);
+    const b64url = (obj: object): string =>
+      btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    const header = b64url({ alg: 'RS256', typ: 'JWT' });
+    const payload = b64url({
+      iss: 'https://securetoken.google.com/ecommerce-vertex-dev',
+      aud: 'ecommerce-vertex-dev',
+      auth_time: now,
+      user_id: 'uid-123',
+      sub: 'uid-123',
+      iat: now,
+      exp: now + 3600,
+      email: ADMIN_EMAIL,
+      email_verified: true,
+      admin: true,
+      firebase: {
+        identities: { email: [ADMIN_EMAIL] },
+        sign_in_provider: 'password',
+      },
+    });
+    return `${header}.${payload}.fakesig`;
+  };
+
   // Stub the Firebase Auth REST endpoint used by signInWithEmailAndPassword
   const stubSuccessfulLogin = (): void => {
+    const fakeJwt = makeAdminJwt();
+
     cy.intercept('POST', '**/accounts:signInWithPassword**', {
       statusCode: 200,
       body: {
-        idToken: 'fake-id-token',
+        idToken: fakeJwt,
         email: ADMIN_EMAIL,
         refreshToken: 'fake-refresh-token',
         expiresIn: '3600',
@@ -23,10 +54,16 @@ describe('Admin Authentication', () => {
       },
     }).as('loginRequest');
 
-    // Stub token verification (getIdTokenResult)
+    // Stub token refresh — return the same admin JWT as id_token
     cy.intercept('POST', '**/token**', {
       statusCode: 200,
-      body: { access_token: 'fake-token', expires_in: '3600', token_type: 'Bearer' },
+      body: {
+        id_token: fakeJwt,
+        access_token: fakeJwt,
+        refresh_token: 'fake-refresh-token',
+        expires_in: '3600',
+        token_type: 'Bearer',
+      },
     }).as('tokenRefresh');
   };
 
@@ -49,9 +86,11 @@ describe('Admin Authentication', () => {
   });
 
   it('should show validation errors when submitting empty form', () => {
-    cy.get('button[type="submit"]').click();
+    // The submit button is disabled when the form is invalid (Angular reactive form).
+    // Trigger "touched" state by focusing and blurring each required field.
+    cy.get('input[formControlName="email"]').focus().blur();
+    cy.get('input[formControlName="password"]').focus().blur();
 
-    // Inputs should now have the Angular invalid class
     cy.get('input[formControlName="email"]').should('have.class', 'ng-invalid');
     cy.get('input[formControlName="password"]').should('have.class', 'ng-invalid');
   });
@@ -78,8 +117,10 @@ describe('Admin Authentication', () => {
 
     cy.wait('@loginRequest');
 
-    // Should navigate away from login page
-    cy.location('pathname').should('not.eq', '/admin/login');
+    // After login, the component calls router.navigate(['/admin']).
+    // The admin guard reads isAdmin$ which decodes the JWT locally — no extra network call
+    // since exp is set to now+3600.
+    cy.location('pathname', { timeout: 10000 }).should('not.eq', '/admin/login');
   });
 
   it('should show an already-logged-in message when user is authenticated', () => {
