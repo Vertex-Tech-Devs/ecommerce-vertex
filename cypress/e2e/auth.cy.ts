@@ -54,6 +54,28 @@ describe('Admin Authentication', () => {
       },
     }).as('loginRequest');
 
+    // Firebase SDK always calls accounts:lookup after sign-in (_reloadWithoutSaving)
+    // to fetch the full user profile. Without this intercept the call fails in CI
+    // and signInWithEmailAndPassword rejects before navigation ever happens.
+    cy.intercept('POST', '**/accounts:lookup**', {
+      statusCode: 200,
+      body: {
+        kind: 'identitytoolkit#GetAccountInfoResponse',
+        users: [
+          {
+            localId: 'uid-123',
+            email: ADMIN_EMAIL,
+            emailVerified: true,
+            providerUserInfo: [{ providerId: 'password', email: ADMIN_EMAIL, rawId: ADMIN_EMAIL }],
+            validSince: String(Math.floor(Date.now() / 1000)),
+            disabled: false,
+            lastLoginAt: String(Date.now()),
+            createdAt: String(Date.now()),
+          },
+        ],
+      },
+    }).as('accountLookup');
+
     // Stub token refresh — return the same admin JWT as id_token
     cy.intercept('POST', '**/token**', {
       statusCode: 200,
