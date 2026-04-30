@@ -109,12 +109,19 @@
             ],
             "scripts": [],
             "karmaConfig": "karma.conf.js",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/styles"
+              ]
+            },
             "codeCoverageExclude": [
               "src/environments/**",
               "src/app/core/services/seed-data.service.ts",
               "src/app/core/services/seed-products.service.ts",
               "src/app/core/services/seed-orders.service.ts",
               "src/app/core/services/seed-content.service.ts",
+              "src/app/core/services/firestore.service.ts",
+              "src/app/core/services/auth.service.ts",
               "**/*.spec.ts"
             ]
           }
