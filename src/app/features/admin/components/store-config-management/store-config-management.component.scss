@@ -1,0 +1,131 @@
+@use 'variables' as vars;
+
+.config-page {
+  padding: vars.$space-8;
+  max-width: 900px;
+
+  &__header {
+    margin-bottom: vars.$space-8;
+  }
+
+  &__title {
+    font-size: 1.75rem;
+    font-weight: vars.$font-weight-bold;
+    color: vars.$text-dark;
+    display: flex;
+    align-items: center;
+    gap: vars.$space-3;
+    margin: 0 0 vars.$space-2;
+
+    i {
+      color: vars.$accent-purple;
+    }
+  }
+
+  &__subtitle {
+    color: vars.$text-muted-dark;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+.config-section {
+  background: white;
+  border-radius: vars.$radius-xl;
+  box-shadow: vars.$admin-card-shadow;
+  padding: vars.$space-6;
+  margin-bottom: vars.$space-6;
+
+  &__title {
+    font-size: 1rem;
+    font-weight: vars.$font-weight-semibold;
+    color: vars.$accent-purple;
+    display: flex;
+    align-items: center;
+    gap: vars.$space-2;
+    margin: 0 0 vars.$space-6;
+    padding-bottom: vars.$space-3;
+    border-bottom: 1px solid vars.$glass-border;
+
+    i {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: vars.$space-4;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+
+  @media (max-width: #{vars.$breakpoint-md}) {
+    grid-template-columns: 1fr;
+
+    &--full {
+      grid-column: 1;
+    }
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: vars.$space-1;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: vars.$font-weight-medium;
+  color: vars.$text-dark;
+}
+
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: vars.$space-2;
+}
+
+.color-swatch {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid vars.$glass-border;
+  border-radius: vars.$radius-md;
+  padding: 0.15rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: none;
+}
+
+.config-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: vars.$space-4;
+}
+
+.btn-primary {
+  background: vars.$accent-purple;
+  border-color: vars.$accent-purple;
+  display: flex;
+  align-items: center;
+  gap: vars.$space-2;
+
+  &:hover:not(:disabled) {
+    background: darken(vars.$accent-purple, 8%);
+    border-color: darken(vars.$accent-purple, 8%);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: #{vars.$breakpoint-md}) {
+  .config-page {
+    padding: vars.$space-4;
+  }
+}

@@ -47,9 +47,7 @@ Desktop.ini
 .env
 .env.local
 .env.*.local
-src/environments/environment.ts
-src/environments/environment.prod.ts
-src/environments/environment.production.ts
+# environment.ts only has `production: boolean` — no secrets, tracked in git
 
 # Firebase Secrets (CRITICAL)
 .firebase/

@@ -2,6 +2,7 @@
   "name": "ecommerce-vertex",
   "version": "1.0.0",
   "scripts": {
+    "setup": "tsx scripts/setup-store.ts",
     "start": "ng serve",
     "build": "ng build --configuration production",
     "test": "ng test --watch=false --code-coverage",
@@ -50,6 +51,7 @@
     "@angular-eslint/template-parser": "^20.0.0",
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
+    "@clack/prompts": "^1.3.0",
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
     "@types/jasmine": "^5.1.0",
@@ -58,8 +60,8 @@
     "cypress": "^14.0.0",
     "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
-    "husky": "^9.0.0",
     "http-proxy-agent": "^8.0.0",
+    "husky": "^9.0.0",
     "jasmine-core": "^5.1.0",
     "karma": "^6.4.0",
     "karma-chrome-launcher": "^3.2.0",
@@ -69,6 +71,7 @@
     "lint-staged": "^15.0.0",
     "npm-force-resolutions": "^0.0.10",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript": "5.8.3"
   },
   "prettier": {
