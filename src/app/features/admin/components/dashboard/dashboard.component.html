@@ -79,7 +79,7 @@
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ order.clientName }}</span>
-                          <small class="d-block text-muted"
+                          <small class="text-muted"
                             >#{{ order.id }} - {{ order.orderDate | date: 'short' }}</small
                           >
                         </div>
@@ -94,14 +94,12 @@
                         </span>
                         <a
                           [routerLink]="['/admin/orders', order.id]"
-                          class="btn btn-sm btn-outline-primary ms-auto"
+                          class="btn btn-sm btn-outline-primary"
                           ><i class="bi bi-arrow-right-circle"></i
                         ></a>
                       </li>
                     } @empty {
-                      <p class="text-center py-3 m-0 text-muted">
-                        <i class="bi bi-check-circle me-1"></i>¡Sin pendientes!
-                      </p>
+                      <p class="text-center py-3 m-0 text-muted">¡Sin pendientes!</p>
                     }
                   </ul>
                   @if (pendingOrders.length > 5) {
@@ -131,14 +129,12 @@
                         >
                         <a
                           [routerLink]="['/admin/products/edit', product.id]"
-                          class="btn btn-sm btn-outline-danger ms-auto"
+                          class="btn btn-sm btn-outline-danger"
                           ><i class="bi bi-pencil"></i
                         ></a>
                       </li>
                     } @empty {
-                      <p class="text-center py-3 m-0 text-muted">
-                        <i class="bi bi-check-circle me-1"></i>¡Stock al día!
-                      </p>
+                      <p class="text-center py-3 m-0 text-muted">¡Stock al día!</p>
                     }
                   </ul>
                   @if (lowStockProducts.length > 5) {
@@ -171,6 +167,7 @@
         <div class="row g-4">
           <div
             class="col-12 col-md-6 col-xl-4"
+            [class.active-glow]="activeTab() === 'orders' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'orders'"
           >
             <div class="card glass-card card-recent-orders">
@@ -184,14 +181,14 @@
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ order.clientName }}</span>
-                          <small class="d-block text-muted"
+                          <small class="text-muted"
                             >{{ order.total | currency: 'ARS' : '$' : '1.0-0' }} -
                             {{ order.orderDate | date: 'short' }}</small
                           >
                         </div>
                         <a
                           [routerLink]="['/admin/orders', order.id]"
-                          class="btn btn-sm btn-outline-info ms-auto"
+                          class="btn btn-sm btn-outline-info"
                           ><i class="bi bi-arrow-right-circle"></i
                         ></a>
                       </li>
@@ -207,6 +204,7 @@
 
           <div
             class="col-12 col-md-6 col-xl-4"
+            [class.active-glow]="activeTab() === 'clients' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'clients'"
           >
             <div class="card glass-card card-recent-clients">
@@ -220,11 +218,11 @@
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ client.fullName }}</span>
-                          <small class="d-block text-truncate">{{ client.email }}</small>
+                          <small class="text-truncate d-block">{{ client.email }}</small>
                         </div>
                         <a
                           [routerLink]="['/admin/customers', client.email]"
-                          class="btn btn-sm btn-outline-primary ms-auto"
+                          class="btn btn-sm btn-outline-primary"
                           ><i class="bi bi-person-fill"></i
                         ></a>
                       </li>
@@ -240,6 +238,7 @@
 
           <div
             class="col-12 col-md-12 col-xl-4"
+            [class.active-glow]="activeTab() === 'products' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'products'"
           >
             <div class="card glass-card card-recent-products">
@@ -253,13 +252,13 @@
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ product.name }}</span>
-                          <small class="d-block text-muted">{{
+                          <small class="text-muted d-block">{{
                             product.price | currency: 'ARS' : '$' : '1.0-0'
                           }}</small>
                         </div>
                         <a
                           [routerLink]="['/admin/products', product.id]"
-                          class="btn btn-sm btn-outline-success ms-auto"
+                          class="btn btn-sm btn-outline-success"
                           ><i class="bi bi-eye"></i
                         ></a>
                       </li>
