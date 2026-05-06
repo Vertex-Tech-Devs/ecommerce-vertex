@@ -94,7 +94,7 @@
                         </span>
                         <a
                           [routerLink]="['/admin/orders', order.id]"
-                          class="btn btn-sm btn-outline-primary"
+                          class="btn btn-sm btn-outline-primary ms-auto"
                           ><i class="bi bi-arrow-right-circle"></i
                         ></a>
                       </li>
@@ -129,7 +129,7 @@
                         >
                         <a
                           [routerLink]="['/admin/products/edit', product.id]"
-                          class="btn btn-sm btn-outline-danger"
+                          class="btn btn-sm btn-outline-danger ms-auto"
                           ><i class="bi bi-pencil"></i
                         ></a>
                       </li>
@@ -153,26 +153,25 @@
         <h2 class="dashboard__section-title">Actividad Reciente</h2>
 
         <div class="activity-picker d-md-none">
-          <button [class.active]="activeTab() === 'orders'" (click)="setTab('orders')">
+          <button [class.active-orders]="activeTab() === 'orders'" (click)="setTab('orders')">
             Pedidos
           </button>
-          <button [class.active]="activeTab() === 'clients'" (click)="setTab('clients')">
+          <button [class.active-clients]="activeTab() === 'clients'" (click)="setTab('clients')">
             Clientes
           </button>
-          <button [class.active]="activeTab() === 'products'" (click)="setTab('products')">
+          <button [class.active-products]="activeTab() === 'products'" (click)="setTab('products')">
             Productos
           </button>
         </div>
 
-        <div class="row g-4">
+        <div class="row g-4 activity-container">
           <div
             class="col-12 col-md-6 col-xl-4"
-            [class.active-glow]="activeTab() === 'orders' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'orders'"
           >
-            <div class="card glass-card card-recent-orders">
+            <div class="card glass-card card-recent-orders" [class.active-glow]="isMobile()">
               <div class="card-header border-0 text-center fw-bold d-none d-md-block">
-                Últimos Pedidos
+                <i class="bi bi-cart-check me-2"></i>Últimos Pedidos
               </div>
               <div class="card-body">
                 @if (latestOrders$ | async; as latestOrders) {
@@ -188,7 +187,7 @@
                         </div>
                         <a
                           [routerLink]="['/admin/orders', order.id]"
-                          class="btn btn-sm btn-outline-info"
+                          class="btn btn-sm btn-outline-info ms-auto"
                           ><i class="bi bi-arrow-right-circle"></i
                         ></a>
                       </li>
@@ -204,12 +203,11 @@
 
           <div
             class="col-12 col-md-6 col-xl-4"
-            [class.active-glow]="activeTab() === 'clients' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'clients'"
           >
-            <div class="card glass-card card-recent-clients">
+            <div class="card glass-card card-recent-clients" [class.active-glow]="isMobile()">
               <div class="card-header border-0 text-center fw-bold d-none d-md-block">
-                Últimos Clientes
+                <i class="bi bi-people me-2"></i>Últimos Clientes
               </div>
               <div class="card-body">
                 @if (latestClients$ | async; as latestClients) {
@@ -222,7 +220,7 @@
                         </div>
                         <a
                           [routerLink]="['/admin/customers', client.email]"
-                          class="btn btn-sm btn-outline-primary"
+                          class="btn btn-sm btn-outline-primary ms-auto"
                           ><i class="bi bi-person-fill"></i
                         ></a>
                       </li>
@@ -238,12 +236,11 @@
 
           <div
             class="col-12 col-md-12 col-xl-4"
-            [class.active-glow]="activeTab() === 'products' && isMobile()"
             [class.d-none]="isMobile() && activeTab() !== 'products'"
           >
-            <div class="card glass-card card-recent-products">
+            <div class="card glass-card card-recent-products" [class.active-glow]="isMobile()">
               <div class="card-header border-0 text-center fw-bold d-none d-md-block">
-                Últimos Productos
+                <i class="bi bi-box-seam me-2"></i>Últimos Productos
               </div>
               <div class="card-body">
                 @if (latestProducts$ | async; as latestProducts) {
@@ -258,7 +255,7 @@
                         </div>
                         <a
                           [routerLink]="['/admin/products', product.id]"
-                          class="btn btn-sm btn-outline-success"
+                          class="btn btn-sm btn-outline-success ms-auto"
                           ><i class="bi bi-eye"></i
                         ></a>
                       </li>
