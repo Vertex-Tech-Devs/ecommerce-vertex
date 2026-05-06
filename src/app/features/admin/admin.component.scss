@@ -99,6 +99,8 @@ app-header {
   .admin-shell__main {
     margin-left: 0;
     width: 100%;
+    /* Corrección de ghost scroll: eliminamos min-height forzado en mobile */
+    min-height: 100%;
 
     &--dimmed {
       pointer-events: none;
