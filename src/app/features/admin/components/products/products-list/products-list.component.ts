@@ -1,6 +1,6 @@
 import type { OnInit, OnDestroy } from '@angular/core';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CommonModule, CurrencyPipe, TitleCasePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, TitleCasePipe, ViewportScroller } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
 import type { Observable, Subscription } from 'rxjs';
@@ -8,8 +8,7 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import type { Product } from '@core/models/product.model';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
-import { BsModalRef } from 'ngx-bootstrap/modal';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
@@ -30,6 +29,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private modalService = inject(BsModalService);
+  private viewportScroller = inject(ViewportScroller);
 
   bsModalRef?: BsModalRef;
   private modalSubscription?: Subscription;
@@ -40,8 +40,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   private categoriesMap: Map<string, string> = new Map();
 
   currentPageSubject = new BehaviorSubject<number>(1);
-  itemsPerPageSubject = new BehaviorSubject<number>(10);
-  itemsPerPageOptions = [5, 10, 20, 30];
+  itemsPerPageSubject = new BehaviorSubject<number>(12);
 
   totalProducts = 0;
   totalPages = 0;
@@ -116,12 +115,16 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPageSubject.next(page);
-    }
-  }
 
-  onItemsPerPageChange(newValue: string): void {
-    this.itemsPerPageSubject.next(Number(newValue));
-    this.currentPageSubject.next(1);
+      setTimeout(() => {
+        this.viewportScroller.scrollToPosition([0, 0]);
+
+        const container = document.querySelector('.admin-shell__main');
+        if (container) {
+          container.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    }
   }
 
   ngOnDestroy(): void {
