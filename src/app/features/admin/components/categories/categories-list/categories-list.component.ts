@@ -61,7 +61,7 @@ export class CategoriesListComponent implements OnInit, OnDestroy {
     const initialState = category ? { category: { ...category } } : {};
     this.bsModalRef = this.modalService.show(CategoryModalComponent, {
       initialState,
-      class: 'modal-lg modal-dialog-centered',
+      class: 'modal-lg modal-dialog-centered modal-dialog-scrollable',
     });
 
     this.modalSubscription = this.bsModalRef.content.onClose.subscribe(
