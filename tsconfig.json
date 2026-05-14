@@ -45,6 +45,7 @@
     "tmp",
     "dist",
     "functions",
+    "scripts",
     "cypress",
     "**/*.cy.ts",
     "cypress.config.ts",
