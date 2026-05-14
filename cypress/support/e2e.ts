@@ -1,10 +1,12 @@
 /// <reference types="cypress" />
 
-/**
- * Cypress E2E Support - Common Commands
- * 
- * Define custom commands that can be reused across all E2E tests
- */
+// Block all outbound Firebase/Google API calls before every test.
+// This ensures Angular boots instantly in CI (no waiting for unreachable backends).
+// Individual tests register their own cy.intercept() calls, which take precedence
+// over this global stub because Cypress matches interceptors in LIFO order.
+beforeEach(() => {
+  cy.intercept('**/googleapis.com/**', { statusCode: 401, body: {} });
+});
 
 // ✅ Custom command: Login
 Cypress.Commands.add('login', (email: string, password: string) => {

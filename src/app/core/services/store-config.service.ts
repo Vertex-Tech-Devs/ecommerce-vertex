@@ -15,7 +15,7 @@ export class StoreConfigService {
   async loadConfig(): Promise<void> {
     try {
       const deadline = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 5000)
+        setTimeout(() => reject(new Error('timeout')), 3000)
       );
       const snap = await Promise.race([
         getDoc(doc(this.firestore, 'settings', 'storeConfig')),
