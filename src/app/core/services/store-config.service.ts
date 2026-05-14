@@ -14,12 +14,18 @@ export class StoreConfigService {
 
   async loadConfig(): Promise<void> {
     try {
-      const snap = await getDoc(doc(this.firestore, 'settings', 'storeConfig'));
+      const deadline = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 5000)
+      );
+      const snap = await Promise.race([
+        getDoc(doc(this.firestore, 'settings', 'storeConfig')),
+        deadline,
+      ]);
       if (snap.exists()) {
         this.config.set(snap.data() as StoreConfig);
       }
     } catch {
-      /* Firestore no configurado aún */
+      /* Firestore unreachable or not yet configured */
     }
   }
 
