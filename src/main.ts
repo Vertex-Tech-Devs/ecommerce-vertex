@@ -6,4 +6,8 @@ import { AppComponent } from './app/app.component';
 fetch('/firebase-config.json')
   .then((r) => r.json() as Promise<FirebaseOptions>)
   .then((firebaseConfig) => bootstrapApplication(AppComponent, createAppConfig(firebaseConfig)))
-  .catch((err) => console.error('Failed to load Firebase config:', err));
+  .catch((err) => {
+    console.error('Failed to load Firebase config:', err);
+    document.body.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#6b7280">Store configuration unavailable. Please try again later.</div>';
+  });

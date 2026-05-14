@@ -142,23 +142,6 @@
   color: #374151;
 }
 
-.color-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.color-swatch {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 0.15rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  background: none;
-}
-
 .wizard-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

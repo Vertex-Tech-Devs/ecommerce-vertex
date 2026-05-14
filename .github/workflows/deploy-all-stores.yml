@@ -101,7 +101,9 @@ jobs:
           path: dist/ecommerce-vertex/browser
 
       - name: Inject firebase config
-        run: echo '${{ matrix.store.firebaseConfig }}' > dist/ecommerce-vertex/browser/firebase-config.json
+        env:
+          FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
+        run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -138,20 +140,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-
-      - run: npm ci
-
       - uses: actions/download-artifact@v4
         with:
           name: dist-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
 
       - name: Inject firebase config
-        run: echo '${{ matrix.store.firebaseConfig }}' > dist/ecommerce-vertex/browser/firebase-config.json
+        env:
+          FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
+        run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

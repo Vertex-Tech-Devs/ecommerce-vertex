@@ -83,23 +83,6 @@
   color: vars.$text-dark;
 }
 
-.color-picker-row {
-  display: flex;
-  align-items: center;
-  gap: vars.$space-2;
-}
-
-.color-swatch {
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid vars.$glass-border;
-  border-radius: vars.$radius-md;
-  padding: 0.15rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  background: none;
-}
-
 .config-actions {
   display: flex;
   justify-content: flex-end;

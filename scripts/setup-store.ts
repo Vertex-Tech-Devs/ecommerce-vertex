@@ -6,9 +6,6 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = resolve(ROOT, 'src/environments/store.config.ts');
 
-const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
-const hexValidator = (v: string): string | undefined =>
-  HEX_RE.test(v) ? undefined : 'Color hex inválido (ej: #ea580c)';
 const required = (v: string): string | undefined =>
   v.trim() ? undefined : 'Campo obligatorio';
 
@@ -34,13 +31,6 @@ export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
   storeName: ${JSON.stringify(cfg['storeName'])},
   strapline: ${JSON.stringify(cfg['strapline'])},
   logoUrl: ${JSON.stringify(cfg['logoUrl'])},
-  theme: {
-    primaryColor: ${JSON.stringify(cfg['primaryColor'])},
-    primaryHoverColor: ${JSON.stringify(cfg['primaryHoverColor'])},
-    secondaryColor: ${JSON.stringify(cfg['secondaryColor'])},
-    accentColor: ${JSON.stringify(cfg['accentColor'])},
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  },
   contact: {
     email: ${JSON.stringify(cfg['email'])},
     phone: ${JSON.stringify(cfg['phone'])},
@@ -51,6 +41,12 @@ export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
   seo: {
     metaTitle: ${JSON.stringify(cfg['metaTitle'])},
     metaDescription: ${JSON.stringify(cfg['metaDescription'])},
+  },
+  features: {
+    seedDataEnabled: true,
+    reviewsEnabled: false,
+    wishlistEnabled: false,
+    blogEnabled: false,
   },
   currency: ${JSON.stringify(cfg['currency'])},
   currencySymbol: ${JSON.stringify(cfg['currencySymbol'])},
@@ -78,40 +74,6 @@ async function main(): Promise<void> {
           message: 'URL del logo (opcional)',
           placeholder: 'https://tudominio.com/logo.png',
           defaultValue: '',
-        }),
-    },
-    { onCancel }
-  );
-
-  const colors = await p.group(
-    {
-      primaryColor: () =>
-        p.text({
-          message: 'Color primario (botones, links)',
-          placeholder: '#ea580c',
-          defaultValue: '#ea580c',
-          validate: hexValidator,
-        }),
-      primaryHoverColor: () =>
-        p.text({
-          message: 'Color primario (hover)',
-          placeholder: '#fb923c',
-          defaultValue: '#fb923c',
-          validate: hexValidator,
-        }),
-      secondaryColor: () =>
-        p.text({
-          message: 'Color secundario (admin)',
-          placeholder: '#4f46e5',
-          defaultValue: '#4f46e5',
-          validate: hexValidator,
-        }),
-      accentColor: () =>
-        p.text({
-          message: 'Color de acento (alerts, gradients)',
-          placeholder: '#ef4444',
-          defaultValue: '#ef4444',
-          validate: hexValidator,
         }),
     },
     { onCancel }
@@ -191,7 +153,6 @@ async function main(): Promise<void> {
 
   const cfg: Record<string, string> = {
     ...identity,
-    ...colors,
     ...contact,
     ...seo,
     currency,

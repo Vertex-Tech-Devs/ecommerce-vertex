@@ -25,7 +25,9 @@ jobs:
       - run: npm ci
 
       - name: Write Firebase config
-        run: echo '${{ github.event.client_payload.firebase_config }}' > src/firebase-config.json
+        env:
+          FIREBASE_CONFIG_JSON: ${{ github.event.client_payload.firebase_config }}
+        run: printf '%s' "$FIREBASE_CONFIG_JSON" > src/firebase-config.json
 
       - name: Build
         run: npm run build
