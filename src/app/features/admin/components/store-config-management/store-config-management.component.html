@@ -1,0 +1,206 @@
+<div class="config-page">
+  <div class="config-page__header">
+    <h1 class="config-page__title"><i class="bi bi-shop"></i> Configuración de la Tienda</h1>
+    <p class="config-page__subtitle">
+      Actualizá los datos generales, contacto, SEO y configuración regional.
+    </p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="config-form" novalidate>
+    <!-- ── Identidad ── -->
+    <section class="config-section">
+      <h2 class="config-section__title"><i class="bi bi-shop"></i> Identidad</h2>
+      <div class="config-grid">
+        <div class="form-group">
+          <label class="form-label">Nombre de la tienda *</label>
+          <input
+            formControlName="storeName"
+            type="text"
+            class="form-control"
+            [class.is-invalid]="form.get('storeName')?.invalid && form.get('storeName')?.touched"
+            placeholder="Mi Tienda"
+          />
+          @if (form.get('storeName')?.invalid && form.get('storeName')?.touched) {
+            <div class="invalid-feedback">Campo obligatorio.</div>
+          }
+        </div>
+        <div class="form-group">
+          <label class="form-label">Slogan</label>
+          <input
+            formControlName="strapline"
+            type="text"
+            class="form-control"
+            placeholder="Tu tienda online"
+          />
+        </div>
+        <div class="form-group config-grid--full">
+          <label class="form-label">URL del logo</label>
+          <input
+            formControlName="logoUrl"
+            type="url"
+            class="form-control"
+            placeholder="https://tudominio.com/logo.png"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Contacto ── -->
+    <section class="config-section" formGroupName="contact">
+      <h2 class="config-section__title"><i class="bi bi-person-lines-fill"></i> Contacto</h2>
+      <div class="config-grid">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            formControlName="email"
+            type="email"
+            class="form-control"
+            placeholder="hola@tutienda.com"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input
+            formControlName="phone"
+            type="tel"
+            class="form-control"
+            placeholder="+54 11 1234-5678"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp</label>
+          <input
+            formControlName="whatsapp"
+            type="tel"
+            class="form-control"
+            placeholder="+5491112345678"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instagram (URL)</label>
+          <input
+            formControlName="instagram"
+            type="url"
+            class="form-control"
+            placeholder="https://instagram.com/tutienda"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Facebook (URL)</label>
+          <input
+            formControlName="facebook"
+            type="url"
+            class="form-control"
+            placeholder="https://facebook.com/tutienda"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SEO ── -->
+    <section class="config-section" formGroupName="seo">
+      <h2 class="config-section__title"><i class="bi bi-search"></i> SEO</h2>
+      <div class="config-grid">
+        <div class="form-group">
+          <label class="form-label">Meta title</label>
+          <input
+            formControlName="metaTitle"
+            type="text"
+            class="form-control"
+            placeholder="Mi Tienda — Productos de calidad"
+          />
+        </div>
+        <div class="form-group config-grid--full">
+          <label class="form-label">Meta description</label>
+          <textarea
+            formControlName="metaDescription"
+            class="form-control"
+            rows="2"
+            placeholder="Bienvenido a nuestra tienda online."
+          ></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Regional ── -->
+    <section class="config-section">
+      <h2 class="config-section__title"><i class="bi bi-globe-americas"></i> Regional</h2>
+      <div class="config-grid">
+        <div class="form-group">
+          <label class="form-label">Moneda</label>
+          <select
+            formControlName="currency"
+            class="form-select"
+            (change)="onCurrencyChange($event)"
+          >
+            @for (c of currencies; track c.value) {
+              <option [value]="c.value">{{ c.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Símbolo</label>
+          <input
+            formControlName="currencySymbol"
+            type="text"
+            class="form-control"
+            placeholder="$"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">País (código ISO)</label>
+          <input
+            formControlName="country"
+            type="text"
+            class="form-control"
+            placeholder="AR"
+            maxlength="2"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Feature Flags ── -->
+    <section class="config-section" formGroupName="features">
+      <h2 class="config-section__title"><i class="bi bi-toggles"></i> Feature Flags</h2>
+      <div class="config-grid">
+        @for (
+          flag of [
+            { key: 'seedDataEnabled', label: 'Seed Data Tool', hint: 'Habilita /admin/_dev/seed' },
+            { key: 'reviewsEnabled', label: 'Reseñas', hint: 'Reviews de productos' },
+            { key: 'wishlistEnabled', label: 'Lista de deseos', hint: 'Wishlist para clientes' },
+            { key: 'blogEnabled', label: 'Blog', hint: 'Módulo de blog' },
+          ];
+          track flag.key
+        ) {
+          <div class="form-group feature-toggle">
+            <label class="form-check form-switch mb-0">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                [formControlName]="flag.key"
+              />
+              <span class="form-check-label">
+                <strong>{{ flag.label }}</strong>
+                <small class="text-muted d-block">{{ flag.hint }}</small>
+              </span>
+            </label>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- ── Guardar ── -->
+    <div class="config-actions">
+      <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting">
+        <i
+          class="bi"
+          [class.bi-floppy]="!isSubmitting"
+          [class.bi-arrow-clockwise]="isSubmitting"
+        ></i>
+        {{ isSubmitting ? 'Guardando…' : 'Guardar configuración' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -41,25 +41,27 @@ export class AboutUsManagementComponent implements OnInit {
   }
 
   private buildForm(data: AboutUsData | null = null): void {
+    const d = data ?? ({} as Partial<AboutUsData>);
     this.aboutUsForm = this.fb.group({
-      bannerTitle: [data?.bannerTitle ?? '', Validators.required],
-      bannerSubtitle: [data?.bannerSubtitle ?? ''],
-      bannerImageUrl: [data?.bannerImageUrl ?? '', [Validators.pattern('https?://.+')]],
-
-      centralTitle: [data?.centralTitle ?? '', Validators.required],
-      centralImageUrl: [data?.centralImageUrl ?? '', [Validators.pattern('https?://.+')]],
+      bannerTitle: [d.bannerTitle ?? '', Validators.required],
+      bannerSubtitle: [d.bannerSubtitle ?? ''],
+      bannerImageUrl: [d.bannerImageUrl ?? '', [Validators.pattern('https?://.+')]],
+      centralTitle: [d.centralTitle ?? '', Validators.required],
+      centralImageUrl: [d.centralImageUrl ?? '', [Validators.pattern('https?://.+')]],
       centralDescription: [
-        data?.centralDescription ?? '',
+        d.centralDescription ?? '',
         [Validators.required, Validators.minLength(50), Validators.maxLength(1000)],
       ],
-
-      cardsSectionTitle: [data?.cardsSectionTitle ?? '', Validators.required],
+      cardsSectionTitle: [d.cardsSectionTitle ?? '', Validators.required],
       featureCards: this.fb.array(
         [],
         [Validators.required, Validators.minLength(1), Validators.maxLength(2)]
       ),
     });
+    this.initFeatureCards(data);
+  }
 
+  private initFeatureCards(data: AboutUsData | null): void {
     if (data?.featureCards && data.featureCards.length > 0) {
       data.featureCards.forEach((card) => this.addFeatureCard(card));
     } else {

@@ -1,5 +1,7 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { Firestore, collection, addDoc, setDoc, doc } from '@angular/fire/firestore';
+import type { StoreConfig } from '@core/models/store-config.model';
+import { STORE_CONFIG } from '@environments/store.config';
 
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
@@ -183,5 +185,10 @@ export class SeedContentService {
         copyrightText: '© 2026 Vertex. Todos los derechos reservados.',
       })
     );
+  }
+
+  async seedStoreConfig(): Promise<void> {
+    const payload: Omit<StoreConfig, 'id'> = { ...STORE_CONFIG, updatedAt: new Date() };
+    await this.run(() => setDoc(doc(this.firestore, 'settings', 'storeConfig'), payload));
   }
 }

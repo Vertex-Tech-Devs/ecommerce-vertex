@@ -1,5 +1,7 @@
 import type { Routes } from '@angular/router';
 import { AdminGuard } from '@core/guards/admin.guard';
+import { firstRunGuard, setupCompleteGuard } from '@core/guards/first-run.guard';
+import { featureFlagGuard } from '@core/guards/feature-flag.guard';
 
 export const routes: Routes = [
   {
@@ -20,13 +22,21 @@ export const routes: Routes = [
           import('./features/admin/components/login/login.component').then((m) => m.LoginComponent),
       },
       {
+        path: 'setup',
+        canActivate: [AdminGuard, setupCompleteGuard],
+        loadComponent: () =>
+          import('./features/admin/components/setup-wizard/setup-wizard.component').then(
+            (m) => m.SetupWizardComponent
+          ),
+      },
+      {
         path: '_dev',
-        canActivate: [AdminGuard],
+        canActivate: [AdminGuard, featureFlagGuard('seedDataEnabled')],
         loadChildren: () => import('./features/dev/dev.routes').then((m) => m.DEV_ROUTES),
       },
       {
         path: '',
-        canActivate: [AdminGuard],
+        canActivate: [AdminGuard, firstRunGuard],
         loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
       },
     ],
