@@ -1,16 +1,12 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
-
-const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
-const hexValidator = Validators.pattern(HEX_RE);
 
 @Component({
   selector: 'app-store-config-management',
@@ -40,13 +36,6 @@ export class StoreConfigManagementComponent implements OnInit {
     storeName: ['', Validators.required],
     strapline: [''],
     logoUrl: [''],
-    theme: this.fb.group({
-      primaryColor: ['#ea580c', [Validators.required, hexValidator]],
-      primaryHoverColor: ['#fb923c', [Validators.required, hexValidator]],
-      secondaryColor: ['#4f46e5', [Validators.required, hexValidator]],
-      accentColor: ['#ef4444', [Validators.required, hexValidator]],
-      fontFamily: [''],
-    }),
     contact: this.fb.group({
       email: [''],
       phone: [''],
@@ -69,18 +58,6 @@ export class StoreConfigManagementComponent implements OnInit {
     country: ['AR'],
   });
 
-  private readonly themeChanges = toSignal((this.form.get('theme') as FormGroup).valueChanges);
-
-  constructor() {
-    effect(() => {
-      const theme = this.themeChanges();
-      const current = this.storeConfigService.config();
-      if (theme && current) {
-        this.storeConfigService.applyTheme({ ...current, theme } as StoreConfig);
-      }
-    });
-  }
-
   ngOnInit(): void {
     const cfg = this.storeConfigService.config();
     if (cfg) {
@@ -88,7 +65,6 @@ export class StoreConfigManagementComponent implements OnInit {
         storeName: cfg.storeName,
         strapline: cfg.strapline ?? '',
         logoUrl: cfg.logoUrl ?? '',
-        theme: cfg.theme,
         contact: cfg.contact,
         seo: cfg.seo,
         features: cfg.features,
@@ -105,11 +81,6 @@ export class StoreConfigManagementComponent implements OnInit {
     if (found) {
       this.form.patchValue({ currencySymbol: found.symbol, country: found.country });
     }
-  }
-
-  syncColorText(field: string, event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    (this.form.get('theme') as FormGroup).get(field)?.setValue(value);
   }
 
   async onSubmit(): Promise<void> {

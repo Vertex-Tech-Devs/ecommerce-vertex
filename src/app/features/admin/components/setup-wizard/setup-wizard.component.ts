@@ -1,16 +1,13 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 import { DEFAULT_STORE_CONFIG } from '@core/models/store-config.model';
-
-const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
 
 @Component({
   selector: 'app-setup-wizard',
@@ -26,23 +23,15 @@ export class SetupWizardComponent {
   private router = inject(Router);
 
   readonly step = signal(1);
-  readonly totalSteps = 4;
+  readonly totalSteps = 3;
   readonly isSubmitting = signal(false);
 
-  readonly stepTitles = ['Identidad', 'Colores', 'Contacto', 'Listo'];
+  readonly stepTitles = ['Identidad', 'Contacto', 'Listo'];
 
   readonly identityGroup: FormGroup = this.fb.group({
     storeName: ['', Validators.required],
     strapline: ['Tu tienda online'],
     logoUrl: [''],
-  });
-
-  readonly themeGroup: FormGroup = this.fb.group({
-    primaryColor: ['#ea580c', [Validators.required, Validators.pattern(HEX_RE)]],
-    primaryHoverColor: ['#fb923c', [Validators.required, Validators.pattern(HEX_RE)]],
-    secondaryColor: ['#4f46e5', [Validators.required, Validators.pattern(HEX_RE)]],
-    accentColor: ['#ef4444', [Validators.required, Validators.pattern(HEX_RE)]],
-    fontFamily: [DEFAULT_STORE_CONFIG.theme.fontFamily],
   });
 
   readonly contactGroup: FormGroup = this.fb.group({
@@ -52,25 +41,6 @@ export class SetupWizardComponent {
     instagram: [''],
     facebook: [''],
   });
-
-  private readonly themeChanges = toSignal(this.themeGroup.valueChanges);
-
-  constructor() {
-    effect(() => {
-      const theme = this.themeChanges();
-      if (!theme) {
-        return;
-      }
-      this.storeConfigService.applyTheme({
-        ...DEFAULT_STORE_CONFIG,
-        theme,
-      } as StoreConfig);
-    });
-  }
-
-  syncColor(field: string, event: Event): void {
-    this.themeGroup.get(field)?.setValue((event.target as HTMLInputElement).value);
-  }
 
   next(): void {
     if (this.step() < this.totalSteps) {
@@ -88,9 +58,6 @@ export class SetupWizardComponent {
     if (this.step() === 1) {
       return this.identityGroup.valid;
     }
-    if (this.step() === 2) {
-      return this.themeGroup.valid;
-    }
     return true;
   }
 
@@ -99,7 +66,6 @@ export class SetupWizardComponent {
     try {
       const payload: Omit<StoreConfig, 'id'> = {
         ...this.identityGroup.value,
-        theme: this.themeGroup.value,
         contact: this.contactGroup.value,
         seo: {
           metaTitle: this.identityGroup.value.storeName as string,

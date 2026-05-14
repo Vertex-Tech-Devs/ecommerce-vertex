@@ -1,8 +1,8 @@
 <div class="config-page">
   <div class="config-page__header">
-    <h1 class="config-page__title"><i class="bi bi-palette"></i> Configuración de la Tienda</h1>
+    <h1 class="config-page__title"><i class="bi bi-shop"></i> Configuración de la Tienda</h1>
     <p class="config-page__subtitle">
-      Los cambios de color se aplican en tiempo real como preview. Guardá para persistir.
+      Actualizá los datos generales, contacto, SEO y configuración regional.
     </p>
   </div>
 
@@ -40,59 +40,6 @@
             type="url"
             class="form-control"
             placeholder="https://tudominio.com/logo.png"
-          />
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Colores ── -->
-    <section class="config-section" formGroupName="theme">
-      <h2 class="config-section__title"><i class="bi bi-palette2"></i> Marca y Colores</h2>
-      <div class="config-grid">
-        @for (
-          field of [
-            { key: 'primaryColor', label: 'Color primario' },
-            { key: 'primaryHoverColor', label: 'Primario (hover)' },
-            { key: 'secondaryColor', label: 'Color secundario' },
-            { key: 'accentColor', label: 'Color de acento' },
-          ];
-          track field.key
-        ) {
-          <div class="form-group">
-            <label class="form-label">{{ field.label }}</label>
-            <div class="color-picker-row">
-              <input
-                type="color"
-                [value]="form.get('theme')!.get(field.key)!.value"
-                (input)="syncColorText(field.key, $event)"
-                class="color-swatch"
-              />
-              <input
-                [formControlName]="field.key"
-                type="text"
-                class="form-control"
-                [class.is-invalid]="
-                  form.get('theme')!.get(field.key)!.invalid &&
-                  form.get('theme')!.get(field.key)!.touched
-                "
-                placeholder="#ea580c"
-              />
-            </div>
-            @if (
-              form.get('theme')!.get(field.key)!.invalid &&
-              form.get('theme')!.get(field.key)!.touched
-            ) {
-              <div class="invalid-feedback">Ingresá un color hex válido (ej: #ea580c).</div>
-            }
-          </div>
-        }
-        <div class="form-group config-grid--full">
-          <label class="form-label">Familia de fuentes</label>
-          <input
-            formControlName="fontFamily"
-            type="text"
-            class="form-control"
-            placeholder="'Inter', sans-serif"
           />
         </div>
       </div>

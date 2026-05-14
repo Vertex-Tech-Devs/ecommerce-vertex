@@ -8,7 +8,7 @@
 
     <!-- Stepper -->
     <div class="stepper">
-      @for (i of [1, 2, 3, 4]; track i) {
+      @for (i of [1, 2, 3]; track i) {
         <div
           class="stepper__item"
           [class.stepper__item--active]="step() === i"
@@ -23,7 +23,7 @@
           </div>
           <span class="stepper__label">{{ stepTitles[i - 1] }}</span>
         </div>
-        @if (i < 4) {
+        @if (i < 3) {
           <div class="stepper__line" [class.stepper__line--done]="step() > i"></div>
         }
       }
@@ -74,41 +74,6 @@
         }
 
         @case (2) {
-          <div [formGroup]="themeGroup" class="wizard-step">
-            <h2 class="step-title">
-              Colores de marca <span class="step-hint">— preview en tiempo real</span>
-            </h2>
-            @for (
-              field of [
-                { key: 'primaryColor', label: 'Color primario' },
-                { key: 'primaryHoverColor', label: 'Primario (hover)' },
-                { key: 'secondaryColor', label: 'Secundario (admin)' },
-                { key: 'accentColor', label: 'Acento (alertas)' },
-              ];
-              track field.key
-            ) {
-              <div class="form-group">
-                <label class="form-label">{{ field.label }}</label>
-                <div class="color-row">
-                  <input
-                    type="color"
-                    [value]="themeGroup.get(field.key)!.value"
-                    (input)="syncColor(field.key, $event)"
-                    class="color-swatch"
-                  />
-                  <input
-                    [formControlName]="field.key"
-                    type="text"
-                    class="form-control"
-                    placeholder="#ea580c"
-                  />
-                </div>
-              </div>
-            }
-          </div>
-        }
-
-        @case (3) {
           <div [formGroup]="contactGroup" class="wizard-step">
             <h2 class="step-title">
               Información de contacto <span class="step-hint">— todo opcional</span>
@@ -163,7 +128,7 @@
           </div>
         }
 
-        @case (4) {
+        @case (3) {
           <div class="wizard-step wizard-done">
             <i class="bi bi-check-circle-fill wizard-done__icon"></i>
             <h2 class="wizard-done__title">¡Todo listo!</h2>
