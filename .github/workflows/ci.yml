@@ -146,6 +146,10 @@ jobs:
       - name: Generate stub environment file
         run: cp src/environments/environment.example.ts src/environments/environment.ts
 
+      - name: Generate stub Firebase config
+        run: |
+          echo '{"apiKey":"test","authDomain":"demo-vertex.firebaseapp.com","projectId":"demo-vertex","storageBucket":"demo-vertex.appspot.com","messagingSenderId":"000000000000","appId":"1:000000000000:web:000000000000000000000000"}' > src/firebase-config.json
+
       - name: Start Angular dev server
         run: npm start &
         env:
