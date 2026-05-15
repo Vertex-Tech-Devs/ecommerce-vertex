@@ -8,11 +8,13 @@ export const ADMIN_ROUTES: Routes = [
     children: [
       {
         path: 'dashboard',
+        title: 'Dashboard',
         loadComponent: () =>
           import('./components/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'products',
+        title: 'Productos',
         loadComponent: () =>
           import('./components/products/products-list/products-list.component').then(
             (m) => m.ProductsListComponent
@@ -20,6 +22,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'products/create',
+        title: 'Nuevo producto',
         loadComponent: () =>
           import('./components/products/product-create/product-create.component').then(
             (m) => m.ProductCreateComponent
@@ -27,6 +30,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'products/edit/:id',
+        title: 'Editar producto',
         loadComponent: () =>
           import('./components/products/product-create/product-create.component').then(
             (m) => m.ProductCreateComponent
@@ -41,6 +45,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'categories',
+        title: 'Categorías',
         loadComponent: () =>
           import('./components/categories/categories-list/categories-list.component').then(
             (m) => m.CategoriesListComponent
@@ -48,6 +53,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'attributes',
+        title: 'Atributos',
         loadComponent: () =>
           import('./components/attributes/attributes-list/attributes-list.component').then(
             (m) => m.AttributesListComponent
@@ -55,6 +61,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'orders',
+        title: 'Pedidos',
         loadComponent: () =>
           import('./components/orders/orders-list/orders-list.component').then(
             (m) => m.OrdersListComponent
@@ -69,6 +76,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'customers',
+        title: 'Clientes',
         loadComponent: () =>
           import('./components/client/clients-list/clients-list.component').then(
             (m) => m.ClientsListComponent
@@ -83,6 +91,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'home-management',
+        title: 'Gestión Home',
         loadComponent: () =>
           import('./components/home-management/home-management.component').then(
             (m) => m.HomeManagementComponent
@@ -90,6 +99,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'about-management',
+        title: 'Gestión Nosotros',
         loadComponent: () =>
           import('./components/about-us-management/about-us-management.component').then(
             (m) => m.AboutUsManagementComponent
@@ -97,6 +107,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'footer-management',
+        title: 'Gestión Footer',
         loadComponent: () =>
           import('./components/footer-management/footer-management.component').then(
             (m) => m.FooterManagementComponent
@@ -104,9 +115,18 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'email-management',
+        title: 'Gestión de Emails',
         loadComponent: () =>
           import('./components/email-management/email-management.component').then(
             (m) => m.EmailManagementComponent
+          ),
+      },
+      {
+        path: 'store-config',
+        title: 'Configuración',
+        loadComponent: () =>
+          import('./components/store-config-management/store-config-management.component').then(
+            (m) => m.StoreConfigManagementComponent
           ),
       },
       {

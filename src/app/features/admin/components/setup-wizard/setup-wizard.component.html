@@ -1,0 +1,184 @@
+<div class="wizard">
+  <div class="wizard-card">
+    <!-- Header -->
+    <div class="wizard-header">
+      <h1 class="wizard-header__title"><i class="bi bi-shop-window"></i> Configuración inicial</h1>
+      <p class="wizard-header__sub">Completá los datos de tu tienda para comenzar</p>
+    </div>
+
+    <!-- Stepper -->
+    <div class="stepper">
+      @for (i of [1, 2, 3]; track i) {
+        <div
+          class="stepper__item"
+          [class.stepper__item--active]="step() === i"
+          [class.stepper__item--done]="step() > i"
+        >
+          <div class="stepper__circle">
+            @if (step() > i) {
+              <i class="bi bi-check-lg"></i>
+            } @else {
+              {{ i }}
+            }
+          </div>
+          <span class="stepper__label">{{ stepTitles[i - 1] }}</span>
+        </div>
+        @if (i < 3) {
+          <div class="stepper__line" [class.stepper__line--done]="step() > i"></div>
+        }
+      }
+    </div>
+
+    <!-- Step content -->
+    <div class="wizard-body">
+      @switch (step()) {
+        @case (1) {
+          <div [formGroup]="identityGroup" class="wizard-step">
+            <h2 class="step-title">Identidad de la tienda</h2>
+            <div class="form-group">
+              <label class="form-label">Nombre de la tienda *</label>
+              <input
+                formControlName="storeName"
+                type="text"
+                class="form-control"
+                [class.is-invalid]="
+                  identityGroup.get('storeName')?.invalid && identityGroup.get('storeName')?.touched
+                "
+                placeholder="Mi Tienda"
+              />
+              @if (
+                identityGroup.get('storeName')?.invalid && identityGroup.get('storeName')?.touched
+              ) {
+                <div class="invalid-feedback">Campo obligatorio.</div>
+              }
+            </div>
+            <div class="form-group">
+              <label class="form-label">Slogan</label>
+              <input
+                formControlName="strapline"
+                type="text"
+                class="form-control"
+                placeholder="Tu tienda online"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">URL del logo (opcional)</label>
+              <input
+                formControlName="logoUrl"
+                type="url"
+                class="form-control"
+                placeholder="https://tudominio.com/logo.png"
+              />
+            </div>
+          </div>
+        }
+
+        @case (2) {
+          <div [formGroup]="contactGroup" class="wizard-step">
+            <h2 class="step-title">
+              Información de contacto <span class="step-hint">— todo opcional</span>
+            </h2>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input
+                formControlName="email"
+                type="email"
+                class="form-control"
+                placeholder="hola@tutienda.com"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input
+                formControlName="phone"
+                type="tel"
+                class="form-control"
+                placeholder="+54 11 1234-5678"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">WhatsApp</label>
+              <input
+                formControlName="whatsapp"
+                type="tel"
+                class="form-control"
+                placeholder="+5491112345678"
+              />
+            </div>
+            <div class="wizard-row">
+              <div class="form-group">
+                <label class="form-label">Instagram (URL)</label>
+                <input
+                  formControlName="instagram"
+                  type="url"
+                  class="form-control"
+                  placeholder="https://instagram.com/tutienda"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Facebook (URL)</label>
+                <input
+                  formControlName="facebook"
+                  type="url"
+                  class="form-control"
+                  placeholder="https://facebook.com/tutienda"
+                />
+              </div>
+            </div>
+          </div>
+        }
+
+        @case (3) {
+          <div class="wizard-step wizard-done">
+            <i class="bi bi-check-circle-fill wizard-done__icon"></i>
+            <h2 class="wizard-done__title">¡Todo listo!</h2>
+            <p class="wizard-done__text">
+              Tu tienda <strong>{{ identityGroup.get('storeName')?.value }}</strong> está
+              configurada. Al continuar podrás ajustar todos los detalles desde el panel de
+              administración.
+            </p>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Actions -->
+    <div class="wizard-actions">
+      @if (step() > 1 && step() < totalSteps) {
+        <button type="button" class="btn btn-outline-secondary" (click)="prev()">
+          <i class="bi bi-arrow-left"></i> Atrás
+        </button>
+      }
+      @if (step() < totalSteps - 1) {
+        <button
+          type="button"
+          class="btn btn-primary ms-auto"
+          [disabled]="!canAdvance()"
+          (click)="next()"
+        >
+          Siguiente <i class="bi bi-arrow-right"></i>
+        </button>
+      }
+      @if (step() === totalSteps - 1) {
+        <button type="button" class="btn btn-primary ms-auto" (click)="next()">
+          Revisar y finalizar <i class="bi bi-arrow-right"></i>
+        </button>
+      }
+      @if (step() === totalSteps) {
+        <button
+          type="button"
+          class="btn btn-success ms-auto"
+          [disabled]="isSubmitting()"
+          (click)="onFinish()"
+        >
+          <i
+            class="bi"
+            [class.bi-rocket-takeoff]="!isSubmitting()"
+            [class.bi-arrow-clockwise]="isSubmitting()"
+          ></i>
+          {{ isSubmitting() ? 'Guardando…' : 'Ir al panel' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

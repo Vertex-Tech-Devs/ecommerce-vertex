@@ -27,7 +27,12 @@
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "firebase-config.json",
+                "input": "src",
+                "output": "/"
+              }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
@@ -41,7 +46,7 @@
             "stylePreprocessorOptions": {
               "includePaths": [
                 "src/styles"
-            ]
+              ]
             },
             "allowedCommonJsDependencies": [
               "sweetalert2",

@@ -47,9 +47,9 @@ Desktop.ini
 .env
 .env.local
 .env.*.local
-src/environments/environment.ts
-src/environments/environment.prod.ts
-src/environments/environment.production.ts
+# Firebase runtime config — copy from firebase-config.example.json for local dev
+src/firebase-config.json
+src/environments/environment*.ts.bak
 
 # Firebase Secrets (CRITICAL)
 .firebase/
