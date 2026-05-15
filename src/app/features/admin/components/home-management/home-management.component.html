@@ -1,211 +1,241 @@
-<section class="home-management" aria-label="Gestión de la página de inicio">
-<div class="container-fluid my-4">
-  <div class="card-gradient-wrapper">
-    <div class="card list-card shadow-sm">
-      <div class="card-body">
-        <div class="page-title-container text-center mb-4">
-          <h2 class="card-title mb-0">Gestión de la Página de Inicio</h2>
+<section class="home-management-wrapper" aria-label="Gestión de la página de inicio">
+  <div class="container-fluid my-4">
+    <header class="dashboard__header text-center mb-5">
+      <h1 class="dashboard__title">Gestión de la Página de Inicio</h1>
+      <hr />
+    </header>
+
+    <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="glass-card mb-5 card-hero">
+        <div class="card-header border-0 text-center fw-bold">
+          <i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero
+        </div>
+        <div class="card-body">
+          <input
+            #heroImagesInput
+            type="file"
+            class="d-none"
+            (change)="onHeroImagesSelected($event)"
+            accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
+            multiple
+            [disabled]="heroImages.length >= 5"
+          />
+
+          <div
+            class="hero-drop-zone"
+            [class.drag-over]="isDragOver"
+            [class.drop-zone--full]="heroImages.length >= 5"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave()"
+            (drop)="onDrop($event)"
+            (click)="heroImages.length < 5 && heroImagesInput.click()"
+          >
+            <div class="drop-zone-icon-wrap">
+              <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
+            </div>
+            <p class="drop-title">
+              @if (heroImages.length < 5) {
+                Arrastra imágenes aquí&ensp;·&ensp;<span class="text-accent">haz clic</span>
+              } @else {
+                <span class="text-soft">Límite alcanzado</span>
+              }
+            </p>
+            <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB</p>
+            @if (heroImages.length > 0) {
+              <span class="drop-badge">{{ heroImages.length }}/5</span>
+            }
+          </div>
+
+          @if (heroImagePreviews.length > 0) {
+            <div class="hero-slots-wrapper mt-4">
+              @for (preview of heroImagePreviews; track $index; let i = $index) {
+                <div class="hero-slot hero-slot--filled">
+                  <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image" />
+                  <div class="slot-overlay">
+                    <button
+                      type="button"
+                      class="slot-btn"
+                      (click)="moveHeroImageUp(i)"
+                      [disabled]="i === 0"
+                    >
+                      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="slot-btn slot-btn--danger"
+                      (click)="removeHeroImage(i)"
+                    >
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="slot-btn"
+                      (click)="moveHeroImageDown(i)"
+                      [disabled]="i === heroImages.length - 1"
+                    >
+                      <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <span class="slot-badge">{{ i + 1 }}</span>
+                </div>
+              }
+              @for (_ of emptySlots; track $index) {
+                <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
+                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="glass-inner-card mt-4" formGroupName="carouselSettings">
+            <h6 class="section-subtitle-sm mb-4">
+              <i class="bi bi-sliders me-2" aria-hidden="true"></i>Ajustes del Carrusel
+            </h6>
+            <div class="row g-4 align-items-center">
+              <div class="col-12 col-md-6">
+                <label for="carouselInterval" class="form-label text-label">Intervalo (ms)</label>
+                <input
+                  type="number"
+                  id="carouselInterval"
+                  class="form-control glass-input"
+                  formControlName="interval"
+                  min="1000"
+                  max="10000"
+                  step="500"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="form-check form-switch custom-switch d-flex align-items-center p-0">
+                  <input
+                    class="form-check-input m-0 me-3"
+                    type="checkbox"
+                    id="showIndicators"
+                    formControlName="showIndicators"
+                    style="width: 3rem; height: 1.5rem"
+                  />
+                  <label class="form-check-label text-soft fw-bold" for="showIndicators">
+                    Mostrar indicadores
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-5 card-categories">
+        <div class="card-header border-0 d-flex justify-content-between align-items-center fw-bold">
+          <div><i class="bi bi-tags-fill me-2" aria-hidden="true"></i>Destacadas</div>
+          <button
+            type="button"
+            class="btn-glass-action btn-add-success"
+            (click)="addFeaturedCategory()"
+            [disabled]="featuredCategories.length >= 3"
+          >
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Añadir
+          </button>
         </div>
 
-        <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
-          <!-- SECCIÓN CARRUSEL HERO -->
-          <div class="card-gradient-wrapper mb-4">
-            <div class="card details-sub-card">
-              <div class="card-header">
-                <h5 class="card-title mb-0"><i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero (Imágenes Principales)</h5>
-              </div>
-              <div class="card-body">
-                <!-- Input de archivos oculto -->
-                <input
-                  #heroImagesInput
-                  type="file"
-                  class="d-none"
-                  (change)="onHeroImagesSelected($event)"
-                  accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
-                  multiple
-                  [disabled]="heroImages.length >= 5"
-                >
+        <div class="card-body" formArrayName="featuredCategories">
+          <div class="categories-scroll-wrapper">
+            @for (
+              categoryControl of featuredCategories.controls;
+              track categoryControl;
+              let i = $index
+            ) {
+              <div class="category-scroll-card">
+                <div [formGroupName]="i" class="glass-inner-card h-100 position-relative">
+                  <button
+                    type="button"
+                    class="btn-delete-absolute"
+                    (click)="removeFeaturedCategory(i)"
+                    title="Eliminar Categoría"
+                  >
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                  </button>
 
-                <!-- Zona de carga drag & drop -->
-                <div
-                  class="hero-drop-zone"
-                  [class.drag-over]="isDragOver"
-                  [class.drop-zone--full]="heroImages.length >= 5"
-                  (dragover)="onDragOver($event)"
-                  (dragleave)="onDragLeave()"
-                  (drop)="onDrop($event)"
-                  (click)="heroImages.length < 5 && heroImagesInput.click()"
-                >
-                  <div class="drop-zone-icon-wrap">
-                    <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
-                  </div>
-                  <p class="drop-title">
-                    @if (heroImages.length < 5) {
-                      Arrastrá imágenes aquí&ensp;·&ensp;<span class="text-accent">hacé clic para explorar</span>
-                    } @else {
-                      <span class="text-muted-custom">Límite alcanzado</span>
-                    }
-                  </p>
-                  <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB &nbsp;·&nbsp; Proporción 16:9 recomendada</p>
-                  @if (heroImages.length > 0) {
-                    <span class="drop-badge">{{ heroImages.length }}/5</span>
-                  }
-                </div>
-
-                <!-- Slots de previsualización -->
-                @if (heroImagePreviews.length > 0 || true) {
-                  <div class="hero-slots-wrapper mt-4">
-                    @for (preview of heroImagePreviews; track $index; let i = $index) {
-                      <div class="hero-slot hero-slot--filled">
-                        <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image">
-                        <div class="slot-overlay">
-                          <button type="button" class="slot-btn" (click)="moveHeroImageUp(i)" [disabled]="i === 0" title="Mover izquierda">
-                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                          </button>
-                          <button type="button" class="slot-btn slot-btn--danger" (click)="removeHeroImage(i)" title="Eliminar">
-                            <i class="bi bi-trash3" aria-hidden="true"></i>
-                          </button>
-                          <button type="button" class="slot-btn" (click)="moveHeroImageDown(i)" [disabled]="i === heroImages.length - 1" title="Mover derecha">
-                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                          </button>
-                        </div>
-                        <span class="slot-badge">{{ i + 1 }}</span>
-                      </div>
-                    }
-                    @for (_ of emptySlots; track $index) {
-                      <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
-                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                      </div>
-                    }
-                  </div>
-                }
-
-                <hr class="mt-4">
-
-                <!-- Configuración del Carrusel -->
-                <div formGroupName="carouselSettings">
-                  <h6 class="mb-3"><i class="bi bi-gear me-2" aria-hidden="true"></i>Configuración del Carrusel</h6>
-                  <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <label for="carouselInterval" class="form-label">Intervalo de Transición (ms)</label>
-                      <input 
-                        type="number" 
-                        id="carouselInterval" 
-                        class="form-control" 
-                        formControlName="interval"
-                        min="1000"
-                        max="10000"
-                        step="500"
-                        placeholder="4000"
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label [for]="'categoryName' + i" class="form-label text-label"
+                        >Categoría</label
                       >
-                      <small class="form-text text-muted">
-                        Tiempo entre cambios de imagen en milisegundos. Rango: 1000-10000. Default: 4000
-                      </small>
-                      @if (carouselIntervalControl?.invalid && carouselIntervalControl?.touched) {
-                        <div class="invalid-feedback d-block">
-                          El intervalo debe estar entre 1000 y 10000 ms.
-                        </div>
-                      }
+                      <select
+                        [id]="'categoryName' + i"
+                        class="form-select glass-input"
+                        formControlName="categoryId"
+                        (change)="onCategorySelectionChange(i, $event)"
+                      >
+                        <option [ngValue]="null" disabled>Elegir...</option>
+                        @if (categories$ | async; as categories) {
+                          @for (cat of categories; track cat.id) {
+                            <option [value]="cat.id">{{ cat.name }}</option>
+                          }
+                        }
+                      </select>
                     </div>
-                    <div class="col-md-6 mb-3">
-                      <label for="showIndicators" class="form-label d-block">Indicadores Visuales</label>
-                      <div class="form-check form-switch">
-                        <input 
-                          class="form-check-input" 
-                          type="checkbox" 
-                          id="showIndicators" 
-                          formControlName="showIndicators"
-                        >
-                        <label class="form-check-label" for="showIndicators">
-                          Mostrar puntos de navegación
-                        </label>
+                    <div class="col-12">
+                      <label class="form-label text-label d-block">Portada</label>
+                      <div class="category-preview-wrapper mb-3">
+                        @if (categoryPreviewUrls[i] || categoryControl.get('imageUrl')?.value) {
+                          <img
+                            [src]="categoryPreviewUrls[i] || categoryControl.get('imageUrl')?.value"
+                            class="img-fluid"
+                          />
+                        } @else {
+                          <div class="no-preview-placeholder">
+                            <i class="bi bi-image"></i>
+                            <span>Sin imagen</span>
+                          </div>
+                        }
                       </div>
-                      <small class="form-text text-muted d-block">
-                        Los puntos ayudan al usuario a navegar entre imágenes.
-                      </small>
+                      <label
+                        [for]="'categoryImageFile' + i"
+                        class="btn-glass-action btn-change-image w-100 m-0 text-center d-block"
+                      >
+                        <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar
+                      </label>
+                      <input
+                        type="file"
+                        [id]="'categoryImageFile' + i"
+                        class="d-none"
+                        (change)="onFileSelected($event, i)"
+                        accept="image/png, image/jpeg, image/webp"
+                      />
                     </div>
                   </div>
                 </div>
-
-                <hr>
               </div>
+            }
+          </div>
+
+          @if (featuredCategories.length === 0) {
+            <div class="empty-state py-4">
+              <i class="bi bi-tags empty-icon"></i>
+              <p class="fs-6 mt-2 fw-bold text-soft">No hay categorías configuradas.</p>
             </div>
-          </div>
-
-          <!-- SECCIÓN CATEGORÍAS DESTACADAS -->
-          <div class="card-gradient-wrapper">
-            <div class="card details-sub-card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0"><i class="bi bi-tags me-2" aria-hidden="true"></i>Categorías Destacadas (Máx. 3)</h5>
-                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addFeaturedCategory()" [disabled]="featuredCategories.length >= 3">
-                  <i class="bi bi-plus-lg" aria-hidden="true"></i> Añadir
-                </button>
-              </div>
-              <div class="card-body" formArrayName="featuredCategories">
-                @for (categoryControl of featuredCategories.controls; track categoryControl; let i = $index) {
-                  <div [formGroupName]="i" class="featured-category-item mb-3">
-                    <div class="row align-items-center">
-                      <div class="col-md-4 mb-2 mb-md-0">
-                        <label [for]="'categoryName' + i" class="form-label">Categoría</label>
-                        <select [id]="'categoryName' + i" class="form-select" formControlName="categoryId"
-                          (change)="onCategorySelectionChange(i, $event)">
-                          <option [ngValue]="null" disabled>Selecciona...</option>
-                          @if (categories$ | async; as categories) {
-                            @for (cat of categories; track cat.id) {
-                              <option [value]="cat.id">{{ cat.name }}</option>
-                            }
-                          }
-                        </select>
-                      </div>
-                      <div class="col-md-4 mb-2 mb-md-0">
-                        <label [for]="'categoryImageFile' + i" class="form-label">Imagen</label>
-                        <div>
-                           <label [for]="'categoryImageFile' + i" class="file-input-label w-100 text-center">
-                            <i class="bi bi-upload" aria-hidden="true"></i> Cambiar
-                           </label>
-                          <input type="file" [id]="'categoryImageFile' + i" class="file-input" (change)="onFileSelected($event, i)" accept="image/png, image/jpeg, image/webp">
-                        </div>
-                      </div>
-                      <div class="col-md-3 mb-2 mb-md-0">
-                          <div class="image-preview-container m-0" style="min-height: 50px; padding: 0.25rem">
-                            @if (categoryPreviewUrls[i]) {
-                              <img [src]="categoryPreviewUrls[i]" class="img-fluid rounded">
-                            } @else if (categoryControl.get('imageUrl')?.value) {
-                              <img [src]="categoryControl.get('imageUrl')?.value" class="img-fluid rounded">
-                            } @else {
-                              <small class="no-preview-text">Sin imagen</small>
-                            }
-                          </div>
-                      </div>
-                      <div class="col-md-1">
-                        <label class="form-label d-block">&nbsp;</label>
-                        <button type="button" class="btn btn-outline-danger w-100" (click)="removeFeaturedCategory(i)" title="Eliminar">
-                          <i class="bi bi-trash" aria-hidden="true"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                }
-                @if (featuredCategories.length === 0) {
-                  <div class="text-center text-muted-custom p-3">
-                    No hay categorías destacadas. Haz clic en "Añadir" para empezar.
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
-
-          <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0">
-              @if (isSubmitting) {
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-              }
-              {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
-            </button>
-          </div>
-        </form>
+          }
+        </div>
       </div>
-    </div>
+
+      <div class="d-flex justify-content-center justify-content-md-end mb-5 pb-4">
+        <button
+          type="submit"
+          class="btn-save-primary"
+          [disabled]="
+            isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0
+          "
+        >
+          @if (isSubmitting) {
+            <span
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          }
+          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
+          {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </form>
   </div>
-</div>
 </section>
