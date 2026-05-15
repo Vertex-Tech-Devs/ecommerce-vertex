@@ -31,7 +31,6 @@ export class SeedDataService {
       await this.contentService.seedHeroBanner(cats);
       await this.contentService.seedAboutUs();
       await this.contentService.seedFooter();
-      await this.contentService.seedStoreConfig();
 
       this.sweetAlert.close();
       this.sweetAlert.success('¡Listo!', 'Base de datos regenerada con todos los datos de prueba.');
@@ -53,7 +52,6 @@ export class SeedDataService {
       ['siteContent', 'homePage'],
       ['pages', 'aboutUs'],
       ['configuracion', 'footer'],
-      ['settings', 'storeConfig'],
     ] as const) {
       await this.run(() => deleteDoc(doc(this.firestore, c, d)));
     }
