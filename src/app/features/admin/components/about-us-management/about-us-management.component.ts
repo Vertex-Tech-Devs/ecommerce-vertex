@@ -25,6 +25,7 @@ export class AboutUsManagementComponent implements OnInit {
   data$: Observable<AboutUsData | undefined>;
   isLoading = true;
   isSubmitting = false;
+  mobileActiveSection: number = 1;
 
   selectedBannerFile: File | null = null;
   bannerPreviewUrl: string | null = null;
@@ -38,6 +39,10 @@ export class AboutUsManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDataIntoForm();
+  }
+
+  toggleMobileSection(section: number): void {
+    this.mobileActiveSection = this.mobileActiveSection === section ? 0 : section;
   }
 
   private buildForm(data: AboutUsData | null = null): void {
