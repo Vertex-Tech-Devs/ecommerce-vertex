@@ -39,6 +39,7 @@ export class EmailManagementComponent implements OnInit {
   isLoading = true;
   isSendingAdvancedTest = false;
   isTestModalVisible = false;
+  mobileActiveSection: number = 1;
 
   availablePlaceholders: { key: string; label: string; description: string }[] = [
     {
@@ -96,6 +97,10 @@ export class EmailManagementComponent implements OnInit {
     this.initializeForm();
     this.initializeTestModalForm();
     this.loadEmailSettings();
+  }
+
+  toggleMobileSection(section: number): void {
+    this.mobileActiveSection = this.mobileActiveSection === section ? 0 : section;
   }
 
   private initializeForm(): void {
