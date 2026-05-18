@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "setup": "tsx scripts/setup-store.ts",
+    "setup:credentials": "tsx scripts/setup-credentials.ts",
     "start": "ng serve",
     "build": "ng build --configuration production",
     "test": "ng test --watch=false --code-coverage",
