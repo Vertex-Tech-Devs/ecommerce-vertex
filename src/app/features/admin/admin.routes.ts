@@ -3,6 +3,14 @@ import { AdminComponent } from './admin.component';
 
 export const ADMIN_ROUTES: Routes = [
   {
+    path: 'setup-wizard',
+    title: 'Configuración Inicial',
+    loadComponent: () =>
+      import('./components/setup-wizard/setup-wizard.component').then(
+        (m) => m.SetupWizardComponent
+      ),
+  },
+  {
     path: '',
     component: AdminComponent,
     children: [
