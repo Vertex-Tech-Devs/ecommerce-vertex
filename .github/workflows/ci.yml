@@ -84,7 +84,7 @@ jobs:
           echo "Bundle size: ${SIZE}KB (limit: 5000KB)"
           [ "$SIZE" -le 5000 ] || { echo "::error::Bundle size ${SIZE}KB exceeds 5000KB limit"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -163,7 +163,7 @@ jobs:
 
       - name: Upload screenshots on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cypress-screenshots-${{ github.sha }}
           path: cypress/screenshots
