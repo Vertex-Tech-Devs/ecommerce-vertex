@@ -48,7 +48,6 @@ export class StoreConfigManagementComponent implements OnInit {
       metaDescription: [''],
     }),
     features: this.fb.group({
-      seedDataEnabled: [true],
       reviewsEnabled: [false],
       wishlistEnabled: [false],
       blogEnabled: [false],
