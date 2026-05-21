@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -41,7 +41,7 @@ jobs:
     needs: validate
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -60,7 +60,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     environment: development
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -107,7 +107,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -152,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -173,7 +173,7 @@ jobs:
       name: development
       url: https://ecommerce-vertex-dev.web.app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -220,7 +220,7 @@ jobs:
       name: production
       url: https://ecommerce-vertex.web.app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -263,7 +263,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'repository_dispatch' && github.event.action == 'provision-store'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:

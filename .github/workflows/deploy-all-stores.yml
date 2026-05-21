@@ -16,7 +16,7 @@ jobs:
     name: Build template
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -86,7 +86,7 @@ jobs:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.canary) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v8
         with:
@@ -131,7 +131,7 @@ jobs:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.rest) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/download-artifact@v8
         with:
