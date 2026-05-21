@@ -2,16 +2,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
-import { CartItem } from '@core/models/cart.model';
+import type { CartItem } from '@core/models/cart.model';
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    CurrencyPipe
-  ],
+  imports: [CommonModule, RouterModule, CurrencyPipe],
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +19,7 @@ export class CartComponent {
   cart = this.cartService.cart;
 
   goToCheckout(): void {
-    this.router.navigate(['/shop/checkout']);
+    void this.router.navigate(['/shop/checkout']);
   }
 
   onUpdateQuantity(item: CartItem, event: Event): void {
@@ -33,7 +29,7 @@ export class CartComponent {
     if (isNaN(newQuantity)) {
       newQuantity = 1;
     }
-    
+
     if (newQuantity > item.stock) {
       newQuantity = item.stock;
       inputElement.value = String(newQuantity);

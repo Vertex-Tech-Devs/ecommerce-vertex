@@ -1,12 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Storage } from '@angular/fire/storage';
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-  deleteObject,
-  UploadTaskSnapshot,
-} from 'firebase/storage';
+import type { UploadTaskSnapshot } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SweetAlertService } from './sweet-alert.service';
@@ -29,9 +24,9 @@ export class StorageService {
     const storageRef = ref(this.storage, filePath);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-
-    const progress$ = new Observable<number>(observer => {
-      const unsubscribe = uploadTask.on('state_changed',
+    const progress$ = new Observable<number>((observer) => {
+      const unsubscribe = uploadTask.on(
+        'state_changed',
         (snapshot: UploadTaskSnapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           observer.next(progress);
@@ -39,29 +34,35 @@ export class StorageService {
         (error) => observer.error(error),
         () => observer.complete()
       );
-      return () => unsubscribe();
+      return (): void => {
+        unsubscribe();
+      };
     });
 
-    const downloadUrl$ = new Observable<string>(observer => {
-      uploadTask.then(snapshot => {
-        getDownloadURL(snapshot.ref).then(url => {
-          observer.next(url);
-          observer.complete();
-        }).catch(error => observer.error(error));
-      }).catch(error => observer.error(error));
+    const downloadUrl$ = new Observable<string>((observer) => {
+      uploadTask
+        .then((snapshot) => {
+          getDownloadURL(snapshot.ref)
+            .then((url) => {
+              observer.next(url);
+              observer.complete();
+            })
+            .catch((error) => observer.error(error));
+        })
+        .catch((error) => observer.error(error));
     });
 
     return { progress$, downloadUrl$ };
   }
 
   deleteFileByUrl(imageUrl: string): Observable<void> {
-    if (!imageUrl || !imageUrl.includes('firebasestorage.googleapis.com')) {
+    if (!imageUrl?.includes('firebasestorage.googleapis.com')) {
       return from(Promise.resolve());
     }
 
     const imageRef = ref(this.storage, imageUrl);
     return from(deleteObject(imageRef)).pipe(
-      catchError(error => {
+      catchError((error) => {
         if (error.code === 'storage/object-not-found') {
           console.warn(
             `El archivo en la URL ${imageUrl} no se encontró. Pudo haber sido eliminado previamente.`
@@ -69,10 +70,7 @@ export class StorageService {
           return from(Promise.resolve());
         }
         console.error('Error al eliminar la imagen:', error);
-        this.sweetAlertService.error(
-          'Error de Borrado',
-          'No se pudo eliminar la imagen anterior.'
-        );
+        this.sweetAlertService.error('Error de Borrado', 'No se pudo eliminar la imagen anterior.');
         return throwError(() => error);
       })
     );

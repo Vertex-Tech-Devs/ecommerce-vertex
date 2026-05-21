@@ -1,10 +1,14 @@
 import { Timestamp } from 'firebase/firestore';
 
 export function convertTimestampsToDates(data: unknown): unknown {
-  if (!data) { return data; }
-  if (data instanceof Timestamp) { return data.toDate(); }
+  if (!data) {
+    return data;
+  }
+  if (data instanceof Timestamp) {
+    return data.toDate();
+  }
   if (Array.isArray(data)) {
-    return data.map(item => convertTimestampsToDates(item));
+    return data.map((item) => convertTimestampsToDates(item));
   }
   if (typeof data === 'object' && data !== null) {
     const convertedData: { [key: string]: unknown } = {};

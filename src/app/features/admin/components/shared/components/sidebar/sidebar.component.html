@@ -1,3 +1,10 @@
+<div
+  class="sidebar__backdrop"
+  [class.sidebar__backdrop--active]="isOpen"
+  (click)="onBackdropClick()"
+  aria-hidden="true"
+></div>
+
 <nav
   id="sidebar"
   class="sidebar"
@@ -113,6 +120,17 @@
       >
         <i class="bi bi-envelope-paper-fill" aria-hidden="true"></i>
         <span>Gestión de Emails</span>
+      </a>
+    </li>
+    <li>
+      <a
+        routerLink="/admin/store-config"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        (click)="onLinkClick()"
+      >
+        <i class="bi bi-gear" aria-hidden="true"></i>
+        <span>Configuración</span>
       </a>
     </li>
   </ul>

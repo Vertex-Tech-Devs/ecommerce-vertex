@@ -1,6 +1,8 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
-import { Observable, map, combineLatest } from 'rxjs';
+import type { Observable } from 'rxjs';
+import { map, combineLatest } from 'rxjs';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
+import type { WithFieldValue, QueryConstraint } from 'firebase/firestore';
 import {
   doc,
   collection,
@@ -10,10 +12,8 @@ import {
   where,
   orderBy,
   limit,
-  WithFieldValue,
-  QueryConstraint,
 } from 'firebase/firestore';
-import { Product, ProductVariant } from '../models/product.model';
+import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 
 export interface ProductFilters {
@@ -36,7 +36,7 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, this.collectionPath);
       return (collectionData(collectionRef, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
   }
@@ -50,7 +50,7 @@ export class ProductService {
 
       const q = query(collection(this.firestore, this.collectionPath), ...constraints);
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
   }
@@ -59,16 +59,23 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       const docRef = doc(this.firestore, `${this.collectionPath}/${id}`);
       return (docData(docRef, { idField: 'id' }) as Observable<Product | undefined>).pipe(
-        map(item => (item ? (convertTimestampsToDates(item) as Product) : undefined))
+        map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined))
       );
     });
   }
 
-  getProductWithVariants(id: string): Observable<{ product: Product; variants: ProductVariant[] } | undefined> {
+  getProductWithVariants(
+    id: string
+  ): Observable<{ product: Product; variants: ProductVariant[] } | undefined> {
     return runInInjectionContext(this.injector, () => {
       const product$ = this.getProductById(id);
-      const variantsCollectionRef = collection(this.firestore, `${this.collectionPath}/${id}/variants`);
-      const variants$ = (collectionData(variantsCollectionRef, { idField: 'id' }) as Observable<ProductVariant[]>);
+      const variantsCollectionRef = collection(
+        this.firestore,
+        `${this.collectionPath}/${id}/variants`
+      );
+      const variants$ = collectionData(variantsCollectionRef, { idField: 'id' }) as Observable<
+        ProductVariant[]
+      >;
 
       return combineLatest([product$, variants$]).pipe(
         map(([product, variants]) => {
@@ -77,7 +84,7 @@ export class ProductService {
           }
           return {
             product,
-            variants: variants.map(v => convertTimestampsToDates(v) as ProductVariant),
+            variants: variants.map((v) => convertTimestampsToDates(v) as ProductVariant),
           };
         })
       );
@@ -94,7 +101,7 @@ export class ProductService {
 
     batch.set(newProductRef, product);
 
-    variants.forEach(variantData => {
+    variants.forEach((variantData) => {
       const newVariantRef = doc(collection(newProductRef, 'variants'));
       const variantWithId: WithFieldValue<Omit<ProductVariant, 'id'>> = {
         ...variantData,
@@ -121,21 +128,21 @@ export class ProductService {
 
     const variantsCollectionRef = collection(productRef, 'variants');
 
-    variantsToUpdate.forEach(variant => {
+    variantsToUpdate.forEach((variant) => {
       const variantRef = doc(variantsCollectionRef, variant.id);
       batch.update(variantRef, variant);
     });
 
-    variantsToAdd.forEach(variantData => {
+    variantsToAdd.forEach((variantData) => {
       const newVariantRef = doc(variantsCollectionRef);
       const variantWithId: WithFieldValue<Omit<ProductVariant, 'id'>> = {
         ...variantData,
-        productId: productId,
+        productId,
       };
       batch.set(newVariantRef, variantWithId);
     });
 
-    variantIdsToDelete.forEach(variantId => {
+    variantIdsToDelete.forEach((variantId) => {
       const variantRef = doc(variantsCollectionRef, variantId);
       batch.delete(variantRef);
     });
@@ -157,7 +164,7 @@ export class ProductService {
         orderBy('totalStock', 'asc')
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
   }
@@ -170,7 +177,7 @@ export class ProductService {
         limit(count)
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map(items => items.map(item => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
   }

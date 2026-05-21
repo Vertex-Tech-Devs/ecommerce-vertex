@@ -1,4 +1,5 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
@@ -15,10 +16,7 @@ describe('HeaderComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
-      providers: [
-        provideRouter([]),
-        { provide: CartService, useValue: mockCartService },
-      ],
+      providers: [provideRouter([]), { provide: CartService, useValue: mockCartService }],
     }).compileComponents();
 
     mockCartService.itemCount.set(0);
@@ -75,6 +73,20 @@ describe('HeaderComponent', () => {
       const spy = spyOnProperty(window, 'pageYOffset', 'get').and.returnValue(30);
       component.onWindowScroll();
       spy.and.returnValue(10);
+      component.onWindowScroll();
+      expect(component.isScrolled()).toBeFalse();
+    });
+
+    it('should use documentElement.scrollTop when pageYOffset is 0', () => {
+      spyOnProperty(window, 'pageYOffset', 'get').and.returnValue(0);
+      spyOnProperty(document.documentElement, 'scrollTop', 'get').and.returnValue(50);
+      component.onWindowScroll();
+      expect(component.isScrolled()).toBeTrue();
+    });
+
+    it('should remain not scrolled when both pageYOffset and scrollTop are 0', () => {
+      spyOnProperty(window, 'pageYOffset', 'get').and.returnValue(0);
+      spyOnProperty(document.documentElement, 'scrollTop', 'get').and.returnValue(0);
       component.onWindowScroll();
       expect(component.isScrolled()).toBeFalse();
     });

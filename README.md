@@ -74,21 +74,18 @@ Angular CLI:    20.0.0
 git clone https://github.com/Vertex-Tech-Devs/ecommerce-vertex.git
 cd ecommerce-vertex
 
-# Setup
+# Install dependencies (auto-creates placeholder env files via postinstall)
 nvm use
 npm install
-npm install --prefix functions
 
-# Configure Firebase
-firebase login
-firebase use development
-
-# Setup environment
-cp src/environments/environment.example.ts src/environments/environment.ts
+# Configure all credentials interactively (one-time per environment)
+npm run setup:credentials
 
 # Setup pre-commit hooks (one-time)
 npm run prepare
 ```
+
+> **`npm run setup:credentials`** auto-fetches Firebase config via CLI (or manual fallback) and writes all 4 credential files in one shot. See [Credential Setup](#credential-setup).
 
 ### Running Locally
 
@@ -205,21 +202,22 @@ refactor(services): simplify firestore queries
 ### Development Commands
 
 ```bash
-npm start                 # Dev server
-npm test                  # Tests (watch mode)
-npm run quality           # Full validation: lint + typecheck + test + build
-npm run lint              # Check linting
-npm run lint:fix          # Auto-fix code
-npm run typecheck         # TypeScript check
-npm run build             # Production build
-npm run clean             # Clean artifacts
+npm start                    # Dev server
+npm run setup:credentials    # Interactive credential wizard (run once per env)
+npm run setup                # Store config wizard (name, logo, contact, SEO)
+npm test                     # Tests (watch mode)
+npm run quality              # Full validation: lint + typecheck + test + build
+npm run lint                 # Check linting
+npm run fix                  # Auto-fix linting + formatting
+npm run typecheck            # TypeScript check
+npm run build                # Production build
+npm run clean                # Clean artifacts
 
-npm run e2e               # E2E tests (Cypress)
-npm run e2e:open          # Cypress UI for debugging
+npm run e2e                  # E2E tests (Cypress headless)
+npm run e2e:open             # Cypress UI for debugging
 
-npm run deploy:dev        # Deploy to development
-npm run deploy:staging    # Deploy to staging
-npm run deploy:prod       # Deploy to production
+npm run deploy:dev           # Deploy to development
+npm run deploy:prod          # Deploy to production
 ```
 
 ### Automatic Validations
@@ -389,42 +387,56 @@ npm run e2e:open      # Interactive E2E debugging
 
 ### Environment Configuration
 
-**Two ENV files for different contexts:**
+#### Credential Setup
 
-#### 1. `.env.ecommerce-vertex-dev` (Firebase Cloud Functions)
-- **Use case**: Production/staging deployments on Firebase
-- **Credentials**: Real MercadoPago test tokens
-- **URLs**: Firebase-hosted URLs (https://ecommerce-vertex-dev.web.app)
-- **Git**: Ignored via .gitignore (never commit real credentials)
-- **Setup**: Manually set from MercadoPago dashboard
-  
+Run the interactive wizard once per environment:
+
 ```bash
-MERCADOPAGO_ACCESSTOKEN=APP_USR-YOUR_TEST_TOKEN
-MERCADOPAGO_WEBHOOK_URL=https://us-central1-ecommerce-vertex-dev.cloudfunctions.net/mercadoPagoWebhookHandler
-SITE_URL=https://ecommerce-vertex-dev.web.app
+npm run setup:credentials
 ```
 
-#### 2. `.env.local` (Development - localhost:4200)
-- **Use case**: Local development on `npm start`
-- **Credentials**: Same test tokens, routes to localhost
-- **URLs**: Localhost URLs (http://localhost:4200, localhost:5001)
-- **Git**: Ignored via .gitignore
-- **Setup**: Copy from `.env.local` file in repo
-  
+The wizard will:
+1. Show the current state of all credential files
+2. Auto-fetch Firebase config via CLI (`firebase apps:sdkconfig`) — no copy-paste needed
+3. Ask for MercadoPago credentials (public key + access token)
+4. Ask whether you're using the local Functions emulator or deployed Functions
+5. Write all files and show a summary
+
+**Files generated:**
+
+| File | Purpose | Git |
+|------|---------|-----|
+| `src/firebase-config.json` | Firebase SDK config loaded at runtime | Ignored |
+| `src/environments/environment.ts` | Firebase config + MP public key + API URL | Ignored |
+| `functions/.env.<project-id>` | MP access token + webhook URL for deployed env | Ignored |
+| `functions/.env.local` | Same as above but for local emulator | Ignored |
+
+> **How runtime config works:** `main.ts` fetches `/firebase-config.json` at startup. If the file is absent, it falls back to `environment.ts`. This allows developers to use `environment.ts` credentials without needing `firebase-config.json`.
+
+#### Manual Setup (fallback)
+
+If you prefer to configure files manually:
+
 ```bash
-# Before npm start on localhost:
-cp functions/.env.local functions/.env.ecommerce-vertex-dev
+# Firebase config (frontend runtime)
+cp src/firebase-config.example.json src/firebase-config.json
+# → Fill in credentials from Firebase Console → Project Settings → Your apps
 
-npm start
+# Environment (frontend build-time)
+cp src/environments/environment.example.ts src/environments/environment.ts
+# → Fill in firebaseConfig, mercadoPago.publicKey, api.cloudFunctionsUrl
+
+# Functions env (Cloud Functions runtime)
+cp functions/.env.example functions/.env.ecommerce-vertex-dev
+# → Fill in MERCADOPAGO_ACCESSTOKEN, MERCADOPAGO_WEBHOOK_URL, SITE_URL
 ```
 
-**Environment File Structure:**
-```
-functions/
-├── .env.example              # Template (tracked in git)
-├── .env.local               # Development template (for localhost)
-└── .env.ecommerce-vertex-dev # Active (ignored in git)
-```
+#### Environments
+
+| Env | Branch | Firebase Project | Deploy | Approval |
+|-----|--------|-----------------|--------|---------|
+| **development** | `develop` | `ecommerce-vertex-dev` | Auto on merge | None |
+| **production** | `main` | `ecommerce-vertex` | Manual | Lead sign-off |
 
 ### Deployment Steps
 

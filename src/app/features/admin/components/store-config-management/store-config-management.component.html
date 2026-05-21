@@ -1,0 +1,304 @@
+<section class="config-management-wrapper" aria-label="Configuración de la tienda">
+  <div class="container-fluid my-4">
+    <header class="dashboard__header text-center mb-5">
+      <h1 class="dashboard__title">Configuración de la Tienda</h1>
+      <p class="text-soft mt-2">
+        Actualizá los datos generales, contacto, SEO y configuración regional.
+      </p>
+      <hr />
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="glass-card mb-4 card-identity">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-palette-fill me-2" aria-hidden="true"></i> Identidad
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label text-label"
+                >Nombre de la tienda <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shop"></i></span>
+                <input
+                  formControlName="storeName"
+                  type="text"
+                  class="form-control glass-input"
+                  [class.is-invalid]="
+                    form.get('storeName')?.invalid && form.get('storeName')?.touched
+                  "
+                  placeholder="Ej: Mi Tienda Genial"
+                />
+              </div>
+              @if (form.get('storeName')?.invalid && form.get('storeName')?.touched) {
+                <div class="invalid-feedback d-block mt-2">
+                  El nombre de la tienda es obligatorio.
+                </div>
+              }
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-label">Slogan</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-chat-quote"></i></span>
+                <input
+                  formControlName="strapline"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="Tu tienda online"
+                />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label text-label">URL del logo</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-image"></i></span>
+                <input
+                  formControlName="logoUrl"
+                  type="url"
+                  class="form-control glass-input"
+                  placeholder="https://tudominio.com/logo.png"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-4 card-contact" formGroupName="contact">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-person-lines-fill me-2" aria-hidden="true"></i> Contacto
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label text-label">Email</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input
+                  formControlName="email"
+                  type="email"
+                  class="form-control glass-input"
+                  placeholder="hola@tutienda.com"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-label">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input
+                  formControlName="phone"
+                  type="tel"
+                  class="form-control glass-input"
+                  placeholder="+54 11 1234-5678"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label text-label">WhatsApp</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-whatsapp"></i></span>
+                <input
+                  formControlName="whatsapp"
+                  type="tel"
+                  class="form-control glass-input"
+                  placeholder="+5491112345678"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label text-label">Instagram (URL)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-instagram"></i></span>
+                <input
+                  formControlName="instagram"
+                  type="url"
+                  class="form-control glass-input"
+                  placeholder="https://instagram.com/tutienda"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label text-label">Facebook (URL)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-facebook"></i></span>
+                <input
+                  formControlName="facebook"
+                  type="url"
+                  class="form-control glass-input"
+                  placeholder="https://facebook.com/tutienda"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-4 card-seo" formGroupName="seo">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-search me-2" aria-hidden="true"></i> SEO
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-12">
+              <label class="form-label text-label">Meta title</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                <input
+                  formControlName="metaTitle"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="Mi Tienda — Productos de calidad"
+                />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label text-label">Meta description</label>
+              <div class="input-group">
+                <span class="input-group-text align-items-start pt-3"
+                  ><i class="bi bi-body-text"></i
+                ></span>
+                <textarea
+                  formControlName="metaDescription"
+                  class="form-control glass-input glass-textarea"
+                  rows="2"
+                  placeholder="Bienvenido a nuestra tienda online."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-4 card-regional">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-globe-americas me-2" aria-hidden="true"></i> Regional
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-4">
+              <label class="form-label text-label">Moneda</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-cash-coin"></i></span>
+                <select
+                  formControlName="currency"
+                  class="form-select glass-input glass-select"
+                  (change)="onCurrencyChange($event)"
+                >
+                  @for (c of currencies; track c.value) {
+                    <option [value]="c.value">{{ c.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label text-label">Símbolo</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-currency-exchange"></i></span>
+                <input
+                  formControlName="currencySymbol"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="$"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label text-label">País (código ISO)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <input
+                  formControlName="country"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="AR"
+                  maxlength="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card mb-5 card-features" formGroupName="features">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-toggles me-2" aria-hidden="true"></i> Feature Flags
+        </div>
+        <div class="card-body">
+          <div class="row g-4 glass-switches-container">
+            @for (
+              flag of [
+                {
+                  key: 'seedDataEnabled',
+                  label: 'Seed Data Tool',
+                  hint: 'Habilita /admin/_dev/seed',
+                },
+                { key: 'reviewsEnabled', label: 'Reseñas', hint: 'Reviews de productos' },
+                {
+                  key: 'wishlistEnabled',
+                  label: 'Lista de deseos',
+                  hint: 'Wishlist para clientes',
+                },
+                { key: 'blogEnabled', label: 'Blog', hint: 'Módulo de blog' },
+              ];
+              track flag.key
+            ) {
+              <div class="col-md-6">
+                <div
+                  class="form-check form-switch custom-glass-switch mb-0 d-flex align-items-center"
+                >
+                  <input
+                    class="form-check-input flex-shrink-0"
+                    type="checkbox"
+                    role="switch"
+                    [id]="flag.key"
+                    [formControlName]="flag.key"
+                  />
+                  <label
+                    class="form-check-label ms-3 cursor-pointer d-flex flex-column justify-content-center"
+                    [for]="flag.key"
+                  >
+                    <strong class="text-white mb-1" style="font-size: 0.95rem">{{
+                      flag.label
+                    }}</strong>
+                    <span class="text-soft" style="font-size: 0.75rem; line-height: 1.2">{{
+                      flag.hint
+                    }}</span>
+                  </label>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="save-action-container">
+        <button
+          type="submit"
+          class="btn-save-primary ms-auto"
+          [disabled]="isSubmitting || form.invalid"
+        >
+          @if (isSubmitting) {
+            <span
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+          }
+          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
+          {{ isSubmitting ? 'Guardando...' : 'Guardar Configuración' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

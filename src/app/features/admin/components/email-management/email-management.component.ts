@@ -1,55 +1,28 @@
-import { Component, OnInit, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import type { FormGroup } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { take } from 'rxjs/operators';
-import { QuillEditorComponent, QuillModule } from 'ngx-quill';
-import { EmailSettingsService, AdvancedTestEmailPayload } from '@core/services/email-settings.service';
+import type { QuillEditorComponent } from 'ngx-quill';
+import { QuillModule } from 'ngx-quill';
+import type { AdvancedTestEmailPayload } from '@core/services/email-settings.service';
+import { EmailSettingsService } from '@core/services/email-settings.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
-import { EmailSettings } from '@core/models/email-settings.model';
-
-const DEFAULT_ADMIN_SUBJECT = '¡Nuevo Pedido Recibido! - #{orderId}';
-const DEFAULT_ADMIN_TEMPLATE = `
-  <p>¡Hola Administrador!</p>
-  <p>Se ha recibido un nuevo pedido en la tienda con el ID: <strong>{orderId}</strong>.</p>
-  <hr>
-  <h4>Detalles del Cliente:</h4>
-  <ul>
-    <li><strong>Nombre:</strong> {clientName}</li>
-    <li><strong>Email:</strong> {clientEmail}</li>
-    <li><strong>Teléfono:</strong> {clientPhone}</li>
-  </ul>
-  <hr>
-  <h4>Productos del Pedido:</h4>
-  {itemsList}
-  <hr>
-  <h3><strong>Monto Total:</strong> ${'{totalAmount}'}</h3>
-  <p>Puedes ver los detalles completos y gestionar el pedido en el panel de administración.</p>
-`;
-
-const DEFAULT_CUSTOMER_SUBJECT = 'Confirmación de tu pedido #{orderId}';
-const DEFAULT_CUSTOMER_TEMPLATE = `
-  <p>¡Hola, {clientName}!</p>
-  <p>Hemos recibido tu pedido y ya lo estamos preparando. ¡Muchas gracias por tu compra!</p>
-  <p>A continuación, te dejamos un resumen de tu orden <strong>#{orderId}</strong>.</p>
-  <hr>
-  <h4>Resumen de tu Compra:</h4>
-  {itemsList}
-  <hr>
-  <h3><strong>Total Pagado:</strong> ${'{totalAmount}'}</h3>
-  <p>Recibirás otra notificación cuando tu pedido sea enviado.</p>
-  <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
-`;
+import type { EmailSettings } from '@core/models/email-settings.model';
+import {
+  DEFAULT_ADMIN_SUBJECT,
+  DEFAULT_ADMIN_TEMPLATE,
+  DEFAULT_CUSTOMER_SUBJECT,
+  DEFAULT_CUSTOMER_TEMPLATE,
+} from './email-management.constants';
 
 @Component({
   selector: 'app-email-management',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    QuillModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, QuillModule],
   templateUrl: './email-management.component.html',
-  styleUrls: ['./email-management.component.scss']
+  styleUrls: ['./email-management.component.scss'],
 })
 export class EmailManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -60,24 +33,64 @@ export class EmailManagementComponent implements OnInit {
   @ViewChild('adminEditor') adminEditor!: QuillEditorComponent;
   @ViewChild('customerEditor') customerEditor!: QuillEditorComponent;
 
-  public emailForm!: FormGroup;
-  public testEmailModalForm!: FormGroup;
-  public isSubmitting = false;
-  public isLoading = true;
-  public isSendingAdvancedTest = false;
-  public isTestModalVisible = false;
+  emailForm!: FormGroup;
+  testEmailModalForm!: FormGroup;
+  isSubmitting = false;
+  isLoading = true;
+  isSendingAdvancedTest = false;
+  isTestModalVisible = false;
+  mobileActiveSection: number = 1;
 
-  public availablePlaceholders: { key: string, label: string, description: string }[] = [
-    { key: '{orderId}', label: 'ID del Pedido', description: 'El ID único del pedido (ej: 2f4bA9x...)' },
-    { key: '{clientName}', label: 'Nombre del Cliente', description: 'El nombre completo del cliente' },
-    { key: '{clientEmail}', label: 'Email del Cliente', description: 'El correo electrónico del cliente' },
-    { key: '{clientPhone}', label: 'Teléfono del Cliente', description: 'El número de teléfono del cliente' },
-    { key: '{itemsList}', label: 'Lista de Productos', description: 'Una lista (HTML) con los productos del pedido' },
-    { key: '{totalAmount}', label: 'Monto Total', description: 'El monto total pagado en el pedido' },
+  availablePlaceholders: { key: string; label: string; description: string }[] = [
+    {
+      key: '{orderId}',
+      label: 'ID del Pedido',
+      description: 'El ID único del pedido (ej: 2f4bA9x...)',
+    },
+    {
+      key: '{clientName}',
+      label: 'Nombre del Cliente',
+      description: 'El nombre completo del cliente',
+    },
+    {
+      key: '{clientEmail}',
+      label: 'Email del Cliente',
+      description: 'El correo electrónico del cliente',
+    },
+    {
+      key: '{clientPhone}',
+      label: 'Teléfono del Cliente',
+      description: 'El número de teléfono del cliente',
+    },
+    {
+      key: '{itemsList}',
+      label: 'Lista de Productos',
+      description: 'Una lista (HTML) con los productos del pedido',
+    },
+    {
+      key: '{totalAmount}',
+      label: 'Monto Total',
+      description: 'El monto total pagado en el pedido',
+    },
   ];
 
-  public editorModules = {
-    toolbar: [['bold', 'italic', 'underline', 'strike'], ['blockquote', 'code-block'], [{ 'header': 1 }, { 'header': 2 }], [{ 'list': 'ordered' }, { 'list': 'bullet' }], [{ 'script': 'sub' }, { 'script': 'super' }], [{ 'indent': '-1' }, { 'indent': '+1' }], [{ 'direction': 'rtl' }], [{ 'size': ['small', false, 'large', 'huge'] }], [{ 'header': [1, 2, 3, 4, 5, 6, false] }], [{ 'color': [] }, { 'background': [] }], [{ 'font': [] }], [{ 'align': [] }], ['clean'], ['link', 'image', 'video']]
+  editorModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      ['blockquote', 'code-block'],
+      [{ header: 1 }, { header: 2 }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ script: 'sub' }, { script: 'super' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      [{ direction: 'rtl' }],
+      [{ size: ['small', false, 'large', 'huge'] }],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      [{ color: [] }, { background: [] }],
+      [{ font: [] }],
+      [{ align: [] }],
+      ['clean'],
+      ['link', 'image', 'video'],
+    ],
   };
 
   ngOnInit(): void {
@@ -86,21 +99,28 @@ export class EmailManagementComponent implements OnInit {
     this.loadEmailSettings();
   }
 
+  toggleMobileSection(section: number): void {
+    this.mobileActiveSection = this.mobileActiveSection === section ? 0 : section;
+  }
+
   private initializeForm(): void {
     this.emailForm = this.fb.group({
       storeOwnerEmail: ['', [Validators.required, Validators.email]],
-      storeWhatsappNumber: ['', [Validators.required, Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]*$')]],
+      storeWhatsappNumber: [
+        '',
+        [Validators.required, Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]*$')],
+      ],
       adminNotification: this.fb.group({
         subject: ['', Validators.required],
         template: ['', Validators.required],
         showManageButton: [false],
-        showWhatsappButton: [false]
+        showWhatsappButton: [false],
       }),
       customerConfirmation: this.fb.group({
         subject: ['', Validators.required],
         template: ['', Validators.required],
-        showWhatsappButton: [false]
-      })
+        showWhatsappButton: [false],
+      }),
     });
   }
 
@@ -109,43 +129,46 @@ export class EmailManagementComponent implements OnInit {
       recipientEmail: ['', [Validators.required, Validators.email]],
       templatesToTest: this.fb.group({
         adminNotification: [true],
-        customerConfirmation: [true]
+        customerConfirmation: [true],
       }),
       testData: this.fb.group({
         orderId: ['TEST-1234', Validators.required],
         clientName: ['Juan Pérez de Prueba', Validators.required],
         clientEmail: ['cliente.prueba@email.com', [Validators.required, Validators.email]],
         clientPhone: ['+5491122334455', Validators.required],
-        totalAmount: ['125.50', Validators.required]
-      })
+        totalAmount: ['125.50', Validators.required],
+      }),
     });
   }
 
   private loadEmailSettings(): void {
     this.isLoading = true;
-    this.emailSettingsService.getEmailSettings().pipe(take(1)).subscribe(settings => {
-      if (settings && settings.storeOwnerEmail) {
-        this.emailForm.patchValue(settings);
-      } else {
-        this.restoreDefaults(false);
-      }
-      this.isLoading = false;
-      this.emailForm.markAsPristine();
-    });
+    this.emailSettingsService
+      .getEmailSettings()
+      .pipe(take(1))
+      .subscribe((settings) => {
+        if (settings?.storeOwnerEmail) {
+          this.emailForm.patchValue(settings);
+        } else {
+          void this.restoreDefaults(false);
+        }
+        this.isLoading = false;
+        this.emailForm.markAsPristine();
+      });
   }
 
-  public openTestModal(): void {
+  openTestModal(): void {
     const currentAdminEmail = this.emailForm.get('storeOwnerEmail')?.value;
     this.testEmailModalForm.get('recipientEmail')?.setValue(currentAdminEmail);
     this.isTestModalVisible = true;
     this.cdr.detectChanges();
   }
 
-  public closeTestModal(): void {
+  closeTestModal(): void {
     this.isTestModalVisible = false;
   }
 
-  public insertPlaceholder(placeholder: string, editorComponent: QuillEditorComponent): void {
+  insertPlaceholder(placeholder: string, editorComponent: QuillEditorComponent): void {
     const quill = editorComponent.quillEditor;
     const range = quill.getSelection(true);
     quill.insertText(range.index, placeholder, 'user');
@@ -153,8 +176,8 @@ export class EmailManagementComponent implements OnInit {
     quill.focus();
   }
 
-  public async restoreDefaults(showAlert: boolean = true): Promise<void> {
-    const applyChanges = () => {
+  async restoreDefaults(showAlert: boolean = true): Promise<void> {
+    const applyChanges = (): void => {
       this.emailForm.patchValue({
         adminNotification: {
           subject: DEFAULT_ADMIN_SUBJECT,
@@ -167,7 +190,10 @@ export class EmailManagementComponent implements OnInit {
       });
       this.emailForm.markAsDirty();
       if (showAlert) {
-        this.sweetAlertService.success('Plantillas Restauradas', 'El contenido ha sido restaurado a los valores por defecto en el editor.');
+        this.sweetAlertService.success(
+          'Plantillas Restauradas',
+          'El contenido ha sido restaurado a los valores por defecto en el editor.'
+        );
       }
     };
 
@@ -193,7 +219,10 @@ export class EmailManagementComponent implements OnInit {
 
     const { recipientEmail, templatesToTest, testData } = this.testEmailModalForm.value;
     if (!templatesToTest.adminNotification && !templatesToTest.customerConfirmation) {
-      this.sweetAlertService.error('Error', 'Debes seleccionar al menos una plantilla para probar.');
+      this.sweetAlertService.error(
+        'Error',
+        'Debes seleccionar al menos una plantilla para probar.'
+      );
       return;
     }
 
@@ -205,7 +234,7 @@ export class EmailManagementComponent implements OnInit {
     const payload: AdvancedTestEmailPayload = {
       recipientEmail,
       testData,
-      templates: {}
+      templates: {},
     };
 
     if (templatesToTest.adminNotification) {
@@ -217,7 +246,10 @@ export class EmailManagementComponent implements OnInit {
 
     try {
       await this.emailSettingsService.sendAdvancedTestEmail(payload);
-      this.sweetAlertService.success('Prueba Enviada', `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}.`);
+      this.sweetAlertService.success(
+        'Prueba Enviada',
+        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}.`
+      );
       this.closeTestModal();
     } catch (error) {
       console.error('Error sending advanced test email:', error);
@@ -230,7 +262,10 @@ export class EmailManagementComponent implements OnInit {
   async onSubmit(): Promise<void> {
     if (this.emailForm.invalid) {
       this.emailForm.markAllAsTouched();
-      this.sweetAlertService.error('Formulario Inválido', 'Por favor revisa los campos marcados en rojo.');
+      this.sweetAlertService.error(
+        'Formulario Inválido',
+        'Por favor revisa los campos marcados en rojo.'
+      );
       return;
     }
 

@@ -1,30 +1,46 @@
-import { CommonModule } from '@angular/common';
-import { Component, Output, EventEmitter, inject } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, Output, EventEmitter, inject, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
-import { Observable, map } from 'rxjs';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule
-  ],
+  imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent {
-  @Output() toggleSidebarEvent = new EventEmitter<void>();
+  @Output() readonly toggleSidebarEvent = new EventEmitter<void>();
 
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
 
-  public userName$: Observable<string>;
+  private readonly user$ = this.authService.currentUser$;
+  readonly user = toSignal(this.user$);
 
-  constructor() {
-    this.userName$ = this.authService.currentUser$.pipe(
-      map(user => user?.email ?? 'Usuario')
-    );
+  readonly userDisplayName = computed(() => {
+    const currentUser = this.user();
+    return currentUser?.email?.split('@')[0] ?? 'Usuario';
+  });
+
+  scrollToTop(): void {
+    const url = this.router.url.split(/[?#]/)[0];
+
+    if (url === '/admin/dashboard' || url === '/admin' || url === '/admin/') {
+      const scrollConfig: ScrollToOptions = { top: 0, behavior: 'smooth' };
+
+      window.scrollTo(scrollConfig);
+      this.document.documentElement.scrollTo(scrollConfig);
+      this.document.body.scrollTo(scrollConfig);
+
+      const mainContainer = this.document.querySelector('.admin-shell__main');
+      if (mainContainer) {
+        mainContainer.scrollTo(scrollConfig);
+      }
+    }
   }
 
   onToggleSidebar(event: Event): void {
@@ -33,6 +49,6 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.authService.logout();
+    void this.authService.logout();
   }
 }

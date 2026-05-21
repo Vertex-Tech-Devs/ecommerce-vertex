@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/shared/components/header/header.component';
@@ -14,35 +15,31 @@ import { SidebarComponent } from './components/shared/components/sidebar/sidebar
 export class AdminComponent implements OnInit {
   isSidebarOpen: boolean = false;
 
-  private readonly breakpointMd = 768;
+  private readonly breakpointLg = 1024;
 
-  constructor() { }
+  constructor() {}
 
   ngOnInit(): void {
-    this.checkScreenSizeForInitialState();
+    this.checkScreenSize();
   }
 
   toggleSidebar(): void {
-    if (window.innerWidth < this.breakpointMd) {
-      this.isSidebarOpen = !this.isSidebarOpen;
-    } else {
-      this.isSidebarOpen = false;
-    }
+    this.isSidebarOpen = !this.isSidebarOpen;
   }
 
-  closeSidebarOnOverlayClick(): void {
-    if (this.isSidebarOpen && window.innerWidth < this.breakpointMd) {
+  closeSidebar(): void {
+    if (this.isSidebarOpen) {
       this.isSidebarOpen = false;
     }
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(_event: Event): void {
-    this.checkScreenSizeForInitialState();
+    this.checkScreenSize();
   }
 
-  private checkScreenSizeForInitialState(): void {
-    if (window.innerWidth >= this.breakpointMd) {
+  private checkScreenSize(): void {
+    if (window.innerWidth > this.breakpointLg) {
       this.isSidebarOpen = false;
     }
   }

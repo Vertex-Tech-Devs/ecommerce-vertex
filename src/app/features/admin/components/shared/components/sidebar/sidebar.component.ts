@@ -16,4 +16,8 @@ export class SidebarComponent {
   onLinkClick(): void {
     this.linkClicked.emit();
   }
+
+  onBackdropClick(): void {
+    this.linkClicked.emit();
+  }
 }

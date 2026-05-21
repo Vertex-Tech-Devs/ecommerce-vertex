@@ -1,80 +1,152 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { AdminComponent } from './admin.component';
 
 export const ADMIN_ROUTES: Routes = [
+  {
+    path: 'setup-wizard',
+    title: 'Configuración Inicial',
+    loadComponent: () =>
+      import('./components/setup-wizard/setup-wizard.component').then(
+        (m) => m.SetupWizardComponent
+      ),
+  },
   {
     path: '',
     component: AdminComponent,
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        title: 'Dashboard',
+        loadComponent: () =>
+          import('./components/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
         path: 'products',
-        loadComponent: () => import('./components/products/products-list/products-list.component').then(m => m.ProductsListComponent)
+        title: 'Productos',
+        loadComponent: () =>
+          import('./components/products/products-list/products-list.component').then(
+            (m) => m.ProductsListComponent
+          ),
       },
       {
         path: 'products/create',
-        loadComponent: () => import('./components/products/product-create/product-create.component').then(m => m.ProductCreateComponent)
+        title: 'Nuevo producto',
+        loadComponent: () =>
+          import('./components/products/product-create/product-create.component').then(
+            (m) => m.ProductCreateComponent
+          ),
       },
       {
         path: 'products/edit/:id',
-        loadComponent: () => import('./components/products/product-create/product-create.component').then(m => m.ProductCreateComponent)
+        title: 'Editar producto',
+        loadComponent: () =>
+          import('./components/products/product-create/product-create.component').then(
+            (m) => m.ProductCreateComponent
+          ),
       },
       {
         path: 'products/:id',
-        loadComponent: () => import('./components/products/product-detail/product-detail.component').then(m => m.ProductDetailComponent)
+        loadComponent: () =>
+          import('./components/products/product-detail/product-detail.component').then(
+            (m) => m.ProductDetailComponent
+          ),
       },
       {
         path: 'categories',
-        loadComponent: () => import('./components/categories/categories-list/categories-list.component').then(m => m.CategoriesListComponent)
+        title: 'Categorías',
+        loadComponent: () =>
+          import('./components/categories/categories-list/categories-list.component').then(
+            (m) => m.CategoriesListComponent
+          ),
       },
       {
         path: 'attributes',
-        loadComponent: () => import('./components/attributes/attributes-list/attributes-list.component').then(m => m.AttributesListComponent)
+        title: 'Atributos',
+        loadComponent: () =>
+          import('./components/attributes/attributes-list/attributes-list.component').then(
+            (m) => m.AttributesListComponent
+          ),
       },
       {
         path: 'orders',
-        loadComponent: () => import('./components/orders/orders-list/orders-list.component').then(m => m.OrdersListComponent)
+        title: 'Pedidos',
+        loadComponent: () =>
+          import('./components/orders/orders-list/orders-list.component').then(
+            (m) => m.OrdersListComponent
+          ),
       },
       {
         path: 'orders/:id',
-        loadComponent: () => import('./components/orders/order-detail/order-detail.component').then(m => m.OrderDetailComponent)
+        loadComponent: () =>
+          import('./components/orders/order-detail/order-detail.component').then(
+            (m) => m.OrderDetailComponent
+          ),
       },
       {
         path: 'customers',
-        loadComponent: () => import('./components/client/clients-list/clients-list.component').then(m => m.ClientsListComponent)
+        title: 'Clientes',
+        loadComponent: () =>
+          import('./components/client/clients-list/clients-list.component').then(
+            (m) => m.ClientsListComponent
+          ),
       },
       {
         path: 'customers/:email',
-        loadComponent: () => import('./components/client/client-details/client-details.component').then(m => m.ClientDetailsComponent)
+        loadComponent: () =>
+          import('./components/client/client-details/client-details.component').then(
+            (m) => m.ClientDetailsComponent
+          ),
       },
       {
         path: 'home-management',
-        loadComponent: () => import('./components/home-management/home-management.component').then(m => m.HomeManagementComponent)
+        title: 'Gestión Home',
+        loadComponent: () =>
+          import('./components/home-management/home-management.component').then(
+            (m) => m.HomeManagementComponent
+          ),
       },
       {
         path: 'about-management',
-        loadComponent: () => import('./components/about-us-management/about-us-management.component').then(m => m.AboutUsManagementComponent)
+        title: 'Gestión Nosotros',
+        loadComponent: () =>
+          import('./components/about-us-management/about-us-management.component').then(
+            (m) => m.AboutUsManagementComponent
+          ),
       },
       {
         path: 'footer-management',
-        loadComponent: () => import('./components/footer-management/footer-management.component').then(m => m.FooterManagementComponent)
+        title: 'Gestión Footer',
+        loadComponent: () =>
+          import('./components/footer-management/footer-management.component').then(
+            (m) => m.FooterManagementComponent
+          ),
       },
       {
         path: 'email-management',
-        loadComponent: () => import('./components/email-management/email-management.component').then(m => m.EmailManagementComponent)
+        title: 'Gestión de Emails',
+        loadComponent: () =>
+          import('./components/email-management/email-management.component').then(
+            (m) => m.EmailManagementComponent
+          ),
+      },
+      {
+        path: 'store-config',
+        title: 'Configuración',
+        loadComponent: () =>
+          import('./components/store-config-management/store-config-management.component').then(
+            (m) => m.StoreConfigManagementComponent
+          ),
       },
       {
         path: 'account',
-        loadComponent: () => import('./components/account/account.component').then(m => m.AccountComponent)
+        loadComponent: () =>
+          import('./components/account/account.component').then((m) => m.AccountComponent),
       },
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
-      }
-    ]
-  }
+        pathMatch: 'full',
+      },
+    ],
+  },
 ];

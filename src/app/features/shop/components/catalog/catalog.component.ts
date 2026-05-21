@@ -1,13 +1,23 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, startWith, debounceTime, take, switchMap, distinctUntilChanged } from 'rxjs/operators';
+import type { FormGroup, FormControl } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import type { Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import {
+  map,
+  startWith,
+  debounceTime,
+  take,
+  switchMap,
+  distinctUntilChanged,
+} from 'rxjs/operators';
 
-import { Product } from '@core/models/product.model';
-import { Category } from '@core/models/category.model';
-import { Attribute } from '@core/models/attribute.model';
+import type { Product } from '@core/models/product.model';
+import type { Category } from '@core/models/category.model';
+import type { Attribute } from '@core/models/attribute.model';
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
 import { AttributeService } from '@core/services/attribute.service';
@@ -27,21 +37,21 @@ export class CatalogComponent implements OnInit {
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
 
-  public paginatedProducts$!: Observable<Product[]>;
-  public categories$!: Observable<Category[]>;
-  
+  paginatedProducts$!: Observable<Product[]>;
+  categories$!: Observable<Category[]>;
+
   private allAttributes = signal<Attribute[]>([]);
-  public activeAttributes = signal<Attribute[]>([]);
+  activeAttributes = signal<Attribute[]>([]);
   private allCategories = signal<Map<string, Category>>(new Map());
 
-  public filterForm: FormGroup;
+  filterForm: FormGroup;
   private sortSubject = new BehaviorSubject<string>('newest');
   private pageSubject = new BehaviorSubject<number>(1);
   private productsFromQuery$ = new BehaviorSubject<Product[]>([]);
 
-  public isSidebarOpen = false;
-  public totalPages = 0;
-  public currentPage = 1;
+  isSidebarOpen = false;
+  totalPages = 0;
+  currentPage = 1;
 
   private itemsPerPage = new BehaviorSubject<number>(12);
 
@@ -50,7 +60,7 @@ export class CatalogComponent implements OnInit {
       category: [null],
       minPrice: [null],
       maxPrice: [null],
-      dynamicAttributes: this.fb.group({})
+      dynamicAttributes: this.fb.group({}),
     });
   }
 
@@ -60,33 +70,39 @@ export class CatalogComponent implements OnInit {
 
   private loadInitialDataAndInitializeForm(): void {
     this.categories$ = this.categoryService.getCategories().pipe(
-      map(categories => {
+      map((categories) => {
         const categoryMap = new Map<string, Category>();
-        categories.forEach(cat => categoryMap.set(cat.id!, cat));
+        categories.forEach((cat) => categoryMap.set(cat.id!, cat));
         this.allCategories.set(categoryMap);
         return categories;
       })
     );
 
-    this.attributeService.getAttributes().pipe(take(1)).subscribe(attrs => {
-      this.allAttributes.set(attrs);
-      this.activeAttributes.set([]);
-      
-      const dynamicGroup = this.filterForm.get('dynamicAttributes') as FormGroup;
-      attrs.forEach(attr => {
-        if (attr.id) {
-          const controls = attr.values.reduce((acc, val) => {
-            acc[val] = this.fb.control(false);
-            return acc;
-          }, {} as { [key: string]: FormControl });
-          dynamicGroup.addControl(attr.id, this.fb.group(controls));
-        }
+    this.attributeService
+      .getAttributes()
+      .pipe(take(1))
+      .subscribe((attrs) => {
+        this.allAttributes.set(attrs);
+        this.activeAttributes.set([]);
+
+        const dynamicGroup = this.filterForm.get('dynamicAttributes') as FormGroup;
+        attrs.forEach((attr) => {
+          if (attr.id) {
+            const controls = attr.values.reduce(
+              (acc, val) => {
+                acc[val] = this.fb.control(false);
+                return acc;
+              },
+              {} as { [key: string]: FormControl }
+            );
+            dynamicGroup.addControl(attr.id, this.fb.group(controls));
+          }
+        });
+
+        this.setupFormListeners();
+        this.setupProductLoadingPipeline();
+        this.applyInitialCategoryFilter();
       });
-      
-      this.setupFormListeners();
-      this.setupProductLoadingPipeline();
-      this.applyInitialCategoryFilter();
-    });
   }
 
   private setupFormListeners(): void {
@@ -96,18 +112,20 @@ export class CatalogComponent implements OnInit {
       distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr))
     );
 
-    filters$.pipe(
-      map(filters => filters.category),
-      distinctUntilChanged(),
-      switchMap(categoryId => {
-        this.pageSubject.next(1);
-        this.updateActiveFilters(categoryId ?? null);
-        const catId = categoryId === 'all' ? null : categoryId;
-        return this.productService.getProductsByQuery(catId);
-      })
-    ).subscribe(products => {
-      this.productsFromQuery$.next(products);
-    });
+    filters$
+      .pipe(
+        map((filters) => filters.category),
+        distinctUntilChanged(),
+        switchMap((categoryId) => {
+          this.pageSubject.next(1);
+          this.updateActiveFilters(categoryId ?? null);
+          const catId = categoryId === 'all' ? null : categoryId;
+          return this.productService.getProductsByQuery(catId);
+        })
+      )
+      .subscribe((products) => {
+        this.productsFromQuery$.next(products);
+      });
   }
 
   private updateActiveFilters(selectedCategoryId: string | null): void {
@@ -117,8 +135,8 @@ export class CatalogComponent implements OnInit {
     }
 
     const category = this.allCategories().get(selectedCategoryId);
-    if (category && category.filterableAttributes) {
-      const active = this.allAttributes().filter(attr => 
+    if (category?.filterableAttributes) {
+      const active = this.allAttributes().filter((attr) =>
         category.filterableAttributes.includes(attr.id!)
       );
       this.activeAttributes.set(active);
@@ -130,7 +148,7 @@ export class CatalogComponent implements OnInit {
   private setupProductLoadingPipeline(): void {
     const filteredProducts$ = combineLatest([
       this.productsFromQuery$,
-      this.filterForm.valueChanges.pipe(startWith(this.filterForm.value), debounceTime(200))
+      this.filterForm.valueChanges.pipe(startWith(this.filterForm.value), debounceTime(200)),
     ]).pipe(
       map(([products, filters]) => {
         const { minPrice, maxPrice, dynamicAttributes } = filters;
@@ -139,17 +157,19 @@ export class CatalogComponent implements OnInit {
         for (const attrId in dynamicAttributes) {
           if (Object.prototype.hasOwnProperty.call(dynamicAttributes, attrId)) {
             const valuesGroup = dynamicAttributes[attrId];
-            const selectedValues = Object.keys(valuesGroup).filter(key => valuesGroup[key]);
+            const selectedValues = Object.keys(valuesGroup).filter((key) => valuesGroup[key]);
             if (selectedValues.length > 0) {
               dynamicFilters[attrId] = selectedValues;
             }
           }
         }
-        
-        const hasPriceFilter = (minPrice !== null && minPrice !== undefined) || (maxPrice !== null && maxPrice !== undefined && maxPrice > 0);
+
+        const hasPriceFilter =
+          (minPrice !== null && minPrice !== undefined) ||
+          (maxPrice !== null && maxPrice !== undefined && maxPrice > 0);
         const hasDynamicFilter = Object.keys(dynamicFilters).length > 0;
 
-        return products.filter(product => {
+        return products.filter((product) => {
           if (product.totalStock <= 0) {
             return false;
           }
@@ -169,22 +189,19 @@ export class CatalogComponent implements OnInit {
               if (!productAttributeValues) {
                 return false;
               }
-              return values.some(val => productAttributeValues.includes(val));
+              return values.some((val) => productAttributeValues.includes(val));
             });
             if (!match) {
               return false;
             }
           }
-          
+
           return true;
         });
       })
     );
-    
-    const sortedProducts$ = combineLatest([
-      filteredProducts$,
-      this.sortSubject
-    ]).pipe(
+
+    const sortedProducts$ = combineLatest([filteredProducts$, this.sortSubject]).pipe(
       map(([products, sort]) => {
         const sorted = [...products];
         if (sort === 'priceAsc') {
@@ -205,7 +222,7 @@ export class CatalogComponent implements OnInit {
     this.paginatedProducts$ = combineLatest([
       sortedProducts$,
       this.pageSubject,
-      this.itemsPerPage
+      this.itemsPerPage,
     ]).pipe(
       map(([products, page, itemsPerPageValue]) => {
         this.totalPages = Math.ceil(products.length / itemsPerPageValue);
@@ -219,7 +236,7 @@ export class CatalogComponent implements OnInit {
   }
 
   private applyInitialCategoryFilter(): void {
-    this.route.queryParamMap.pipe(take(1)).subscribe(params => {
+    this.route.queryParamMap.pipe(take(1)).subscribe((params) => {
       const categoryId = params.get('category');
       if (categoryId) {
         this.filterForm.patchValue({ category: categoryId });
@@ -229,7 +246,7 @@ export class CatalogComponent implements OnInit {
     });
   }
 
-  public toggleSidebar(): void {
+  toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
@@ -245,7 +262,7 @@ export class CatalogComponent implements OnInit {
     this.filterForm.patchValue({
       category: this.filterForm.get('category')?.value,
       minPrice: null,
-      maxPrice: null
+      maxPrice: null,
     });
     this.pageSubject.next(1);
   }

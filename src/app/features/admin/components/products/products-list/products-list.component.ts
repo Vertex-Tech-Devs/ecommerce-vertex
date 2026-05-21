@@ -1,59 +1,55 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, CurrencyPipe, TitleCasePipe } from '@angular/common';
+import type { OnInit, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { CommonModule, CurrencyPipe, TitleCasePipe, ViewportScroller } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
-import { Observable, BehaviorSubject, combineLatest, Subscription } from 'rxjs';
-import { Product } from '@core/models/product.model';
+import type { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import type { Product } from '@core/models/product.model';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import type { BsModalRef } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
 import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
-import { TruncatePipe } from "../../shared/pipes/truncate.pipe";
+import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { CategoryService } from '@core/services/category.service';
-import { Category } from '@core/models/category.model';
+import type { Category } from '@core/models/category.model';
 
 @Component({
   selector: 'app-products-list',
   templateUrl: './products-list.component.html',
   styleUrls: ['./products-list.component.scss'],
-  imports: [
-    CommonModule,
-    RouterModule,
-    CurrencyPipe,
-    FormsModule,
-    TitleCasePipe,
-    TruncatePipe
-  ],
+  imports: [CommonModule, RouterModule, CurrencyPipe, FormsModule, TitleCasePipe, TruncatePipe],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsListComponent implements OnInit, OnDestroy {
-  public products$!: Observable<Product[]>;
+  products$!: Observable<Product[]>;
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private modalService = inject(BsModalService);
+  private viewportScroller = inject(ViewportScroller);
 
   bsModalRef?: BsModalRef;
   private modalSubscription?: Subscription;
 
-  public searchTermSubject = new BehaviorSubject<string>('');
-  public filterCategorySubject = new BehaviorSubject<string>('all');
-  public categories$!: Observable<Category[]>;
+  searchTermSubject = new BehaviorSubject<string>('');
+  filterCategorySubject = new BehaviorSubject<string>('all');
+  categories$!: Observable<Category[]>;
   private categoriesMap: Map<string, string> = new Map();
-  
-  public currentPageSubject = new BehaviorSubject<number>(1);
-  public itemsPerPageSubject = new BehaviorSubject<number>(10);
-  public itemsPerPageOptions = [5, 10, 20, 30];
 
-  public totalProducts = 0;
-  public totalPages = 0;
+  currentPageSubject = new BehaviorSubject<number>(1);
+  itemsPerPageSubject = new BehaviorSubject<number>(12);
+
+  totalProducts = 0;
+  totalPages = 0;
 
   ngOnInit(): void {
     this.categories$ = this.categoryService.getCategories().pipe(
-      map(categories => {
+      map((categories) => {
         this.categoriesMap.clear();
-        categories.forEach(cat => this.categoriesMap.set(cat.id!, cat.name));
+        categories.forEach((cat) => this.categoriesMap.set(cat.id!, cat.name));
         return categories;
       })
     );
@@ -64,22 +60,23 @@ export class ProductsListComponent implements OnInit, OnDestroy {
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterCategorySubject,
       this.currentPageSubject,
-      this.itemsPerPageSubject
+      this.itemsPerPageSubject,
     ]).pipe(
-      map(([allProducts, categories, searchTerm, filterCategoryId, currentPage, itemsPerPage]) => {
+      map(([allProducts, _categories, searchTerm, filterCategoryId, currentPage, itemsPerPage]) => {
         let filteredProducts = allProducts;
-        
+
         if (searchTerm) {
           const lowerCaseSearchTerm = searchTerm.toLowerCase();
-          filteredProducts = filteredProducts.filter(product =>
-            product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-            product.description.toLowerCase().includes(lowerCaseSearchTerm)
+          filteredProducts = filteredProducts.filter(
+            (product) =>
+              product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+              product.description.toLowerCase().includes(lowerCaseSearchTerm)
           );
         }
 
         if (filterCategoryId !== 'all') {
-          filteredProducts = filteredProducts.filter(product =>
-            product.categoryId === filterCategoryId
+          filteredProducts = filteredProducts.filter(
+            (product) => product.categoryId === filterCategoryId
           );
         }
 
@@ -89,10 +86,10 @@ export class ProductsListComponent implements OnInit, OnDestroy {
         if (currentPage > this.totalPages && this.totalPages > 0) {
           const corrected = this.totalPages;
           currentPage = corrected;
-          Promise.resolve().then(() => this.currentPageSubject.next(corrected));
+          void Promise.resolve().then(() => this.currentPageSubject.next(corrected));
         } else if (this.totalPages === 0 && currentPage !== 1) {
           currentPage = 1;
-          Promise.resolve().then(() => this.currentPageSubject.next(1));
+          void Promise.resolve().then(() => this.currentPageSubject.next(1));
         }
 
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -102,7 +99,7 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   }
 
   getCategoryName(categoryId: string): string {
-    return this.categoriesMap.get(categoryId) || 'Sin Categoría';
+    return this.categoriesMap.get(categoryId) ?? 'Sin Categoría';
   }
 
   onSearchChange(newValue: string): void {
@@ -118,12 +115,16 @@ export class ProductsListComponent implements OnInit, OnDestroy {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPageSubject.next(page);
-    }
-  }
 
-  onItemsPerPageChange(newValue: string): void {
-    this.itemsPerPageSubject.next(Number(newValue));
-    this.currentPageSubject.next(1);
+      setTimeout(() => {
+        this.viewportScroller.scrollToPosition([0, 0]);
+
+        const container = document.querySelector('.admin-shell__main');
+        if (container) {
+          container.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 50);
+    }
   }
 
   ngOnDestroy(): void {
@@ -142,12 +143,12 @@ export class ProductsListComponent implements OnInit, OnDestroy {
 
     this.modalSubscription = this.bsModalRef.content.onClose.subscribe((result: boolean) => {
       if (result) {
-        this.productService.deleteProduct(product.id);
+        void this.productService.deleteProduct(product.id);
       }
     });
   }
 
   newProduct(): void {
-    this.router.navigate(['/admin/products/create']);
+    void this.router.navigate(['/admin/products/create']);
   }
 }
