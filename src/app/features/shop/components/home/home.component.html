@@ -8,7 +8,6 @@
             [interval]="banner.carouselSettings?.interval || 6000"
             [showIndicators]="banner.carouselSettings?.showIndicators !== false"
             [showArrows]="true"
-            [aspectRatio]="'16 / 9'"
           ></app-carousel>
         } @else {
           <div class="hero__static">
@@ -69,6 +68,11 @@
         </section>
       }
     </div>
+  } @else {
+    <div class="hero-loading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <span class="visually-hidden">Cargando banner...</span>
+    </div>
   }
 
   <div class="home-container">
@@ -113,8 +117,8 @@
         </div>
       } @else {
         <div class="loading-state" role="status">
-          <div class="spinner-border" aria-hidden="true"></div>
-          <span class="visually-hidden">Cargando...</span>
+          <div class="spinner-border text-primary" aria-hidden="true"></div>
+          <span class="visually-hidden">Cargando productos...</span>
         </div>
       }
     </section>
