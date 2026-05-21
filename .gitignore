@@ -74,6 +74,9 @@ firebase-debug.log
 private/
 secrets/
 credentials.json
+*.json.key
+service-account*.json
+application_default_credentials.json
 
 # Testing
 test-results/
