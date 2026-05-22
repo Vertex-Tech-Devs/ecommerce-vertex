@@ -6,15 +6,23 @@ export interface FeaturedCategory {
 }
 
 export interface CarouselSettings {
-  interval: number; // Intervalo en milisegundos (default: 4000)
-  showIndicators: boolean; // Mostrar puntos de navegación (default: true)
+  interval: number;
+  showIndicators: boolean;
+}
+
+export interface HeroImage {
+  imageUrl: string;
+  linkType?: 'product' | 'category' | 'none';
+  linkId?: string;
 }
 
 export interface HeroBanner {
   id?: string;
-  imageUrl?: string; // Mantener para compatibilidad con datos legacy
-  heroImages?: string[]; // Array de URLs de imágenes para el carrusel
-  carouselSettings?: CarouselSettings; // Configuración del carrusel
+  imageUrl?: string;
+
+  heroImages?: HeroImage[];
+
+  carouselSettings?: CarouselSettings;
   title?: string;
   buttonText?: string;
   buttonLink?: string;
