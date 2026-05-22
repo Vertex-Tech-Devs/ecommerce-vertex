@@ -20,8 +20,6 @@ export const environment = {
     cloudFunctionsUrl: 'http://127.0.0.1:5001/YOUR_PROJECT_ID/us-central1',
   },
   features: {
-    // Show the Seed Data admin panel (useful during dev to populate Firestore)
-    seedDataEnabled: true,
     // Enable verbose console logging throughout the app
     debugLogging: false,
   },

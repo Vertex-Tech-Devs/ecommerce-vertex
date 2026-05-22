@@ -7,7 +7,6 @@ export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
   contact: { email: '', phone: '', whatsapp: '' },
   seo: { metaTitle: 'Mi Tienda', metaDescription: 'Bienvenido a mi tienda online.' },
   features: {
-    seedDataEnabled: true,
     reviewsEnabled: false,
     wishlistEnabled: false,
     blogEnabled: false,
