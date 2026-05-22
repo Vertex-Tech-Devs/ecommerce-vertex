@@ -331,7 +331,11 @@ jobs:
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
         run: |
+          DEPLOY_TOKEN="${{ github.event.client_payload.deploy_token }}"
+          if [ -z "$DEPLOY_TOKEN" ]; then
+            DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
+          fi
           curl -s -X POST \
             "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/completeStoreDeployment" \
             -H "Content-Type: application/json" \
-            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"${{ secrets.PLATFORM_DEPLOY_TOKEN }}\"}}"
+            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\"}}"
