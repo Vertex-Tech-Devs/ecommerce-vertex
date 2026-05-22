@@ -139,99 +139,15 @@
         </div>
       </div>
 
-      <div class="glass-card mb-5 card-categories">
-        <div class="card-header border-0 d-flex justify-content-between align-items-center fw-bold">
-          <div><i class="bi bi-tags-fill me-2" aria-hidden="true"></i>Destacadas</div>
-          <button
-            type="button"
-            class="btn-glass-action btn-add-success"
-            (click)="addFeaturedCategory()"
-            [disabled]="featuredCategories.length >= 3"
-          >
-            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Añadir
-          </button>
-        </div>
-
-        <div class="card-body" formArrayName="featuredCategories">
-          <div class="categories-scroll-wrapper">
-            @for (
-              categoryControl of featuredCategories.controls;
-              track categoryControl;
-              let i = $index
-            ) {
-              <div class="category-scroll-card">
-                <div [formGroupName]="i" class="glass-inner-card h-100 position-relative">
-                  <button
-                    type="button"
-                    class="btn-delete-absolute"
-                    (click)="removeFeaturedCategory(i)"
-                    title="Eliminar Categoría"
-                  >
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                  </button>
-
-                  <div class="row g-3">
-                    <div class="col-12">
-                      <label [for]="'categoryName' + i" class="form-label text-label"
-                        >Categoría</label
-                      >
-                      <select
-                        [id]="'categoryName' + i"
-                        class="form-select glass-input glass-select"
-                        formControlName="categoryId"
-                        (change)="onCategorySelectionChange(i, $event)"
-                      >
-                        <option [ngValue]="null" disabled>Elegir...</option>
-                        @if (categories$ | async; as categories) {
-                          @for (cat of categories; track cat.id) {
-                            <option [value]="cat.id">{{ cat.name }}</option>
-                          }
-                        }
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label text-label d-block">Portada</label>
-                      <div class="category-preview-wrapper mb-3">
-                        @if (categoryPreviewUrls[i] || categoryControl.get('imageUrl')?.value) {
-                          <img
-                            [src]="categoryPreviewUrls[i] || categoryControl.get('imageUrl')?.value"
-                            class="img-fluid"
-                          />
-                        } @else {
-                          <div class="no-preview-placeholder">
-                            <i class="bi bi-image"></i>
-                            <span>Sin imagen</span>
-                          </div>
-                        }
-                      </div>
-                      <label
-                        [for]="'categoryImageFile' + i"
-                        class="btn-glass-action btn-change-image w-100 m-0 text-center d-block"
-                      >
-                        <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar
-                      </label>
-                      <input
-                        type="file"
-                        [id]="'categoryImageFile' + i"
-                        class="d-none"
-                        (change)="onFileSelected($event, i)"
-                        accept="image/png, image/jpeg, image/webp"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-
-          @if (featuredCategories.length === 0) {
-            <div class="empty-state py-4">
-              <i class="bi bi-tags empty-icon"></i>
-              <p class="fs-6 mt-2 fw-bold text-soft">No hay categorías configuradas.</p>
-            </div>
-          }
-        </div>
-      </div>
+      <app-featured-categories
+        [formArray]="featuredCategories"
+        [categories]="(categories$ | async) ?? []"
+        [previewUrls]="categoryPreviewUrls"
+        (add)="addFeaturedCategory()"
+        (remove)="removeFeaturedCategory($event)"
+        (categoryChange)="onCategorySelectionChange($event.index, $event.event)"
+        (fileChange)="onFileSelected($event.event, $event.index)"
+      ></app-featured-categories>
 
       <div class="d-flex justify-content-center justify-content-md-end mb-5 pb-4">
         <button
@@ -256,105 +172,17 @@
   </div>
 </section>
 
-@if (isLinkModalVisible) {
-  <div class="modal-backdrop glass-backdrop fade show"></div>
-
-  <div
-    class="modal fade show custom-glass-modal"
-    style="display: block"
-    tabindex="-1"
-    (click)="closeLinkModal()"
-  >
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content glass-modal-content">
-        <div class="modal-header border-0">
-          <h5 class="modal-title fw-bold text-white">
-            <i class="bi bi-link-45deg me-2" style="color: #38bdf8"></i> Enlace de la Imagen
-            {{ activeHeroIndex + 1 }}
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            (click)="closeLinkModal()"
-          ></button>
-        </div>
-
-        <div class="modal-body">
-          <div class="mb-4">
-            <label class="form-label text-label">Acción al hacer clic</label>
-            <select
-              class="form-select glass-input glass-select"
-              [value]="heroImages[activeHeroIndex].linkType || 'none'"
-              (change)="updateLinkType($event)"
-            >
-              <option value="none">Sin redirección (Solo decorativa)</option>
-              <option value="category">Ir a una Categoría</option>
-              <option value="product">Ir a un Producto</option>
-            </select>
-          </div>
-
-          @if (heroImages[activeHeroIndex].linkType === 'category') {
-            <div class="mb-4">
-              <label class="form-label text-label">Seleccionar Categoría</label>
-              <select
-                class="form-select glass-input glass-select"
-                [value]="heroImages[activeHeroIndex].linkId || ''"
-                (change)="updateLinkId($event)"
-              >
-                <option value="" disabled selected>Elegir categoría...</option>
-                @if (categories$ | async; as cats) {
-                  @for (cat of cats; track cat.id) {
-                    <option [value]="cat.id">{{ cat.name }}</option>
-                  }
-                }
-              </select>
-            </div>
-          }
-
-          @if (heroImages[activeHeroIndex].linkType === 'product') {
-            <div class="mb-4">
-              <label class="form-label text-label">Seleccionar Producto</label>
-
-              <div class="position-relative mb-2">
-                <i
-                  class="bi bi-search position-absolute text-soft"
-                  style="top: 50%; left: 1rem; transform: translateY(-50%)"
-                ></i>
-                <input
-                  type="text"
-                  class="form-control glass-input"
-                  style="padding-left: 2.5rem"
-                  placeholder="Buscar producto por nombre..."
-                  [value]="productSearchTerm$.value"
-                  (input)="onProductSearch($event)"
-                />
-              </div>
-
-              <select
-                class="form-select glass-input glass-select"
-                [value]="heroImages[activeHeroIndex].linkId || ''"
-                (change)="updateLinkId($event)"
-              >
-                <option value="" disabled selected>Elegir producto...</option>
-                @if (filteredProducts$ | async; as prods) {
-                  @for (prod of prods; track prod.id) {
-                    <option [value]="prod.id">{{ prod.name }}</option>
-                  }
-                  @if (prods.length === 0) {
-                    <option value="" disabled>No se encontraron productos...</option>
-                  }
-                }
-              </select>
-            </div>
-          }
-        </div>
-
-        <div class="modal-footer border-0">
-          <button type="button" class="btn-save-primary w-100 m-0" (click)="closeLinkModal()">
-            Listo
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+@if (isLinkModalVisible && activeHeroIndex !== -1) {
+  <app-hero-link-modal
+    [isVisible]="true"
+    [heroImage]="heroImages[activeHeroIndex]"
+    [heroIndex]="activeHeroIndex"
+    [categories]="(categories$ | async) ?? []"
+    [filteredProducts]="(filteredProducts$ | async) ?? []"
+    [productSearchTerm]="productSearchTerm$.value"
+    (close)="closeLinkModal()"
+    (updateType)="updateLinkType($event)"
+    (updateId)="updateLinkId($event)"
+    (searchProduct)="onProductSearch($event)"
+  ></app-hero-link-modal>
 }
