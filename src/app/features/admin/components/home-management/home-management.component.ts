@@ -1,20 +1,27 @@
+/* eslint-disable max-lines */
 import type { OnInit } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { FormArray, FormGroup, AbstractControl } from '@angular/forms';
+import type { FormArray, FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { map, take } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import type { Observable } from 'rxjs';
 
 import { HomeContentService } from '@core/services/home-content.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { CategoryService } from '@core/services/category.service';
+import { ProductService } from '@core/services/product.service';
+
 import type {
   CarouselSettings,
   FeaturedCategory,
   HeroBanner,
+  HeroImage,
 } from '@core/models/home-content.model';
 import type { Category } from '@core/models/category.model';
-import type { Observable } from 'rxjs';
+import type { Product } from '@core/models/product.model';
+
 import { HeroImageUploaderService, MAX_HERO_IMAGES } from './hero-image-uploader.service';
 
 @Component({
@@ -29,13 +36,18 @@ export class HomeManagementComponent implements OnInit {
   private homeContentService = inject(HomeContentService);
   private sweetAlertService = inject(SweetAlertService);
   private categoryService = inject(CategoryService);
+  private productService = inject(ProductService);
   private heroUploader = inject(HeroImageUploaderService);
 
   bannerForm!: FormGroup;
   isSubmitting = false;
   categories$!: Observable<Category[]>;
+  products$!: Observable<Product[]>;
 
-  heroImages: string[] = [];
+  productSearchTerm$ = new BehaviorSubject<string>('');
+  filteredProducts$!: Observable<Product[]>;
+
+  heroImages: HeroImage[] = [];
   selectedHeroFiles: File[] = [];
   heroImagePreviews: string[] = [];
   isDragOver = false;
@@ -44,11 +56,15 @@ export class HomeManagementComponent implements OnInit {
   selectedCategoryFiles: (File | null)[] = [];
   categoryPreviewUrls: (string | null)[] = [];
 
+  isLinkModalVisible = false;
+  activeHeroIndex = -1;
+
   private categoryMap = new Map<string, { name: string; slug: string }>();
   private readonly MAX_HERO = MAX_HERO_IMAGES;
 
   ngOnInit(): void {
     this.initializeForm();
+
     this.categories$ = this.categoryService.getCategories().pipe(
       take(1),
       map((categories: Category[]) => {
@@ -59,6 +75,19 @@ export class HomeManagementComponent implements OnInit {
         return categories;
       })
     );
+
+    this.products$ = this.productService.getProducts();
+
+    this.filteredProducts$ = combineLatest([this.products$, this.productSearchTerm$]).pipe(
+      map(([products, term]) => {
+        if (!term) {
+          return products;
+        }
+        const lowerTerm = term.toLowerCase();
+        return products.filter((p) => p.name.toLowerCase().includes(lowerTerm));
+      })
+    );
+
     this.loadContentData();
   }
 
@@ -81,8 +110,13 @@ export class HomeManagementComponent implements OnInit {
           return;
         }
         if (content.heroImages?.length) {
-          this.heroImages = [...content.heroImages];
-          this.heroImagePreviews = [...content.heroImages];
+          this.heroImages = content.heroImages.map((img: string | HeroImage) => {
+            if (typeof img === 'string') {
+              return { imageUrl: img, linkType: 'none' };
+            }
+            return img;
+          });
+          this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
           this.selectedHeroFiles = [];
         }
         if (content.carouselSettings) {
@@ -102,10 +136,6 @@ export class HomeManagementComponent implements OnInit {
 
   get carouselSettingsGroup(): FormGroup {
     return this.bannerForm.get('carouselSettings') as FormGroup;
-  }
-
-  get carouselIntervalControl(): AbstractControl | null {
-    return this.carouselSettingsGroup.get('interval');
   }
 
   get emptySlots(): null[] {
@@ -177,7 +207,7 @@ export class HomeManagementComponent implements OnInit {
       return;
     }
     batch.ids.forEach((id, i) => {
-      this.heroImages.push(id);
+      this.heroImages.push({ imageUrl: id, linkType: 'none' });
       this.heroImagePreviews.push(batch.previews[i]);
       this.selectedHeroFiles.push(batch.files[i]);
     });
@@ -239,6 +269,37 @@ export class HomeManagementComponent implements OnInit {
     };
     reader.readAsDataURL(file);
     input.value = '';
+  }
+
+  openLinkModal(index: number): void {
+    this.activeHeroIndex = index;
+    this.productSearchTerm$.next('');
+    this.isLinkModalVisible = true;
+  }
+
+  closeLinkModal(): void {
+    this.isLinkModalVisible = false;
+    this.activeHeroIndex = -1;
+  }
+
+  updateLinkType(event: Event): void {
+    const type = (event.target as HTMLSelectElement).value as 'product' | 'category' | 'none';
+    this.heroImages[this.activeHeroIndex].linkType = type;
+    this.heroImages[this.activeHeroIndex].linkId = undefined;
+    if (type === 'product') {
+      this.productSearchTerm$.next('');
+    }
+    this.bannerForm.markAsDirty();
+  }
+
+  updateLinkId(event: Event): void {
+    this.heroImages[this.activeHeroIndex].linkId = (event.target as HTMLSelectElement).value;
+    this.bannerForm.markAsDirty();
+  }
+
+  onProductSearch(event: Event): void {
+    const term = (event.target as HTMLInputElement).value;
+    this.productSearchTerm$.next(term);
   }
 
   async onSubmit(): Promise<void> {

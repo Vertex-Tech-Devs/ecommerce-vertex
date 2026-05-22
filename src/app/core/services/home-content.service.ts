@@ -23,6 +23,7 @@ export class HomeContentService {
     });
   }
 
+  // eslint-disable-next-line complexity
   async saveHomePageContent(
     contentData: HeroBanner,
     newBannerFile: File | null,
@@ -35,51 +36,55 @@ export class HomeContentService {
     const currentDocSnap = await getDoc(docRef);
     const currentData = currentDocSnap.data() as HeroBanner | undefined;
 
-    // PROCESAR IMÁGENES HERO (CARRUSEL)
-    if (newHeroFiles && newHeroFiles.length > 0) {
-      const uploadPromises = newHeroFiles.map(async (file, index) => {
-        const heroImagePath = `site-images/hero-carousel-${index}-${new Date().getTime()}`;
-        const upload = this.storageService.uploadFile(file, heroImagePath);
-        return firstValueFrom(upload.downloadUrl$);
+    if (newHeroFiles && newHeroFiles.length > 0 && dataToSave.heroImages) {
+      let fileIndex = 0;
+      const uploadPromises = dataToSave.heroImages.map(async (heroImg, i) => {
+        if (heroImg.imageUrl.startsWith('file-') && fileIndex < newHeroFiles.length) {
+          const file = newHeroFiles[fileIndex++];
+          const heroImagePath = `site-images/hero-carousel-${i}-${new Date().getTime()}`;
+          const upload = this.storageService.uploadFile(file, heroImagePath);
+          const url = await firstValueFrom(upload.downloadUrl$);
+          return { ...heroImg, imageUrl: url };
+        }
+        return heroImg;
       });
-
-      // Combinar imágenes nuevas con imágenes existentes que no fueron eliminadas
-      const uploadedUrls = await Promise.all(uploadPromises);
-      dataToSave.heroImages = uploadedUrls;
+      dataToSave.heroImages = await Promise.all(uploadPromises);
     }
 
-    // LIMPIAR IMÁGENES HERO ANTIGUAS QUE YA NO ESTÁN
     if (currentData?.heroImages && dataToSave.heroImages) {
+      const savedUrls = dataToSave.heroImages.map((img) => img.imageUrl);
       const imagesToDelete = currentData.heroImages.filter(
-        (img) => !dataToSave.heroImages?.includes(img)
+        (img) => !savedUrls.includes(img.imageUrl)
       );
-      for (const imageUrl of imagesToDelete) {
+      for (const img of imagesToDelete) {
         try {
-          await firstValueFrom(this.storageService.deleteFileByUrl(imageUrl));
-        } catch (error) {
-          console.warn('Error deleting hero image:', error);
-        }
+          if (img.imageUrl && !img.imageUrl.startsWith('file-')) {
+            await firstValueFrom(this.storageService.deleteFileByUrl(img.imageUrl));
+          }
+        } catch {}
       }
     }
 
-    // PROCESAR BANNER LEGACY (compatibilidad hacia atrás)
     if (newBannerFile) {
       if (currentData?.imageUrl) {
-        await firstValueFrom(this.storageService.deleteFileByUrl(currentData.imageUrl));
+        try {
+          await firstValueFrom(this.storageService.deleteFileByUrl(currentData.imageUrl));
+        } catch {}
       }
       const imagePath = `site-images/home-banner-${new Date().getTime()}`;
       const upload = this.storageService.uploadFile(newBannerFile, imagePath);
       dataToSave.imageUrl = await firstValueFrom(upload.downloadUrl$);
     }
 
-    // PROCESAR CATEGORÍAS DESTACADAS
     if (dataToSave.featuredCategories && newCategoryFiles.length > 0) {
       const uploadPromises = dataToSave.featuredCategories.map(async (category, index) => {
         const categoryFile = newCategoryFiles[index];
         if (categoryFile) {
           const oldCategoryImageUrl = currentData?.featuredCategories?.[index]?.imageUrl;
           if (oldCategoryImageUrl) {
-            await firstValueFrom(this.storageService.deleteFileByUrl(oldCategoryImageUrl));
+            try {
+              await firstValueFrom(this.storageService.deleteFileByUrl(oldCategoryImageUrl));
+            } catch {}
           }
           const categoryImagePath = `site-images/featured-category-${index}-${new Date().getTime()}`;
           const upload = this.storageService.uploadFile(categoryFile, categoryImagePath);

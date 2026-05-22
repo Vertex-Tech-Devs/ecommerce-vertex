@@ -54,29 +54,45 @@
                   <div class="slot-overlay">
                     <button
                       type="button"
-                      class="slot-btn"
+                      class="slot-nav-btn slot-nav-btn--prev"
                       (click)="moveHeroImageUp(i)"
                       [disabled]="i === 0"
                     >
                       <i class="bi bi-chevron-left" aria-hidden="true"></i>
                     </button>
+
+                    <div class="slot-actions-group">
+                      <button
+                        type="button"
+                        class="slot-btn slot-btn--info"
+                        (click)="openLinkModal(i)"
+                      >
+                        <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="slot-btn slot-btn--danger"
+                        (click)="removeHeroImage(i)"
+                      >
+                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                      </button>
+                    </div>
+
                     <button
                       type="button"
-                      class="slot-btn slot-btn--danger"
-                      (click)="removeHeroImage(i)"
-                    >
-                      <i class="bi bi-trash3" aria-hidden="true"></i>
-                    </button>
-                    <button
-                      type="button"
-                      class="slot-btn"
+                      class="slot-nav-btn slot-nav-btn--next"
                       (click)="moveHeroImageDown(i)"
                       [disabled]="i === heroImages.length - 1"
                     >
                       <i class="bi bi-chevron-right" aria-hidden="true"></i>
                     </button>
                   </div>
-                  <span class="slot-badge">{{ i + 1 }}</span>
+                  <span class="slot-badge">
+                    {{ i + 1 }}
+                    @if (heroImages[i].linkType && heroImages[i].linkType !== 'none') {
+                      <i class="bi bi-link-45deg ms-1" style="font-size: 0.9rem"></i>
+                    }
+                  </span>
                 </div>
               }
               @for (_ of emptySlots; track $index) {
@@ -88,7 +104,7 @@
           }
 
           <div class="glass-inner-card mt-4" formGroupName="carouselSettings">
-            <h6 class="section-subtitle-sm mb-4">
+            <h6 class="section-subtitle-sm mb-4 text-white">
               <i class="bi bi-sliders me-2" aria-hidden="true"></i>Ajustes del Carrusel
             </h6>
             <div class="row g-4 align-items-center">
@@ -161,7 +177,7 @@
                       >
                       <select
                         [id]="'categoryName' + i"
-                        class="form-select glass-input"
+                        class="form-select glass-input glass-select"
                         formControlName="categoryId"
                         (change)="onCategorySelectionChange(i, $event)"
                       >
@@ -239,3 +255,106 @@
     </form>
   </div>
 </section>
+
+@if (isLinkModalVisible) {
+  <div class="modal-backdrop glass-backdrop fade show"></div>
+
+  <div
+    class="modal fade show custom-glass-modal"
+    style="display: block"
+    tabindex="-1"
+    (click)="closeLinkModal()"
+  >
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content glass-modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold text-white">
+            <i class="bi bi-link-45deg me-2" style="color: #38bdf8"></i> Enlace de la Imagen
+            {{ activeHeroIndex + 1 }}
+          </h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            (click)="closeLinkModal()"
+          ></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-4">
+            <label class="form-label text-label">Acción al hacer clic</label>
+            <select
+              class="form-select glass-input glass-select"
+              [value]="heroImages[activeHeroIndex].linkType || 'none'"
+              (change)="updateLinkType($event)"
+            >
+              <option value="none">Sin redirección (Solo decorativa)</option>
+              <option value="category">Ir a una Categoría</option>
+              <option value="product">Ir a un Producto</option>
+            </select>
+          </div>
+
+          @if (heroImages[activeHeroIndex].linkType === 'category') {
+            <div class="mb-4">
+              <label class="form-label text-label">Seleccionar Categoría</label>
+              <select
+                class="form-select glass-input glass-select"
+                [value]="heroImages[activeHeroIndex].linkId || ''"
+                (change)="updateLinkId($event)"
+              >
+                <option value="" disabled selected>Elegir categoría...</option>
+                @if (categories$ | async; as cats) {
+                  @for (cat of cats; track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                }
+              </select>
+            </div>
+          }
+
+          @if (heroImages[activeHeroIndex].linkType === 'product') {
+            <div class="mb-4">
+              <label class="form-label text-label">Seleccionar Producto</label>
+
+              <div class="position-relative mb-2">
+                <i
+                  class="bi bi-search position-absolute text-soft"
+                  style="top: 50%; left: 1rem; transform: translateY(-50%)"
+                ></i>
+                <input
+                  type="text"
+                  class="form-control glass-input"
+                  style="padding-left: 2.5rem"
+                  placeholder="Buscar producto por nombre..."
+                  [value]="productSearchTerm$.value"
+                  (input)="onProductSearch($event)"
+                />
+              </div>
+
+              <select
+                class="form-select glass-input glass-select"
+                [value]="heroImages[activeHeroIndex].linkId || ''"
+                (change)="updateLinkId($event)"
+              >
+                <option value="" disabled selected>Elegir producto...</option>
+                @if (filteredProducts$ | async; as prods) {
+                  @for (prod of prods; track prod.id) {
+                    <option [value]="prod.id">{{ prod.name }}</option>
+                  }
+                  @if (prods.length === 0) {
+                    <option value="" disabled>No se encontraron productos...</option>
+                  }
+                }
+              </select>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn-save-primary w-100 m-0" (click)="closeLinkModal()">
+            Listo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

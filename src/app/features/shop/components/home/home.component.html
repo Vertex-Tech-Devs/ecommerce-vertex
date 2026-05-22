@@ -20,21 +20,6 @@
             />
           </div>
         }
-
-        @if (banner.title || (banner.buttonText && banner.buttonLink)) {
-          <div class="hero__overlay">
-            <div class="hero__content">
-              @if (banner.title) {
-                <h1 class="hero__title">{{ banner.title }}</h1>
-              }
-              @if (banner.buttonText && banner.buttonLink) {
-                <a [routerLink]="banner.buttonLink" class="hero__cta">
-                  {{ banner.buttonText }}
-                </a>
-              }
-            </div>
-          </div>
-        }
       </section>
     }
 
