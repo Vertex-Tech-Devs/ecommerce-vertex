@@ -16,6 +16,7 @@ import { getStorage } from 'firebase/storage';
 
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { StoreConfigService } from './core/services/store-config.service';
 import { SeoService } from './core/services/seo.service';
 import { StoreTitleStrategy } from './core/strategies/store-title.strategy';
@@ -25,7 +26,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
   return {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
-      provideHttpClient(withInterceptors([loadingInterceptor])),
+      provideHttpClient(withInterceptors([loadingInterceptor, httpErrorInterceptor])),
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
       provideAuth(() => getAuth()),
