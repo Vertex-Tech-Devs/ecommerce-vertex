@@ -4,7 +4,7 @@
 
 Angular e-commerce template deployed to each tenant store's Firebase project.
 Every store gets its own isolated Firebase project with this app deployed to it.
-The app reads store configuration from the store's own Firestore (`storeConfig/main`).
+The app reads store configuration from the store's own Firestore (`settings/storeConfig`).
 
 ## Tech stack
 
