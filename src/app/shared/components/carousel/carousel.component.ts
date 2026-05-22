@@ -9,12 +9,14 @@ import {
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import type { HeroImage } from '@core/models/home-content.model';
 
 @Component({
   selector: 'app-carousel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './carousel.component.html',
   styleUrls: ['./carousel.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,9 +32,9 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 })
 export class CarouselComponent implements OnInit, OnDestroy {
   @Input()
-  images: string[] = [];
+  images: HeroImage[] = [];
   @Input()
-  interval: number = 4000; // Intervalo en milisegundos
+  interval: number = 4000;
   @Input()
   showIndicators: boolean = true;
   @Input()
@@ -147,11 +149,34 @@ export class CarouselComponent implements OnInit, OnDestroy {
     }
   }
 
-  get currentImage(): string {
-    return this.images[this.currentIndex] || '';
+  get currentImage(): HeroImage | null {
+    return this.images[this.currentIndex] || null;
   }
 
   get slideProgress(): number {
     return ((this.currentIndex + 1) / this.images.length) * 100;
+  }
+
+  getRoute(image: HeroImage | null): string[] | null {
+    if (!image) {
+      return null;
+    }
+    if (image.linkType === 'product' && image.linkId) {
+      return ['/shop/product', image.linkId];
+    }
+    if (image.linkType === 'category' && image.linkId) {
+      return ['/shop/catalog'];
+    }
+    return null;
+  }
+
+  getQueryParams(image: HeroImage | null): Record<string, string> | null {
+    if (!image) {
+      return null;
+    }
+    if (image.linkType === 'category' && image.linkId) {
+      return { category: image.linkId };
+    }
+    return null;
   }
 }

@@ -35,6 +35,6 @@ export class HomeComponent implements OnInit {
   }
 
   getStaticImage(banner: HeroBanner | null): string | undefined {
-    return banner?.heroImages?.[0] ?? banner?.imageUrl;
+    return banner?.heroImages?.[0]?.imageUrl ?? banner?.imageUrl;
   }
 }

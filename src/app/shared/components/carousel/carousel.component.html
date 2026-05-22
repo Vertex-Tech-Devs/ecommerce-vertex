@@ -1,5 +1,4 @@
 <div class="carousel-container" [style.--aspect-ratio]="carouselAspectRatio">
-  <!-- Image slide container -->
   <div
     class="carousel__slide"
     (touchstart)="onTouchStart($event)"
@@ -8,15 +7,30 @@
     [attr.aria-label]="'Carrusel de imagen ' + (currentIndex + 1) + ' de ' + images.length"
     aria-roledescription="carousel"
   >
-    <img
-      [src]="currentImage"
-      [alt]="'Slide ' + (currentIndex + 1)"
-      class="carousel__image"
-      loading="lazy"
-    />
+    @if (getRoute(currentImage)) {
+      <a
+        [routerLink]="getRoute(currentImage)"
+        [queryParams]="getQueryParams(currentImage)"
+        class="carousel__link"
+        style="display: block; width: 100%; height: 100%"
+      >
+        <img
+          [src]="currentImage?.imageUrl"
+          [alt]="'Slide ' + (currentIndex + 1)"
+          class="carousel__image"
+          loading="lazy"
+        />
+      </a>
+    } @else {
+      <img
+        [src]="currentImage?.imageUrl"
+        [alt]="'Slide ' + (currentIndex + 1)"
+        class="carousel__image"
+        loading="lazy"
+      />
+    }
   </div>
 
-  <!-- Navigation arrows -->
   @if (showArrows && images.length > 1) {
     <button
       class="carousel__control carousel__control--prev"
@@ -36,7 +50,6 @@
     </button>
   }
 
-  <!-- Dot indicators -->
   @if (showIndicators && images.length > 1) {
     <nav class="carousel__indicators" role="tablist" aria-label="Navegación del carrusel">
       @for (image of images; track $index; let i = $index) {
@@ -53,6 +66,5 @@
     </nav>
   }
 
-  <!-- Progress bar -->
   <div class="carousel__progress" [style.width.%]="slideProgress" aria-hidden="true"></div>
 </div>
