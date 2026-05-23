@@ -3,10 +3,28 @@ import { defineString } from "firebase-functions/params";
 import type { PaymentRequestData } from "./payment.model";
 import { logger } from "firebase-functions";
 import { getFirestore } from "firebase-admin/firestore";
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 
 const mercadoPagoAccessToken = defineString("MERCADOPAGO_ACCESSTOKEN");
 const siteUrl = defineString("SITE_URL");
 const webhookUrl = defineString("MERCADOPAGO_WEBHOOK_URL");
+const secretsClient = new SecretManagerServiceClient();
+
+function resolveProjectId(): string {
+  return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
+}
+
+async function resolveAccessTokenFromSecret(secretName: string): Promise<string> {
+  const projectId = resolveProjectId();
+  if (!projectId) {
+    throw new Error("No se pudo resolver el proyecto para leer Secret Manager.");
+  }
+
+  const [version] = await secretsClient.accessSecretVersion({
+    name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
+  });
+  return version.payload?.data?.toString().trim() || "";
+}
 
 async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; webhook: string }> {
   const db = getFirestore();
@@ -14,7 +32,9 @@ async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; web
   const data = configSnap.exists ? configSnap.data() as Record<string, any> : null;
   const mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
 
-  const accessToken = (mpConfig?.["accessToken"] || mercadoPagoAccessToken.value() || "").trim();
+  const secretName = String(mpConfig?.["accessTokenSecret"] || "").trim();
+  const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : "";
+  const accessToken = (tokenFromSecret || mpConfig?.["accessToken"] || mercadoPagoAccessToken.value() || "").trim();
   const webhook = (mpConfig?.["webhookUrl"] || webhookUrl.value() || "").trim();
 
   if (!accessToken) {

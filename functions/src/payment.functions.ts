@@ -1,12 +1,50 @@
 import { onCall, HttpsError, onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
 import { COLLECTIONS } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
 
 const db = getFirestore();
+const secretsClient = new SecretManagerServiceClient();
+
+function resolveProjectId(): string {
+  return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
+}
+
+function maskToken(token: string): string {
+  const trimmed = token.trim();
+  if (trimmed.length <= 8) return "********";
+  return `${trimmed.slice(0, 4)}****${trimmed.slice(-4)}`;
+}
+
+async function upsertSecret(secretId: string, payload: string): Promise<void> {
+  const projectId = resolveProjectId();
+  if (!projectId) throw new Error("No se pudo resolver el projectId para Secret Manager.");
+
+  const parent = `projects/${projectId}`;
+  const secretName = `${parent}/secrets/${secretId}`;
+
+  try {
+    await secretsClient.createSecret({
+      parent,
+      secretId,
+      secret: { replication: { automatic: {} } },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes('already exists') && !msg.includes('409')) {
+      throw err;
+    }
+  }
+
+  await secretsClient.addSecretVersion({
+    parent: secretName,
+    payload: { data: Buffer.from(payload, "utf8") },
+  });
+}
 
 export const validateMercadoPagoCredentials = onCall(async (request) => {
   if (!request.auth?.token?.['admin']) {
@@ -48,6 +86,54 @@ export const validateMercadoPagoCredentials = onCall(async (request) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new HttpsError('invalid-argument', `No se pudieron validar las credenciales de Mercado Pago. ${msg}`);
+  }
+});
+
+export const upsertMercadoPagoCredentials = onCall(async (request) => {
+  if (!request.auth?.token?.['admin']) {
+    throw new HttpsError('permission-denied', 'Solo admins pueden actualizar credenciales de Mercado Pago.');
+  }
+
+  const accessToken = String(request.data?.accessToken || '').trim();
+  const webhook = String(request.data?.webhookUrl || '').trim();
+
+  if (!accessToken) {
+    throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
+  }
+
+  if (webhook && !/^https:\/\//i.test(webhook)) {
+    throw new HttpsError('invalid-argument', 'El webhook debe comenzar con https://');
+  }
+
+  try {
+    const res = await fetch('https://api.mercadopago.com/users/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Mercado Pago respondió ${res.status}: ${text}`);
+    }
+
+    const user = await res.json() as { id?: number | string; email?: string };
+    const secretName = 'mp-access-token';
+    await upsertSecret(secretName, accessToken);
+
+    return {
+      valid: true,
+      accountEmail: user.email || undefined,
+      userId: user.id ? String(user.id) : undefined,
+      secretName,
+      maskedToken: maskToken(accessToken),
+      message: `Credenciales válidas para la cuenta ${user.email || 'sin email'} y guardadas en Secret Manager.`,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new HttpsError('invalid-argument', `No se pudieron validar o guardar las credenciales de Mercado Pago. ${msg}`);
   }
 });
 

@@ -251,6 +251,15 @@
                   placeholder="APP_USR-xxxxxxxx"
                 />
               </div>
+              <small class="text-soft d-block mt-2">
+                El token se guarda en Secret Manager. Solo ingresalo para crear o rotar la
+                credencial.
+              </small>
+              @if (form.get('payments.mercadoPago.accessTokenMasked')?.value) {
+                <small class="text-soft d-block mt-1">
+                  Token actual: {{ form.get('payments.mercadoPago.accessTokenMasked')?.value }}
+                </small>
+              }
             </div>
 
             <div class="col-12">
@@ -284,6 +293,11 @@
                     form.get('payments.mercadoPago.validationMessage')?.value ||
                       'Credenciales validadas correctamente.'
                   }}
+                  @if (form.get('payments.mercadoPago.accountEmail')?.value) {
+                    <div class="mt-2 small">
+                      Cuenta conectada: {{ form.get('payments.mercadoPago.accountEmail')?.value }}
+                    </div>
+                  }
                 </div>
               </div>
             }

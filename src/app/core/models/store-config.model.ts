@@ -20,7 +20,11 @@ export interface StoreFeatureFlags {
 
 export interface StoreMercadoPagoConfig {
   publicKey: string;
-  accessToken: string;
+  accessToken?: string;
+  accessTokenSecret?: string;
+  accessTokenMasked?: string;
+  accountEmail?: string;
+  accountUserId?: string;
   webhookUrl: string;
   validationStatus?: 'pending' | 'valid' | 'invalid';
   validationMessage?: string;
@@ -63,6 +67,8 @@ export const DEFAULT_STORE_CONFIG: Omit<StoreConfig, 'id'> = {
     mercadoPago: {
       publicKey: '',
       accessToken: '',
+      accessTokenSecret: 'mp-access-token',
+      accessTokenMasked: '',
       webhookUrl: '',
       validationStatus: 'pending',
       validationMessage: '',

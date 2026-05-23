@@ -38,14 +38,28 @@ export class StoreConfigService {
     this.config.set(payload as StoreConfig);
   }
 
-  async validateMercadoPagoCredentials(payload: {
+  async upsertMercadoPagoCredentials(payload: {
     accessToken: string;
     webhookUrl?: string;
-  }): Promise<{ valid: boolean; accountEmail?: string; userId?: string; message: string }> {
+  }): Promise<{
+    valid: boolean;
+    accountEmail?: string;
+    userId?: string;
+    secretName: string;
+    maskedToken: string;
+    message: string;
+  }> {
     const fn = httpsCallable<
       { accessToken: string; webhookUrl?: string },
-      { valid: boolean; accountEmail?: string; userId?: string; message: string }
-    >(this.functions, 'validateMercadoPagoCredentials');
+      {
+        valid: boolean;
+        accountEmail?: string;
+        userId?: string;
+        secretName: string;
+        maskedToken: string;
+        message: string;
+      }
+    >(this.functions, 'upsertMercadoPagoCredentials');
     const result = await fn(payload);
     return result.data;
   }

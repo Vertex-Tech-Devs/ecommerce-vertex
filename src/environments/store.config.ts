@@ -15,6 +15,8 @@ export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
     mercadoPago: {
       publicKey: '',
       accessToken: '',
+      accessTokenSecret: 'mp-access-token',
+      accessTokenMasked: '',
       webhookUrl: '',
       validationStatus: 'pending',
       validationMessage: '',
