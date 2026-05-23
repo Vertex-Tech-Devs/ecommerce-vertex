@@ -1,5 +1,7 @@
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, effect } from '@angular/core';
 import { Meta } from '@angular/platform-browser';
+import { Title } from '@angular/platform-browser';
 
 import { StoreConfigService } from './store-config.service';
 import type { StoreConfig } from '@core/models/store-config.model';
@@ -7,6 +9,8 @@ import type { StoreConfig } from '@core/models/store-config.model';
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private meta = inject(Meta);
+  private title = inject(Title);
+  private document = inject(DOCUMENT);
   private storeConfig = inject(StoreConfigService);
 
   constructor() {
@@ -19,12 +23,33 @@ export class SeoService {
   }
 
   private applyMeta(cfg: StoreConfig): void {
-    this.meta.updateTag({ name: 'description', content: cfg.seo.metaDescription });
-    this.meta.updateTag({ property: 'og:title', content: cfg.seo.metaTitle });
-    this.meta.updateTag({ property: 'og:description', content: cfg.seo.metaDescription });
+    const title = cfg.seo.metaTitle?.trim() || cfg.storeName;
+    const description = cfg.seo.metaDescription?.trim() || cfg.strapline || cfg.storeName;
+
+    this.title.setTitle(title);
+    this.meta.updateTag({ name: 'description', content: description });
+    this.meta.updateTag({ property: 'og:title', content: title });
+    this.meta.updateTag({ property: 'og:description', content: description });
     this.meta.updateTag({ property: 'og:site_name', content: cfg.storeName });
     if (cfg.logoUrl) {
       this.meta.updateTag({ property: 'og:image', content: cfg.logoUrl });
     }
+
+    this.updateFavicon(cfg.faviconUrl);
+  }
+
+  private updateFavicon(faviconUrl?: string): void {
+    if (!faviconUrl) {
+      return;
+    }
+
+    let link = this.document.querySelector<HTMLLinkElement>("link[rel='icon']");
+    if (!link) {
+      link = this.document.createElement('link');
+      link.rel = 'icon';
+      this.document.head.appendChild(link);
+    }
+
+    link.href = faviconUrl;
   }
 }

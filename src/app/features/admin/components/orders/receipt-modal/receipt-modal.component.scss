@@ -138,6 +138,21 @@
       }
     }
 
+    .store-logo-image {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      padding: 4px;
+
+      @media (min-width: 576px) {
+        width: 48px;
+        height: 48px;
+      }
+    }
+
     .store-name {
       font-weight: 800;
       color: #0f172a;

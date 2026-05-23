@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { BsModalRef } from 'ngx-bootstrap/modal';
 import type { Order, OrderItem } from '@core/models/order.model';
+import { StoreConfigService } from '@core/services/store-config.service';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
 
 @Component({
@@ -13,9 +14,20 @@ import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
 })
 export class ReceiptModalComponent {
   bsModalRef = inject(BsModalRef);
+  private readonly storeConfig = inject(StoreConfigService);
   title = 'Recibo de Pedido';
   order: Order | undefined;
   today = new Date();
+  readonly storeName = this.storeConfig.storeName;
+  readonly logoUrl = this.storeConfig.logoUrl;
+
+  currencyCode(): string {
+    return this.storeConfig.config()?.currency ?? 'ARS';
+  }
+
+  currencySymbol(): string {
+    return this.storeConfig.config()?.currencySymbol ?? '$';
+  }
 
   getItemSubtotal(item: OrderItem): number {
     return item.quantity * item.price;

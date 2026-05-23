@@ -38,6 +38,9 @@
   justify-content: center;
 
   .header__brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.5rem;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -52,6 +55,13 @@
       transform: scale(1.05);
     }
   }
+}
+
+.header__brand-logo {
+  max-height: 34px;
+  max-width: 180px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header__right {

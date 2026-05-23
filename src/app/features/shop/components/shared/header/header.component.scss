@@ -32,12 +32,21 @@
 }
 
 .header__brand {
+  display: inline-flex;
+  align-items: center;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   text-decoration: none;
   letter-spacing: -0.5px;
   z-index: 1001;
+}
+
+.header__brand-logo {
+  max-height: 36px;
+  max-width: 160px;
+  width: auto;
+  object-fit: contain;
 }
 
 .header__nav {
@@ -125,12 +134,16 @@
   z-index: 998;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+  transition:
+    opacity 0.3s ease,
+    visibility 0s linear 0.3s;
 
   &--active {
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.3s ease, visibility 0s linear 0s;
+    transition:
+      opacity 0.3s ease,
+      visibility 0s linear 0s;
   }
 }
 
