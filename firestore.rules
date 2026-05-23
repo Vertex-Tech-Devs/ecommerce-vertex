@@ -59,34 +59,32 @@ service cloud.firestore {
 
     match /clients/{clientId} {
       allow read: if isAdmin();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /orders/{orderId} {
-      allow read: if isAuthenticated() &&
-        (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() &&
-        (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if true;
+      allow update: if isAdmin();
       allow delete: if isAdmin();
       
       match /items/{itemId} {
-        allow read: if isAuthenticated() &&
-          (get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid || isAdmin());
+        allow read: if isAdmin();
         allow write: if isAdmin();
       }
     }
 
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() &&
         (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     match /admin_roles/{email} {
       allow read: if isAdmin();
-      allow write: if isAuthenticated() && request.auth.token.email == email;
+      allow write: if isAdmin();
     }
 
     match /mail/{docId} {
