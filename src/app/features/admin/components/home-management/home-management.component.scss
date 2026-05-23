@@ -61,10 +61,6 @@
     --glow-rgb: 129, 140, 248;
   }
 
-  &.card-categories {
-    --glow-rgb: 45, 212, 191;
-  }
-
   &:hover {
     background: rgba(255, 255, 255, 0.09);
     border-color: rgba(var(--glow-rgb), 0.5);
@@ -496,150 +492,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.categories-scroll-wrapper {
-  @media (min-width: 992px) {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
-
-  @media (max-width: 991px) {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    gap: 1rem;
-    padding-bottom: 1rem;
-    margin: 0 -1.25rem;
-    padding: 1rem 1.25rem 1rem 1.25rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-}
-
-.category-scroll-card {
-  @media (max-width: 991px) {
-    flex: 0 0 88%;
-    scroll-snap-align: center;
-  }
-}
-
-.category-preview-wrapper {
-  width: 100%;
-  aspect-ratio: 21/9;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .no-preview-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: rgba(255, 255, 255, 0.2);
-
-    i {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    span {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-  }
-}
-
-.btn-glass-action {
-  display: inline-block;
-  color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 12px 24px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-}
-
-.btn-add-success:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #34d399;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);
-
-  i {
-    color: #34d399;
-  }
-}
-
-.btn-change-image:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
-  color: #7dd3fc;
-  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
-
-  i {
-    color: #7dd3fc;
-  }
-}
-
-.btn-delete-absolute {
-  position: absolute;
-  top: -12px;
-  right: -12px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.8);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 10;
-
-  &:hover {
-    background: #ef4444;
-    border-color: #ef4444;
-    transform: scale(1.15);
-    box-shadow: 0 8px 16px rgba(239, 68, 68, 0.5);
-  }
-}
-
 .btn-save-primary {
   display: flex;
   align-items: center;
@@ -678,15 +530,6 @@
   }
 }
 
-.empty-state {
-  text-align: center;
-
-  .empty-icon {
-    font-size: 3rem;
-    color: rgba(255, 255, 255, 0.1);
-  }
-}
-
 .custom-switch .form-check-input {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
@@ -704,23 +547,5 @@
     border-color: #6366f1;
     box-shadow: none;
     filter: brightness(0.95);
-  }
-}
-
-.glass-backdrop {
-  background: rgba(0, 0, 0, 0.6) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.custom-glass-modal {
-  .glass-modal-content {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 24px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    color: #fff;
   }
 }

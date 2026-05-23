@@ -12,6 +12,8 @@ import { HomeContentService } from '@core/services/home-content.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { CategoryService } from '@core/services/category.service';
 import { ProductService } from '@core/services/product.service';
+import { HeroLinkModalComponent } from './components/hero-link-modal/hero-link-modal.component';
+import { FeaturedCategoriesComponent } from './components/featured-categories/featured-categories.component';
 
 import type {
   CarouselSettings,
@@ -27,7 +29,7 @@ import { HeroImageUploaderService, MAX_HERO_IMAGES } from './hero-image-uploader
 @Component({
   selector: 'app-home-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, HeroLinkModalComponent, FeaturedCategoriesComponent],
   templateUrl: './home-management.component.html',
   styleUrls: ['./home-management.component.scss'],
 })
@@ -282,8 +284,7 @@ export class HomeManagementComponent implements OnInit {
     this.activeHeroIndex = -1;
   }
 
-  updateLinkType(event: Event): void {
-    const type = (event.target as HTMLSelectElement).value as 'product' | 'category' | 'none';
+  updateLinkType(type: 'product' | 'category' | 'none'): void {
     this.heroImages[this.activeHeroIndex].linkType = type;
     this.heroImages[this.activeHeroIndex].linkId = undefined;
     if (type === 'product') {
@@ -292,13 +293,12 @@ export class HomeManagementComponent implements OnInit {
     this.bannerForm.markAsDirty();
   }
 
-  updateLinkId(event: Event): void {
-    this.heroImages[this.activeHeroIndex].linkId = (event.target as HTMLSelectElement).value;
+  updateLinkId(id: string): void {
+    this.heroImages[this.activeHeroIndex].linkId = id;
     this.bannerForm.markAsDirty();
   }
 
-  onProductSearch(event: Event): void {
-    const term = (event.target as HTMLInputElement).value;
+  onProductSearch(term: string): void {
     this.productSearchTerm$.next(term);
   }
 
