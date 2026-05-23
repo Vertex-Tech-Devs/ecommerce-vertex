@@ -6,6 +6,8 @@ import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
 import { COLLECTIONS } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
+import * as crypto from "crypto";
+
 
 const db = getFirestore();
 const secretsClient = new SecretManagerServiceClient();
@@ -44,6 +46,20 @@ async function upsertSecret(secretId: string, payload: string): Promise<void> {
     parent: secretName,
     payload: { data: Buffer.from(payload, "utf8") },
   });
+}
+
+async function resolveSecret(secretId: string): Promise<string> {
+  const projectId = resolveProjectId();
+  if (!projectId) return "";
+  try {
+    const [version] = await secretsClient.accessSecretVersion({
+      name: `projects/${projectId}/secrets/${secretId}/versions/latest`,
+    });
+    return version.payload?.data?.toString().trim() || "";
+  } catch (error) {
+    logger.warn(`No se pudo leer el secreto ${secretId} de Secret Manager:`, error);
+    return "";
+  }
 }
 
 export const validateMercadoPagoCredentials = onCall(async (request) => {
@@ -292,6 +308,80 @@ export const createPaymentPreference = onCall(async (request) => {
 
 export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (request, response) => {
   logger.info("Mercado Pago Webhook recibido:", { body: request.body, query: request.query });
+
+  // 1. Validar firma del webhook si el secret está configurado en Secret Manager
+  const webhookSecret = await resolveSecret("mp-webhook-secret");
+  if (webhookSecret) {
+    const signature = request.headers["x-signature"] as string | undefined;
+    const requestId = request.headers["x-request-id"] as string | undefined;
+
+    if (!signature || !requestId) {
+      logger.error("Firma de webhook faltante. x-signature o x-request-id no proporcionado.");
+      response.status(401).send("No autorizado: Firma no válida.");
+      return;
+    }
+
+    try {
+      const parts = signature.split(",");
+      const tsPart = parts.find(p => p.startsWith("ts="));
+      const v1Part = parts.find(p => p.startsWith("v1="));
+
+      if (!tsPart || !v1Part) {
+        logger.error("Formato de x-signature inválido o incompleto.", { signature });
+        response.status(400).send("Formato de firma inválido.");
+        return;
+      }
+
+      const ts = tsPart.split("=")[1];
+      const v1 = v1Part.split("=")[1];
+
+      // Obtener el ID del recurso (se prefiere el del body o query)
+      let resourceId = "";
+      if (request.rawBody) {
+        try {
+          const parsed = JSON.parse(request.rawBody.toString("utf8"));
+          resourceId = String(parsed.data?.id || request.query.id || "");
+        } catch {
+          resourceId = String(request.query.id || "");
+        }
+      } else {
+        resourceId = String(request.query.id || "");
+      }
+
+      const manifest = `id:${resourceId};request-id:${requestId};ts:${ts};`;
+      const hmac = crypto.createHmac("sha256", webhookSecret);
+      hmac.update(manifest);
+      const expectedSignature = hmac.digest("hex");
+
+      let match = false;
+      try {
+        const expectedBuf = Buffer.from(expectedSignature, "hex");
+        const receivedBuf = Buffer.from(v1, "hex");
+        if (expectedBuf.length === receivedBuf.length) {
+          match = crypto.timingSafeEqual(expectedBuf, receivedBuf);
+        }
+      } catch {
+        match = false;
+      }
+
+      if (!match) {
+        logger.error("La firma calculada no coincide con x-signature v1.", {
+          expected: expectedSignature,
+          received: v1,
+        });
+        response.status(401).send("No autorizado: Firma no coincide.");
+        return;
+      }
+
+      logger.info("Firma de webhook de Mercado Pago validada con éxito.");
+    } catch (err) {
+      logger.error("Error al validar la firma de Mercado Pago:", err);
+      response.status(500).send("Error de firma interno.");
+      return;
+    }
+  } else {
+    logger.warn("Se omitió la validación de firma porque 'mp-webhook-secret' no está configurado en Secret Manager.");
+  }
 
   const topic = request.query.topic as string;
   const paymentId = request.query.id as string;

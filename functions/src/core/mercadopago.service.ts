@@ -5,7 +5,6 @@ import { logger } from "firebase-functions";
 import { getFirestore } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 
-const mercadoPagoAccessToken = defineString("MERCADOPAGO_ACCESSTOKEN");
 const siteUrl = defineString("SITE_URL");
 const webhookUrl = defineString("MERCADOPAGO_WEBHOOK_URL");
 const secretsClient = new SecretManagerServiceClient();
@@ -34,7 +33,7 @@ async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; web
 
   const secretName = String(mpConfig?.["accessTokenSecret"] || "").trim();
   const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : "";
-  const accessToken = (tokenFromSecret || mpConfig?.["accessToken"] || mercadoPagoAccessToken.value() || "").trim();
+  const accessToken = (tokenFromSecret || mpConfig?.["accessToken"] || "").trim();
   const webhook = (mpConfig?.["webhookUrl"] || webhookUrl.value() || "").trim();
 
   if (!accessToken) {
