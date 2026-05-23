@@ -413,6 +413,27 @@ The wizard will:
 
 > **How runtime config works:** `main.ts` fetches `/firebase-config.json` at startup. If the file is absent, it falls back to `environment.ts`. This allows developers to use `environment.ts` credentials without needing `firebase-config.json`.
 
+#### GCP Secret Manager IAM Setup (Production & Staging)
+
+When running in deployed environments, your Cloud Functions read sensitive credentials (like `mp-access-token` and `mp-webhook-secret`) from Google Cloud Secret Manager.
+
+To ensure your deployed Cloud Functions have the permissions required to access these secrets, you must grant the **Secret Manager Secret Accessor** role to the runtime service account:
+
+1. **Identify the Cloud Functions Service Account**:
+   By default, 2nd-gen Firebase Cloud Functions run using the **App Engine default service account** or the **Compute Engine default service account**:
+   `[PROJECT_ID]@appspot.gserviceaccount.com` or `[PROJECT_NUMBER]-compute@developer.gserviceaccount.com`
+
+2. **Grant the Secret Accessor Role**:
+   Open your terminal and run the following Google Cloud CLI command (replacing placeholders with your project details):
+   ```bash
+   gcloud projects add-iam-policy-binding [YOUR_PROJECT_ID] \
+     --member="serviceAccount:[YOUR_PROJECT_ID]@appspot.gserviceaccount.com" \
+     --role="roles/secretmanager.secretAccessor"
+   ```
+
+> [!NOTE]
+> For higher-security setups, instead of granting project-wide accessor access, you can grant the role selectively only on the specific secrets (`mp-access-token` and `mp-webhook-secret`) inside the GCP Secret Manager console.
+
 #### Manual Setup (fallback)
 
 If you prefer to configure files manually:
