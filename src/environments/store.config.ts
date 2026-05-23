@@ -1,11 +1,11 @@
 import type { StoreConfig } from '../app/core/models/store-config.model';
 
 export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
-  storeName: 'Mi Tienda',
-  strapline: 'Tu tienda online',
+  storeName: '',
+  strapline: '',
   logoUrl: '',
   contact: { email: '', phone: '', whatsapp: '' },
-  seo: { metaTitle: 'Mi Tienda', metaDescription: 'Bienvenido a mi tienda online.' },
+  seo: { metaTitle: '', metaDescription: '' },
   features: {
     reviewsEnabled: false,
     wishlistEnabled: false,

@@ -27,6 +27,7 @@ export class FooterComponent {
   readonly viewData = computed(() => {
     const footerData = this.footerData();
     const config = this.storeConfig.config();
+    const configuredStoreName = (config?.storeName ?? '').trim();
 
     return {
       contactPhone:
@@ -37,7 +38,9 @@ export class FooterComponent {
       socialWhatsAppUrl: footerData?.socialWhatsAppUrl ?? '',
       copyrightText:
         footerData?.copyrightText ??
-        `${config?.storeName ?? 'Mi Tienda'}. Todos los derechos reservados.`,
+        (configuredStoreName
+          ? `${configuredStoreName}. Todos los derechos reservados.`
+          : 'Todos los derechos reservados.'),
     };
   });
 
