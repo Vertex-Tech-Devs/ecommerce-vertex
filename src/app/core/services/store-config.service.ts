@@ -1,11 +1,13 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import type { StoreConfig } from '@core/models/store-config.model';
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
   private firestore = inject(Firestore);
+  private functions = getFunctions();
 
   readonly config = signal<StoreConfig | null>(null);
   readonly storeName = computed(() => this.config()?.storeName ?? '');
@@ -34,5 +36,31 @@ export class StoreConfigService {
     const payload = { ...data, updatedAt: new Date() };
     await setDoc(doc(this.firestore, 'settings', 'storeConfig'), payload);
     this.config.set(payload as StoreConfig);
+  }
+
+  async upsertMercadoPagoCredentials(payload: {
+    accessToken: string;
+    webhookUrl?: string;
+  }): Promise<{
+    valid: boolean;
+    accountEmail?: string;
+    userId?: string;
+    secretName: string;
+    maskedToken: string;
+    message: string;
+  }> {
+    const fn = httpsCallable<
+      { accessToken: string; webhookUrl?: string },
+      {
+        valid: boolean;
+        accountEmail?: string;
+        userId?: string;
+        secretName: string;
+        maskedToken: string;
+        message: string;
+      }
+    >(this.functions, 'upsertMercadoPagoCredentials');
+    const result = await fn(payload);
+    return result.data;
   }
 }

@@ -18,6 +18,23 @@ export interface StoreFeatureFlags {
   blogEnabled: boolean;
 }
 
+export interface StoreMercadoPagoConfig {
+  publicKey: string;
+  accessToken?: string;
+  accessTokenSecret?: string;
+  accessTokenMasked?: string;
+  accountEmail?: string;
+  accountUserId?: string;
+  webhookUrl: string;
+  validationStatus?: 'pending' | 'valid' | 'invalid';
+  validationMessage?: string;
+  validatedAt?: Date | string;
+}
+
+export interface StorePayments {
+  mercadoPago: StoreMercadoPagoConfig;
+}
+
 export interface StoreConfig {
   id?: string;
   storeName: string;
@@ -27,6 +44,7 @@ export interface StoreConfig {
   contact: StoreContact;
   seo: StoreSeo;
   features: StoreFeatureFlags;
+  payments: StorePayments;
   currency: string;
   currencySymbol: string;
   country: string;
@@ -44,6 +62,17 @@ export const DEFAULT_STORE_CONFIG: Omit<StoreConfig, 'id'> = {
     reviewsEnabled: false,
     wishlistEnabled: false,
     blogEnabled: false,
+  },
+  payments: {
+    mercadoPago: {
+      publicKey: '',
+      accessToken: '',
+      accessTokenSecret: 'mp-access-token',
+      accessTokenMasked: '',
+      webhookUrl: '',
+      validationStatus: 'pending',
+      validationMessage: '',
+    },
   },
   currency: 'ARS',
   currencySymbol: '$',
