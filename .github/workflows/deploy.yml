@@ -4,7 +4,7 @@ on:
   push:
     branches: [develop, main]
   repository_dispatch:
-    types: [provision-store]
+    types: [provision-store, update-store-version]
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -257,9 +257,11 @@ jobs:
   provision-store:
     name: "→ Provision Store"
     runs-on: ubuntu-latest
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'provision-store'
+    if: github.event_name == 'repository_dispatch' && (github.event.action == 'provision-store' || github.event.action == 'update-store-version')
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.client_payload.ref || github.ref }}
 
       - uses: actions/setup-node@v6
         with:

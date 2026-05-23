@@ -1,9 +1,11 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import * as functions from "firebase-functions/v1";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import { COLLECTIONS } from "./core/config";
 
 const auth = admin.auth();
+const db = admin.firestore();
 
 /**
  * Triggered when a document is written in the 'admin_roles' collection.
@@ -40,5 +42,25 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email
     logger.info(`Setting 'admin' claim for user: ${email} (UID: ${user.uid})`);
     await auth.setCustomUserClaims(user.uid, { admin: true });
     return;
+  }
+});
+
+/**
+ * Triggered when a new user is created in Firebase Auth.
+ * If their email is pre-configured as an admin in the 'admin_roles' collection,
+ * sets the admin custom claim on their account immediately.
+ */
+export const onUserCreated = functions.auth.user().onCreate(async (user) => {
+  if (!user || !user.email) return;
+
+  const email = user.email;
+  try {
+    const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(email).get();
+    if (doc.exists && doc.data()?.role === 'admin') {
+      logger.info(`Setting 'admin' claim for newly registered user: ${email} (UID: ${user.uid})`);
+      await auth.setCustomUserClaims(user.uid, { admin: true });
+    }
+  } catch (error) {
+    logger.error(`Error setting admin claim on user creation for ${email}:`, error);
   }
 });
