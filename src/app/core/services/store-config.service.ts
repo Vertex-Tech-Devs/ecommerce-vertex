@@ -9,6 +9,7 @@ export class StoreConfigService {
 
   readonly config = signal<StoreConfig | null>(null);
   readonly storeName = computed(() => this.config()?.storeName ?? '');
+  readonly logoUrl = computed(() => this.config()?.logoUrl?.trim() ?? '');
   readonly isFirstRun = computed(() => this.config() === null);
   readonly features = computed(() => this.config()?.features ?? null);
 

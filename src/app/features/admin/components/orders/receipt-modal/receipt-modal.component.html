@@ -13,10 +13,18 @@
     <div class="receipt-paper">
       <div class="receipt-header">
         <div class="store-details">
-          <div class="store-logo-placeholder">
-            <i class="bi bi-shop" aria-hidden="true"></i>
-          </div>
-          <h2 class="store-name">Vertex</h2>
+          @if (logoUrl()) {
+            <img
+              class="store-logo-image"
+              [src]="logoUrl()"
+              [alt]="storeName() || 'Logo de tienda'"
+            />
+          } @else {
+            <div class="store-logo-placeholder">
+              <i class="bi bi-shop" aria-hidden="true"></i>
+            </div>
+          }
+          <h2 class="store-name">{{ storeName() || 'Mi Tienda' }}</h2>
         </div>
         <div class="receipt-meta">
           <div class="meta-item">
@@ -89,9 +97,11 @@
               <tr>
                 <td class="text-start fw-semibold text-dark">{{ item.productName }}</td>
                 <td class="text-center">{{ item.quantity }}</td>
-                <td class="text-end">{{ item.price | currency: 'ARS' : '$' }}</td>
+                <td class="text-end">
+                  {{ item.price | currency: currencyCode() : currencySymbol() }}
+                </td>
                 <td class="text-end fw-semibold">
-                  {{ getItemSubtotal(item) | currency: 'ARS' : '$' }}
+                  {{ getItemSubtotal(item) | currency: currencyCode() : currencySymbol() }}
                 </td>
               </tr>
             }
@@ -107,10 +117,11 @@
               </div>
               <div class="item-details">
                 <span class="item-qty text-muted"
-                  >{{ item.quantity }} x {{ item.price | currency: 'ARS' : '$' }}</span
+                  >{{ item.quantity }} x
+                  {{ item.price | currency: currencyCode() : currencySymbol() }}</span
                 >
                 <span class="item-subtotal fw-semibold">{{
-                  getItemSubtotal(item) | currency: 'ARS' : '$'
+                  getItemSubtotal(item) | currency: currencyCode() : currencySymbol()
                 }}</span>
               </div>
             </div>
@@ -133,26 +144,32 @@
                 <td class="text-end fw-medium">
                   {{
                     order.paymentDetails?.subtotal || (order.items | sumItems: 'price' : 'quantity')
-                      | currency: 'ARS' : '$'
+                      | currency: currencyCode() : currencySymbol()
                   }}
                 </td>
               </tr>
               <tr>
                 <td class="text-muted">Costo de Envío</td>
                 <td class="text-end fw-medium">
-                  {{ order.paymentDetails?.shippingCost || 0 | currency: 'ARS' : '$' }}
+                  {{
+                    order.paymentDetails?.shippingCost || 0
+                      | currency: currencyCode() : currencySymbol()
+                  }}
                 </td>
               </tr>
               <tr>
                 <td class="text-muted">Impuestos</td>
                 <td class="text-end fw-medium">
-                  {{ order.paymentDetails?.taxAmount || 0 | currency: 'ARS' : '$' }}
+                  {{
+                    order.paymentDetails?.taxAmount || 0
+                      | currency: currencyCode() : currencySymbol()
+                  }}
                 </td>
               </tr>
               <tr class="total-row">
                 <td class="fw-bold fs-5 text-dark">Total</td>
                 <td class="text-end fw-bold fs-5 text-primary">
-                  {{ order.total | currency: 'ARS' : '$' }}
+                  {{ order.total | currency: currencyCode() : currencySymbol() }}
                 </td>
               </tr>
             </tbody>
@@ -161,7 +178,7 @@
       </div>
 
       <div class="receipt-watermark">
-        <p>Gracias por tu compra en Vertex</p>
+        <p>Gracias por tu compra en {{ storeName() || 'nuestra tienda' }}</p>
       </div>
     </div>
   </div>

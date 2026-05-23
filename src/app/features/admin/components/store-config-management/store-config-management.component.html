@@ -59,9 +59,32 @@
                   formControlName="logoUrl"
                   type="url"
                   class="form-control glass-input"
+                  [class.is-invalid]="form.get('logoUrl')?.invalid && form.get('logoUrl')?.touched"
                   placeholder="https://tudominio.com/logo.png"
                 />
               </div>
+              @if (form.get('logoUrl')?.invalid && form.get('logoUrl')?.touched) {
+                <div class="invalid-feedback d-block mt-2">Ingresá una URL válida.</div>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="form-label text-label">URL del favicon</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-badge-ad"></i></span>
+                <input
+                  formControlName="faviconUrl"
+                  type="url"
+                  class="form-control glass-input"
+                  [class.is-invalid]="
+                    form.get('faviconUrl')?.invalid && form.get('faviconUrl')?.touched
+                  "
+                  placeholder="https://tudominio.com/favicon.ico"
+                />
+              </div>
+              @if (form.get('faviconUrl')?.invalid && form.get('faviconUrl')?.touched) {
+                <div class="invalid-feedback d-block mt-2">Ingresá una URL válida.</div>
+              }
             </div>
           </div>
         </div>
@@ -137,6 +160,19 @@
                 />
               </div>
             </div>
+
+            <div class="col-12">
+              <label class="form-label text-label">Dirección</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo"></i></span>
+                <input
+                  formControlName="address"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="Calle 123, Ciudad"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -146,6 +182,9 @@
           <i class="bi bi-search me-2" aria-hidden="true"></i> SEO
         </div>
         <div class="card-body">
+          <p class="text-soft mb-3">
+            Este bloque impacta el SEO público y puede ajustarlo directamente el admin de la tienda.
+          </p>
           <div class="row g-4">
             <div class="col-12">
               <label class="form-label text-label">Meta title</label>
@@ -192,6 +231,7 @@
                   formControlName="currency"
                   class="form-select glass-input glass-select"
                   (change)="onCurrencyChange($event)"
+                  (blur)="onCurrencyBlur()"
                 >
                   @for (c of currencies; track c.value) {
                     <option [value]="c.value">{{ c.label }}</option>
@@ -223,6 +263,7 @@
                   class="form-control glass-input"
                   placeholder="AR"
                   maxlength="2"
+                  (blur)="onCountryBlur()"
                 />
               </div>
             </div>

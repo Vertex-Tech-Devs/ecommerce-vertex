@@ -3,6 +3,7 @@ import { Component, Output, EventEmitter, inject, computed } from '@angular/core
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
+import { StoreConfigService } from '@core/services/store-config.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,7 @@ export class HeaderComponent {
   @Output() readonly toggleSidebarEvent = new EventEmitter<void>();
 
   private readonly authService = inject(AuthService);
+  private readonly storeConfig = inject(StoreConfigService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
 
@@ -25,6 +27,8 @@ export class HeaderComponent {
     const currentUser = this.user();
     return currentUser?.email?.split('@')[0] ?? 'Usuario';
   });
+  readonly storeName = this.storeConfig.storeName;
+  readonly logoUrl = this.storeConfig.logoUrl;
 
   scrollToTop(): void {
     const url = this.router.url.split(/[?#]/)[0];

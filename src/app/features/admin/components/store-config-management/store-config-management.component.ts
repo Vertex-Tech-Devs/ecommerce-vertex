@@ -21,6 +21,7 @@ export class StoreConfigManagementComponent implements OnInit {
   private sweetAlert = inject(SweetAlertService);
 
   isSubmitting = false;
+  private readonly urlPattern = /^(|https?:\/\/[^\s$.?#].[^\s]*)$/i;
 
   readonly currencies = [
     { value: 'ARS', label: 'ARS — Peso argentino', symbol: '$', country: 'AR' },
@@ -33,13 +34,15 @@ export class StoreConfigManagementComponent implements OnInit {
   ];
 
   form: FormGroup = this.fb.group({
-    storeName: ['', Validators.required],
+    storeName: ['', [Validators.required, Validators.maxLength(80)]],
     strapline: [''],
-    logoUrl: [''],
+    logoUrl: ['', [Validators.pattern(this.urlPattern)]],
+    faviconUrl: ['', [Validators.pattern(this.urlPattern)]],
     contact: this.fb.group({
-      email: [''],
+      email: ['', [Validators.required, Validators.email]],
       phone: [''],
       whatsapp: [''],
+      address: [''],
       instagram: [''],
       facebook: [''],
     }),
@@ -52,9 +55,9 @@ export class StoreConfigManagementComponent implements OnInit {
       wishlistEnabled: [false],
       blogEnabled: [false],
     }),
-    currency: ['ARS'],
-    currencySymbol: ['$'],
-    country: ['AR'],
+    currency: ['ARS', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
+    currencySymbol: ['$', [Validators.required, Validators.maxLength(5)]],
+    country: ['AR', [Validators.required, Validators.minLength(2), Validators.maxLength(2)]],
   });
 
   ngOnInit(): void {
@@ -64,6 +67,7 @@ export class StoreConfigManagementComponent implements OnInit {
         storeName: cfg.storeName,
         strapline: cfg.strapline ?? '',
         logoUrl: cfg.logoUrl ?? '',
+        faviconUrl: cfg.faviconUrl ?? '',
         contact: cfg.contact,
         seo: cfg.seo,
         features: cfg.features,
@@ -79,6 +83,22 @@ export class StoreConfigManagementComponent implements OnInit {
     const found = this.currencies.find((c) => c.value === code);
     if (found) {
       this.form.patchValue({ currencySymbol: found.symbol, country: found.country });
+    }
+  }
+
+  onCountryBlur(): void {
+    const countryControl = this.form.get('country');
+    const value = countryControl?.value;
+    if (typeof value === 'string') {
+      countryControl?.setValue(value.trim().toUpperCase());
+    }
+  }
+
+  onCurrencyBlur(): void {
+    const currencyControl = this.form.get('currency');
+    const value = currencyControl?.value;
+    if (typeof value === 'string') {
+      currencyControl?.setValue(value.trim().toUpperCase());
     }
   }
 
