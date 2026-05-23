@@ -1,12 +1,157 @@
 import { onCall, HttpsError, onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
 import { COLLECTIONS } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
+import * as crypto from "crypto";
+
 
 const db = getFirestore();
+const secretsClient = new SecretManagerServiceClient();
+
+function resolveProjectId(): string {
+  return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
+}
+
+function maskToken(token: string): string {
+  const trimmed = token.trim();
+  if (trimmed.length <= 8) return "********";
+  return `${trimmed.slice(0, 4)}****${trimmed.slice(-4)}`;
+}
+
+async function upsertSecret(secretId: string, payload: string): Promise<void> {
+  const projectId = resolveProjectId();
+  if (!projectId) throw new Error("No se pudo resolver el projectId para Secret Manager.");
+
+  const parent = `projects/${projectId}`;
+  const secretName = `${parent}/secrets/${secretId}`;
+
+  try {
+    await secretsClient.createSecret({
+      parent,
+      secretId,
+      secret: { replication: { automatic: {} } },
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (!msg.includes('already exists') && !msg.includes('409')) {
+      throw err;
+    }
+  }
+
+  await secretsClient.addSecretVersion({
+    parent: secretName,
+    payload: { data: Buffer.from(payload, "utf8") },
+  });
+}
+
+async function resolveSecret(secretId: string): Promise<string> {
+  const projectId = resolveProjectId();
+  if (!projectId) return "";
+  try {
+    const [version] = await secretsClient.accessSecretVersion({
+      name: `projects/${projectId}/secrets/${secretId}/versions/latest`,
+    });
+    return version.payload?.data?.toString().trim() || "";
+  } catch (error) {
+    logger.warn(`No se pudo leer el secreto ${secretId} de Secret Manager:`, error);
+    return "";
+  }
+}
+
+export const validateMercadoPagoCredentials = onCall(async (request) => {
+  if (!request.auth?.token?.['admin']) {
+    throw new HttpsError('permission-denied', 'Solo admins pueden validar credenciales de Mercado Pago.');
+  }
+
+  const accessToken = String(request.data?.accessToken || '').trim();
+  const webhook = String(request.data?.webhookUrl || '').trim();
+
+  if (!accessToken) {
+    throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
+  }
+
+  if (webhook && !/^https:\/\//i.test(webhook)) {
+    throw new HttpsError('invalid-argument', 'El webhook debe comenzar con https://');
+  }
+
+  try {
+    const res = await fetch('https://api.mercadopago.com/users/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Mercado Pago respondió ${res.status}: ${text}`);
+    }
+
+    const user = await res.json() as { id?: number | string; email?: string };
+    return {
+      valid: true,
+      accountEmail: user.email || undefined,
+      userId: user.id ? String(user.id) : undefined,
+      message: `Credenciales válidas para la cuenta ${user.email || 'sin email'}.`,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new HttpsError('invalid-argument', `No se pudieron validar las credenciales de Mercado Pago. ${msg}`);
+  }
+});
+
+export const upsertMercadoPagoCredentials = onCall(async (request) => {
+  if (!request.auth?.token?.['admin']) {
+    throw new HttpsError('permission-denied', 'Solo admins pueden actualizar credenciales de Mercado Pago.');
+  }
+
+  const accessToken = String(request.data?.accessToken || '').trim();
+  const webhook = String(request.data?.webhookUrl || '').trim();
+
+  if (!accessToken) {
+    throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
+  }
+
+  if (webhook && !/^https:\/\//i.test(webhook)) {
+    throw new HttpsError('invalid-argument', 'El webhook debe comenzar con https://');
+  }
+
+  try {
+    const res = await fetch('https://api.mercadopago.com/users/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Mercado Pago respondió ${res.status}: ${text}`);
+    }
+
+    const user = await res.json() as { id?: number | string; email?: string };
+    const secretName = 'mp-access-token';
+    await upsertSecret(secretName, accessToken);
+
+    return {
+      valid: true,
+      accountEmail: user.email || undefined,
+      userId: user.id ? String(user.id) : undefined,
+      secretName,
+      maskedToken: maskToken(accessToken),
+      message: `Credenciales válidas para la cuenta ${user.email || 'sin email'} y guardadas en Secret Manager.`,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new HttpsError('invalid-argument', `No se pudieron validar o guardar las credenciales de Mercado Pago. ${msg}`);
+  }
+});
 
 async function revertStockOnFailure(orderId: string) {
   logger.info(`Iniciando reversión de stock para pedido cancelado/fallido: ${orderId}`);
@@ -163,6 +308,80 @@ export const createPaymentPreference = onCall(async (request) => {
 
 export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (request, response) => {
   logger.info("Mercado Pago Webhook recibido:", { body: request.body, query: request.query });
+
+  // 1. Validar firma del webhook si el secret está configurado en Secret Manager
+  const webhookSecret = await resolveSecret("mp-webhook-secret");
+  if (webhookSecret) {
+    const signature = request.headers["x-signature"] as string | undefined;
+    const requestId = request.headers["x-request-id"] as string | undefined;
+
+    if (!signature || !requestId) {
+      logger.error("Firma de webhook faltante. x-signature o x-request-id no proporcionado.");
+      response.status(401).send("No autorizado: Firma no válida.");
+      return;
+    }
+
+    try {
+      const parts = signature.split(",");
+      const tsPart = parts.find(p => p.startsWith("ts="));
+      const v1Part = parts.find(p => p.startsWith("v1="));
+
+      if (!tsPart || !v1Part) {
+        logger.error("Formato de x-signature inválido o incompleto.", { signature });
+        response.status(400).send("Formato de firma inválido.");
+        return;
+      }
+
+      const ts = tsPart.split("=")[1];
+      const v1 = v1Part.split("=")[1];
+
+      // Obtener el ID del recurso (se prefiere el del body o query)
+      let resourceId = "";
+      if (request.rawBody) {
+        try {
+          const parsed = JSON.parse(request.rawBody.toString("utf8"));
+          resourceId = String(parsed.data?.id || request.query.id || "");
+        } catch {
+          resourceId = String(request.query.id || "");
+        }
+      } else {
+        resourceId = String(request.query.id || "");
+      }
+
+      const manifest = `id:${resourceId};request-id:${requestId};ts:${ts};`;
+      const hmac = crypto.createHmac("sha256", webhookSecret);
+      hmac.update(manifest);
+      const expectedSignature = hmac.digest("hex");
+
+      let match = false;
+      try {
+        const expectedBuf = Buffer.from(expectedSignature, "hex");
+        const receivedBuf = Buffer.from(v1, "hex");
+        if (expectedBuf.length === receivedBuf.length) {
+          match = crypto.timingSafeEqual(expectedBuf, receivedBuf);
+        }
+      } catch {
+        match = false;
+      }
+
+      if (!match) {
+        logger.error("La firma calculada no coincide con x-signature v1.", {
+          expected: expectedSignature,
+          received: v1,
+        });
+        response.status(401).send("No autorizado: Firma no coincide.");
+        return;
+      }
+
+      logger.info("Firma de webhook de Mercado Pago validada con éxito.");
+    } catch (err) {
+      logger.error("Error al validar la firma de Mercado Pago:", err);
+      response.status(500).send("Error de firma interno.");
+      return;
+    }
+  } else {
+    logger.warn("Se omitió la validación de firma porque 'mp-webhook-secret' no está configurado en Secret Manager.");
+  }
 
   const topic = request.query.topic as string;
   const paymentId = request.query.id as string;

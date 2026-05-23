@@ -217,6 +217,106 @@
         </div>
       </div>
 
+      <div class="glass-card mb-4 card-payments" formGroupName="payments">
+        <div class="card-header border-0 fw-bold d-flex align-items-center">
+          <i class="bi bi-credit-card-2-front me-2" aria-hidden="true"></i> Pagos (Mercado Pago)
+        </div>
+        <div class="card-body" formGroupName="mercadoPago">
+          <p class="text-soft mb-3">
+            Estas credenciales se usan en tiempo real para generar cobros. Al guardar, se validan
+            contra la API de Mercado Pago.
+          </p>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <label class="form-label text-label">Public Key</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                <input
+                  formControlName="publicKey"
+                  type="text"
+                  class="form-control glass-input"
+                  placeholder="APP_USR-xxxxxxxx"
+                />
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-label">Access Token</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                <input
+                  formControlName="accessToken"
+                  type="password"
+                  class="form-control glass-input"
+                  placeholder="APP_USR-xxxxxxxx"
+                />
+              </div>
+              <small class="text-soft d-block mt-2">
+                El token se guarda en Secret Manager. Solo ingresalo para crear o rotar la
+                credencial.
+              </small>
+              @if (form.get('payments.mercadoPago.accessTokenMasked')?.value) {
+                <small class="text-soft d-block mt-1">
+                  Token actual: {{ form.get('payments.mercadoPago.accessTokenMasked')?.value }}
+                </small>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="form-label text-label">Webhook URL</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                <input
+                  formControlName="webhookUrl"
+                  type="url"
+                  class="form-control glass-input"
+                  [class.is-invalid]="
+                    form.get('payments.mercadoPago.webhookUrl')?.invalid &&
+                    form.get('payments.mercadoPago.webhookUrl')?.touched
+                  "
+                  placeholder="https://us-central1-tu-proyecto.cloudfunctions.net/mercadoPagoWebhookHandler"
+                />
+              </div>
+              @if (
+                form.get('payments.mercadoPago.webhookUrl')?.invalid &&
+                form.get('payments.mercadoPago.webhookUrl')?.touched
+              ) {
+                <div class="invalid-feedback d-block mt-2">Ingresá una URL válida.</div>
+              }
+            </div>
+
+            @if (form.get('payments.mercadoPago.validationStatus')?.value === 'valid') {
+              <div class="col-12">
+                <div class="alert alert-success mb-0">
+                  <i class="bi bi-check-circle me-2"></i>
+                  {{
+                    form.get('payments.mercadoPago.validationMessage')?.value ||
+                      'Credenciales validadas correctamente.'
+                  }}
+                  @if (form.get('payments.mercadoPago.accountEmail')?.value) {
+                    <div class="mt-2 small">
+                      Cuenta conectada: {{ form.get('payments.mercadoPago.accountEmail')?.value }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (form.get('payments.mercadoPago.validationStatus')?.value === 'invalid') {
+              <div class="col-12">
+                <div class="alert alert-error mb-0">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  {{
+                    form.get('payments.mercadoPago.validationMessage')?.value ||
+                      'Las credenciales no son válidas.'
+                  }}
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
       <div class="glass-card mb-4 card-regional">
         <div class="card-header border-0 fw-bold d-flex align-items-center">
           <i class="bi bi-globe-americas me-2" aria-hidden="true"></i> Regional
