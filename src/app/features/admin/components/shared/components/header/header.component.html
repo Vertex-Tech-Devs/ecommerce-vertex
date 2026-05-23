@@ -12,7 +12,17 @@
     </div>
 
     <div class="header__center">
-      <a routerLink="/admin/dashboard" (click)="scrollToTop()" class="header__brand"> Vertex </a>
+      <a routerLink="/admin/dashboard" (click)="scrollToTop()" class="header__brand">
+        @if (logoUrl()) {
+          <img
+            [src]="logoUrl()"
+            [alt]="storeName() || 'Logo de tienda'"
+            class="header__brand-logo"
+          />
+        } @else {
+          {{ storeName() || 'Mi Tienda' }}
+        }
+      </a>
     </div>
 
     <div class="header__right">

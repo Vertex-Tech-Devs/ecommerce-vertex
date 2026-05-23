@@ -63,7 +63,7 @@ export const PRODUCT_CATALOGUE: CatalogueCategory[] = [
         featured: false,
         price: 12400,
         discount: 0,
-        desc: 'Serigrafía artesanal de cuatro colores sobre tela 100% algodón ring spun. Cada estampado es numerado. Diseños exclusivos de artistas locales en colaboración con Vertex.',
+        desc: 'Serigrafía artesanal de cuatro colores sobre tela 100% algodón ring spun. Cada estampado es numerado. Diseños exclusivos de artistas locales en colaboración con nuestra tienda.',
         imgs: [
           '1523381240423-59b6e0c53abe',
           '1521572163474-6864f9cf17ab',
