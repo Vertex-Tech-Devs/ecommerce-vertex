@@ -11,6 +11,15 @@ export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
     wishlistEnabled: false,
     blogEnabled: false,
   },
+  payments: {
+    mercadoPago: {
+      publicKey: '',
+      accessToken: '',
+      webhookUrl: '',
+      validationStatus: 'pending',
+      validationMessage: '',
+    },
+  },
   currency: 'ARS',
   currencySymbol: '$',
   country: 'AR',

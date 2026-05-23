@@ -55,6 +55,15 @@ export class StoreConfigManagementComponent implements OnInit {
       wishlistEnabled: [false],
       blogEnabled: [false],
     }),
+    payments: this.fb.group({
+      mercadoPago: this.fb.group({
+        publicKey: [''],
+        accessToken: [''],
+        webhookUrl: ['', [Validators.pattern(this.urlPattern)]],
+        validationStatus: ['pending'],
+        validationMessage: [''],
+      }),
+    }),
     currency: ['ARS', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
     currencySymbol: ['$', [Validators.required, Validators.maxLength(5)]],
     country: ['AR', [Validators.required, Validators.minLength(2), Validators.maxLength(2)]],
@@ -71,6 +80,15 @@ export class StoreConfigManagementComponent implements OnInit {
         contact: cfg.contact,
         seo: cfg.seo,
         features: cfg.features,
+        payments: {
+          mercadoPago: {
+            publicKey: cfg.payments?.mercadoPago?.publicKey ?? '',
+            accessToken: cfg.payments?.mercadoPago?.accessToken ?? '',
+            webhookUrl: cfg.payments?.mercadoPago?.webhookUrl ?? '',
+            validationStatus: cfg.payments?.mercadoPago?.validationStatus ?? 'pending',
+            validationMessage: cfg.payments?.mercadoPago?.validationMessage ?? '',
+          },
+        },
         currency: cfg.currency,
         currencySymbol: cfg.currencySymbol,
         country: cfg.country,
@@ -110,7 +128,29 @@ export class StoreConfigManagementComponent implements OnInit {
     }
     this.isSubmitting = true;
     try {
-      await this.storeConfigService.saveConfig(this.form.value as Omit<StoreConfig, 'id'>);
+      const payload = this.form.value as Omit<StoreConfig, 'id'>;
+      const mercadoPago = payload.payments?.mercadoPago;
+
+      if (mercadoPago) {
+        mercadoPago.publicKey = (mercadoPago.publicKey || '').trim();
+        mercadoPago.accessToken = (mercadoPago.accessToken || '').trim();
+        mercadoPago.webhookUrl = (mercadoPago.webhookUrl || '').trim();
+
+        if (mercadoPago.accessToken) {
+          const validation = await this.storeConfigService.validateMercadoPagoCredentials({
+            accessToken: mercadoPago.accessToken,
+            webhookUrl: mercadoPago.webhookUrl,
+          });
+          mercadoPago.validationStatus = validation.valid ? 'valid' : 'invalid';
+          mercadoPago.validationMessage = validation.message;
+          mercadoPago.validatedAt = new Date().toISOString();
+        } else {
+          mercadoPago.validationStatus = 'pending';
+          mercadoPago.validationMessage = 'Sin token configurado.';
+        }
+      }
+
+      await this.storeConfigService.saveConfig(payload);
       this.sweetAlert.success('¡Guardado!', 'La configuración fue actualizada.');
     } catch {
       this.sweetAlert.error('Error', 'No se pudo guardar la configuración.');

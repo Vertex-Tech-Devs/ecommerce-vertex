@@ -8,6 +8,49 @@ import { OrderItemSchema } from "./core/order.model";
 
 const db = getFirestore();
 
+export const validateMercadoPagoCredentials = onCall(async (request) => {
+  if (!request.auth?.token?.['admin']) {
+    throw new HttpsError('permission-denied', 'Solo admins pueden validar credenciales de Mercado Pago.');
+  }
+
+  const accessToken = String(request.data?.accessToken || '').trim();
+  const webhook = String(request.data?.webhookUrl || '').trim();
+
+  if (!accessToken) {
+    throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
+  }
+
+  if (webhook && !/^https:\/\//i.test(webhook)) {
+    throw new HttpsError('invalid-argument', 'El webhook debe comenzar con https://');
+  }
+
+  try {
+    const res = await fetch('https://api.mercadopago.com/users/me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Mercado Pago respondió ${res.status}: ${text}`);
+    }
+
+    const user = await res.json() as { id?: number | string; email?: string };
+    return {
+      valid: true,
+      accountEmail: user.email || undefined,
+      userId: user.id ? String(user.id) : undefined,
+      message: `Credenciales válidas para la cuenta ${user.email || 'sin email'}.`,
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new HttpsError('invalid-argument', `No se pudieron validar las credenciales de Mercado Pago. ${msg}`);
+  }
+});
+
 async function revertStockOnFailure(orderId: string) {
   logger.info(`Iniciando reversión de stock para pedido cancelado/fallido: ${orderId}`);
   const orderRef = db.collection(COLLECTIONS.ORDERS).doc(orderId);
