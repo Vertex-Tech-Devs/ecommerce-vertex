@@ -6,17 +6,26 @@ import { provideRouter } from '@angular/router';
 
 import { HeaderComponent } from './header.component';
 import { CartService } from '@core/services/cart.service';
+import { StoreConfigService } from '@core/services/store-config.service';
 
 describe('HeaderComponent', () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
 
   const mockCartService = { itemCount: signal(0) };
+  const mockStoreConfigService = {
+    storeName: signal('Mi Tienda'),
+    logoUrl: signal(''),
+  };
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
-      providers: [provideRouter([]), { provide: CartService, useValue: mockCartService }],
+      providers: [
+        provideRouter([]),
+        { provide: CartService, useValue: mockCartService },
+        { provide: StoreConfigService, useValue: mockStoreConfigService },
+      ],
     }).compileComponents();
 
     mockCartService.itemCount.set(0);
