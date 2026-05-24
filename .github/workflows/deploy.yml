@@ -309,15 +309,23 @@ jobs:
 
       - name: Write minimal firebase.json for store deployment
         run: |
-          cat > firebase.json << 'EOF'
-          {
+          python3 << 'PYEOF'
+          import os, json
+          site_id = os.environ.get("SITE_ID", "").strip()
+          payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          EOF
+          if site_id:
+              payload["hosting"]["site"] = site_id
+          with open("firebase.json", "w") as f:
+              json.dump(payload, f, indent=2)
+          PYEOF
+        env:
+          SITE_ID: ${{ github.event.client_payload.site_id }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
