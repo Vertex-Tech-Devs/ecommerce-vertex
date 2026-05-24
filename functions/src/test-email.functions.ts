@@ -84,6 +84,13 @@ export const sendAdvancedTestEmail = onCall(async (request) => {
     const configDoc = await db.collection(COLLECTIONS.SETTINGS).doc(DOCS.EMAIL_TEMPLATES).get();
     const emailConfig = configDoc.data();
 
+    // Build standard FROM address matching the platform's verified SMTP domain
+    const storeName = emailConfig?.storeName || "Vertex Store";
+    const projectId = process.env.GCLOUD_PROJECT || "vertex-platform-dev";
+    const defaultFromDomain = projectId.includes("vertex-platform-app") ? "vertex-platform-app.web.app" : "vertex-platform-dev.firebaseapp.com";
+    const defaultFromEmail = `no-reply@${defaultFromDomain}`;
+    const fromAddress = `${storeName} <${defaultFromEmail}>`;
+
     if (templates.adminNotification) {
       const adminConfig = templates.adminNotification;
       const manageButtonUrl = adminConfig.showManageButton ? `${siteUrl.value()}/admin/orders/detail/${testData.orderId}` : null;
@@ -93,6 +100,7 @@ export const sendAdvancedTestEmail = onCall(async (request) => {
 
       mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
         to: [recipientEmail],
+        from: fromAddress,
         message: {
           subject: `[PRUEBA ADMIN] ${adminConfig.subject.replace(/{orderId}/g, testData.orderId)}`,
           html: adminHtml,
@@ -107,6 +115,7 @@ export const sendAdvancedTestEmail = onCall(async (request) => {
 
       mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
         to: [recipientEmail],
+        from: fromAddress,
         message: {
           subject: `[PRUEBA CLIENTE] ${customerConfig.subject.replace(/{orderId}/g, testData.orderId)}`,
           html: customerHtml,
