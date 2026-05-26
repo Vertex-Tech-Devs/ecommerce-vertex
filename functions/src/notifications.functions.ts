@@ -109,6 +109,13 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`${COLLECTIONS.
     
     const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+    // Build standard FROM address matching the platform's verified SMTP domain
+    const projectId = process.env.GCLOUD_PROJECT || "vertex-platform-dev";
+    const defaultFromDomain = projectId.includes("vertex-platform-app") ? "vertex-platform-app.web.app" : "vertex-platform-dev.firebaseapp.com";
+    const defaultFromEmail = `no-reply@${defaultFromDomain}`;
+    const storeName = config.storeName || "Vertex Store";
+    const fromAddress = `${storeName} <${defaultFromEmail}>`;
+
     if (config.adminNotification && config.storeOwnerEmail) {
         const adminConfig = config.adminNotification;
         const manageButtonUrl = adminConfig.showManageButton ? `${siteUrl.value()}/admin/orders/detail/${orderId}` : null;
@@ -119,6 +126,7 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`${COLLECTIONS.
         
         mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
             to: [config.storeOwnerEmail],
+            from: fromAddress,
             message: {
                 subject: adminConfig.subject.replace(/{orderId}/g, orderId),
                 html: adminHtml,
@@ -135,6 +143,7 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`${COLLECTIONS.
 
         mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
             to: [orderData.clientEmail],
+            from: fromAddress,
             message: {
                 subject: customerConfig.subject.replace(/{orderId}/g, orderId),
                 html: customerHtml,

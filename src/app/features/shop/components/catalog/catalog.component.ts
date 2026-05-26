@@ -49,8 +49,8 @@ export class CatalogComponent implements OnInit {
   readonly selectedCategoryId = signal<string | null>(null);
 
   // Properties mapped to observables for template async pipe
-  paginatedProducts$!: Observable<Product[]>;
-  categories$ = toObservable(this.categoriesSignal);
+  readonly paginatedProducts$: Observable<Product[]>;
+  readonly categories$ = toObservable(this.categoriesSignal);
 
   filterForm: FormGroup;
   isSidebarOpen = false;
@@ -146,6 +146,7 @@ export class CatalogComponent implements OnInit {
   }
 
   constructor() {
+    this.paginatedProducts$ = toObservable(this.paginatedProductsSignal);
     this.filterForm = this.fb.group({
       category: [null],
       minPrice: [null],
@@ -155,7 +156,6 @@ export class CatalogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.paginatedProducts$ = toObservable(this.paginatedProductsSignal);
     this.loadInitialDataAndInitializeForm();
   }
 

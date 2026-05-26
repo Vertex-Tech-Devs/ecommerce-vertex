@@ -2,7 +2,30 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <title>Tienda</title>
+    <title>Storefront</title>
+    <script>
+      (function () {
+        var host = (
+          window.location && window.location.hostname ? window.location.hostname : ''
+        ).toLowerCase();
+        if (!host) return;
+
+        var first = host.split('.')[0] || '';
+        if (!first || first === 'localhost') return;
+
+        var inferred = first
+          .split('-')
+          .filter(Boolean)
+          .map(function (part) {
+            return part.charAt(0).toUpperCase() + part.slice(1);
+          })
+          .join(' ');
+
+        if (inferred) {
+          document.title = inferred;
+        }
+      })();
+    </script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="" />

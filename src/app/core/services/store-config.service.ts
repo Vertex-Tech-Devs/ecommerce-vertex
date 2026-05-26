@@ -3,6 +3,7 @@ import { Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import type { StoreConfig } from '@core/models/store-config.model';
+import { STORE_CONFIG } from '../../../environments/store.config';
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
@@ -10,10 +11,40 @@ export class StoreConfigService {
   private functions = getFunctions();
 
   readonly config = signal<StoreConfig | null>(null);
-  readonly storeName = computed(() => this.config()?.storeName ?? '');
+  readonly storeName = computed(() => {
+    const fromFirestore = this.config()?.storeName?.trim() ?? '';
+    if (fromFirestore) {
+      return fromFirestore;
+    }
+
+    const fromStaticConfig = STORE_CONFIG.storeName?.trim() ?? '';
+    if (fromStaticConfig) {
+      return fromStaticConfig;
+    }
+
+    return this.inferStoreNameFromHostname();
+  });
   readonly logoUrl = computed(() => this.config()?.logoUrl?.trim() ?? '');
   readonly isFirstRun = computed(() => this.config() === null);
   readonly features = computed(() => this.config()?.features ?? null);
+
+  private inferStoreNameFromHostname(): string {
+    const host = (globalThis.location?.hostname ?? '').trim().toLowerCase();
+    if (!host) {
+      return 'Store';
+    }
+
+    const firstLabel = host.split('.')[0] ?? '';
+    if (!firstLabel || firstLabel === 'localhost') {
+      return 'Store';
+    }
+
+    return firstLabel
+      .split('-')
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
 
   async loadConfig(): Promise<void> {
     try {

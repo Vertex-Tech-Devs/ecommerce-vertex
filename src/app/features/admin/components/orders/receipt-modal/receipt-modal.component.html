@@ -24,7 +24,7 @@
               <i class="bi bi-shop" aria-hidden="true"></i>
             </div>
           }
-          <h2 class="store-name">{{ storeName() || 'Tienda' }}</h2>
+          <h2 class="store-name">{{ storeName() }}</h2>
         </div>
         <div class="receipt-meta">
           <div class="meta-item">
@@ -178,7 +178,7 @@
       </div>
 
       <div class="receipt-watermark">
-        <p>Gracias por tu compra en {{ storeName() || 'nuestra tienda' }}</p>
+        <p>Gracias por tu compra en {{ storeName() }}</p>
       </div>
     </div>
   </div>
