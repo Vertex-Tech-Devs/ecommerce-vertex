@@ -11,7 +11,7 @@
       @if (logoUrl()) {
         <img [src]="logoUrl()" [alt]="storeName() || 'Logo de tienda'" class="header__brand-logo" />
       } @else {
-        {{ storeName() || 'Tienda' }}
+        {{ storeName() }}
       }
     </a>
 
