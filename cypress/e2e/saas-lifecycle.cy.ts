@@ -157,7 +157,6 @@ describe('1 · Admin Login Panel', () => {
         $body.find('button:contains("Google")').length > 0 ||
         $body.find('[aria-label*="Google"]').length > 0 ||
         $body.find('.bi-google').length > 0;
-
       expect(hasGoogleButton, 'Google OAuth button should be present on login page').to.be.true;
     });
   });
@@ -222,7 +221,7 @@ describe('3 · Storefront Catalog', () => {
   });
 
   it('shows a product name from the seeded data', () => {
-    cy.contains('Producto Semilla', { timeout: 8000 }).should('exist');
+    cy.contains(/Producto Semilla\s*\d+/, { timeout: 8000 }).should('be.visible');
   });
 });
 
@@ -266,7 +265,11 @@ describe('4 · Add-to-Cart Flow', () => {
     });
 
     cy.reload();
-    cy.contains('1000', { timeout: 6000 }).should('exist');
+    // Check for price value — accept formatted variants like "1000", "$1.000", "1,000", etc.
+    cy.get('body', { timeout: 6000 }).should(($body) => {
+      const text = $body.text().replace(/[\s,.]/g, '');
+      expect(text).to.match(/1000/, 'Cart total should contain the item price (1000)');
+    });
   });
 
   it('shows empty-cart state when localStorage has no items', () => {
@@ -307,9 +310,9 @@ describe('5 · Checkout Flow', () => {
 
   it('shows a checkout CTA button when cart has items', () => {
     cy.get(
-      'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]',
+      'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), button:contains("Comprar"), [routerlink*="checkout"], [href*="checkout"]',
       { timeout: 6000 }
-    ).should('exist');
+    ).should('have.length.gte', 1);
   });
 
   it('navigates to /shop/checkout after clicking the checkout button', () => {
@@ -317,12 +320,9 @@ describe('5 · Checkout Flow', () => {
       const btn = $body.find(
         'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]'
       );
-      if (btn.length > 0) {
-        cy.wrap(btn.first()).click({ force: true });
-        cy.location('pathname', { timeout: 8000 }).should('include', 'checkout');
-      } else {
-        cy.task('log', 'Checkout CTA not found – skipping navigation assertion');
-      }
+      expect(btn.length, 'Checkout CTA should exist before navigation').to.be.gte(1);
+      cy.wrap(btn.first()).click({ force: true });
+      cy.location('pathname', { timeout: 8000 }).should('include', 'checkout');
     });
   });
 

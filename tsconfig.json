@@ -50,8 +50,10 @@
     "functions",
     "scripts",
     "cypress",
+    "integration-tests",
     "**/*.cy.ts",
     "cypress.config.ts",
+    "integration-tests/playwright.config.ts",
     "karma.conf.js"
   ]
 }
