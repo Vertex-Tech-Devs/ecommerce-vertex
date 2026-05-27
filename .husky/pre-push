@@ -19,9 +19,9 @@ npm run lint
 npm run typecheck
 npm run test:ci
 npm run build
-npx start-server-and-test "npm start" http-get://127.0.0.1:4200 "npm run e2e:ci"
 npm run test:integration -- --workers=1
 
 echo ""
-echo "✔ All strict quality gates passed."
+echo "✔ Baseline quality gates passed locally."
+echo "  Full Cypress E2E remains mandatory in CI Quality Gate."
 echo ""
