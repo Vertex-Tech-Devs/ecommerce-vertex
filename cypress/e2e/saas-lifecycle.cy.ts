@@ -149,20 +149,16 @@ describe('1 · Admin Login Panel', () => {
   });
 
   it('renders the "Sign in with Google" OAuth button', () => {
-    // The storefront on feature/google-oauth-rbac exposes a Google login button.
-    // We look for any element referencing Google (button text, aria-label or img alt).
+    // The login component has a <button class="google-btn"> with text "Iniciar sesión con Google"
+    // and a Bootstrap Icons `bi-google` icon — verify at least one Google indicator is present.
     cy.get('body').then(($body) => {
       const hasGoogleButton =
+        $body.find('button.google-btn').length > 0 ||
         $body.find('button:contains("Google")').length > 0 ||
         $body.find('[aria-label*="Google"]').length > 0 ||
-        $body.find('img[alt*="Google"]').length > 0 ||
-        $body.find('[class*="google"]').length > 0;
+        $body.find('.bi-google').length > 0;
 
-      // Soft assertion: log presence so it shows in test output
-      cy.task('log', `Google OAuth button found: ${hasGoogleButton}`);
-
-      // Hard assertion — uncomment once the OAuth button is confirmed deployed:
-      // expect(hasGoogleButton).to.be.true;
+      expect(hasGoogleButton, 'Google OAuth button should be present on login page').to.be.true;
     });
   });
 
