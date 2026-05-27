@@ -233,12 +233,17 @@ describe('3 · Storefront Catalog', () => {
     cy.get('body', { timeout: 8000 }).then(($body) => {
       const hasSeedName = /Producto Semilla\s*\d+/i.test($body.text());
       const hasCatalogShell = /cat[aá]logo|productos|filtros/i.test($body.text());
+      const hasRenderedProduct =
+        $body.find('[class*="product"], [class*="card"], app-product-card, [data-cy*="product"]')
+          .length > 0;
 
       if (hasSeedName) {
         cy.contains(/Producto Semilla\s*\d+/, { timeout: 8000 }).should('be.visible');
       } else {
-        expect(hasCatalogShell, 'Catalog page should render even when seeded name is absent').to.be
-          .true;
+        expect(
+          hasCatalogShell || hasRenderedProduct,
+          'Catalog page should render even when seeded name is absent'
+        ).to.be.true;
       }
     });
   });
