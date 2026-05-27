@@ -8,6 +8,8 @@ import {
   updatePassword,
   reauthenticateWithCredential,
   EmailAuthProvider,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from '@angular/fire/auth';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
@@ -40,6 +42,30 @@ export class AuthService {
 
   login(email: string, password: string): Observable<UserCredential> {
     return from(signInWithEmailAndPassword(this.auth, email, password));
+  }
+
+  loginWithGoogle(): Observable<UserCredential> {
+    const provider = new GoogleAuthProvider();
+    return from(signInWithPopup(this.auth, provider)).pipe(
+      switchMap(async (result) => {
+        // Force refresh the token to grab custom claims
+        let tokenResult = await result.user.getIdTokenResult(true);
+
+        if (!tokenResult.claims['admin']) {
+          // Wait 1.8 seconds to allow background Cloud Function trigger (onCreate) to execute and set claims
+          await new Promise((resolve) => setTimeout(resolve, 1800));
+          tokenResult = await result.user.getIdTokenResult(true);
+        }
+
+        if (!tokenResult.claims['admin']) {
+          // Not authorized as store admin, sign out immediately
+          await signOut(this.auth);
+          throw new Error('permission-denied');
+        }
+
+        return result;
+      })
+    );
   }
 
   async logout(options?: { title?: string; text?: string }): Promise<void> {

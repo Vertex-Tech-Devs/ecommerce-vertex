@@ -27,6 +27,7 @@ export class LoginComponent implements OnInit {
   authErrorMessage = '';
   isAlreadyLogged = false;
   isSubmitting = false;
+  isGoogleSubmitting = false;
   showPassword = false;
 
   ngOnInit(): void {
@@ -71,6 +72,36 @@ export class LoginComponent implements OnInit {
         },
         error: (_err: unknown) => {
           this.authErrorMessage = 'Error al iniciar sesión. Verifica tus credenciales.';
+          this.isSubmitting = false;
+        },
+      });
+  }
+
+  onGoogleLogin(): void {
+    this.isGoogleSubmitting = true;
+    this.isSubmitting = true;
+    this.authErrorMessage = '';
+
+    this.authService
+      .loginWithGoogle()
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          void this.router.navigate(['/admin']);
+        },
+        error: (err: unknown) => {
+          console.error('[Google Login Error]:', err);
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes('permission-denied') || msg.includes('unauthorized')) {
+            this.authErrorMessage =
+              'Tu cuenta de Google no está autorizada para acceder a esta tienda. Solicita acceso al administrador.';
+          } else if (msg.includes('auth/popup-blocked')) {
+            this.authErrorMessage =
+              'El navegador bloqueó la ventana emergente de Google. Permitila e intentá de nuevo.';
+          } else {
+            this.authErrorMessage = 'No se pudo iniciar sesión con Google. Intentá de nuevo.';
+          }
+          this.isGoogleSubmitting = false;
           this.isSubmitting = false;
         },
       });
