@@ -15,7 +15,11 @@ describe('LoginComponent', () => {
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', ['login', 'logout', 'isAuthenticated']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', [
+      'loginWithGoogle',
+      'logout',
+      'isAuthenticated',
+    ]);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     authServiceSpy.isAuthenticated.and.returnValue(of(false));
@@ -38,70 +42,35 @@ describe('LoginComponent', () => {
     fixture.detectChanges();
   });
 
-  it('formControls getter should return the form controls', () => {
-    expect(component.formControls['email']).toBeTruthy();
-    expect(component.formControls['password']).toBeTruthy();
-  });
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize with an invalid form', () => {
-    expect(component.loginForm.invalid).toBeTrue();
+  it('should call loginWithGoogle when Google login is requested', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(of({} as UserCredential));
+
+    component.onGoogleLogin();
+
+    expect(authServiceSpy.loginWithGoogle).toHaveBeenCalled();
   });
 
-  it('should mark form as invalid when email is missing', () => {
-    component.loginForm.patchValue({ email: '', password: 'password123' });
-    expect(component.loginForm.invalid).toBeTrue();
-  });
+  it('should navigate to /admin after successful Google login', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(of({} as UserCredential));
 
-  it('should mark form as invalid when password is missing', () => {
-    component.loginForm.patchValue({ email: 'test@example.com', password: '' });
-    expect(component.loginForm.invalid).toBeTrue();
-  });
-
-  it('should mark form as invalid for a malformed email', () => {
-    component.loginForm.patchValue({ email: 'not-an-email', password: 'password123' });
-    expect(component.loginForm.get('email')?.errors?.['email']).toBeTruthy();
-  });
-
-  it('should be valid when email and password are filled correctly', () => {
-    component.loginForm.patchValue({ email: 'admin@example.com', password: 'secret' });
-    expect(component.loginForm.valid).toBeTrue();
-  });
-
-  it('should not call login when form is invalid', () => {
-    component.onSubmit();
-    expect(authServiceSpy.login).not.toHaveBeenCalled();
-  });
-
-  it('should call login with form values when form is valid', () => {
-    authServiceSpy.login.and.returnValue(of({} as UserCredential));
-    component.loginForm.patchValue({ email: 'admin@example.com', password: 'secret' });
-
-    component.onSubmit();
-
-    expect(authServiceSpy.login).toHaveBeenCalledWith('admin@example.com', 'secret');
-  });
-
-  it('should navigate to /admin after successful login', () => {
-    authServiceSpy.login.and.returnValue(of({} as UserCredential));
-    component.loginForm.patchValue({ email: 'admin@example.com', password: 'secret' });
-
-    component.onSubmit();
+    component.onGoogleLogin();
 
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
   });
 
-  it('should set authErrorMessage when login fails', () => {
-    authServiceSpy.login.and.returnValue(throwError(() => new Error('auth/wrong-password')));
-    component.loginForm.patchValue({ email: 'admin@example.com', password: 'wrong' });
+  it('should set authErrorMessage when Google login fails', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/unauthorized-domain'))
+    );
 
-    component.onSubmit();
+    component.onGoogleLogin();
 
     expect(component.authErrorMessage).toBeTruthy();
-    expect(component.isSubmitting).toBeFalse();
+    expect(component.isGoogleSubmitting).toBeFalse();
   });
 
   it('should detect authError query param and set error message', () => {

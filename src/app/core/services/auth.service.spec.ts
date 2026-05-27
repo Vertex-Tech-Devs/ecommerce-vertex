@@ -75,13 +75,13 @@ describe('AuthService', () => {
     });
   });
 
-  it('login() should return an Observable (interface contract)', () => {
-    const stub = jasmine.createSpyObj<AuthService>('AuthService', ['login']);
-    stub.login.and.returnValue(of({} as UserCredential));
+  it('loginWithGoogle() should return an Observable (interface contract)', () => {
+    const stub = jasmine.createSpyObj<AuthService>('AuthService', ['loginWithGoogle']);
+    stub.loginWithGoogle.and.returnValue(of({} as UserCredential));
 
-    const result = stub.login('test@example.com', 'pass');
+    const result = stub.loginWithGoogle();
     expect(result).toBeTruthy();
-    expect(stub.login).toHaveBeenCalledWith('test@example.com', 'pass');
+    expect(stub.loginWithGoogle).toHaveBeenCalled();
   });
 
   it('logout() should return a Promise (interface contract)', async () => {
