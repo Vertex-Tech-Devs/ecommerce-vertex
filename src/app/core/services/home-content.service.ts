@@ -23,7 +23,6 @@ export class HomeContentService {
     });
   }
 
-  // eslint-disable-next-line complexity
   async saveHomePageContent(
     contentData: HeroBanner,
     newBannerFile: File | null,

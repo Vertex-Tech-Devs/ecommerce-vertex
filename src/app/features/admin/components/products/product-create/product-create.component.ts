@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { OnInit } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';

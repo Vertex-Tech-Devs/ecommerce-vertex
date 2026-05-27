@@ -6,6 +6,7 @@ import { COLLECTIONS } from "./core/config";
 
 const auth = admin.auth();
 const db = admin.firestore();
+const AUTHORIZED_ROLES = new Set(['admin', 'warehouse', 'fulfillment', 'analyst']);
 
 /**
  * Triggered when a document is written in the 'admin_roles' collection.
@@ -14,6 +15,8 @@ const db = admin.firestore();
 export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email}`, async (event) => {
   const email = event.params.email;
   const afterData = event.data?.after.data();
+  const nextRole = String(afterData?.role || '').trim().toLowerCase();
+  const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
 
   let user: admin.auth.UserRecord;
   try {
@@ -27,22 +30,19 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email
     return;
   }
   
-  if (!afterData || afterData.role !== 'admin') {
-    logger.info(`Revoking 'admin' claim for user: ${email} (UID: ${user.uid})`);
+  if (!afterData || !isAuthorizedRole) {
+    logger.info(`Revoking admin access for user: ${email} (UID: ${user.uid})`);
     await auth.setCustomUserClaims(user.uid, { admin: false });
     return;
   }
 
-  if (afterData.role === 'admin') {
-    if (event.data?.before.data()?.role === 'admin') {
-      logger.info(`Admin role for ${email} already set. No change needed.`);
-      return;
-    }
-    
-    logger.info(`Setting 'admin' claim for user: ${email} (UID: ${user.uid})`);
-    await auth.setCustomUserClaims(user.uid, { admin: true });
+  if (event.data?.before.data()?.role === nextRole) {
+    logger.info(`Role for ${email} already set to ${nextRole}. No change needed.`);
     return;
   }
+
+  logger.info(`Setting admin access claims for user: ${email} (UID: ${user.uid}) role=${nextRole}`);
+  await auth.setCustomUserClaims(user.uid, { admin: true, role: nextRole });
 });
 
 /**
@@ -53,12 +53,13 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email
 export const onUserCreated = functions.auth.user().onCreate(async (user) => {
   if (!user || !user.email) return;
 
-  const email = user.email;
+  const email = user.email.trim().toLowerCase();
   try {
     const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(email).get();
-    if (doc.exists && doc.data()?.role === 'admin') {
-      logger.info(`Setting 'admin' claim for newly registered user: ${email} (UID: ${user.uid})`);
-      await auth.setCustomUserClaims(user.uid, { admin: true });
+    const role = String(doc.data()?.role || '').trim().toLowerCase();
+    if (doc.exists && AUTHORIZED_ROLES.has(role)) {
+      logger.info(`Setting admin access claims for newly registered user: ${email} (UID: ${user.uid}) role=${role}`);
+      await auth.setCustomUserClaims(user.uid, { admin: true, role });
     }
   } catch (error) {
     logger.error(`Error setting admin claim on user creation for ${email}:`, error);

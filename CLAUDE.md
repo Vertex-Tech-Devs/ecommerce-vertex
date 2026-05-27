@@ -58,6 +58,9 @@ The `provision-store` GitHub Actions job:
 - **`src/environments/environment.prod.ts`** is gitignored and generated at build time
 - **`firebase.json`** in the provision-store job is overwritten at runtime — the committed one is for dev/prod only
 - The `FIREBASE_SERVICE_ACCOUNT_PLATFORM` SA must have `roles/owner` on every provisioned store project
+- Store admin login (`/admin/login`) is Google OAuth-only; do not reintroduce email/password login paths
+- Access authorization is driven by `admin_roles/{email}` in each store Firestore project
+- Valid store admin roles are `admin`, `warehouse`, `fulfillment`, `analyst`; role changes must propagate to custom claims
 
 ## Local development
 
