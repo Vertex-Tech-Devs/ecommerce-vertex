@@ -4,6 +4,7 @@ dist/
 .sass-cache/
 coverage/
 *.js.map
+*.tsbuildinfo
 /tmp
 /out-tsc
 /bazel-out
