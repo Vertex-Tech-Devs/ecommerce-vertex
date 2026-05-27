@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import type { User, UserCredential } from '@angular/fire/auth';
 import {
   Auth,
-  signInWithEmailAndPassword,
   signOut,
   updatePassword,
   reauthenticateWithCredential,
@@ -40,31 +39,41 @@ export class AuthService {
     })
   );
 
-  login(email: string, password: string): Observable<UserCredential> {
-    return from(signInWithEmailAndPassword(this.auth, email, password));
-  }
-
   loginWithGoogle(): Observable<UserCredential> {
     const provider = new GoogleAuthProvider();
-    return from(signInWithPopup(this.auth, provider)).pipe(
-      switchMap(async (result) => {
-        // Force refresh the token to grab custom claims
-        let tokenResult = await result.user.getIdTokenResult(true);
+    provider.setCustomParameters({ prompt: 'select_account' });
 
-        if (!tokenResult.claims['admin']) {
-          // Wait 1.8 seconds to allow background Cloud Function trigger (onCreate) to execute and set claims
-          await new Promise((resolve) => setTimeout(resolve, 1800));
-          tokenResult = await result.user.getIdTokenResult(true);
+    return from(
+      (async (): Promise<UserCredential> => {
+        try {
+          const result = await signInWithPopup(this.auth, provider);
+
+          // Force refresh the token to grab custom claims.
+          let tokenResult = await result.user.getIdTokenResult(true);
+
+          if (!tokenResult.claims['admin']) {
+            // Wait briefly to allow role claims propagation after a first Google sign-in.
+            await new Promise((resolve) => setTimeout(resolve, 1800));
+            tokenResult = await result.user.getIdTokenResult(true);
+          }
+
+          if (!tokenResult.claims['admin']) {
+            await signOut(this.auth);
+            throw new Error('permission-denied');
+          }
+
+          return result;
+        } catch (err: unknown) {
+          const code =
+            err && typeof err === 'object' && 'code' in err
+              ? String((err as { code?: string }).code)
+              : '';
+          if (code === 'auth/popup-blocked' || code === 'auth/unauthorized-domain') {
+            throw new Error(code);
+          }
+          throw err;
         }
-
-        if (!tokenResult.claims['admin']) {
-          // Not authorized as store admin, sign out immediately
-          await signOut(this.auth);
-          throw new Error('permission-denied');
-        }
-
-        return result;
-      })
+      })()
     );
   }
 

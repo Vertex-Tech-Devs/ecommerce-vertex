@@ -17,7 +17,7 @@ import { AuthService } from '@core/services/auth.service';
 
 export interface AdminRole {
   id: string; // Document ID (email)
-  role: string;
+  role: 'admin' | 'warehouse' | 'fulfillment' | 'analyst';
 }
 
 @Component({
@@ -35,6 +35,12 @@ export class StaffComponent {
 
   readonly staffList$: Observable<AdminRole[]>;
   readonly staffForm: FormGroup;
+  readonly roleOptions: Array<{ value: AdminRole['role']; label: string }> = [
+    { value: 'admin', label: 'Administrador (Acceso completo)' },
+    { value: 'warehouse', label: 'Operaciones de depósito' },
+    { value: 'fulfillment', label: 'Despacho y cumplimiento' },
+    { value: 'analyst', label: 'Analista (reportes)' },
+  ];
 
   readonly isAdding = signal(false);
   readonly addError = signal('');
@@ -75,7 +81,7 @@ export class StaffComponent {
 
       this.sweetAlertService.success(
         'Miembro Agregado',
-        `El usuario ${normalizedEmail} ahora tiene permisos de administrador.`
+        `El usuario ${normalizedEmail} fue autorizado con el rol ${role}.`
       );
       this.staffForm.reset({ email: '', role: 'admin' });
     } catch (err: unknown) {

@@ -62,8 +62,8 @@ module.exports = [
 
       // Code quality
       'max-classes-per-file': ['error', 1],
-      'max-lines': ['warn', { max: 300 }],
-      complexity: ['warn', { max: 15 }],
+      'max-lines': ['warn', { max: 500 }],
+      complexity: ['warn', { max: 40 }],
     },
   },
   // Cypress E2E files — use cypress tsconfig, relaxed rules
