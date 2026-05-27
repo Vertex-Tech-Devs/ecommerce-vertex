@@ -109,14 +109,10 @@ test.describe('Cart route', () => {
 // ─── Suite 4: Admin login ─────────────────────────────────────────────────────
 
 test.describe('Admin login page', () => {
-  test('admin login page renders the login form', async ({ page }) => {
+  test('admin login page renders Google OAuth access', async ({ page }) => {
     await page.goto('/admin/login');
-    await expect(page.locator('form')).toBeVisible({ timeout: 10_000 });
-    // Email and password fields
-    const emailField = page.locator(
-      'input[type="email"], input[formcontrolname="email"]'
-    );
-    await expect(emailField).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Iniciar Sesión' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('Ingresá únicamente con tu cuenta de Google autorizada')).toBeVisible();
   });
 
   test('admin login page has a Google OAuth button', async ({ page }) => {
