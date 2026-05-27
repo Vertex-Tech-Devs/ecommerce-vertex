@@ -138,9 +138,12 @@ npm run e2e:ci        # headless Chrome (for CI)
 
 ## Before Opening a PR
 
+Quality policy is strict: changes must be delivered with 0 errors and 0 warnings in local validation, CI, and editor diagnostics.
+
 - [ ] `npm run lint` passes with 0 errors
 - [ ] `npm run typecheck` passes with 0 errors
 - [ ] `npm test` passes and coverage does not drop below thresholds
+- [ ] No warnings remain in lint, typecheck, tests, build, or editor diagnostics
 - [ ] No `console.log` left in production code
 - [ ] New components/services have at least a basic `.spec.ts`
 - [ ] Commit messages follow the Conventional Commits format
