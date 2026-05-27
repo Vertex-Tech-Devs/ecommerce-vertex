@@ -122,6 +122,12 @@ export const ADMIN_ROUTES: Routes = [
           ),
       },
       {
+        path: 'staff',
+        title: 'Equipo (RBAC)',
+        loadComponent: () =>
+          import('./components/staff/staff.component').then((m) => m.StaffComponent),
+      },
+      {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>
