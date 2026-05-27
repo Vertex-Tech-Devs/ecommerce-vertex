@@ -79,6 +79,9 @@ Thank you for using this template! This guide covers how to set up the project l
 
 **Base branch:** always branch off `develop`. Only `develop` → `main` merges happen at release time.
 
+> [!IMPORTANT]
+> **Norma de Permanencia de Ramas:** Las ramas `develop` y `main` son ramas de largo ciclo de vida y **JAMÁS se deben eliminar** bajo ninguna circunstancia. Cualquier acción manual o automática que intente removerlas o alterar su persistencia histórica está terminantemente prohibida.
+
 ---
 
 ## Commit Convention
