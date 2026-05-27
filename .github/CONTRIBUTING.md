@@ -151,6 +151,22 @@ Quality policy is strict: changes must be delivered with 0 errors and 0 warnings
 
 ---
 
+## PR Monitoring Policy
+
+To avoid unnecessary polling and token usage, use long-interval monitoring for PR checks.
+
+- Preferred command: `gh pr checks <PR_NUMBER> --watch --interval 300`
+- Default interval: 300 seconds (5 minutes). Use 600 seconds for long-running release checks.
+- Do not run repeated manual checks every few seconds.
+
+Alternative notifications:
+
+- Enable GitHub notifications for participating PRs (`Watching` -> `Custom` -> `Pull requests`).
+- Rely on GitHub email/mobile notifications when checks complete.
+- Use `gh pr merge <PR_NUMBER> --auto --merge` when repository settings allow auto-merge.
+
+---
+
 ## Code Standards
 
 - **File length:** keep files under ~300 lines. Split by responsibility if needed.
