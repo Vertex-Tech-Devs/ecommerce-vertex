@@ -1,166 +1,109 @@
-# Vertex Ecommerce
+# 🛒 Vertex Ecommerce
 
-Tenant storefront and admin template for the Vertex multi-tenant ecosystem.
+Plantilla de comercio electrónico para la tienda (storefront) y panel de administración (backoffice) de cada cliente en el ecosistema multi-tenant de Vertex.
 
-Resumen ES: template ecommerce para storefront y backoffice por tenant.
+Cada tienda cliente recibe un proyecto de Firebase aislado y dedicado con esta aplicación desplegada de forma automática. La aplicación lee dinámicamente la configuración específica del comercio desde la colección de Firestore (`settings/storeConfig`).
 
-## Quick Start (10 minutes) / Inicio Rapido (10 minutos)
+---
 
-### EN
+## 🚀 Inicio Rápido (10 minutos)
 
-1. Install dependencies.
-2. Start app.
-3. Run baseline quality checks.
+Sigue estos pasos para configurar e iniciar la aplicación localmente en tu entorno de desarrollo:
 
-### ES
+1. **Instalar dependencias:**
+   Instala los paquetes tanto para la aplicación frontend de Angular como para el backend de Cloud Functions:
+   ```bash
+   npm install
+   cd functions && npm ci && cd ..
+   ```
 
-1. Instala dependencias.
-2. Inicia la aplicacion.
-3. Ejecuta validaciones base.
+2. **Iniciar el servidor local:**
+   Levanta la aplicación Angular en modo de desarrollo:
+   ```bash
+   npm start
+   ```
 
-Commands:
+3. **Ejecutar validaciones de calidad (Quality Gates):**
+   Asegúrate de que el formateo, los tipos y las pruebas unitarias pasan sin errores:
+   ```bash
+   npm run lint && npm run typecheck && npm run test:ci && npm run build
+   ```
 
-```bash
-npm install
-cd functions && npm ci && cd ..
-npm start
-npm run lint && npm run typecheck && npm run test:ci && npm run build
-```
+---
 
-## Contents
+## 📁 Estructura del Proyecto
 
-- Overview / Resumen
-- Architecture / Arquitectura
-- Setup and Commands / Configuracion y Comandos
-- Quality and Testing / Calidad y Testing
-- Deployment and Releases / Despliegue y Releases
-- Integration with Vertex Platform
-- Incident Runbooks / Runbooks de Incidentes
+* **`src/app`**: Componentes Angular de la tienda (`shop/`) y del panel de administración (`admin/`), servicios del core y utilidades compartidas.
+* **`functions/src`**: Funciones backend de Firebase (TypeScript), tales como la integración con pasarelas de pago y webhooks.
+* **`cypress`**: Suite de pruebas de integración de punta a punta (E2E).
+* **`integration-tests`**: Pruebas que validan la continuidad del ciclo de vida en conjunto con la plataforma principal.
 
-## Overview / Resumen
+---
 
-### EN
+## 🛠️ Tecnologías Principales
 
-Vertex Ecommerce provides the tenant-facing shopping experience and administrative interface.
+* **Frontend**: Angular 20+, señales (Signals), componentes independientes (Standalone) y SCSS.
+* **Backend**: Firebase Cloud Functions v2 (TypeScript).
+* **Base de datos e Integraciones**: Cloud Firestore y Firebase Authentication.
+* **Pruebas y QA**: Vitest (pruebas unitarias), Cypress y Playwright (pruebas de integración).
+* **CI/CD**: GitHub Actions.
 
-### ES
+---
 
-Vertex Ecommerce ofrece la experiencia de compra y el panel administrativo para cada tenant.
+## 💻 Comandos Útiles de Desarrollo
 
-Core capabilities:
+| Comando | Descripción |
+|---------|-------------|
+| `npm start` | Inicia el servidor de desarrollo en Angular (por defecto en `http://localhost:4200`) |
+| `npm run lint` | Ejecuta el análisis estático de código (ESLint) |
+| `npm run typecheck` | Ejecuta la verificación estricta de tipos de TypeScript |
+| `npm run test:ci` | Corre las pruebas unitarias usando Chrome en modo headless |
+| `npm run build` | Genera la compilación optimizada para producción |
+| `npm run quality` | Ejecuta de manera consolidada linting, typecheck y pruebas unitarias |
+| `npm run e2e` | Ejecuta las pruebas Cypress de punta a punta en modo headless |
+| `npm run e2e:open` | Abre la interfaz interactiva de Cypress |
 
-- Product catalog and storefront flow
-- Cart and checkout lifecycle
-- Admin operations for products, clients, orders and store settings
-- Firebase-backed data and authentication integrations
+---
 
-## Architecture / Arquitectura
+## 🔒 Despliegue y Gobernanza de Ramas
 
-Stack:
+Este repositorio opera bajo políticas estrictas de flujo de trabajo y protección de ramas.
 
-- Frontend: Angular 20
-- Integrations: Firebase and Cloud Functions
-- Testing: unit tests, Cypress E2E, Playwright integration
-- CI/CD: GitHub Actions
+### Entornos y Ramas Principales
 
-Project areas:
+| Rama | Entorno / Propósito | Proyecto Firebase | Comando de Despliegue |
+|------|--------------------|-------------------|-----------------------|
+| `develop` | Integración / Pruebas | `ecommerce-vertex-dev` | `npm run deploy:dev` |
+| `main` | Producción / Versión Estable | `ecommerce-vertex` | `npm run deploy:prod` |
 
-- src/app
-- functions/src
-- cypress
-- integration-tests
+### Políticas Obligatorias
 
-## Setup and Commands / Configuracion y Comandos
+1. **Promoción exclusiva vía PR:** Todo cambio hacia la rama `main` debe promoverse únicamente mediante un Pull Request desde `develop` hacia `main`.
+2. **Sincronización Inversa Inmediata (Back-Sync):** Tras fusionar una PR en `main`, es obligatorio realizar una Pull Request de fusión inversa de `main` a `develop` para evitar divergencias en el historial de Git.
+3. **Protecciones de Rama Activas:** Las ramas `develop` y `main` están protegidas del lado del servidor. Las eliminaciones y empujes directos están bloqueados.
+4. **Persistencia Histórica:** Bajo ninguna circunstancia se deben eliminar las ramas permanentes `develop` y `main`. La opción de borrar rama al fusionar una PR (`delete branch`) jamás debe aplicarse sobre estas ramas.
 
-Prerequisites:
+---
 
-- Node.js 18+
-- npm 9+
+## 🚨 Guías de Resolución de Incidentes (Runbooks)
 
-Core commands:
+### 1) PR Bloqueada por Verificaciones Pendientes o Canceladas
+1. Inspecciona los resultados de las comprobaciones requeridas en GitHub.
+2. Si un job falló o se canceló por motivos ajenos al código, vuelve a ejecutar el workflow en GitHub Actions.
+3. Espera a que todas las verificaciones del **Quality Gate** pasen a estado verde antes de proceder con la fusión.
 
-```bash
-# Development
-npm start
-npm run lint
-npm run typecheck
-npm run test:ci
-npm run build
-npm run quality
+### 2) Deriva de Ramas (Drift) entre `develop` y `main`
+1. Abre un PR de sincronización inversa (`main` -> `develop`).
+2. Valida que pasen las comprobaciones de CI requeridas.
+3. Realiza la fusión de forma segura sin eliminar las cabezas de rama permanentes.
 
-# E2E and integration
-npm run e2e:ci
-npm run test:integration
+### 3) Lista de Cierre de Lanzamiento (Release Close Checklist)
+- [ ] Validaciones de CI en `develop` completadas con éxito (verde ✅).
+- [ ] Despliegue automático de `develop` completado sin errores.
+- [ ] PR de `develop` -> `main` revisado y fusionado de manera lineal (Squash/Rebase).
+- [ ] Validaciones de CI en `main` completadas con éxito.
+- [ ] Despliegue automático de producción (`main`) verificado operacionalmente.
 
-# Deploy
-npm run deploy:dev
-npm run deploy:prod
-```
+---
 
-## Quality and Testing / Calidad y Testing
-
-Local baseline:
-
-- lint
-- typecheck
-- unit tests
-- production build
-
-CI required gates:
-
-- CI workflow
-- CodeQL workflow
-- Deploy workflow
-- E2E and integration contexts based on branch/workflow
-
-## Deployment and Releases / Despliegue y Releases
-
-Branch intent:
-
-- develop = integration
-- main = production release
-
-Mandatory release policy:
-
-1. Promote only via PR develop -> main.
-2. Immediately back-sync via PR main -> develop.
-3. Keep branch protections enabled.
-4. Do not merge with delete-branch when PR head is main or develop.
-
-## Integration with Vertex Platform
-
-- Platform dispatches provisioning/deploy events consumed by this template.
-- Cross-repo integration tests validate lifecycle continuity.
-- Some CI integration paths require secure repository credentials.
-
-## Incident Runbooks / Runbooks de Incidentes
-
-### 1) PR blocked by stale/cancelled required checks
-
-1. Inspect required checks.
-2. Re-run the run that owns the required red/cancelled context.
-3. Wait for required checks to become green.
-4. Merge through protected flow.
-
-### 2) Branch drift between develop and main
-
-1. Open sync PR main -> develop.
-2. Validate required checks.
-3. Merge safely without deleting long-lived heads.
-
-### 3) Release close checklist
-
-1. CI on develop green.
-2. Deploy on develop green.
-3. PR develop -> main merged.
-4. CI on main green.
-5. Deploy on main green.
-
-## Governance Artifacts
-
-- .github/CONTRIBUTING.md
-- .github/dependabot.yml
-- SECURITY.md
-- .github/CODEOWNERS
-
-Maintainer note: keep this README as canonical for daily development and release operations.
+📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal para el desarrollo diario y los flujos de lanzamiento.
