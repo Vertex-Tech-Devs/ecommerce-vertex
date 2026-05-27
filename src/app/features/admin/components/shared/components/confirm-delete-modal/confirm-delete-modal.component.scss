@@ -2,7 +2,11 @@
 @use 'sass:color';
 
 .modal-header--danger {
-  background: linear-gradient(135deg, vars.$accent-red, color.adjust(vars.$accent-red, $lightness: -8%));
+  background: linear-gradient(
+    135deg,
+    vars.$accent-red,
+    color.adjust(vars.$accent-red, $lightness: -8%)
+  );
   color: #fff;
   border-bottom: none;
   padding: 1.25rem 1.5rem;
@@ -16,7 +20,9 @@
   .btn-close {
     filter: brightness(0) invert(1);
     opacity: 0.85;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
 
     &:hover {
       opacity: 1;
@@ -64,7 +70,11 @@
 }
 
 .confirm-modal__btn-danger {
-  background: linear-gradient(135deg, vars.$accent-red, color.adjust(vars.$accent-red, $lightness: -5%));
+  background: linear-gradient(
+    135deg,
+    vars.$accent-red,
+    color.adjust(vars.$accent-red, $lightness: -5%)
+  );
   color: #fff;
   border: none;
   font-weight: vars.$font-weight-semibold;

@@ -51,9 +51,15 @@
   font-size: 3.5rem;
   margin-bottom: var(--space-4);
 
-  &--success { color: #16a34a; }
-  &--pending { color: #d97706; }
-  &--error { color: #dc2626; }
+  &--success {
+    color: #16a34a;
+  }
+  &--pending {
+    color: #d97706;
+  }
+  &--error {
+    color: #dc2626;
+  }
 }
 
 .confirmation__title {
@@ -137,7 +143,9 @@
   border: none;
   border-radius: var(--radius-lg);
   text-decoration: none;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 
   &:hover {
     transform: translateY(-2px);

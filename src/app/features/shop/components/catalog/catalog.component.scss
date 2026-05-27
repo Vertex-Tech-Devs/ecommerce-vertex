@@ -50,8 +50,12 @@
   max-height: calc(100vh - var(--space-12));
   overflow-y: auto;
 
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar {
+    width: 3px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
   &::-webkit-scrollbar-thumb {
     background: var(--text-muted);
     border-radius: 10px;
@@ -85,7 +89,9 @@
   border-radius: var(--radius-sm);
   transition: color var(--transition-fast);
 
-  &:hover { color: var(--text-primary); }
+  &:hover {
+    color: var(--text-primary);
+  }
 }
 
 .filter-group {
@@ -138,7 +144,7 @@
 
   &::before,
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     top: 50%;
     left: 0;
@@ -154,15 +160,15 @@
   }
 }
 
-.filter-check__input[type="radio"] + .filter-check__label::before {
+.filter-check__input[type='radio'] + .filter-check__label::before {
   border-radius: 50%;
 }
 
-.filter-check__input[type="checkbox"] + .filter-check__label::before {
+.filter-check__input[type='checkbox'] + .filter-check__label::before {
   border-radius: var(--radius-sm);
 }
 
-.filter-check__input[type="radio"] + .filter-check__label::after {
+.filter-check__input[type='radio'] + .filter-check__label::after {
   width: 8px;
   height: 8px;
   background-color: #fff;
@@ -171,7 +177,7 @@
   opacity: 0;
 }
 
-.filter-check__input[type="checkbox"] + .filter-check__label::after {
+.filter-check__input[type='checkbox'] + .filter-check__label::after {
   width: 5px;
   height: 9px;
   border: solid white;
@@ -211,9 +217,13 @@
   font-size: 0.85rem;
   background: #fff;
   color: var(--text-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 
-  &::placeholder { color: var(--text-muted); }
+  &::placeholder {
+    color: var(--text-muted);
+  }
 
   &:focus {
     outline: none;
@@ -237,7 +247,9 @@
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 
   &:hover {
     background: var(--text-primary);
@@ -271,7 +283,9 @@
   cursor: pointer;
   transition: background var(--transition-fast);
 
-  &:hover { background: rgba(0, 0, 0, 0.03); }
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
 }
 
 .catalog__sort-select {
@@ -306,7 +320,9 @@
   overflow: hidden;
   background: var(--shop-surface);
   border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
 
   &:hover {
     transform: translateY(-4px);
@@ -428,8 +444,15 @@
   padding: var(--space-16) var(--space-6);
   color: var(--text-muted);
 
-  i { font-size: 2.5rem; margin-bottom: var(--space-4); display: block; }
-  p { font-size: 1rem; margin: 0; }
+  i {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-4);
+    display: block;
+  }
+  p {
+    font-size: 1rem;
+    margin: 0;
+  }
 }
 
 .catalog__loading {
@@ -453,7 +476,9 @@
   z-index: 1040;
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--transition-base), visibility var(--transition-base);
+  transition:
+    opacity var(--transition-base),
+    visibility var(--transition-base);
   backdrop-filter: blur(2px);
 
   &.is-visible {
@@ -518,6 +543,10 @@
     gap: var(--space-3);
   }
 
-  .product-card__name { font-size: 0.85rem; }
-  .product-card__price { font-size: 0.9rem; }
+  .product-card__name {
+    font-size: 0.85rem;
+  }
+  .product-card__price {
+    font-size: 0.9rem;
+  }
 }
