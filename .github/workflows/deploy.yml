@@ -302,6 +302,13 @@ jobs:
           )
           with open("src/environments/environment.prod.ts", "w") as f:
             f.write(content)
+
+          # Write firebase-config.json so Angular fetches the correct shard
+          # config at runtime instead of the hardcoded fallback in environment.ts.
+          # This is what fixes "store deployed but empty" — main.ts fetches this
+          # file first and uses it to initialise the Firebase SDK.
+          with open("src/firebase-config.json", "w") as f:
+            json.dump(config, f, indent=2)
           PYEOF
 
       - name: Build production
