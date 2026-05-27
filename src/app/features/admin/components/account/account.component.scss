@@ -1,15 +1,27 @@
-@use "variables" as vars;
-@use "sass:color";
+@use 'variables' as vars;
+@use 'sass:color';
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes float-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .account {
@@ -20,7 +32,12 @@
 .card-gradient-wrapper {
   padding: 1px;
   border-radius: var(--radius-xl, 14px);
-  background: linear-gradient(135deg, rgba(vars.$accent-purple, 0.12), rgba(vars.$accent-blue, 0.08), rgba(vars.$accent-purple, 0.12));
+  background: linear-gradient(
+    135deg,
+    rgba(vars.$accent-purple, 0.12),
+    rgba(vars.$accent-blue, 0.08),
+    rgba(vars.$accent-purple, 0.12)
+  );
   background-size: 200% 200%;
   // animation removed for clean light theme
   box-shadow: vars.$admin-card-shadow;
@@ -64,7 +81,11 @@
 }
 
 #save-changes-btn {
-  background: linear-gradient(135deg, vars.$accent-purple, color.adjust(vars.$accent-purple, $lightness: -5%));
+  background: linear-gradient(
+    135deg,
+    vars.$accent-purple,
+    color.adjust(vars.$accent-purple, $lightness: -5%)
+  );
   color: white;
   font-weight: 600;
   padding: 12px 20px;
@@ -104,7 +125,9 @@
   border: 1px solid vars.$input-dark-border;
   border-radius: var(--radius-md, 8px);
   background-color: vars.$input-dark-bg;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   .form-control {
     border: none;
@@ -114,8 +137,12 @@
     flex-grow: 1;
     padding-right: 2.75rem;
 
-    &::placeholder { color: vars.$input-dark-placeholder; }
-    &:focus { outline: none; }
+    &::placeholder {
+      color: vars.$input-dark-placeholder;
+    }
+    &:focus {
+      outline: none;
+    }
   }
 
   .password-toggle-icon {
@@ -132,7 +159,9 @@
     line-height: 1;
     transition: color 0.2s ease;
 
-    &:hover { color: vars.$text-light; }
+    &:hover {
+      color: vars.$text-light;
+    }
   }
 }
 
@@ -145,7 +174,9 @@
   border-color: vars.$accent-red;
   box-shadow: 0 0 0 3px rgba(vars.$accent-red, 0.12);
 
-  .password-toggle-icon { color: vars.$accent-red; }
+  .password-toggle-icon {
+    color: vars.$accent-red;
+  }
 }
 
 .btn-outline-danger {

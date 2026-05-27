@@ -7,15 +7,8 @@ import { FooterComponent } from '@features/shop/components/shared/footer/footer.
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    HeaderComponent,
-    FooterComponent
-  ],
+  imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './shop.component.html',
-  styleUrls: ['./shop.component.scss']
+  styleUrls: ['./shop.component.scss'],
 })
-export class ShopComponent {
-
-}
+export class ShopComponent {}
