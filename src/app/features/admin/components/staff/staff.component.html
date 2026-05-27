@@ -22,7 +22,7 @@
           </h3>
           <p class="card-desc text-muted mb-4">
             Ingresá el correo electrónico de la persona para autorizar su acceso. Cuando inicie
-            sesión con Google u otro proveedor, se le asignará el rol automáticamente.
+            sesión con Google, se le asignará este rol automáticamente.
           </p>
 
           <form [formGroup]="staffForm" (ngSubmit)="addStaff()">
@@ -51,7 +51,9 @@
             <div class="mb-4">
               <label for="inviteRole" class="form-label">Rol Asignado</label>
               <select id="inviteRole" class="form-select form-control" formControlName="role">
-                <option value="admin">Administrador (Acceso Completo)</option>
+                @for (option of roleOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
               </select>
             </div>
 
@@ -129,7 +131,20 @@
                       <td>
                         <span class="badge badge-role rounded-pill">
                           <i class="bi bi-shield-fill-check me-1"></i>
-                          {{ member.role === 'admin' ? 'Administrador' : member.role }}
+                          @switch (member.role) {
+                            @case ('admin') {
+                              Administrador
+                            }
+                            @case ('warehouse') {
+                              Depósito
+                            }
+                            @case ('fulfillment') {
+                              Fulfillment
+                            }
+                            @default {
+                              Analista
+                            }
+                          }
                         </span>
                       </td>
                       <td class="text-end">

@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { CatalogueCategory } from '../product-catalogue.constants';
 
 export const PRODUCT_CATALOGUE: CatalogueCategory[] = [

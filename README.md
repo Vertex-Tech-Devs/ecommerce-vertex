@@ -65,6 +65,24 @@ Sigue estos pasos para configurar e iniciar la aplicación localmente en tu ento
 
 ---
 
+## 🔐 Acceso Admin de Tienda (Google OAuth-Only)
+
+Desde mayo de 2026, el panel administrativo de tienda (`/admin/login`) acepta exclusivamente autenticación con Google OAuth.
+
+Reglas operativas:
+
+1. El correo debe estar preautorizado en Firestore (`admin_roles/{email}`).
+2. El rol autorizado puede ser `admin`, `warehouse`, `fulfillment` o `analyst`.
+3. Los custom claims se sincronizan automáticamente mediante Cloud Functions en alta de usuario y cambios de rol.
+
+Errores comunes:
+
+- `permission-denied`: el correo no está autorizado.
+- `auth/unauthorized-domain`: el dominio usado para login no está en Firebase Auth > Authorized domains.
+- `auth/popup-blocked`: el navegador bloqueó la ventana emergente de Google.
+
+---
+
 ## 🔒 Despliegue y Gobernanza de Ramas
 
 Este repositorio opera bajo políticas estrictas de flujo de trabajo y protección de ramas.
