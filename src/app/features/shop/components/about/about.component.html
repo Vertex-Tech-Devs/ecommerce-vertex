@@ -1,6 +1,10 @@
 @if (data$ | async; as pageData) {
   <div class="about">
-    <section class="about-hero" [style.background-image]="'url(' + pageData.bannerImageUrl + ')'" aria-label="Banner">
+    <section
+      class="about-hero"
+      [style.background-image]="'url(' + pageData.bannerImageUrl + ')'"
+      aria-label="Banner"
+    >
       <div class="about-hero__content">
         <h1 class="about-hero__title">{{ pageData.bannerTitle }}</h1>
         @if (pageData.bannerSubtitle) {
@@ -15,10 +19,12 @@
         <div class="about__story">
           <div class="about__story-grid">
             <div class="about__story-image-wrap">
-              <img [src]="pageData.centralImageUrl"
-                   [alt]="pageData.centralTitle"
-                   class="about__story-image"
-                   loading="lazy">
+              <img
+                [src]="pageData.centralImageUrl"
+                [alt]="pageData.centralTitle"
+                class="about__story-image"
+                loading="lazy"
+              />
             </div>
             <div class="about__story-text">
               <p class="about__story-description">{{ pageData.centralDescription }}</p>

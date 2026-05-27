@@ -73,7 +73,9 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   border: 2px solid transparent;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
   opacity: 0.7;
 
   &:hover {
@@ -197,8 +199,13 @@
   transition: background var(--transition-fast);
   color: var(--text-primary);
 
-  &:hover:not(:disabled) { background: rgba(0, 0, 0, 0.04); }
-  &:disabled { opacity: 0.35; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.04);
+  }
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
 }
 
 .quantity-picker__value {
@@ -220,7 +227,9 @@
   border-radius: var(--radius-lg);
   color: #fff;
   background: var(--text-primary);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
@@ -238,6 +247,10 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

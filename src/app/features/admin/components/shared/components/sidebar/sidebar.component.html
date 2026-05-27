@@ -124,6 +124,17 @@
     </li>
     <li>
       <a
+        routerLink="/admin/staff"
+        routerLinkActive="sidebar__link--active"
+        class="sidebar__link"
+        (click)="onLinkClick()"
+      >
+        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+        <span>Equipo (RBAC)</span>
+      </a>
+    </li>
+    <li>
+      <a
         routerLink="/admin/store-config"
         routerLinkActive="sidebar__link--active"
         class="sidebar__link"

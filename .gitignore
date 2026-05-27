@@ -80,6 +80,7 @@ application_default_credentials.json
 
 # Testing
 test-results/
+playwright-report/
 *.lcov
 
 # Logs

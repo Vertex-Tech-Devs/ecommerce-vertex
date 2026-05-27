@@ -76,7 +76,9 @@ body::-webkit-scrollbar-thumb:hover {
     border: 1px solid #e2e5ea !important;
     border-bottom: 0 !important;
 
-    .ql-stroke, .ql-picker-label, .ql-picker-item {
+    .ql-stroke,
+    .ql-picker-label,
+    .ql-picker-item {
       stroke: #555 !important;
       color: #555 !important;
     }
@@ -84,8 +86,10 @@ body::-webkit-scrollbar-thumb:hover {
       fill: #555 !important;
     }
 
-    button:hover, .ql-picker-label:hover {
-      .ql-stroke, & {
+    button:hover,
+    .ql-picker-label:hover {
+      .ql-stroke,
+      & {
         stroke: vars.$accent-blue !important;
         color: vars.$accent-blue !important;
       }
@@ -95,7 +99,8 @@ body::-webkit-scrollbar-thumb:hover {
     }
 
     & .ql-active {
-      .ql-stroke, & {
+      .ql-stroke,
+      & {
         stroke: vars.$accent-blue !important;
         color: vars.$accent-blue !important;
       }
@@ -142,7 +147,9 @@ body::-webkit-scrollbar-thumb:hover {
   border-radius: var(--radius-lg, 12px);
   color: vars.$text-light;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .modal-backdrop.show {
