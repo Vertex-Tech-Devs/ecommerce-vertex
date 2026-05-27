@@ -249,54 +249,13 @@ describe('5 · Checkout Flow', () => {
   });
 });
 
-// ─── Suite 6: Admin Order Management ─────────────────────────────────────────
+// ─── Suite 6: Admin Route Protection ─────────────────────────────────────────
 
-describe('6 · Admin Order Management (intercepted)', () => {
-  const ORDER_ID = 'order-abc-001';
-
-  beforeEach(() => {
-    stubAdminAuth();
-
-    // Stub Firestore orders collection
-    cy.intercept('POST', '**/firestore.googleapis.com/**', {
-      statusCode: 200,
-      body: {
-        documents: [
-          {
-            name: `projects/test/databases/(default)/documents/orders/${ORDER_ID}`,
-            fields: {
-              id: { stringValue: ORDER_ID },
-              clientName: { stringValue: 'Juan Comprador' },
-              clientEmail: { stringValue: 'juan@test.com' },
-              total: { doubleValue: 5000 },
-              status: { stringValue: 'pending' },
-              createdAt: { timestampValue: new Date().toISOString() },
-              items: {
-                arrayValue: {
-                  values: [
-                    {
-                      mapValue: {
-                        fields: {
-                          name: { stringValue: 'Producto Semilla 1' },
-                          quantity: { integerValue: '2' },
-                          price: { doubleValue: 2500 },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        ],
-      },
-    }).as('firestoreOrders');
-  });
-
-  it('admin orders page loads without errors', () => {
+describe('6 · Admin Route Protection', () => {
+  it('redirects unauthenticated users from /admin/orders to /admin/login', () => {
     cy.visit('/admin/orders');
-    cy.get('app-root').should('exist');
-    cy.get('body').should('not.contain', 'Store configuration unavailable');
+    cy.location('pathname', { timeout: 10000 }).should('eq', '/admin/login');
+    cy.contains('button', 'Iniciar sesión con Google').should('be.visible');
   });
 });
 
