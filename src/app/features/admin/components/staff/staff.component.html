@@ -1,0 +1,173 @@
+<div class="staff-wrapper">
+  <!-- Header -->
+  <header class="staff-header mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h1 class="page-title mb-1">Miembros del Equipo</h1>
+        <p class="page-subtitle text-muted mb-0">
+          Gestioná los colaboradores y administradores autorizados para gestionar esta tienda.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Grid -->
+  <div class="row g-4">
+    <!-- Left Column: Add/Invite form -->
+    <div class="col-lg-4">
+      <div class="card card-gradient-wrapper p-1">
+        <div class="card-inner p-4 bg-white rounded-3">
+          <h3 class="card-title h5 mb-3">
+            <i class="bi bi-person-plus me-2 text-primary"></i>Pre-autorizar Administrador
+          </h3>
+          <p class="card-desc text-muted mb-4">
+            Ingresá el correo electrónico de la persona para autorizar su acceso. Cuando inicie
+            sesión con Google u otro proveedor, se le asignará el rol automáticamente.
+          </p>
+
+          <form [formGroup]="staffForm" (ngSubmit)="addStaff()">
+            <div class="mb-3">
+              <label for="inviteEmail" class="form-label">Correo Electrónico</label>
+              <input
+                id="inviteEmail"
+                type="email"
+                class="form-control"
+                placeholder="ejemplo@correo.com"
+                formControlName="email"
+                [class.is-invalid]="formControls['email'].invalid && formControls['email'].touched"
+              />
+              @if (formControls['email'].invalid && formControls['email'].touched) {
+                <div class="invalid-feedback d-block mt-1">
+                  @if (formControls['email'].errors?.['required']) {
+                    <div>El email es obligatorio.</div>
+                  }
+                  @if (formControls['email'].errors?.['email']) {
+                    <div>El formato de email no es válido.</div>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="mb-4">
+              <label for="inviteRole" class="form-label">Rol Asignado</label>
+              <select id="inviteRole" class="form-select form-control" formControlName="role">
+                <option value="admin">Administrador (Acceso Completo)</option>
+              </select>
+            </div>
+
+            @if (addError()) {
+              <div class="alert alert-danger py-2 px-3 mb-3 h6" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ addError() }}
+              </div>
+            }
+
+            <div class="d-grid">
+              <button
+                type="submit"
+                class="btn btn-primary btn-submit py-2"
+                [disabled]="staffForm.invalid || isAdding()"
+              >
+                @if (isAdding()) {
+                  <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                  Concediendo acceso...
+                } @else {
+                  <i class="bi bi-shield-check me-2"></i> Autorizar Email
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Active staff list -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 bg-white p-4 rounded-3 h-100">
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+          <h3 class="card-title h5 mb-0">
+            <i class="bi bi-people-fill me-2 text-primary"></i>Usuarios Autorizados
+          </h3>
+          <span class="badge bg-light text-dark px-3 py-2 border rounded-pill">
+            Colaboradores
+          </span>
+        </div>
+
+        <!-- Staff List Table -->
+        <div class="table-responsive">
+          <table class="table align-middle table-hover mb-0" aria-label="Colaboradores autorizados">
+            <thead>
+              <tr class="text-muted table-header-row">
+                <th scope="col" style="width: 60%">Usuario / Email</th>
+                <th scope="col" style="width: 25%">Rol asignado</th>
+                <th scope="col" class="text-end" style="width: 15%">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @if (staffList$ | async; as staffList) {
+                @if (staffList.length === 0) {
+                  <tr>
+                    <td colspan="3" class="text-center py-5 text-muted">
+                      <i class="bi bi-shield-slash display-4 d-block mb-3 text-muted"></i>
+                      No hay otros usuarios autorizados en esta tienda aún.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (member of staffList; track member.id) {
+                    <tr class="member-row">
+                      <td>
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="avatar-circle">
+                            {{ member.id.charAt(0).toUpperCase() }}
+                          </div>
+                          <div>
+                            <span class="d-block font-semibold text-dark member-email">{{
+                              member.id
+                            }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge badge-role rounded-pill">
+                          <i class="bi bi-shield-fill-check me-1"></i>
+                          {{ member.role === 'admin' ? 'Administrador' : member.role }}
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        <button
+                          type="button"
+                          class="btn btn-action-delete"
+                          [disabled]="removingEmail() === member.id"
+                          (click)="removeStaff(member.id)"
+                          title="Revocar acceso de administrador"
+                        >
+                          @if (removingEmail() === member.id) {
+                            <span
+                              class="spinner-border spinner-border-sm text-danger"
+                              aria-hidden="true"
+                            ></span>
+                          } @else {
+                            <i class="bi bi-trash3-fill"></i>
+                          }
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                }
+              } @else {
+                <tr>
+                  <td colspan="3" class="text-center py-5">
+                    <span
+                      class="spinner-border spinner-border-sm text-primary me-2"
+                      aria-hidden="true"
+                    ></span>
+                    Cargando equipo de colaboradores...
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
