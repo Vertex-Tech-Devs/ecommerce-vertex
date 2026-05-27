@@ -1,10 +1,16 @@
 @use 'variables' as vars;
-@use "sass:color";
+@use 'sass:color';
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .login-container {
@@ -13,7 +19,7 @@
   justify-content: center;
   min-height: 100vh;
   padding: var(--space-4, 1rem);
-  background: linear-gradient(135deg, #eef2ff 0%, #F4F7FE 50%, #e0f2fe 100%);
+  background: linear-gradient(135deg, #eef2ff 0%, #f4f7fe 50%, #e0f2fe 100%);
 }
 
 .card-gradient-wrapper {
@@ -22,7 +28,9 @@
   background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
   background-size: 200% 200%;
   animation: gradient-shift 8s ease infinite;
-  box-shadow: 0 8px 40px rgba(vars.$accent-purple, 0.15), 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 8px 40px rgba(vars.$accent-purple, 0.15),
+    0 2px 12px rgba(0, 0, 0, 0.06);
   width: 100%;
   max-width: 450px;
 }
@@ -62,7 +70,11 @@
 }
 
 #login-btn {
-  background: linear-gradient(135deg, color.adjust(vars.$accent-purple, $lightness: 5%), vars.$accent-purple);
+  background: linear-gradient(
+    135deg,
+    color.adjust(vars.$accent-purple, $lightness: 5%),
+    vars.$accent-purple
+  );
   color: white;
   font-weight: 600;
   padding: 12px 20px;
@@ -89,10 +101,14 @@
   border: 1px solid vars.$input-dark-border;
   border-radius: var(--radius-md, 8px);
   color: vars.$input-dark-text;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   padding: 0.75rem 1rem;
 
-  &::placeholder { color: vars.$input-dark-placeholder; }
+  &::placeholder {
+    color: vars.$input-dark-placeholder;
+  }
 }
 
 .password-input-wrapper {
@@ -102,7 +118,9 @@
   background-color: #f9fafb;
   border: 1px solid vars.$input-dark-border;
   border-radius: var(--radius-md, 8px);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 
   .form-control {
     background-color: transparent;
@@ -111,7 +129,9 @@
     flex-grow: 1;
     padding-right: 2.75rem;
 
-    &:focus { outline: none; }
+    &:focus {
+      outline: none;
+    }
   }
 }
 
@@ -129,7 +149,9 @@
   line-height: 1;
   transition: color 0.2s ease;
 
-  &:hover { color: vars.$text-light; }
+  &:hover {
+    color: vars.$text-light;
+  }
 }
 
 .form-control:focus,
@@ -143,7 +165,9 @@
   border-color: vars.$accent-red;
   box-shadow: 0 0 0 3px rgba(vars.$accent-red, 0.12);
 
-  .password-toggle-icon { color: vars.$accent-red; }
+  .password-toggle-icon {
+    color: vars.$accent-red;
+  }
 }
 
 .alert-custom {
@@ -152,5 +176,65 @@
   color: vars.$accent-red;
   border-radius: var(--radius-md, 8px);
 
-  a { color: vars.$accent-blue; }
+  a {
+    color: vars.$accent-blue;
+  }
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  margin: var(--space-4, 1.25rem) 0;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  span {
+    padding: 0 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: vars.$text-muted-dark;
+  }
+}
+
+.google-btn {
+  background-color: #ffffff;
+  color: vars.$input-dark-text !important;
+  border: 1px solid vars.$input-dark-border;
+  font-weight: 600;
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 8px);
+  transition: all var(--transition-base, 0.3s ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+
+  i {
+    color: #4285f4;
+    font-size: 1.1rem;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }

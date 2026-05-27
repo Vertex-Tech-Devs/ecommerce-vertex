@@ -357,13 +357,22 @@ cy.fillPaymentForm({ cardNumber, expiry });   // Fill payment
 ### Running Tests
 
 ```bash
-npm test              # Watch mode (unit tests)
-npm run test:once     # Single run
-npm run test:coverage # With coverage report (see coverage/index.html)
+npm test              # Unit tests with coverage
 npm run test:ci       # Headless for CI/CD
-npm run test:debug    # Debug in Chrome UI
 npm run e2e           # Run all E2E tests
 npm run e2e:open      # Interactive E2E debugging
+npm run test:integration    # Playwright integration suite
+npm run test:integration:ui # Playwright UI mode
+```
+
+### Cross-repo integration
+
+For full lifecycle validation across platform and storefront, run integration from
+`vertex-platform` using:
+
+```bash
+cd ../vertex-platform
+npm run test:integration:env
 ```
 
 ### Test Configuration

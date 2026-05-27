@@ -1,0 +1,187 @@
+@use 'variables' as vars;
+@use 'sass:color';
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.staff-wrapper {
+  padding: var(--space-4, 1rem);
+}
+
+.page-title {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: vars.$text-light;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+}
+
+.card-gradient-wrapper {
+  padding: 2px;
+  border-radius: var(--radius-xl, 14px);
+  background: linear-gradient(90deg, vars.$accent-purple, vars.$accent-blue, vars.$accent-purple);
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+  box-shadow: 0 4px 20px rgba(vars.$accent-purple, 0.08);
+}
+
+.card-inner {
+  border: none;
+}
+
+.card-title {
+  color: vars.$text-light;
+  font-weight: 600;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: vars.$text-muted-dark;
+  letter-spacing: 0.5px;
+}
+
+.form-control,
+.form-select {
+  background-color: #f9fafb;
+  border: 1px solid vars.$input-dark-border;
+  border-radius: var(--radius-md, 8px);
+  color: vars.$input-dark-text;
+  padding: 0.65rem 0.9rem;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+
+  &::placeholder {
+    color: vars.$input-dark-placeholder;
+  }
+
+  &:focus {
+    border-color: vars.$accent-purple;
+    box-shadow: 0 0 0 3px rgba(vars.$accent-purple, 0.12);
+    background-color: #ffffff;
+  }
+}
+
+.btn-submit {
+  background: linear-gradient(
+    135deg,
+    color.adjust(vars.$accent-purple, $lightness: 5%),
+    vars.$accent-purple
+  );
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(vars.$accent-purple, 0.2);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1.5px);
+    box-shadow: 0 6px 16px rgba(vars.$accent-purple, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.table-header-row {
+  th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: vars.$text-muted-dark;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 0.85rem;
+  }
+}
+
+.member-row {
+  transition: background-color 0.2s ease;
+
+  td {
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &:hover {
+    background-color: #fafbfd;
+  }
+}
+
+.avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  color: #4f46e5;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 5px rgba(79, 70, 229, 0.08);
+}
+
+.member-email {
+  font-weight: 550;
+  font-size: 0.9rem;
+}
+
+.badge-role {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
+.btn-action-delete {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 1.05rem;
+  }
+
+  &:hover:not(:disabled) {
+    color: vars.$accent-red;
+    background-color: #fee2e2;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

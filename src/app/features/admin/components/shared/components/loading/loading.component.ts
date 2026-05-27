@@ -7,10 +7,9 @@ import { LoadingService } from '@core/services/loading.service';
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule],
 })
 export class LoadingComponent {
-
   private readonly loadingService = inject(LoadingService);
 
   readonly isLoading = this.loadingService.isLoading;

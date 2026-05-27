@@ -95,8 +95,12 @@
     width: 38px;
     height: 38px;
     font-size: 1.1rem;
-    &--prev { left: var(--space-2); }
-    &--next { right: var(--space-2); }
+    &--prev {
+      left: var(--space-2);
+    }
+    &--next {
+      right: var(--space-2);
+    }
   }
 }
 

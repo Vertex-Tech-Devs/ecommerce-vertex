@@ -50,8 +50,13 @@
   padding: var(--space-5) 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 
-  &:first-child { padding-top: 0; }
-  &:last-child { border-bottom: none; padding-bottom: 0; }
+  &:first-child {
+    padding-top: 0;
+  }
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }
 
 .cart-item__image {
@@ -111,7 +116,9 @@
   cursor: pointer;
   padding: var(--space-2);
   border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 
   &:hover {
     color: #dc3545;
@@ -151,8 +158,13 @@
   justify-content: space-between;
   color: var(--text-secondary);
 
-  dt { font-weight: 400; }
-  dd { margin: 0; font-weight: 500; }
+  dt {
+    font-weight: 400;
+  }
+  dd {
+    margin: 0;
+    font-weight: 500;
+  }
 
   &--total {
     font-size: 1.15rem;
@@ -161,7 +173,10 @@
     padding-top: var(--space-4);
     border-top: 1px solid rgba(0, 0, 0, 0.06);
 
-    dt, dd { font-weight: 700; }
+    dt,
+    dd {
+      font-weight: 700;
+    }
   }
 }
 
@@ -176,7 +191,9 @@
   border-radius: var(--radius-lg);
   cursor: pointer;
   text-align: center;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 
   &:hover {
     transform: translateY(-2px);
@@ -223,7 +240,9 @@
   background: var(--text-primary);
   border-radius: var(--radius-lg);
   text-decoration: none;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 
   &:hover {
     transform: translateY(-2px);

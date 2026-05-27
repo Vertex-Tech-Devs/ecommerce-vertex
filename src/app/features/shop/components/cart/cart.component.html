@@ -6,10 +6,14 @@
         <div class="cart__items-list">
           @for (item of cart().items; track item.id) {
             <article class="cart-item">
-              <img [src]="item.image || 'assets/placeholder.png'" [alt]="item.name" class="cart-item__image">
+              <img
+                [src]="item.image || 'assets/placeholder.png'"
+                [alt]="item.name"
+                class="cart-item__image"
+              />
               <div class="cart-item__details">
                 <span class="cart-item__name">{{ item.name }}</span>
-                <span class="cart-item__unit-price">{{ item.price | currency:'ARS':'$' }}</span>
+                <span class="cart-item__unit-price">{{ item.price | currency: 'ARS' : '$' }}</span>
               </div>
               <div class="cart-item__quantity">
                 <input
@@ -20,13 +24,19 @@
                   [max]="item.stock"
                   class="cart-item__quantity-input"
                   [attr.aria-label]="'Cantidad de ' + item.name"
-                  (change)="onUpdateQuantity(item, $event)">
+                  (change)="onUpdateQuantity(item, $event)"
+                />
               </div>
               <div class="cart-item__subtotal">
-                <span>{{ (item.price * item.quantity) | currency:'ARS':'$' }}</span>
+                <span>{{ item.price * item.quantity | currency: 'ARS' : '$' }}</span>
               </div>
               <div class="cart-item__actions">
-                <button (click)="onRemoveItem(item.id)" class="cart-item__remove" title="Eliminar producto" aria-label="Eliminar {{ item.name }}">
+                <button
+                  (click)="onRemoveItem(item.id)"
+                  class="cart-item__remove"
+                  title="Eliminar producto"
+                  aria-label="Eliminar {{ item.name }}"
+                >
                   <i class="bi bi-trash" aria-hidden="true"></i>
                 </button>
               </div>
@@ -40,16 +50,14 @@
         <dl class="cart__summary-details">
           <div class="cart__summary-row">
             <dt>Subtotal</dt>
-            <dd>{{ cart().total | currency:'ARS':'$' }}</dd>
+            <dd>{{ cart().total | currency: 'ARS' : '$' }}</dd>
           </div>
           <div class="cart__summary-row cart__summary-row--total">
             <dt>Total</dt>
-            <dd>{{ cart().total | currency:'ARS':'$' }}</dd>
+            <dd>{{ cart().total | currency: 'ARS' : '$' }}</dd>
           </div>
         </dl>
-        <button (click)="goToCheckout()" class="cart__checkout-btn">
-          Iniciar Compra
-        </button>
+        <button (click)="goToCheckout()" class="cart__checkout-btn">Iniciar Compra</button>
       </aside>
     </div>
   } @else {
@@ -57,9 +65,7 @@
       <i class="bi bi-bag-x" aria-hidden="true"></i>
       <h2>Tu carrito está vacío</h2>
       <p>Parece que todavía no has añadido ningún producto.</p>
-      <a routerLink="/shop/catalog" class="cart__empty-cta">
-        Explorar Productos
-      </a>
+      <a routerLink="/shop/catalog" class="cart__empty-cta"> Explorar Productos </a>
     </div>
   }
 </section>

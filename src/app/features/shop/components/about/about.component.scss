@@ -33,7 +33,7 @@
   padding: var(--space-8) var(--space-6);
 
   &::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.5) 100%);
@@ -118,7 +118,9 @@
   border-radius: var(--radius-xl);
   padding: var(--space-10) var(--space-8);
   text-align: center;
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
   box-shadow: var(--shadow-sm);
 
   &:hover {
