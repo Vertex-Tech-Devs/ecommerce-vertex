@@ -21,8 +21,8 @@
             <i class="bi bi-person-plus me-2 text-primary"></i>Pre-autorizar Administrador
           </h3>
           <p class="card-desc text-muted mb-4">
-            Ingresá el correo electrónico de la persona para autorizar su acceso. Cuando inicie
-            sesión con Google, se le asignará este rol automáticamente.
+            Ingresá el correo electrónico de la persona para autorizar su acceso. El usuario
+            recibirá un email de invitación y deberá iniciar sesión con Google usando ese correo.
           </p>
 
           <form [formGroup]="staffForm" (ngSubmit)="addStaff()">
@@ -105,70 +105,7 @@
               </tr>
             </thead>
             <tbody>
-              @if (staffList$ | async; as staffList) {
-                @if (staffList.length === 0) {
-                  <tr>
-                    <td colspan="3" class="text-center py-5 text-muted">
-                      <i class="bi bi-shield-slash display-4 d-block mb-3 text-muted"></i>
-                      No hay otros usuarios autorizados en esta tienda aún.
-                    </td>
-                  </tr>
-                } @else {
-                  @for (member of staffList; track member.id) {
-                    <tr class="member-row">
-                      <td>
-                        <div class="d-flex align-items-center gap-3">
-                          <div class="avatar-circle">
-                            {{ member.id.charAt(0).toUpperCase() }}
-                          </div>
-                          <div>
-                            <span class="d-block font-semibold text-dark member-email">{{
-                              member.id
-                            }}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span class="badge badge-role rounded-pill">
-                          <i class="bi bi-shield-fill-check me-1"></i>
-                          @switch (member.role) {
-                            @case ('admin') {
-                              Administrador
-                            }
-                            @case ('warehouse') {
-                              Depósito
-                            }
-                            @case ('fulfillment') {
-                              Fulfillment
-                            }
-                            @default {
-                              Analista
-                            }
-                          }
-                        </span>
-                      </td>
-                      <td class="text-end">
-                        <button
-                          type="button"
-                          class="btn btn-action-delete"
-                          [disabled]="removingEmail() === member.id"
-                          (click)="removeStaff(member.id)"
-                          title="Revocar acceso de administrador"
-                        >
-                          @if (removingEmail() === member.id) {
-                            <span
-                              class="spinner-border spinner-border-sm text-danger"
-                              aria-hidden="true"
-                            ></span>
-                          } @else {
-                            <i class="bi bi-trash3-fill"></i>
-                          }
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                }
-              } @else {
+              @if (isLoading()) {
                 <tr>
                   <td colspan="3" class="text-center py-5">
                     <span
@@ -178,6 +115,54 @@
                     Cargando equipo de colaboradores...
                   </td>
                 </tr>
+              } @else if (staffList().length === 0) {
+                <tr>
+                  <td colspan="3" class="text-center py-5 text-muted">
+                    <i class="bi bi-shield-slash display-4 d-block mb-3 text-muted"></i>
+                    No hay otros usuarios autorizados en esta tienda aún.
+                  </td>
+                </tr>
+              } @else {
+                @for (member of staffList(); track member.email) {
+                  <tr class="member-row">
+                    <td>
+                      <div class="d-flex align-items-center gap-3">
+                        <div class="avatar-circle">
+                          {{ member.email.charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                          <span class="d-block font-semibold text-dark member-email">{{
+                            member.email
+                          }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge badge-role rounded-pill">
+                        <i class="bi bi-shield-fill-check me-1"></i>
+                        Administrador
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <button
+                        type="button"
+                        class="btn btn-action-delete"
+                        [disabled]="removingEmail() === member.email"
+                        (click)="removeStaff(member.email)"
+                        title="Revocar acceso de administrador"
+                      >
+                        @if (removingEmail() === member.email) {
+                          <span
+                            class="spinner-border spinner-border-sm text-danger"
+                            aria-hidden="true"
+                          ></span>
+                        } @else {
+                          <i class="bi bi-trash3-fill"></i>
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

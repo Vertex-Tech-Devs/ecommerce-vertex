@@ -72,14 +72,27 @@ Desde mayo de 2026, el panel administrativo de tienda (`/admin/login`) acepta ex
 Reglas operativas:
 
 1. El correo debe estar preautorizado en Firestore (`admin_roles/{email}`).
-2. El rol autorizado puede ser `admin`, `warehouse`, `fulfillment` o `analyst`.
+2. El único rol operativo admitido para acceso al panel es `admin`.
 3. Los custom claims se sincronizan automáticamente mediante Cloud Functions en alta de usuario y cambios de rol.
+4. La vista Staff usa funciones callable (`getAdminStaff`, `upsertAdminStaff`, `revokeAdminStaff`) para evitar fallas de permisos por reglas cliente.
 
 Errores comunes:
 
 - `permission-denied`: el correo no está autorizado.
 - `auth/unauthorized-domain`: el dominio usado para login no está en Firebase Auth > Authorized domains.
 - `auth/popup-blocked`: el navegador bloqueó la ventana emergente de Google.
+
+---
+
+## 💳 Mercado Pago (Credenciales y Webhook)
+
+Desde mayo de 2026, la URL de webhook en configuración de tienda se calcula automáticamente y no es editable en UI.
+
+Reglas operativas:
+
+1. `webhookUrl` se deriva de la URL base de Cloud Functions (`.../mercadoPagoWebhookHandler`).
+2. Si existe token configurado (o se rota), la `Public Key` es obligatoria.
+3. El `accessToken` se persiste en Secret Manager; en Firestore solo se guarda referencia y valor enmascarado.
 
 ---
 

@@ -9,3 +9,4 @@ export * from "./product.functions";
 export * from "./cleanup.functions";
 export * from "./test-email.functions";
 export * from "./role.functions";
+export * from "./staff.functions";

@@ -11,6 +11,10 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.token.admin == true;
     }
 
+    function isValidAdminRoleWrite() {
+      return request.resource.data.role == 'admin';
+    }
+
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
@@ -84,7 +88,8 @@ service cloud.firestore {
 
     match /admin_roles/{email} {
       allow read: if isAdmin();
-      allow write: if isAdmin();
+      allow create, update: if isAdmin() && isValidAdminRoleWrite();
+      allow delete: if isAdmin();
     }
 
     match /mail/{docId} {

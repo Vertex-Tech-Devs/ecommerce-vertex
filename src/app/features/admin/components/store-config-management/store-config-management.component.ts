@@ -7,6 +7,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-store-config-management',
@@ -22,6 +23,7 @@ export class StoreConfigManagementComponent implements OnInit {
 
   isSubmitting = false;
   private readonly urlPattern = /^(|https?:\/\/[^\s$.?#].[^\s]*)$/i;
+  readonly mercadoPagoWebhookUrl = this.buildMercadoPagoWebhookUrl();
 
   readonly currencies = [
     { value: 'ARS', label: 'ARS — Peso argentino', symbol: '$', country: 'AR' },
@@ -63,7 +65,7 @@ export class StoreConfigManagementComponent implements OnInit {
         accessTokenMasked: [''],
         accountEmail: [''],
         accountUserId: [''],
-        webhookUrl: ['', [Validators.pattern(this.urlPattern)]],
+        webhookUrl: [this.mercadoPagoWebhookUrl, [Validators.pattern(this.urlPattern)]],
         validationStatus: ['pending'],
         validationMessage: [''],
       }),
@@ -92,7 +94,7 @@ export class StoreConfigManagementComponent implements OnInit {
             accessTokenMasked: cfg.payments?.mercadoPago?.accessTokenMasked ?? '',
             accountEmail: cfg.payments?.mercadoPago?.accountEmail ?? '',
             accountUserId: cfg.payments?.mercadoPago?.accountUserId ?? '',
-            webhookUrl: cfg.payments?.mercadoPago?.webhookUrl ?? '',
+            webhookUrl: this.mercadoPagoWebhookUrl || (cfg.payments?.mercadoPago?.webhookUrl ?? ''),
             validationStatus: cfg.payments?.mercadoPago?.validationStatus ?? 'pending',
             validationMessage: cfg.payments?.mercadoPago?.validationMessage ?? '',
           },
@@ -142,7 +144,19 @@ export class StoreConfigManagementComponent implements OnInit {
       if (mercadoPago) {
         mercadoPago.publicKey = (mercadoPago.publicKey ?? '').trim();
         mercadoPago.accessToken = (mercadoPago.accessToken ?? '').trim();
-        mercadoPago.webhookUrl = (mercadoPago.webhookUrl ?? '').trim();
+        mercadoPago.webhookUrl =
+          this.mercadoPagoWebhookUrl || (mercadoPago.webhookUrl ?? '').trim();
+
+        const hasStoredToken = !!(mercadoPago.accessTokenSecret ?? '').trim();
+        const isRotatingToken = !!mercadoPago.accessToken;
+        if ((hasStoredToken || isRotatingToken) && !mercadoPago.publicKey) {
+          this.sweetAlert.error(
+            'Public Key requerida',
+            'Para usar Mercado Pago necesitás configurar la Public Key de la cuenta.'
+          );
+          this.isSubmitting = false;
+          return;
+        }
 
         if (mercadoPago.accessToken) {
           const validation = await this.storeConfigService.upsertMercadoPagoCredentials({
@@ -173,5 +187,13 @@ export class StoreConfigManagementComponent implements OnInit {
     } finally {
       this.isSubmitting = false;
     }
+  }
+
+  private buildMercadoPagoWebhookUrl(): string {
+    const base = (environment.api?.cloudFunctionsUrl ?? '').trim().replace(/\/$/, '');
+    if (!base) {
+      return '';
+    }
+    return `${base}/mercadoPagoWebhookHandler`;
   }
 }
