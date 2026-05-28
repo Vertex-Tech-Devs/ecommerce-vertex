@@ -6,7 +6,7 @@ import { COLLECTIONS } from "./core/config";
 
 const auth = admin.auth();
 const db = admin.firestore();
-const AUTHORIZED_ROLES = new Set(['admin', 'warehouse', 'fulfillment', 'analyst']);
+const AUTHORIZED_ROLES = new Set(['admin']);
 
 /**
  * Triggered when a document is written in the 'admin_roles' collection.

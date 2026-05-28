@@ -1,23 +1,18 @@
 import { Component, inject, signal } from '@angular/core';
+import type { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, AbstractControl } from '@angular/forms';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import {
-  Firestore,
-  collection,
-  collectionData,
-  doc,
-  setDoc,
-  deleteDoc,
-} from '@angular/fire/firestore';
-import type { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { firstValueFrom } from 'rxjs';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
 
 export interface AdminRole {
-  id: string; // Document ID (email)
-  role: 'admin' | 'warehouse' | 'fulfillment' | 'analyst';
+  email: string;
+  role: 'admin';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Component({
@@ -27,35 +22,52 @@ export interface AdminRole {
   templateUrl: './staff.component.html',
   styleUrls: ['./staff.component.scss'],
 })
-export class StaffComponent {
-  private firestore = inject(Firestore);
+export class StaffComponent implements OnInit {
+  private functions = inject(Functions);
   private fb = inject(FormBuilder);
   private sweetAlertService = inject(SweetAlertService);
   private authService = inject(AuthService);
 
-  readonly staffList$: Observable<AdminRole[]>;
+  readonly staffList = signal<AdminRole[]>([]);
   readonly staffForm: FormGroup;
-  readonly roleOptions: Array<{ value: AdminRole['role']; label: string }> = [
+  readonly roleOptions: Array<{ value: 'admin'; label: string }> = [
     { value: 'admin', label: 'Administrador (Acceso completo)' },
-    { value: 'warehouse', label: 'Operaciones de depósito' },
-    { value: 'fulfillment', label: 'Despacho y cumplimiento' },
-    { value: 'analyst', label: 'Analista (reportes)' },
   ];
 
+  readonly isLoading = signal(true);
   readonly isAdding = signal(false);
   readonly addError = signal('');
   readonly removingEmail = signal<string | null>(null);
 
   constructor() {
-    // Initialize staff form with reactive validations
     this.staffForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      role: ['admin', [Validators.required]], // Default role is admin
+      role: ['admin', [Validators.required]],
     });
+  }
 
-    // Fetch live list of admin roles from Firestore
-    const colRef = collection(this.firestore, 'admin_roles');
-    this.staffList$ = collectionData(colRef, { idField: 'id' }) as Observable<AdminRole[]>;
+  ngOnInit(): void {
+    void this.loadStaff();
+  }
+
+  async loadStaff(): Promise<void> {
+    this.isLoading.set(true);
+    this.addError.set('');
+    try {
+      const getStaff = httpsCallable<Record<string, never>, { staff: AdminRole[] }>(
+        this.functions,
+        'getAdminStaff'
+      );
+      const response = await getStaff({});
+      this.staffList.set(response.data.staff ?? []);
+    } catch (err) {
+      console.error('[Load Staff Error]:', err);
+      this.addError.set(
+        'No se pudo cargar el equipo administrativo. Verificá tu sesión y volvé a intentar.'
+      );
+    } finally {
+      this.isLoading.set(false);
+    }
   }
 
   get formControls(): { [key: string]: AbstractControl } {
@@ -75,18 +87,23 @@ export class StaffComponent {
     this.addError.set('');
 
     try {
-      // Write document using email as ID
-      const docRef = doc(this.firestore, 'admin_roles', normalizedEmail);
-      await setDoc(docRef, { role });
+      const upsertStaff = httpsCallable<
+        { email: string; role: 'admin' },
+        { success: boolean; email: string; role: 'admin' }
+      >(this.functions, 'upsertAdminStaff');
+      await upsertStaff({ email: normalizedEmail, role: role as 'admin' });
 
       this.sweetAlertService.success(
         'Miembro Agregado',
-        `El usuario ${normalizedEmail} fue autorizado con el rol ${role}.`
+        `El usuario ${normalizedEmail} fue autorizado como administrador.`
       );
       this.staffForm.reset({ email: '', role: 'admin' });
+      await this.loadStaff();
     } catch (err: unknown) {
       console.error('[Add Staff Error]:', err);
-      this.addError.set('No se pudieron conceder los permisos. Verificá tu conexión y permisos.');
+      this.addError.set(
+        'No se pudieron conceder los permisos. Verificá tu conexión, claims de administrador y volvé a intentar.'
+      );
       this.sweetAlertService.error('Error', 'Hubo un problema al agregar al miembro del equipo.');
     } finally {
       this.isAdding.set(false);
@@ -94,47 +111,44 @@ export class StaffComponent {
   }
 
   async removeStaff(email: string): Promise<void> {
-    // Prevent self-revocation
-    this.authService.currentUser$.pipe(take(1)).subscribe((user): void => {
-      void (async (): Promise<void> => {
-        if (user?.email?.toLowerCase() === email.toLowerCase()) {
-          this.sweetAlertService.error(
-            'Acción no permitida',
-            'No podés revocar tus propios privilegios de administrador.'
-          );
-          return;
-        }
+    const currentUser = await firstValueFrom(this.authService.currentUser$);
+    if (currentUser?.email?.toLowerCase() === email.toLowerCase()) {
+      this.sweetAlertService.error(
+        'Acción no permitida',
+        'No podés revocar tus propios privilegios de administrador.'
+      );
+      return;
+    }
 
-        const confirmResult = await this.sweetAlertService.confirm(
-          '¿Confirmás la revocación?',
-          `El usuario ${email} perderá todo el acceso administrativo a esta tienda de forma inmediata.`,
-          'warning'
-        );
+    const confirmResult = await this.sweetAlertService.confirm(
+      '¿Confirmás la revocación?',
+      `El usuario ${email} perderá todo el acceso administrativo a esta tienda de forma inmediata.`,
+      'warning'
+    );
 
-        if (!confirmResult) {
-          return;
-        }
+    if (!confirmResult) {
+      return;
+    }
 
-        this.removingEmail.set(email);
+    this.removingEmail.set(email);
 
-        try {
-          const docRef = doc(this.firestore, 'admin_roles', email.toLowerCase());
-          await deleteDoc(docRef);
+    try {
+      const revokeStaff = httpsCallable<{ email: string }, { success: boolean; email: string }>(
+        this.functions,
+        'revokeAdminStaff'
+      );
+      await revokeStaff({ email: email.toLowerCase() });
 
-          this.sweetAlertService.success(
-            'Acceso Revocado',
-            `Se eliminaron todos los permisos de administrador para ${email}.`
-          );
-        } catch (err: unknown) {
-          console.error('[Remove Staff Error]:', err);
-          this.sweetAlertService.error(
-            'Error',
-            'No se pudieron revocar los privilegios del usuario.'
-          );
-        } finally {
-          this.removingEmail.set(null);
-        }
-      })();
-    });
+      this.sweetAlertService.success(
+        'Acceso Revocado',
+        `Se eliminaron todos los permisos de administrador para ${email}.`
+      );
+      await this.loadStaff();
+    } catch (err: unknown) {
+      console.error('[Remove Staff Error]:', err);
+      this.sweetAlertService.error('Error', 'No se pudieron revocar los privilegios del usuario.');
+    } finally {
+      this.removingEmail.set(null);
+    }
   }
 }

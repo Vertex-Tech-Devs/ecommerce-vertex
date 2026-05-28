@@ -10,9 +10,11 @@ import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
 
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getApp } from 'firebase/app';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
+import type { Firestore } from 'firebase/firestore';
 
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
@@ -23,6 +25,17 @@ import { StoreTitleStrategy } from './core/strategies/store-title.strategy';
 import { routes } from './app.routes';
 
 export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationConfig {
+  const createFirestore = (): Firestore => {
+    const app = getApp();
+    try {
+      return initializeFirestore(app, {
+        experimentalAutoDetectLongPolling: true,
+      });
+    } catch {
+      return getFirestore(app);
+    }
+  };
+
   return {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
@@ -30,7 +43,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
       provideAuth(() => getAuth()),
-      provideFirestore(() => getFirestore()),
+      provideFirestore(() => createFirestore()),
       provideFunctions(() => getFunctions()),
       provideStorage(() => getStorage()),
 
