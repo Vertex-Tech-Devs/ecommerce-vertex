@@ -334,7 +334,7 @@ jobs:
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          if site_id:
+          if site_id and site_id != "default":
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
