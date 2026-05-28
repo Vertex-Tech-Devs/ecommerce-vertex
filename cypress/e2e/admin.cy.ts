@@ -22,6 +22,16 @@ function stubCloudFunction(name: string, body: object): void {
   cy.intercept('POST', `**/${name}**`, { statusCode: 200, body: { result: body } }).as(name);
 }
 
+// ─── Suite 0: Authentication Guard ───────────────────────────────────────────
+
+describe('0 · Authentication Guard', () => {
+  it('unauthenticated visit to /admin redirects to /admin/login', () => {
+    // Do NOT call loginAsAdmin — verify guard redirects and sets active window origin
+    cy.visit('/admin/dashboard');
+    cy.location('pathname', { timeout: 10_000 }).should('eq', '/admin/login');
+  });
+});
+
 // ─── Suite 1: Staff Management ────────────────────────────────────────────────
 
 describe('1 · Staff Management', () => {
@@ -228,12 +238,6 @@ describe('3 · Sign Out', () => {
         cy.location('pathname').should('include', '/admin');
       }
     });
-  });
-
-  it('unauthenticated visit to /admin redirects to /admin/login', () => {
-    // Do NOT call loginAsAdmin — verify guard redirects
-    cy.visit('/admin/dashboard');
-    cy.location('pathname', { timeout: 10_000 }).should('eq', '/admin/login');
   });
 });
 
