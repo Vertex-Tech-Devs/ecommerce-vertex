@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import type { FormGroup, AbstractControl } from '@angular/forms';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Functions, httpsCallable } from '@angular/fire/functions';
+import type { HttpsCallable } from '@angular/fire/functions';
 import { firstValueFrom } from 'rxjs';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
@@ -46,6 +47,10 @@ export class StaffComponent implements OnInit {
     });
   }
 
+  getCallable<T, R>(name: string): HttpsCallable<T, R> {
+    return httpsCallable<T, R>(this.functions, name);
+  }
+
   ngOnInit(): void {
     void this.loadStaff();
   }
@@ -54,8 +59,7 @@ export class StaffComponent implements OnInit {
     this.isLoading.set(true);
     this.addError.set('');
     try {
-      const getStaff = httpsCallable<Record<string, never>, { staff: AdminRole[] }>(
-        this.functions,
+      const getStaff = this.getCallable<Record<string, never>, { staff: AdminRole[] }>(
         'getAdminStaff'
       );
       const response = await getStaff({});
@@ -83,14 +87,19 @@ export class StaffComponent implements OnInit {
     const { email, role } = this.staffForm.value;
     const normalizedEmail = email.trim().toLowerCase();
 
+    if (this.staffList().some((m) => m.email.toLowerCase() === normalizedEmail)) {
+      this.addError.set('Este email ya está autorizado como administrador.');
+      return;
+    }
+
     this.isAdding.set(true);
     this.addError.set('');
 
     try {
-      const upsertStaff = httpsCallable<
+      const upsertStaff = this.getCallable<
         { email: string; role: 'admin' },
         { success: boolean; email: string; role: 'admin' }
-      >(this.functions, 'upsertAdminStaff');
+      >('upsertAdminStaff');
       await upsertStaff({ email: normalizedEmail, role: role as 'admin' });
 
       this.sweetAlertService.success(
@@ -133,8 +142,7 @@ export class StaffComponent implements OnInit {
     this.removingEmail.set(email);
 
     try {
-      const revokeStaff = httpsCallable<{ email: string }, { success: boolean; email: string }>(
-        this.functions,
+      const revokeStaff = this.getCallable<{ email: string }, { success: boolean; email: string }>(
         'revokeAdminStaff'
       );
       await revokeStaff({ email: email.toLowerCase() });

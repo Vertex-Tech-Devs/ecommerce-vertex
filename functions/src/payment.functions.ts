@@ -93,6 +93,30 @@ export const validateMercadoPagoCredentials = onCall(async (request) => {
     }
 
     const user = await res.json() as { id?: number | string; email?: string };
+
+    // Test call to /v1/preferences to verify preference creation permissions
+    const testPrefRes = await fetch('https://api.mercadopago.com/v1/preferences', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            title: 'Test Preference Validation',
+            quantity: 1,
+            unit_price: 1.0,
+          },
+        ],
+      }),
+    });
+
+    if (testPrefRes.status === 403) {
+      throw new Error('El token de Mercado Pago no tiene permisos para crear preferencias de pago (/v1/preferences).');
+    }
+
     return {
       valid: true,
       accountEmail: user.email || undefined,
@@ -136,6 +160,30 @@ export const upsertMercadoPagoCredentials = onCall(async (request) => {
     }
 
     const user = await res.json() as { id?: number | string; email?: string };
+
+    // Test call to /v1/preferences to verify preference creation permissions
+    const testPrefRes = await fetch('https://api.mercadopago.com/v1/preferences', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        items: [
+          {
+            title: 'Test Preference Validation',
+            quantity: 1,
+            unit_price: 1.0,
+          },
+        ],
+      }),
+    });
+
+    if (testPrefRes.status === 403) {
+      throw new Error('El token de Mercado Pago no tiene permisos para crear preferencias de pago (/v1/preferences).');
+    }
+
     const secretName = 'mp-access-token';
     await upsertSecret(secretName, accessToken);
 

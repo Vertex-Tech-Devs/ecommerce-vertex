@@ -86,6 +86,14 @@ jobs:
           files: ./coverage/ecommerce-vertex/coverage-final.json
           fail_ci_if_error: false
 
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: functions
+
+      - name: Run backend tests with coverage
+        run: npm run test:coverage
+        working-directory: functions
+
   build:
     name: Build
     runs-on: ubuntu-latest

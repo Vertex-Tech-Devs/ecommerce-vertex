@@ -25,6 +25,13 @@ export class StoreConfigManagementComponent implements OnInit {
   private readonly urlPattern = /^(|https?:\/\/[^\s$.?#].[^\s]*)$/i;
   readonly mercadoPagoWebhookUrl = this.buildMercadoPagoWebhookUrl();
 
+  get missingPublicKey(): boolean {
+    const mp = this.form.get('payments.mercadoPago');
+    const hasStoredToken = !!(mp?.get('accessTokenMasked')?.value ?? '').trim();
+    const hasPublicKey = !!(mp?.get('publicKey')?.value ?? '').trim();
+    return hasStoredToken && !hasPublicKey;
+  }
+
   readonly currencies = [
     { value: 'ARS', label: 'ARS — Peso argentino', symbol: '$', country: 'AR' },
     { value: 'USD', label: 'USD — Dólar (US$)', symbol: 'US$', country: 'US' },
@@ -70,7 +77,10 @@ export class StoreConfigManagementComponent implements OnInit {
         validationMessage: [''],
       }),
     }),
-    currency: ['ARS', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
+    currency: [
+      'ARS',
+      [Validators.required, Validators.pattern(/^(ARS|USD|MXN|BRL|CLP|COP|EUR|GBP)$/)],
+    ],
     currencySymbol: ['$', [Validators.required, Validators.maxLength(5)]],
     country: ['AR', [Validators.required, Validators.minLength(2), Validators.maxLength(2)]],
   });

@@ -69,7 +69,7 @@ vi.mock('firebase-functions/logger', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import './role.functions';
+import { refreshMyAdminClaim, onRoleChange, onUserCreated } from './role.functions';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -142,5 +142,106 @@ describe('refreshMyAdminClaim', () => {
     });
 
     expect(mockCollectionDoc).toHaveBeenCalledWith('admin@example.com');
+  });
+});
+
+describe('onRoleChange', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('exits if user is not found in Auth', async () => {
+    const error = new Error('User not found');
+    (error as any).code = 'auth/user-not-found';
+    mockGetUserByEmail.mockRejectedValueOnce(error);
+
+    const event = {
+      params: { email: 'unknown@test.com' },
+      data: {
+        after: { data: () => ({ role: 'admin' }) },
+        before: { data: () => null }
+      }
+    };
+
+    await onRoleChange(event as any);
+    expect(mockSetCustomUserClaims).not.toHaveBeenCalled();
+  });
+
+  it('revokes claims when role is revoked or not authorized', async () => {
+    mockGetUserByEmail.mockResolvedValueOnce({ uid: 'uid-123' });
+
+    const event = {
+      params: { email: 'revoked@test.com' },
+      data: {
+        after: { data: () => null }, // Deleted role document
+        before: { data: () => ({ role: 'admin' }) }
+      }
+    };
+
+    await onRoleChange(event as any);
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-123', { admin: false });
+  });
+
+  it('does nothing if role is unchanged', async () => {
+    mockGetUserByEmail.mockResolvedValueOnce({ uid: 'uid-123' });
+
+    const event = {
+      params: { email: 'same@test.com' },
+      data: {
+        after: { data: () => ({ role: 'admin' }) },
+        before: { data: () => ({ role: 'admin' }) }
+      }
+    };
+
+    await onRoleChange(event as any);
+    expect(mockSetCustomUserClaims).not.toHaveBeenCalled();
+  });
+
+  it('sets custom user claims when role is newly granted', async () => {
+    mockGetUserByEmail.mockResolvedValueOnce({ uid: 'uid-123' });
+
+    const event = {
+      params: { email: 'new@test.com' },
+      data: {
+        after: { data: () => ({ role: 'admin' }) },
+        before: { data: () => null }
+      }
+    };
+
+    await onRoleChange(event as any);
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-123', { admin: true, role: 'admin' });
+  });
+});
+
+describe('onUserCreated', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('exits if user has no email', async () => {
+    await onUserCreated({ uid: 'uid-no-email' } as any);
+    expect(mockCollectionDoc).not.toHaveBeenCalled();
+  });
+
+  it('grants admin claim if user email exists in admin_roles with admin role', async () => {
+    mockDocGet.mockResolvedValueOnce({
+      exists: true,
+      data: () => ({ role: 'admin' }),
+    });
+
+    await onUserCreated({ uid: 'uid-456', email: 'NEW@test.com' } as any);
+
+    expect(mockCollectionDoc).toHaveBeenCalledWith('new@test.com');
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-456', { admin: true, role: 'admin' });
+  });
+
+  it('does not grant claim if role is not authorized or doc does not exist', async () => {
+    mockDocGet.mockResolvedValueOnce({
+      exists: false,
+      data: () => null,
+    });
+
+    await onUserCreated({ uid: 'uid-456', email: 'stranger@test.com' } as any);
+    expect(mockSetCustomUserClaims).not.toHaveBeenCalled();
   });
 });

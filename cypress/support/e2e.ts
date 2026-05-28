@@ -8,6 +8,27 @@ beforeEach(() => {
   cy.intercept('**/googleapis.com/**', { statusCode: 401, body: {} });
 });
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const FIREBASE_API_KEY = 'AIzaSyCmADhCFtiRKHz3ICFZo0rmWqXJ5e-ONFg';
+
+function buildAdminJwt(): string {
+  const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const payload = btoa(
+    JSON.stringify({
+      sub: 'test-uid-admin',
+      email: 'admin@tienda.test',
+      name: 'Admin Test',
+      admin: true,
+      iss: `https://securetoken.google.com/vertex-platform-dev`,
+      aud: 'vertex-platform-dev',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    })
+  );
+  return `${header}.${payload}.fake-signature`;
+}
+
 // ✅ Custom command: Login
 Cypress.Commands.add('login', (email: string, password: string) => {
   cy.visit('/login');
@@ -61,6 +82,67 @@ Cypress.Commands.add('interceptAPI', (method: Method, pattern: string, fixture: 
   cy.intercept(method, pattern, { fixture });
 });
 
+/**
+ * cy.loginAsAdmin()
+ *
+ * Seeds localStorage with a fake Firebase admin user and intercepts
+ * all token/claim calls so the AdminGuard passes without a real backend.
+ */
+Cypress.Commands.add('loginAsAdmin', () => {
+  const token = buildAdminJwt();
+
+  window.localStorage.setItem(
+    `firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`,
+    JSON.stringify({
+      uid: 'test-uid-admin',
+      email: 'admin@tienda.test',
+      displayName: 'Admin Test',
+      emailVerified: true,
+      isAnonymous: false,
+      providerData: [
+        {
+          providerId: 'google.com',
+          uid: 'admin@tienda.test',
+          email: 'admin@tienda.test',
+          displayName: 'Admin Test',
+          photoURL: null,
+        },
+      ],
+      stsTokenManager: {
+        refreshToken: 'fake-refresh-token',
+        accessToken: token,
+        expirationTime: Date.now() + 3_600_000,
+      },
+      createdAt: '1700000000000',
+      lastLoginAt: String(Date.now()),
+    })
+  );
+
+  cy.intercept('POST', `**/token?key=${FIREBASE_API_KEY}*`, {
+    statusCode: 200,
+    body: {
+      id_token: token,
+      refresh_token: 'fake-refresh',
+      expires_in: '3600',
+      token_type: 'Bearer',
+    },
+  }).as('tokenRefresh');
+
+  cy.intercept('POST', '**/accounts:lookup*', {
+    statusCode: 200,
+    body: {
+      users: [
+        {
+          localId: 'test-uid-admin',
+          email: 'admin@tienda.test',
+          displayName: 'Admin Test',
+          customAttributes: JSON.stringify({ admin: true }),
+        },
+      ],
+    },
+  }).as('accountLookup');
+});
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -71,6 +153,7 @@ declare global {
       fillShippingForm(data: any): Chainable<void>;
       fillPaymentForm(data: any): Chainable<void>;
       interceptAPI(method: Method, pattern: string, fixture: string): Chainable<void>;
+      loginAsAdmin(): Chainable<void>;
     }
   }
 }
