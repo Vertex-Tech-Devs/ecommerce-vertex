@@ -1,4 +1,5 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as functions from "firebase-functions/v1";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
@@ -64,4 +65,33 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
   } catch (error) {
     logger.error(`Error setting admin claim on user creation for ${email}:`, error);
   }
+});
+
+/**
+ * Callable that syncs admin claims for the authenticated caller.
+ * Called from the login flow if the user doesn't yet have an admin claim,
+ * to handle the race condition where onRoleChange ran before the user existed in Auth.
+ */
+export const refreshMyAdminClaim = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be signed in.');
+  }
+
+  const email = request.auth.token['email'];
+  if (!email) {
+    throw new HttpsError('invalid-argument', 'User account has no email.');
+  }
+
+  const uid = request.auth.uid;
+  const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(String(email).trim().toLowerCase()).get();
+  const role = String(doc.data()?.role || '').trim().toLowerCase();
+
+  if (doc.exists && AUTHORIZED_ROLES.has(role)) {
+    logger.info(`refreshMyAdminClaim: granting admin claim to ${email} (UID: ${uid})`);
+    await auth.setCustomUserClaims(uid, { admin: true, role });
+    return { granted: true };
+  }
+
+  logger.info(`refreshMyAdminClaim: no admin_roles entry for ${email}`);
+  return { granted: false };
 });

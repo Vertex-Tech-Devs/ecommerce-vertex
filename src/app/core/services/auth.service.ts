@@ -14,12 +14,14 @@ import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
 import { switchMap, map } from 'rxjs/operators';
 import { user } from '@angular/fire/auth';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SweetAlertService } from './sweet-alert.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private auth = inject(Auth);
   private router = inject(Router);
+  private functions = inject(Functions);
   private sweetAlertService = inject(SweetAlertService);
 
   currentUser$ = user(this.auth);
@@ -52,8 +54,15 @@ export class AuthService {
           let tokenResult = await result.user.getIdTokenResult(true);
 
           if (!tokenResult.claims['admin']) {
-            // Wait briefly to allow role claims propagation after a first Google sign-in.
-            await new Promise((resolve) => setTimeout(resolve, 1800));
+            // Attempt to sync the claim synchronously via callable.
+            // This handles the race where onRoleChange fired before the user existed in Auth.
+            try {
+              const refreshClaim = httpsCallable(this.functions, 'refreshMyAdminClaim');
+              await refreshClaim({});
+            } catch {
+              // If callable fails, fall back to waiting for the background trigger.
+            }
+            await new Promise((resolve) => setTimeout(resolve, 2500));
             tokenResult = await result.user.getIdTokenResult(true);
           }
 
