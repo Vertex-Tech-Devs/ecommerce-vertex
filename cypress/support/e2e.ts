@@ -12,7 +12,7 @@ beforeEach(() => {
 
 const FIREBASE_API_KEY = 'AIzaSyCmADhCFtiRKHz3ICFZo0rmWqXJ5e-ONFg';
 
-function buildAdminJwt(): string {
+function buildAdminJwt(projectId: string = 'vertex-platform-dev'): string {
   const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const payload = btoa(
     JSON.stringify({
@@ -20,8 +20,8 @@ function buildAdminJwt(): string {
       email: 'admin@tienda.test',
       name: 'Admin Test',
       admin: true,
-      iss: `https://securetoken.google.com/vertex-platform-dev`,
-      aud: 'vertex-platform-dev',
+      iss: `https://securetoken.google.com/${projectId}`,
+      aud: projectId,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 3600,
     })
@@ -89,57 +89,64 @@ Cypress.Commands.add('interceptAPI', (method: Method, pattern: string, fixture: 
  * all token/claim calls so the AdminGuard passes without a real backend.
  */
 Cypress.Commands.add('loginAsAdmin', () => {
-  const token = buildAdminJwt();
-  const authUserData = JSON.stringify({
-    uid: 'test-uid-admin',
-    email: 'admin@tienda.test',
-    displayName: 'Admin Test',
-    emailVerified: true,
-    isAnonymous: false,
-    providerData: [
-      {
-        providerId: 'google.com',
-        uid: 'admin@tienda.test',
-        email: 'admin@tienda.test',
-        displayName: 'Admin Test',
-        photoURL: null,
-      },
-    ],
-    stsTokenManager: {
-      refreshToken: 'fake-refresh-token',
-      accessToken: token,
-      expirationTime: Date.now() + 3_600_000,
-    },
-    createdAt: '1700000000000',
-    lastLoginAt: String(Date.now()),
-  });
+  cy.request({ url: '/firebase-config.json', failOnStatusCode: false }).then((response) => {
+    const config = response.status === 200 ? response.body : {};
+    const projectId = config.projectId || 'vertex-platform-dev';
+    const apiKey = config.apiKey || FIREBASE_API_KEY;
 
-  window.localStorage.setItem(`firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`, authUserData);
-  window.localStorage.setItem(`firebase:authUser:test:[DEFAULT]`, authUserData);
-
-  cy.intercept('POST', `**/token?key=*`, {
-    statusCode: 200,
-    body: {
-      id_token: token,
-      refresh_token: 'fake-refresh',
-      expires_in: '3600',
-      token_type: 'Bearer',
-    },
-  }).as('tokenRefresh');
-
-  cy.intercept('POST', '**/accounts:lookup*', {
-    statusCode: 200,
-    body: {
-      users: [
+    const token = buildAdminJwt(projectId);
+    const authUserData = JSON.stringify({
+      uid: 'test-uid-admin',
+      email: 'admin@tienda.test',
+      displayName: 'Admin Test',
+      emailVerified: true,
+      isAnonymous: false,
+      providerData: [
         {
-          localId: 'test-uid-admin',
+          providerId: 'google.com',
+          uid: 'admin@tienda.test',
           email: 'admin@tienda.test',
           displayName: 'Admin Test',
-          customAttributes: JSON.stringify({ admin: true }),
+          photoURL: null,
         },
       ],
-    },
-  }).as('accountLookup');
+      stsTokenManager: {
+        refreshToken: 'fake-refresh-token',
+        accessToken: token,
+        expirationTime: Date.now() + 3_600_000,
+      },
+      createdAt: '1700000000000',
+      lastLoginAt: String(Date.now()),
+    });
+
+    window.localStorage.setItem(`firebase:authUser:${apiKey}:[DEFAULT]`, authUserData);
+    window.localStorage.setItem(`firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`, authUserData);
+    window.localStorage.setItem('firebase:authUser:test:[DEFAULT]', authUserData);
+
+    cy.intercept('POST', `**/token?key=*`, {
+      statusCode: 200,
+      body: {
+        id_token: token,
+        refresh_token: 'fake-refresh',
+        expires_in: '3600',
+        token_type: 'Bearer',
+      },
+    }).as('tokenRefresh');
+
+    cy.intercept('POST', '**/accounts:lookup*', {
+      statusCode: 200,
+      body: {
+        users: [
+          {
+            localId: 'test-uid-admin',
+            email: 'admin@tienda.test',
+            displayName: 'Admin Test',
+            customAttributes: JSON.stringify({ admin: true }),
+          },
+        ],
+      },
+    }).as('accountLookup');
+  });
 });
 
 declare global {
