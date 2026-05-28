@@ -39,7 +39,12 @@ describe('EmailManagementComponent', () => {
     emailSettingsSpy.getEmailSettings.and.returnValue(of(validSettings as EmailSettings));
     emailSettingsSpy.saveEmailSettings.and.returnValue(Promise.resolve());
 
-    sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['success', 'error', 'confirm']);
+    sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', [
+      'success',
+      'error',
+      'confirm',
+      'loading',
+    ]);
     sweetAlertSpy.confirm.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
@@ -117,5 +122,99 @@ describe('EmailManagementComponent', () => {
     expect(emailSettingsSpy.saveEmailSettings).toHaveBeenCalled();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
     expect(component.emailForm.pristine).toBeTrue();
+  });
+
+  it('onSubmit should call error when form is invalid', async () => {
+    component.emailForm.get('storeOwnerEmail')?.setValue('');
+    component.markFormDirty();
+
+    await component.onSubmit();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
+    expect(emailSettingsSpy.saveEmailSettings).not.toHaveBeenCalled();
+  });
+
+  it('onSubmit should call error when saveEmailSettings rejects', async () => {
+    emailSettingsSpy.saveEmailSettings.and.returnValue(Promise.reject(new Error('network')));
+    component.markFormDirty();
+
+    await component.onSubmit();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
+  });
+
+  it('openTestModal should make the modal visible and pre-fill email', () => {
+    expect(component.isTestModalVisible).toBeFalse();
+    component.openTestModal();
+    expect(component.isTestModalVisible).toBeTrue();
+    expect(component.testEmailModalForm.get('recipientEmail')?.value).toBe('owner@test.com');
+  });
+
+  it('closeTestModal should hide the modal', () => {
+    component.openTestModal();
+    component.closeTestModal();
+    expect(component.isTestModalVisible).toBeFalse();
+  });
+
+  it('restoreDefaults(true) with confirm=true should mark form dirty and show success', async () => {
+    sweetAlertSpy.confirm.and.returnValue(Promise.resolve(true));
+    component.emailForm.markAsPristine();
+
+    await component.restoreDefaults(true);
+
+    expect(component.emailForm.dirty).toBeTrue();
+    expect(sweetAlertSpy.success).toHaveBeenCalled();
+  });
+
+  it('restoreDefaults(true) with confirm=false should not change form', async () => {
+    sweetAlertSpy.confirm.and.returnValue(Promise.resolve(false));
+    component.emailForm.markAsPristine();
+
+    await component.restoreDefaults(true);
+
+    expect(component.emailForm.pristine).toBeTrue();
+  });
+
+  it('onSendAdvancedTest should call error when modal form is invalid', async () => {
+    component.testEmailModalForm.get('recipientEmail')?.setValue('not-an-email');
+
+    await component.onSendAdvancedTest();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
+    expect(emailSettingsSpy.sendAdvancedTestEmail).not.toHaveBeenCalled();
+  });
+
+  it('onSendAdvancedTest should call error when no templates are selected', async () => {
+    component.testEmailModalForm.get('recipientEmail')?.setValue('test@test.com');
+    component.testEmailModalForm.get('templatesToTest.adminNotification')?.setValue(false);
+    component.testEmailModalForm.get('templatesToTest.customerConfirmation')?.setValue(false);
+
+    await component.onSendAdvancedTest();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
+    expect(emailSettingsSpy.sendAdvancedTestEmail).not.toHaveBeenCalled();
+  });
+
+  it('onSendAdvancedTest should send email and close modal on success', async () => {
+    emailSettingsSpy.sendAdvancedTestEmail.and.returnValue(Promise.resolve());
+    component.testEmailModalForm.get('recipientEmail')?.setValue('test@test.com');
+    component.isTestModalVisible = true;
+
+    await component.onSendAdvancedTest();
+
+    expect(emailSettingsSpy.sendAdvancedTestEmail).toHaveBeenCalled();
+    expect(sweetAlertSpy.success).toHaveBeenCalled();
+    expect(component.isTestModalVisible).toBeFalse();
+  });
+
+  it('onSendAdvancedTest should call error when sendAdvancedTestEmail rejects', async () => {
+    emailSettingsSpy.sendAdvancedTestEmail.and.returnValue(
+      Promise.reject(new Error('server error'))
+    );
+    component.testEmailModalForm.get('recipientEmail')?.setValue('test@test.com');
+
+    await component.onSendAdvancedTest();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
   });
 });
