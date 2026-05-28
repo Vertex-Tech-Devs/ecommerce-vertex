@@ -4,8 +4,69 @@
 // This ensures Angular boots instantly in CI (no waiting for unreachable backends).
 // Individual tests register their own cy.intercept() calls, which take precedence
 // over this global stub because Cypress matches interceptors in LIFO order.
+let shouldMockAdmin = false;
+
 beforeEach(() => {
+  shouldMockAdmin = false;
   cy.intercept('**/googleapis.com/**', { statusCode: 401, body: {} });
+});
+
+Cypress.on('window:before:load', (win) => {
+  if (shouldMockAdmin) {
+    const localToken = buildAdminJwt('vertex-platform-dev');
+    const ciToken = buildAdminJwt('ci-stub');
+
+    const localUserData = JSON.stringify({
+      uid: 'test-uid-admin',
+      email: 'admin@tienda.test',
+      displayName: 'Admin Test',
+      emailVerified: true,
+      isAnonymous: false,
+      providerData: [
+        {
+          providerId: 'google.com',
+          uid: 'admin@tienda.test',
+          email: 'admin@tienda.test',
+          displayName: 'Admin Test',
+          photoURL: null,
+        },
+      ],
+      stsTokenManager: {
+        refreshToken: 'fake-refresh-token',
+        accessToken: localToken,
+        expirationTime: Date.now() + 3_600_000,
+      },
+      createdAt: '1700000000000',
+      lastLoginAt: String(Date.now()),
+    });
+
+    const ciUserData = JSON.stringify({
+      uid: 'test-uid-admin',
+      email: 'admin@tienda.test',
+      displayName: 'Admin Test',
+      emailVerified: true,
+      isAnonymous: false,
+      providerData: [
+        {
+          providerId: 'google.com',
+          uid: 'admin@tienda.test',
+          email: 'admin@tienda.test',
+          displayName: 'Admin Test',
+          photoURL: null,
+        },
+      ],
+      stsTokenManager: {
+        refreshToken: 'fake-refresh-token',
+        accessToken: ciToken,
+        expirationTime: Date.now() + 3_600_000,
+      },
+      createdAt: '1700000000000',
+      lastLoginAt: String(Date.now()),
+    });
+
+    win.localStorage.setItem(`firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`, localUserData);
+    win.localStorage.setItem('firebase:authUser:test:[DEFAULT]', ciUserData);
+  }
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -89,59 +150,10 @@ Cypress.Commands.add('interceptAPI', (method: Method, pattern: string, fixture: 
  * all token/claim calls so the AdminGuard passes without a real backend.
  */
 Cypress.Commands.add('loginAsAdmin', () => {
+  shouldMockAdmin = true;
+
   const localToken = buildAdminJwt('vertex-platform-dev');
   const ciToken = buildAdminJwt('ci-stub');
-
-  const localUserData = JSON.stringify({
-    uid: 'test-uid-admin',
-    email: 'admin@tienda.test',
-    displayName: 'Admin Test',
-    emailVerified: true,
-    isAnonymous: false,
-    providerData: [
-      {
-        providerId: 'google.com',
-        uid: 'admin@tienda.test',
-        email: 'admin@tienda.test',
-        displayName: 'Admin Test',
-        photoURL: null,
-      },
-    ],
-    stsTokenManager: {
-      refreshToken: 'fake-refresh-token',
-      accessToken: localToken,
-      expirationTime: Date.now() + 3_600_000,
-    },
-    createdAt: '1700000000000',
-    lastLoginAt: String(Date.now()),
-  });
-
-  const ciUserData = JSON.stringify({
-    uid: 'test-uid-admin',
-    email: 'admin@tienda.test',
-    displayName: 'Admin Test',
-    emailVerified: true,
-    isAnonymous: false,
-    providerData: [
-      {
-        providerId: 'google.com',
-        uid: 'admin@tienda.test',
-        email: 'admin@tienda.test',
-        displayName: 'Admin Test',
-        photoURL: null,
-      },
-    ],
-    stsTokenManager: {
-      refreshToken: 'fake-refresh-token',
-      accessToken: ciToken,
-      expirationTime: Date.now() + 3_600_000,
-    },
-    createdAt: '1700000000000',
-    lastLoginAt: String(Date.now()),
-  });
-
-  window.localStorage.setItem(`firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`, localUserData);
-  window.localStorage.setItem('firebase:authUser:test:[DEFAULT]', ciUserData);
 
   cy.intercept('POST', `**/token?key=*`, (req) => {
     const isCI = req.url.includes('key=test');
