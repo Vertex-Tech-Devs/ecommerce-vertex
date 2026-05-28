@@ -115,6 +115,7 @@
                 formControlName="template"
                 [modules]="editorModules"
                 placeholder="Escribe aquí el contenido del email..."
+                (onContentChanged)="markFormDirty()"
               ></quill-editor>
 
               <div class="placeholder-pills-wrapper mt-3">
@@ -199,6 +200,7 @@
                 formControlName="template"
                 [modules]="editorModules"
                 placeholder="Escribe aquí el contenido del email..."
+                (onContentChanged)="markFormDirty()"
               ></quill-editor>
 
               <div class="placeholder-pills-wrapper mt-3">

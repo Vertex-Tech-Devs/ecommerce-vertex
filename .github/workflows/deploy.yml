@@ -56,8 +56,16 @@ jobs:
 
       - run: npm ci
 
-      - name: Run tests
+      - name: Run frontend tests
         run: npm run test:ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: functions
+
+      - name: Run backend tests
+        run: npm run test
+        working-directory: functions
 
   build-dev:
     name: Build (Development)

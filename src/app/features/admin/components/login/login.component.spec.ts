@@ -112,4 +112,48 @@ describe('LoginComponent', () => {
 
     expect(f3.componentInstance.isAlreadyLogged).toBeTrue();
   });
+
+  it('should set permission-denied error message on unauthorized error', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('permission-denied'))
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('no está autorizada');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set popup-blocked error message when popup is blocked', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/popup-blocked'))
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('bloqueó');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set generic error message for unknown errors', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('some-unknown-error'))
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toBe(
+      'No se pudo iniciar sesión con Google. Intentá de nuevo.'
+    );
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('logout() should set isAlreadyLogged to false', async () => {
+    authServiceSpy.logout = jasmine.createSpy('logout').and.returnValue(Promise.resolve());
+    component.isAlreadyLogged = true;
+
+    await component.logout();
+
+    expect(component.isAlreadyLogged).toBeFalse();
+  });
 });
