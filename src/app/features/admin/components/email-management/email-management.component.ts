@@ -103,12 +103,16 @@ export class EmailManagementComponent implements OnInit {
     this.mobileActiveSection = this.mobileActiveSection === section ? 0 : section;
   }
 
+  markFormDirty(): void {
+    this.emailForm.markAsDirty();
+  }
+
   private initializeForm(): void {
     this.emailForm = this.fb.group({
       storeOwnerEmail: ['', [Validators.required, Validators.email]],
       storeWhatsappNumber: [
         '',
-        [Validators.required, Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]*$')],
+        [Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$')],
       ],
       adminNotification: this.fb.group({
         subject: ['', Validators.required],
@@ -149,11 +153,11 @@ export class EmailManagementComponent implements OnInit {
       .subscribe((settings) => {
         if (settings?.storeOwnerEmail) {
           this.emailForm.patchValue(settings);
+          this.emailForm.markAsPristine();
         } else {
           void this.restoreDefaults(false);
         }
         this.isLoading = false;
-        this.emailForm.markAsPristine();
       });
   }
 

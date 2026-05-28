@@ -28,9 +28,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
   const createFirestore = (): Firestore => {
     const app = getApp();
     try {
-      return initializeFirestore(app, {
-        experimentalAutoDetectLongPolling: true,
-      });
+      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
     } catch {
       return getFirestore(app);
     }
