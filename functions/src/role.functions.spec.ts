@@ -69,7 +69,7 @@ vi.mock('firebase-functions/logger', () => ({
 
 // ── Import after mocks ────────────────────────────────────────────────────────
 
-import { refreshMyAdminClaim, onRoleChange, onUserCreated } from './role.functions';
+import { onRoleChange, onUserCreated } from './role.functions';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

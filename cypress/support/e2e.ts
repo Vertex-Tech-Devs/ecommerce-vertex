@@ -90,35 +90,34 @@ Cypress.Commands.add('interceptAPI', (method: Method, pattern: string, fixture: 
  */
 Cypress.Commands.add('loginAsAdmin', () => {
   const token = buildAdminJwt();
-
-  window.localStorage.setItem(
-    `firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`,
-    JSON.stringify({
-      uid: 'test-uid-admin',
-      email: 'admin@tienda.test',
-      displayName: 'Admin Test',
-      emailVerified: true,
-      isAnonymous: false,
-      providerData: [
-        {
-          providerId: 'google.com',
-          uid: 'admin@tienda.test',
-          email: 'admin@tienda.test',
-          displayName: 'Admin Test',
-          photoURL: null,
-        },
-      ],
-      stsTokenManager: {
-        refreshToken: 'fake-refresh-token',
-        accessToken: token,
-        expirationTime: Date.now() + 3_600_000,
+  const authUserData = JSON.stringify({
+    uid: 'test-uid-admin',
+    email: 'admin@tienda.test',
+    displayName: 'Admin Test',
+    emailVerified: true,
+    isAnonymous: false,
+    providerData: [
+      {
+        providerId: 'google.com',
+        uid: 'admin@tienda.test',
+        email: 'admin@tienda.test',
+        displayName: 'Admin Test',
+        photoURL: null,
       },
-      createdAt: '1700000000000',
-      lastLoginAt: String(Date.now()),
-    })
-  );
+    ],
+    stsTokenManager: {
+      refreshToken: 'fake-refresh-token',
+      accessToken: token,
+      expirationTime: Date.now() + 3_600_000,
+    },
+    createdAt: '1700000000000',
+    lastLoginAt: String(Date.now()),
+  });
 
-  cy.intercept('POST', `**/token?key=${FIREBASE_API_KEY}*`, {
+  window.localStorage.setItem(`firebase:authUser:${FIREBASE_API_KEY}:[DEFAULT]`, authUserData);
+  window.localStorage.setItem(`firebase:authUser:test:[DEFAULT]`, authUserData);
+
+  cy.intercept('POST', `**/token?key=*`, {
     statusCode: 200,
     body: {
       id_token: token,
