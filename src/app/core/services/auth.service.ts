@@ -23,6 +23,7 @@ export class AuthService {
   private router = inject(Router);
   private functions = inject(Functions);
   private sweetAlertService = inject(SweetAlertService);
+  private refreshMyAdminClaim = httpsCallable(this.functions, 'refreshMyAdminClaim');
 
   currentUser$ = user(this.auth);
 
@@ -57,13 +58,18 @@ export class AuthService {
             // Attempt to sync the claim synchronously via callable.
             // This handles the race where onRoleChange fired before the user existed in Auth.
             try {
-              const refreshClaim = httpsCallable(this.functions, 'refreshMyAdminClaim');
-              await refreshClaim({});
+              await this.refreshMyAdminClaim({});
             } catch {
               // If callable fails, fall back to waiting for the background trigger.
             }
-            await new Promise((resolve) => setTimeout(resolve, 2500));
-            tokenResult = await result.user.getIdTokenResult(true);
+            // Custom claims can take up to ~10s to propagate — retry token refresh up to 4x.
+            for (let i = 0; i < 4; i++) {
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              tokenResult = await result.user.getIdTokenResult(true);
+              if (tokenResult.claims['admin']) {
+                break;
+              }
+            }
           }
 
           if (!tokenResult.claims['admin']) {
