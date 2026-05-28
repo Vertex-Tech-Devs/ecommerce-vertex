@@ -270,19 +270,14 @@
                   formControlName="webhookUrl"
                   type="url"
                   class="form-control glass-input"
-                  [class.is-invalid]="
-                    form.get('payments.mercadoPago.webhookUrl')?.invalid &&
-                    form.get('payments.mercadoPago.webhookUrl')?.touched
-                  "
-                  placeholder="https://us-central1-tu-proyecto.cloudfunctions.net/mercadoPagoWebhookHandler"
+                  [readonly]="true"
+                  placeholder="Webhook autogenerado"
                 />
               </div>
-              @if (
-                form.get('payments.mercadoPago.webhookUrl')?.invalid &&
-                form.get('payments.mercadoPago.webhookUrl')?.touched
-              ) {
-                <div class="invalid-feedback d-block mt-2">Ingresá una URL válida.</div>
-              }
+              <small class="text-soft d-block mt-2">
+                Este valor se calcula automáticamente desde la URL de Cloud Functions y no es
+                editable.
+              </small>
             </div>
 
             @if (form.get('payments.mercadoPago.validationStatus')?.value === 'valid') {
