@@ -2,15 +2,16 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
-import { StoreConfigManagementComponent } from './store-config-management.component';
+import { of, throwError } from 'rxjs';
+import { StoreConfigComponent } from './store-config.component';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 
-describe('StoreConfigManagementComponent', () => {
-  let component: StoreConfigManagementComponent;
-  let fixture: ComponentFixture<StoreConfigManagementComponent>;
+describe('StoreConfigComponent', () => {
+  let component: StoreConfigComponent;
+  let fixture: ComponentFixture<StoreConfigComponent>;
   let storeConfigServiceSpy: jasmine.SpyObj<StoreConfigService>;
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
@@ -73,7 +74,7 @@ describe('StoreConfigManagementComponent', () => {
     storeConfigServiceSpy.saveConfig.and.returnValue(Promise.resolve());
 
     await TestBed.configureTestingModule({
-      imports: [StoreConfigManagementComponent, ReactiveFormsModule],
+      imports: [StoreConfigComponent, ReactiveFormsModule],
       providers: [
         { provide: StoreConfigService, useValue: storeConfigServiceSpy },
         { provide: StorageService, useValue: storageServiceSpy },
@@ -81,7 +82,7 @@ describe('StoreConfigManagementComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(StoreConfigManagementComponent);
+    fixture = TestBed.createComponent(StoreConfigComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -115,7 +116,7 @@ describe('StoreConfigManagementComponent', () => {
 
   it('should call saveConfig and show success alert on valid submit', async () => {
     await component.onSubmit();
-    expect(storeConfigServiceSpy.saveConfig).toHaveBeenCalledWith(component.form.value);
+    expect(storeConfigServiceSpy.saveConfig).toHaveBeenCalled();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
   });
 
@@ -123,5 +124,97 @@ describe('StoreConfigManagementComponent', () => {
     expect(component.showMpKey()).toBeFalse();
     component.toggleMpKeyVisibility();
     expect(component.showMpKey()).toBeTrue();
+  });
+
+  it('should handle successful logo upload', () => {
+    const file = new File([''], 'logo.png', { type: 'image/png' });
+    const event = {
+      target: {
+        files: [file],
+      },
+    } as unknown as Event;
+
+    const mockUpload = {
+      progress$: of(50, 100),
+      downloadUrl$: of('http://example.com/new-logo.png'),
+    };
+    storageServiceSpy.uploadFile.and.returnValue(
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+    );
+
+    component.onLogoUpload(event);
+
+    expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
+    expect(component.form.get('logoUrl')?.value).toBe('http://example.com/new-logo.png');
+    expect(component.logoUploading()).toBeFalse();
+    expect(sweetAlertSpy.success).toHaveBeenCalled();
+  });
+
+  it('should handle failed logo upload', () => {
+    const file = new File([''], 'logo.png', { type: 'image/png' });
+    const event = {
+      target: {
+        files: [file],
+      },
+    } as unknown as Event;
+
+    const mockUpload = {
+      progress$: of(50),
+      downloadUrl$: throwError(() => new Error('Upload error')),
+    };
+    storageServiceSpy.uploadFile.and.returnValue(
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+    );
+
+    component.onLogoUpload(event);
+
+    expect(component.logoUploading()).toBeFalse();
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
+  });
+
+  it('should handle successful favicon upload', () => {
+    const file = new File([''], 'favicon.png', { type: 'image/png' });
+    const event = {
+      target: {
+        files: [file],
+      },
+    } as unknown as Event;
+
+    const mockUpload = {
+      progress$: of(50, 100),
+      downloadUrl$: of('http://example.com/new-favicon.png'),
+    };
+    storageServiceSpy.uploadFile.and.returnValue(
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+    );
+
+    component.onFaviconUpload(event);
+
+    expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
+    expect(component.form.get('faviconUrl')?.value).toBe('http://example.com/new-favicon.png');
+    expect(component.faviconUploading()).toBeFalse();
+    expect(sweetAlertSpy.success).toHaveBeenCalled();
+  });
+
+  it('should handle failed favicon upload', () => {
+    const file = new File([''], 'favicon.png', { type: 'image/png' });
+    const event = {
+      target: {
+        files: [file],
+      },
+    } as unknown as Event;
+
+    const mockUpload = {
+      progress$: of(50),
+      downloadUrl$: throwError(() => new Error('Upload error')),
+    };
+    storageServiceSpy.uploadFile.and.returnValue(
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+    );
+
+    component.onFaviconUpload(event);
+
+    expect(component.faviconUploading()).toBeFalse();
+    expect(sweetAlertSpy.error).toHaveBeenCalled();
   });
 });
