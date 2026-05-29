@@ -1,6 +1,36 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
+import { environment } from '../../../environments/environment';
+import { z } from 'zod';
+
+export const StoreConfigSchema = z.object({
+  tenantId: z.string(),
+  storeId: z.string(),
+  storeName: z.string(),
+  tagline: z.string(),
+  logoUrl: z.string(),
+  faviconUrl: z.string(),
+  colors: z.object({
+    primary: z.string(),
+    accent: z.string(),
+    background: z.string(),
+  }),
+  payments: z.object({
+    mercadoPagoPublicKey: z.string(),
+  }),
+  contact: z.object({
+    phone: z.string(),
+    email: z.string(),
+    whatsApp: z.string(),
+    instagram: z.string(),
+    facebook: z.string(),
+  }),
+  seo: z.object({
+    metaDescription: z.string(),
+  }),
+  setupCompleted: z.boolean(),
+});
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
@@ -35,10 +65,11 @@ export class StoreConfigService {
   async loadConfig(): Promise<void> {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
     try {
-      const docRef = doc(this.firestore, 'configuracion', 'store');
+      const docRef = doc(this.firestore, 'configuracion', environment.tenantId);
       const snap = await Promise.race([getDoc(docRef), timeout]);
       if (snap?.exists()) {
-        this._storeConfig.set(snap.data() as StoreConfig);
+        const validatedData = StoreConfigSchema.parse(snap.data());
+        this._storeConfig.set(validatedData as StoreConfig);
       } else {
         this._storeConfig.set(null);
       }
@@ -49,7 +80,7 @@ export class StoreConfigService {
   }
 
   async saveConfig(data: StoreConfig): Promise<void> {
-    const docRef = doc(this.firestore, 'configuracion', 'store');
+    const docRef = doc(this.firestore, 'configuracion', environment.tenantId);
     await setDoc(docRef, { ...data, updatedAt: new Date() });
     this._storeConfig.set(data);
   }

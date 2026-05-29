@@ -16,6 +16,7 @@ describe('StoreConfigManagementComponent', () => {
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
 
   const mockConfig: StoreConfig = {
+    tenantId: 'store',
     storeId: 'white-label-store',
     storeName: 'Test Store',
     tagline: 'Test Tagline',
