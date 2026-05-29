@@ -286,12 +286,15 @@ jobs:
       - name: Generate store environment file
         env:
           FIREBASE_CONFIG: ${{ github.event.client_payload.firebase_config }}
+          STORE_ID: ${{ github.event.client_payload.store_id }}
         run: |
           python3 << 'PYEOF'
           import os, json
           config = json.loads(os.environ["FIREBASE_CONFIG"])
+          store_id = os.environ.get("STORE_ID", "store")
           content = """export const environment = {{
             production: true,
+            tenantId: "{tenantId}",
             firebaseConfig: {{
               apiKey: "{apiKey}",
               authDomain: "{authDomain}",
@@ -299,8 +302,19 @@ jobs:
               storageBucket: "{storageBucket}",
               messagingSenderId: "{messagingSenderId}",
               appId: "{appId}"
+            }},
+            mercadoPago: {{
+              publicKey: ""
+            }},
+            api: {{
+              cloudFunctionsUrl: "https://us-central1-{projectId}.cloudfunctions.net"
+            }},
+            features: {{
+              seedDataEnabled: false,
+              debugLogging: false
             }}
           }};""".format(
+            tenantId=store_id,
             apiKey=config["apiKey"],
             authDomain=config["authDomain"],
             projectId=config["projectId"],
