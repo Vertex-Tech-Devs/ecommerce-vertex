@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
+  tenantId: 'store',
   firebaseConfig: {
     apiKey: 'YOUR_API_KEY',
     authDomain: 'YOUR_AUTH_DOMAIN',

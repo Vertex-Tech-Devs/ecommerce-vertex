@@ -1,4 +1,5 @@
 export interface StoreConfig {
+  readonly tenantId: string;
   storeId: string;
   storeName: string;
   tagline: string;
@@ -26,6 +27,7 @@ export interface StoreConfig {
 }
 
 export const DEFAULT_STORE_CONFIG: StoreConfig = {
+  tenantId: 'white-label-store',
   storeId: 'white-label-store',
   storeName: 'Mi Tienda Online',
   tagline: 'Tu tienda de moda de marca blanca',

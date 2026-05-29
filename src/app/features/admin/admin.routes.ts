@@ -131,8 +131,8 @@ export const ADMIN_ROUTES: Routes = [
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>
-          import('./components/store-config-management/store-config-management.component').then(
-            (m) => m.StoreConfigManagementComponent
+          import('./components/store-config/store-config.component').then(
+            (m) => m.StoreConfigComponent
           ),
       },
       {

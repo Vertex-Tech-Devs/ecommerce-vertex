@@ -1,5 +1,5 @@
 import type { ApplicationConfig } from '@angular/core';
-import { importProvidersFrom, provideAppInitializer, inject, ErrorHandler } from '@angular/core';
+import { importProvidersFrom, ErrorHandler, APP_INITIALIZER } from '@angular/core';
 import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import type { FirebaseOptions } from 'firebase/app';
@@ -53,10 +53,19 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
 
       importProvidersFrom(ModalModule.forRoot()),
 
-      provideAppInitializer(() => inject(StoreConfigService).loadConfig()),
-      provideAppInitializer(() => {
-        inject(SeoService);
-      }),
+      {
+        provide: APP_INITIALIZER,
+        useFactory: (configService: StoreConfigService) => (): Promise<void> =>
+          configService.loadConfig(),
+        deps: [StoreConfigService],
+        multi: true,
+      },
+      {
+        provide: APP_INITIALIZER,
+        useFactory: (_seoService: SeoService) => (): void => {},
+        deps: [SeoService],
+        multi: true,
+      },
       { provide: TitleStrategy, useClass: StoreTitleStrategy },
       { provide: ErrorHandler, useClass: GlobalErrorHandler },
     ],
