@@ -15,7 +15,7 @@ export class SeoService {
 
   constructor() {
     effect(() => {
-      const cfg = this.storeConfig.config();
+      const cfg = this.storeConfig.storeConfig();
       if (cfg) {
         this.applyMeta(cfg);
       }
@@ -23,8 +23,8 @@ export class SeoService {
   }
 
   private applyMeta(cfg: StoreConfig): void {
-    const title = cfg.seo.metaTitle?.trim() || cfg.storeName;
-    const description = cfg.seo.metaDescription?.trim() || cfg.strapline || cfg.storeName;
+    const title = cfg.storeName;
+    const description = cfg.seo.metaDescription?.trim() || cfg.tagline || cfg.storeName;
 
     this.title.setTitle(title);
     this.meta.updateTag({ name: 'description', content: description });

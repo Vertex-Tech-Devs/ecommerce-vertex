@@ -1,29 +1,28 @@
 import type { StoreConfig } from '../app/core/models/store-config.model';
 
-export const STORE_CONFIG: Omit<StoreConfig, 'id'> = {
-  storeName: '',
-  strapline: '',
+export const STORE_CONFIG: StoreConfig = {
+  storeId: 'white-label-store',
+  storeName: 'Mi Tienda Online',
+  tagline: 'Tu tienda de moda de marca blanca',
   logoUrl: '',
-  contact: { email: '', phone: '', whatsapp: '' },
-  seo: { metaTitle: '', metaDescription: '' },
-  features: {
-    reviewsEnabled: false,
-    wishlistEnabled: false,
-    blogEnabled: false,
+  faviconUrl: '',
+  colors: {
+    primary: '#ea580c',
+    accent: '#ef4444',
+    background: '#ffffff',
   },
   payments: {
-    mercadoPago: {
-      publicKey: '',
-      accessToken: '',
-      accessTokenSecret: 'mp-access-token',
-      accessTokenMasked: '',
-      webhookUrl: '',
-      validationStatus: 'pending',
-      validationMessage: '',
-    },
+    mercadoPagoPublicKey: '',
   },
-  currency: 'ARS',
-  currencySymbol: '$',
-  country: 'AR',
-  createdAt: new Date(),
+  contact: {
+    phone: '',
+    email: '',
+    whatsApp: '',
+    instagram: '',
+    facebook: '',
+  },
+  seo: {
+    metaDescription: 'Bienvenido a nuestra tienda online.',
+  },
+  setupCompleted: false,
 };

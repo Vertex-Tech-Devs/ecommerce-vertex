@@ -21,6 +21,7 @@ export const environment = {
   },
   features: {
     // Enable verbose console logging throughout the app
+    seedDataEnabled: true,
     debugLogging: false,
   },
 };

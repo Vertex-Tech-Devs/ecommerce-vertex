@@ -2,7 +2,7 @@
   "name": "ecommerce-vertex",
   "version": "1.0.0",
   "scripts": {
-    "setup": "tsx scripts/setup-store.ts",
+    "setup": "tsx scripts/setup.ts",
     "setup:credentials": "tsx scripts/setup-credentials.ts",
     "start": "ng serve",
     "build": "ng build --configuration production",
@@ -10,6 +10,7 @@
     "fix": "eslint src --fix && prettier --write \"src/**/*.{ts,html,scss}\"",
     "qa": "tsx scripts/qa.ts",
     "qa:full": "tsx scripts/qa.ts --full",
+    "verify:flows": "tsx scripts/verify-flows.ts",
     "security:scan": "npm audit --audit-level=moderate",
     "e2e": "cypress run --e2e",
     "e2e:open": "cypress open --e2e",

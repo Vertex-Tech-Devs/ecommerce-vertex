@@ -5,6 +5,23 @@
 // Individual tests register their own cy.intercept() calls, which take precedence
 // over this global stub because Cypress matches interceptors in LIFO order.
 beforeEach(() => {
+  // Global Store Configuration Stub to prevent startup crashes or setup wizard blocks in E2E
+  cy.intercept('GET', '**/documents/configuracion/store**', {
+    statusCode: 200,
+    body: {
+      name: 'projects/test/databases/(default)/documents/configuracion/store',
+      fields: {
+        storeName: { stringValue: 'Tienda Test Vertex' },
+        strapline: { stringValue: 'Tu tienda online' },
+        currency: { stringValue: 'ARS' },
+        currencySymbol: { stringValue: '$' },
+        country: { stringValue: 'AR' },
+        logoUrl: { nullValue: null },
+        setupCompleted: { booleanValue: true },
+      },
+    },
+  }).as('globalStoreConfig');
+
   cy.intercept('**/googleapis.com/**', { statusCode: 401, body: {} });
 });
 
