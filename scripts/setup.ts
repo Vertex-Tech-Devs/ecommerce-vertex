@@ -203,10 +203,12 @@ async function main() {
 
   // 4. Modificar src/index.html (Title)
   const indexHtmlPath = resolve(ROOT, 'src/index.html');
-  if (existsSync(indexHtmlPath)) {
+  try {
     let indexHtml = readFileSync(indexHtmlPath, 'utf-8');
     indexHtml = indexHtml.replace(/<title>.*?<\/title>/g, `<title>${storeSetup.storeName}</title>`);
     writeFileSync(indexHtmlPath, indexHtml, 'utf-8');
+  } catch {
+    console.warn('Advertencia: No se pudo configurar el título en index.html');
   }
 
   // 5. Generar functions/.env
@@ -220,10 +222,12 @@ SITE_URL=${storeSetup.siteUrl}
 
   // 6. Modificar package.json (reemplazar `--project <old_project>`)
   const packageJsonPath = resolve(ROOT, 'package.json');
-  if (existsSync(packageJsonPath)) {
+  try {
     let packageJson = readFileSync(packageJsonPath, 'utf-8');
     // We make sure packageJson maps any custom deploy scripts cleanly
     writeFileSync(packageJsonPath, packageJson, 'utf-8');
+  } catch {
+    console.warn('Advertencia: No se pudo escribir en package.json');
   }
 
   spinner.stop('¡Archivos configurados y entorno de tienda aprovisionado con éxito!');
