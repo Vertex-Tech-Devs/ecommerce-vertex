@@ -36,12 +36,12 @@ function stubProducts(count = 25): void {
   }).as('firestoreProducts');
 }
 
-/** Stub a minimal Firestore settings/storeConfig document. */
+/** Stub a minimal Firestore configuracion/store document. */
 function stubStoreConfig(): void {
-  cy.intercept('GET', '**/documents/settings/storeConfig**', {
+  cy.intercept('GET', '**/documents/configuracion/store**', {
     statusCode: 200,
     body: {
-      name: 'projects/test/databases/(default)/documents/settings/storeConfig',
+      name: 'projects/test/databases/(default)/documents/configuracion/store',
       fields: {
         storeName: { stringValue: 'Tienda Test Vertex' },
         strapline: { stringValue: 'Tu tienda online' },
@@ -49,6 +49,7 @@ function stubStoreConfig(): void {
         currencySymbol: { stringValue: '$' },
         country: { stringValue: 'AR' },
         logoUrl: { nullValue: null },
+        setupCompleted: { booleanValue: true },
       },
     },
   }).as('storeConfig');
