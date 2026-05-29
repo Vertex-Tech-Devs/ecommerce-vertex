@@ -6,7 +6,7 @@ import {
   CLIENT_DAYS_LIST,
   CLIENT_ORDER_COUNTS,
   ORDER_DATA,
-} from '../seeds/client-order-data.constants';
+} from '../constants/seed-orders.constants';
 
 export interface SeedClient {
   id: string;

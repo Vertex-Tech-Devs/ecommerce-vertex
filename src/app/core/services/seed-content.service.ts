@@ -3,6 +3,7 @@ import { Firestore, collection, addDoc, setDoc, doc } from '@angular/fire/firest
 import type { StoreConfig } from '@core/models/store-config.model';
 import { DEFAULT_STORE_CONFIG } from '@core/models/store-config.model';
 import { StoreConfigService } from './store-config.service';
+import { environment } from '../../../environments/environment';
 
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
@@ -193,7 +194,14 @@ export class SeedContentService {
   }
 
   async seedStoreConfig(): Promise<void> {
-    const payload: StoreConfig = { ...DEFAULT_STORE_CONFIG, setupCompleted: true };
-    await this.run(() => setDoc(doc(this.firestore, 'configuracion', 'store'), payload));
+    const payload: StoreConfig = {
+      ...DEFAULT_STORE_CONFIG,
+      tenantId: environment.tenantId,
+      storeId: environment.tenantId,
+      setupCompleted: true,
+    };
+    await this.run(() =>
+      setDoc(doc(this.firestore, 'configuracion', environment.tenantId), payload)
+    );
   }
 }

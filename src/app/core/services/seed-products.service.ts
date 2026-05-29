@@ -1,7 +1,7 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
 import { Firestore, collection, addDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import type { Attribute } from '@core/models/attribute.model';
-import { PRODUCT_CATALOGUE } from '../seeds/product-catalogue.constants';
+import { PRODUCT_CATALOGUE } from '../constants/seed-products.constants';
 
 /** Unsplash CDN – specific fashion photo by ID */
 function u(id: string, w: number, h: number): string {
