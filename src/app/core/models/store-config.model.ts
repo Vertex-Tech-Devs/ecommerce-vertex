@@ -1,81 +1,53 @@
-export interface StoreContact {
-  email: string;
-  phone: string;
-  whatsapp: string;
-  address?: string;
-  instagram?: string;
-  facebook?: string;
-}
-
-export interface StoreSeo {
-  metaTitle: string;
-  metaDescription: string;
-}
-
-export interface StoreFeatureFlags {
-  reviewsEnabled: boolean;
-  wishlistEnabled: boolean;
-  blogEnabled: boolean;
-}
-
-export interface StoreMercadoPagoConfig {
-  publicKey: string;
-  accessToken?: string;
-  accessTokenSecret?: string;
-  accessTokenMasked?: string;
-  accountEmail?: string;
-  accountUserId?: string;
-  webhookUrl: string;
-  validationStatus?: 'pending' | 'valid' | 'invalid';
-  validationMessage?: string;
-  validatedAt?: Date | string;
-}
-
-export interface StorePayments {
-  mercadoPago: StoreMercadoPagoConfig;
-}
-
 export interface StoreConfig {
-  id?: string;
+  storeId: string;
   storeName: string;
-  strapline: string;
+  tagline: string;
   logoUrl: string;
-  faviconUrl?: string;
-  contact: StoreContact;
-  seo: StoreSeo;
-  features: StoreFeatureFlags;
-  payments: StorePayments;
-  currency: string;
-  currencySymbol: string;
-  country: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  faviconUrl: string;
+  colors: {
+    primary: string;
+    accent: string;
+    background: string;
+  };
+  payments: {
+    mercadoPagoPublicKey: string;
+  };
+  contact: {
+    phone: string;
+    email: string;
+    whatsApp: string;
+    instagram: string;
+    facebook: string;
+  };
+  seo: {
+    metaDescription: string;
+  };
+  setupCompleted: boolean;
 }
 
-export const DEFAULT_STORE_CONFIG: Omit<StoreConfig, 'id'> = {
-  storeName: '',
-  strapline: '',
+export const DEFAULT_STORE_CONFIG: StoreConfig = {
+  storeId: 'white-label-store',
+  storeName: 'Mi Tienda Online',
+  tagline: 'Tu tienda de moda de marca blanca',
   logoUrl: '',
-  contact: { email: '', phone: '', whatsapp: '' },
-  seo: { metaTitle: '', metaDescription: '' },
-  features: {
-    reviewsEnabled: false,
-    wishlistEnabled: false,
-    blogEnabled: false,
+  faviconUrl: '',
+  colors: {
+    primary: '#ea580c',
+    accent: '#ef4444',
+    background: '#ffffff',
   },
   payments: {
-    mercadoPago: {
-      publicKey: '',
-      accessToken: '',
-      accessTokenSecret: 'mp-access-token',
-      accessTokenMasked: '',
-      webhookUrl: '',
-      validationStatus: 'pending',
-      validationMessage: '',
-    },
+    mercadoPagoPublicKey: '',
   },
-  currency: 'ARS',
-  currencySymbol: '$',
-  country: 'AR',
-  createdAt: new Date(),
+  contact: {
+    phone: '',
+    email: '',
+    whatsApp: '',
+    instagram: '',
+    facebook: '',
+  },
+  seo: {
+    metaDescription: 'Bienvenido a nuestra tienda online.',
+  },
+  setupCompleted: false,
 };

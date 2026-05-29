@@ -22,11 +22,11 @@ export class ReceiptModalComponent {
   readonly logoUrl = this.storeConfig.logoUrl;
 
   currencyCode(): string {
-    return this.storeConfig.config()?.currency ?? 'ARS';
+    return 'ARS';
   }
 
   currencySymbol(): string {
-    return this.storeConfig.config()?.currencySymbol ?? '$';
+    return '$';
   }
 
   getItemSubtotal(item: OrderItem): number {

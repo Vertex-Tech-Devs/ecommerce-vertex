@@ -1,4 +1,3 @@
-import type { OnInit } from '@angular/core';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
@@ -9,31 +8,30 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 
 @Component({
-  selector: 'app-store-config-management',
+  selector: 'app-setup-wizard',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './store-config-management.component.html',
-  styleUrls: ['./store-config-management.component.scss'],
+  templateUrl: './setup-wizard.component.html',
+  styleUrls: ['./setup-wizard.component.scss'],
 })
-export class StoreConfigManagementComponent implements OnInit {
+export class SetupWizardComponent {
   private fb = inject(FormBuilder);
   private storeConfigService = inject(StoreConfigService);
   private storageService = inject(StorageService);
   private sweetAlert = inject(SweetAlertService);
 
-  isSubmitting = false;
-  activeTab = signal<'identity' | 'colors' | 'payments' | 'contact-seo'>('identity');
+  readonly step = signal(1);
+  readonly totalSteps = 3;
+  readonly isSubmitting = signal(false);
 
-  // File uploading states
+  // Uploading states
   logoProgress = signal<number>(0);
-  faviconProgress = signal<number>(0);
   logoUploading = signal<boolean>(false);
-  faviconUploading = signal<boolean>(false);
 
-  // Visbility toggle for keys
+  // Visibility toggle
   showMpKey = signal<boolean>(false);
 
-  form: FormGroup = this.fb.group({
+  readonly form: FormGroup = this.fb.group({
     storeId: ['white-label-store'],
     storeName: ['', Validators.required],
     tagline: ['', Validators.required],
@@ -60,15 +58,34 @@ export class StoreConfigManagementComponent implements OnInit {
     setupCompleted: [true],
   });
 
-  ngOnInit(): void {
-    const cfg = this.storeConfigService.storeConfig();
-    if (cfg) {
-      this.form.patchValue(cfg);
+  next(): void {
+    if (this.step() === 1 && !this.isStep1Valid()) {
+      this.form.get('storeName')?.markAsTouched();
+      this.form.get('tagline')?.markAsTouched();
+      return;
+    }
+    if (this.step() === 2 && !this.isStep2Valid()) {
+      return;
+    }
+    if (this.step() < this.totalSteps) {
+      this.step.update((s) => s + 1);
     }
   }
 
-  setTab(tab: 'identity' | 'colors' | 'payments' | 'contact-seo'): void {
-    this.activeTab.set(tab);
+  prev(): void {
+    if (this.step() > 1) {
+      this.step.update((s) => s - 1);
+    }
+  }
+
+  isStep1Valid(): boolean {
+    return (
+      (this.form.get('storeName')?.valid ?? false) && (this.form.get('tagline')?.valid ?? false)
+    );
+  }
+
+  isStep2Valid(): boolean {
+    return this.form.get('colors')?.valid ?? false;
   }
 
   onLogoUpload(event: Event): void {
@@ -86,40 +103,12 @@ export class StoreConfigManagementComponent implements OnInit {
       next: (url) => {
         this.form.patchValue({ logoUrl: url });
         this.logoUploading.set(false);
-        this.sweetAlert.success('Logo subido', 'El logo corporativo fue cargado exitosamente.');
+        this.sweetAlert.success('Logo subido', 'El logo fue cargado exitosamente.');
       },
       error: (err) => {
-        console.error('Error al subir el logo:', err);
+        console.error(err);
         this.logoUploading.set(false);
-        this.sweetAlert.error('Error de subida', 'No se pudo cargar el logo corporativo.');
-      },
-    });
-  }
-
-  onFaviconUpload(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-    const file = input.files[0];
-    this.faviconUploading.set(true);
-    this.faviconProgress.set(0);
-
-    const upload = this.storageService.uploadFile(file, 'store/branding');
-    upload.progress$.subscribe((progress) => this.faviconProgress.set(Math.round(progress)));
-    upload.downloadUrl$.subscribe({
-      next: (url) => {
-        this.form.patchValue({ faviconUrl: url });
-        this.faviconUploading.set(false);
-        this.sweetAlert.success(
-          'Favicon subido',
-          'El favicon corporativo fue cargado exitosamente.'
-        );
-      },
-      error: (err) => {
-        console.error('Error al subir el favicon:', err);
-        this.faviconUploading.set(false);
-        this.sweetAlert.error('Error de subida', 'No se pudo cargar el favicon corporativo.');
+        this.sweetAlert.error('Error de subida', 'No se pudo cargar el logo.');
       },
     });
   }
@@ -128,27 +117,35 @@ export class StoreConfigManagementComponent implements OnInit {
     this.showMpKey.update((val) => !val);
   }
 
-  async onSubmit(): Promise<void> {
+  async onFinish(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.sweetAlert.error(
-        'Formulario inválido',
-        'Revisá los campos obligatorios en cada pestaña.'
+        'Formulario incompleto',
+        'Por favor completa todos los campos obligatorios del Paso 3.'
       );
       return;
     }
-    this.isSubmitting = true;
+
+    this.isSubmitting.set(true);
     try {
+      // Set meta description dynamically based on inputs if not yet personalized
+      if (!this.form.get('seo.metaDescription')?.value) {
+        this.form
+          .get('seo.metaDescription')
+          ?.setValue(`Bienvenido a ${this.form.get('storeName')?.value as string}.`);
+      }
+
       await this.storeConfigService.saveConfig(this.form.value as StoreConfig);
       this.sweetAlert.success(
-        '¡Listo!',
-        'La configuración de marca blanca fue guardada con éxito empresarial.'
+        '¡Felicitaciones!',
+        'Tu tienda de marca blanca ha sido configurada con éxito corporativo.'
       );
     } catch (err) {
-      console.error('Error al guardar la configuración:', err);
-      this.sweetAlert.error('Error', 'No se pudo guardar la configuración de la tienda.');
+      console.error(err);
+      this.sweetAlert.error('Error', 'No se pudo completar la configuración de la tienda.');
     } finally {
-      this.isSubmitting = false;
+      this.isSubmitting.set(false);
     }
   }
 }

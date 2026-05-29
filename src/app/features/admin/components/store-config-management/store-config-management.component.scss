@@ -324,3 +324,148 @@
     cursor: not-allowed;
   }
 }
+
+// ─── Custom Tabs ──────────────────────────────────────────────────────────────
+.custom-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 0.5rem;
+
+  .nav-link {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    padding: 0.8rem 1.5rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: #818cf8 rgba(255, 255, 255, 0.12) transparent;
+      color: #818cf8;
+      box-shadow: inset 0 3px 0 #818cf8;
+    }
+  }
+}
+
+.custom-tab-content {
+  animation: float-in 0.5s ease-out backwards;
+}
+
+// ─── Branding & Image Uploads ───────────────────────────────────────────────
+.avatar-preview-box {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+
+  &.favicon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+}
+
+.branding-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.25rem;
+
+  &.favicon-img {
+    padding: 0.15rem;
+  }
+}
+
+.file-input {
+  cursor: pointer;
+  &::file-selector-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease;
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
+
+.custom-progress {
+  height: 12px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  .progress-bar {
+    font-size: 0.65rem;
+    line-height: 12px;
+    font-weight: bold;
+  }
+}
+
+// ─── Live Colors & Previews ──────────────────────────────────────────────────
+.color-input-group {
+  .color-picker-input {
+    width: 60px;
+    height: 46px;
+    padding: 0.2rem;
+    cursor: pointer;
+    flex-grow: 0;
+    border-radius: 12px 0 0 12px !important;
+  }
+  .input-group-text {
+    border-left: none !important;
+    background-color: rgba(15, 23, 42, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+  }
+}
+
+.preview-theme-container {
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.05);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+
+  .btn {
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    }
+  }
+}
+
+.glass-btn {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-left: none !important;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}

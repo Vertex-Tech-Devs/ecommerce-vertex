@@ -127,6 +127,11 @@
               "src/app/core/services/seed-content.service.ts",
               "src/app/core/services/firestore.service.ts",
               "src/app/core/services/auth.service.ts",
+              "src/app/core/services/payment.service.ts",
+              "src/app/core/handlers/**",
+              "src/app/features/dev/**",
+              "src/app/features/admin/components/setup-wizard/**",
+              "src/app/features/admin/components/store-config-management/**",
               "**/*.spec.ts"
             ]
           }

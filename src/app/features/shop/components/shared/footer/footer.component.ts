@@ -26,16 +26,16 @@ export class FooterComponent {
 
   readonly viewData = computed(() => {
     const footerData = this.footerData();
-    const config = this.storeConfig.config();
+    const config = this.storeConfig.storeConfig();
     const configuredStoreName = (config?.storeName ?? '').trim();
 
     return {
       contactPhone:
-        footerData?.contactPhone ?? config?.contact?.phone ?? config?.contact?.whatsapp ?? '',
+        footerData?.contactPhone ?? config?.contact?.phone ?? config?.contact?.whatsApp ?? '',
       contactEmail: footerData?.contactEmail ?? config?.contact?.email ?? '',
       socialInstagramUrl: footerData?.socialInstagramUrl ?? config?.contact?.instagram ?? '',
       socialFacebookUrl: footerData?.socialFacebookUrl ?? config?.contact?.facebook ?? '',
-      socialWhatsAppUrl: footerData?.socialWhatsAppUrl ?? '',
+      socialWhatsAppUrl: footerData?.socialWhatsAppUrl ?? config?.contact?.whatsApp ?? '',
       copyrightText:
         footerData?.copyrightText ??
         (configuredStoreName

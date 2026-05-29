@@ -1,97 +1,55 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { Firestore } from '@angular/fire/firestore';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
-import { STORE_CONFIG } from '../../../environments/store.config';
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
   private firestore = inject(Firestore);
-  private functions = getFunctions();
 
-  readonly config = signal<StoreConfig | null>(null);
-  readonly storeName = computed(() => {
-    const fromFirestore = this.config()?.storeName?.trim() ?? '';
-    if (fromFirestore) {
-      return fromFirestore;
-    }
+  private readonly _storeConfig = signal<StoreConfig | null>(null);
+  readonly storeConfig = this._storeConfig.asReadonly();
 
-    const fromStaticConfig = STORE_CONFIG.storeName?.trim() ?? '';
-    if (fromStaticConfig) {
-      return fromStaticConfig;
-    }
+  readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
+  readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
+  readonly isFirstRun = computed(() => !this.storeConfig()?.setupCompleted);
 
-    return this.inferStoreNameFromHostname();
-  });
-  readonly logoUrl = computed(() => this.config()?.logoUrl?.trim() ?? '');
-  readonly isFirstRun = computed(() => this.config() === null);
-  readonly features = computed(() => this.config()?.features ?? null);
-
-  private inferStoreNameFromHostname(): string {
-    const host = (globalThis.location?.hostname ?? '').trim().toLowerCase();
-    if (!host) {
-      return 'Store';
-    }
-
-    const firstLabel = host.split('.')[0] ?? '';
-    if (!firstLabel || firstLabel === 'localhost') {
-      return 'Store';
-    }
-
-    return firstLabel
-      .split('-')
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+  constructor() {
+    // Dynamic theme injection reactive effect
+    effect(() => {
+      const config = this.storeConfig();
+      if (config?.colors) {
+        const root = document.documentElement;
+        if (config.colors.primary) {
+          root.style.setProperty('--color-primary', config.colors.primary);
+        }
+        if (config.colors.accent) {
+          root.style.setProperty('--color-accent', config.colors.accent);
+        }
+        if (config.colors.background) {
+          root.style.setProperty('--shop-bg', config.colors.background);
+        }
+      }
+    });
   }
 
   async loadConfig(): Promise<void> {
     try {
-      const deadline = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), 3000)
-      );
-      const snap = await Promise.race([
-        getDoc(doc(this.firestore, 'settings', 'storeConfig')),
-        deadline,
-      ]);
+      const docRef = doc(this.firestore, 'configuracion', 'store');
+      const snap = await getDoc(docRef);
       if (snap.exists()) {
-        this.config.set(snap.data() as StoreConfig);
+        this._storeConfig.set(snap.data() as StoreConfig);
+      } else {
+        this._storeConfig.set(null);
       }
-    } catch {
-      /* Firestore unreachable or not yet configured */
+    } catch (err) {
+      console.error('Error al cargar la configuración de la tienda:', err);
+      this._storeConfig.set(null);
     }
   }
 
-  async saveConfig(data: Omit<StoreConfig, 'id'>): Promise<void> {
-    const payload = { ...data, updatedAt: new Date() };
-    await setDoc(doc(this.firestore, 'settings', 'storeConfig'), payload);
-    this.config.set(payload as StoreConfig);
-  }
-
-  async upsertMercadoPagoCredentials(payload: {
-    accessToken: string;
-    webhookUrl?: string;
-  }): Promise<{
-    valid: boolean;
-    accountEmail?: string;
-    userId?: string;
-    secretName: string;
-    maskedToken: string;
-    message: string;
-  }> {
-    const fn = httpsCallable<
-      { accessToken: string; webhookUrl?: string },
-      {
-        valid: boolean;
-        accountEmail?: string;
-        userId?: string;
-        secretName: string;
-        maskedToken: string;
-        message: string;
-      }
-    >(this.functions, 'upsertMercadoPagoCredentials');
-    const result = await fn(payload);
-    return result.data;
+  async saveConfig(data: StoreConfig): Promise<void> {
+    const docRef = doc(this.firestore, 'configuracion', 'store');
+    await setDoc(docRef, { ...data, updatedAt: new Date() });
+    this._storeConfig.set(data);
   }
 }
