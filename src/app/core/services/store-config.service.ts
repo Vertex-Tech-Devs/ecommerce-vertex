@@ -33,10 +33,11 @@ export class StoreConfigService {
   }
 
   async loadConfig(): Promise<void> {
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
     try {
       const docRef = doc(this.firestore, 'configuracion', 'store');
-      const snap = await getDoc(docRef);
-      if (snap.exists()) {
+      const snap = await Promise.race([getDoc(docRef), timeout]);
+      if (snap?.exists()) {
         this._storeConfig.set(snap.data() as StoreConfig);
       } else {
         this._storeConfig.set(null);
