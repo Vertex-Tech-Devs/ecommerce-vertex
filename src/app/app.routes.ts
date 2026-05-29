@@ -1,8 +1,6 @@
-import { inject } from '@angular/core';
-import type { Routes, UrlTree } from '@angular/router';
-import { Router } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { AdminGuard } from '@core/guards/admin.guard';
-import { environment } from '@environments/environment';
+import { SeedDataGuard } from '@core/guards/seed-data.guard';
 
 export const routes: Routes = [
   {
@@ -24,15 +22,7 @@ export const routes: Routes = [
       },
       {
         path: '_dev',
-        canActivate: [
-          AdminGuard,
-          (): boolean | UrlTree => {
-            const router = inject(Router);
-            return environment.features.seedDataEnabled
-              ? true
-              : router.createUrlTree(['/admin/dashboard']);
-          },
-        ],
+        canActivate: [AdminGuard, SeedDataGuard],
         loadChildren: () => import('./features/dev/dev.routes').then((m) => m.DEV_ROUTES),
       },
       {
