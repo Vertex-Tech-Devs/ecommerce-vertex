@@ -6,6 +6,7 @@ import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-setup-wizard',
@@ -136,7 +137,12 @@ export class SetupWizardComponent {
           ?.setValue(`Bienvenido a ${this.form.get('storeName')?.value as string}.`);
       }
 
-      await this.storeConfigService.saveConfig(this.form.value as StoreConfig);
+      const payload: StoreConfig = {
+        ...this.form.value,
+        tenantId: environment.tenantId,
+      };
+
+      await this.storeConfigService.saveConfig(payload);
       this.sweetAlert.success(
         '¡Felicitaciones!',
         'Tu tienda de marca blanca ha sido configurada con éxito corporativo.'

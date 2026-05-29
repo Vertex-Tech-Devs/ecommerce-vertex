@@ -30,6 +30,12 @@ export const StoreConfigSchema = z.object({
     metaDescription: z.string(),
   }),
   setupCompleted: z.boolean(),
+  contactPhone: z.string().optional(),
+  contactEmail: z.string().optional(),
+  socialInstagramUrl: z.string().optional(),
+  socialFacebookUrl: z.string().optional(),
+  socialWhatsAppUrl: z.string().optional(),
+  copyrightText: z.string().optional(),
 });
 
 @Injectable({ providedIn: 'root' })

@@ -24,6 +24,14 @@ export interface StoreConfig {
     metaDescription: string;
   };
   setupCompleted: boolean;
+
+  // Legacy compatibility fields
+  contactPhone?: string;
+  contactEmail?: string;
+  socialInstagramUrl?: string;
+  socialFacebookUrl?: string;
+  socialWhatsAppUrl?: string;
+  copyrightText?: string;
 }
 
 export const DEFAULT_STORE_CONFIG: StoreConfig = {
