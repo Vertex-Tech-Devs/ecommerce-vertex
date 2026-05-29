@@ -4,18 +4,20 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/shared/components/header/header.component';
 import { SidebarComponent } from './components/shared/components/sidebar/sidebar.component';
+import { SetupWizardComponent } from './components/setup-wizard/setup-wizard.component';
 import { StoreConfigService } from '@core/services/store-config.service';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent, SetupWizardComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss'],
 })
 export class AdminComponent implements OnInit {
   private readonly storeConfigService = inject(StoreConfigService);
   isSidebarOpen: boolean = false;
+  readonly isFirstRun = this.storeConfigService.isFirstRun;
 
   private readonly breakpointLg = 1024;
 
