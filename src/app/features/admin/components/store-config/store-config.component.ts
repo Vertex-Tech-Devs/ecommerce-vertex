@@ -3,19 +3,19 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { StoreConfigService } from '@core/services/store-config.service';
+import { StoreConfigService, StoreConfigSchema } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 
 @Component({
-  selector: 'app-store-config-management',
+  selector: 'app-store-config',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './store-config-management.component.html',
-  styleUrls: ['./store-config-management.component.scss'],
+  templateUrl: './store-config.component.html',
+  styleUrls: ['./store-config.component.scss'],
 })
-export class StoreConfigManagementComponent implements OnInit {
+export class StoreConfigComponent implements OnInit {
   private fb = inject(FormBuilder);
   private storeConfigService = inject(StoreConfigService);
   private storageService = inject(StorageService);
@@ -30,10 +30,11 @@ export class StoreConfigManagementComponent implements OnInit {
   logoUploading = signal<boolean>(false);
   faviconUploading = signal<boolean>(false);
 
-  // Visbility toggle for keys
+  // Visibility toggle for keys
   showMpKey = signal<boolean>(false);
 
   form: FormGroup = this.fb.group({
+    tenantId: [''],
     storeId: ['white-label-store'],
     storeName: ['', Validators.required],
     tagline: ['', Validators.required],
@@ -139,10 +140,13 @@ export class StoreConfigManagementComponent implements OnInit {
     }
     this.isSubmitting = true;
     try {
-      await this.storeConfigService.saveConfig(this.form.value as StoreConfig);
+      // Validate form value at runtime using Zod
+      const rawValue = this.form.value;
+      const validatedData = StoreConfigSchema.parse(rawValue);
+      await this.storeConfigService.saveConfig(validatedData as StoreConfig);
       this.sweetAlert.success(
         '¡Listo!',
-        'La configuración de marca blanca fue guardada con éxito empresarial.'
+        'La configuración de marca blanca fue guardada con éxito.'
       );
     } catch (err) {
       console.error('Error al guardar la configuración:', err);
