@@ -1,6 +1,7 @@
 import type { StoreConfig } from '../app/core/models/store-config.model';
 
 export const STORE_CONFIG: StoreConfig = {
+  tenantId: 'store',
   storeId: 'white-label-store',
   storeName: 'Mi Tienda Online',
   tagline: 'Tu tienda de moda de marca blanca',
