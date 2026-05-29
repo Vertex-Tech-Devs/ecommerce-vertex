@@ -56,7 +56,12 @@ export class StorageService {
   }
 
   deleteFileByUrl(imageUrl: string): Observable<void> {
-    if (!imageUrl?.includes('firebasestorage.googleapis.com')) {
+    try {
+      const parsedUrl = new URL(imageUrl);
+      if (parsedUrl.hostname !== 'firebasestorage.googleapis.com') {
+        return from(Promise.resolve());
+      }
+    } catch {
       return from(Promise.resolve());
     }
 

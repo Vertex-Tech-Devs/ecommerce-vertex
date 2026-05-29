@@ -76,7 +76,7 @@ export class AccountComponent implements OnInit {
         });
       }
     } catch (error: unknown) {
-      let errorMessage = 'Ocurrió un error inesperado al cambiar la contraseña.';
+      let errorMessage: string;
       const authError = error as { code?: string; message?: string };
       switch (authError.code) {
         case 'auth/invalid-credential':
