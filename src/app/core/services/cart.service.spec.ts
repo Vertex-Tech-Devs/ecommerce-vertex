@@ -107,6 +107,16 @@ describe('CartService', () => {
       service.addItem(makeProduct(), makeVariant(), 4);
       expect(service.itemCount()).toBe(4);
     });
+
+    it('should correctly map existing items during addition when cart has multiple different items', () => {
+      service.addItem(makeProduct({ id: 'prod-1' }), makeVariant({ id: 'var-1' }), 1);
+      service.addItem(makeProduct({ id: 'prod-2' }), makeVariant({ id: 'var-2' }), 1);
+      service.addItem(makeProduct({ id: 'prod-1' }), makeVariant({ id: 'var-1' }), 1);
+
+      expect(service.cart().items.length).toBe(2);
+      expect(service.cart().items.find((item) => item.id === 'var-1')?.quantity).toBe(2);
+      expect(service.cart().items.find((item) => item.id === 'var-2')?.quantity).toBe(1);
+    });
   });
 
   describe('removeItem()', () => {
@@ -156,6 +166,16 @@ describe('CartService', () => {
       service.updateQuantity('non-existent-id', 5);
 
       expect(service.cart().items[0].quantity).toBe(2);
+    });
+
+    it('should correctly map other items during quantity update when cart has multiple different items', () => {
+      service.addItem(makeProduct({ id: 'prod-1' }), makeVariant({ id: 'var-1' }), 1);
+      service.addItem(makeProduct({ id: 'prod-2' }), makeVariant({ id: 'var-2' }), 1);
+
+      service.updateQuantity('var-1', 4);
+
+      expect(service.cart().items.find((item) => item.id === 'var-1')?.quantity).toBe(4);
+      expect(service.cart().items.find((item) => item.id === 'var-2')?.quantity).toBe(1);
     });
   });
 

@@ -29,9 +29,11 @@ $accent-green: #059669;
 $accent-red: #dc2626;
 $accent-yellow: #d97706;
 $accent-orange: #ea580c;
+$color-primary: var(--color-primary, #ea580c);
+$color-accent: var(--color-accent, #ef4444);
 
-$brand-gradient: linear-gradient(135deg, $accent-orange, #ef4444);
-$brand-gradient-hover: linear-gradient(135deg, #fb923c, #f87171);
+$brand-gradient: linear-gradient(135deg, $color-primary, $color-accent);
+$brand-gradient-hover: linear-gradient(135deg, var(--color-primary-hover, #fb923c), #f87171);
 
 $space-1: 0.25rem;
 $space-2: 0.5rem;

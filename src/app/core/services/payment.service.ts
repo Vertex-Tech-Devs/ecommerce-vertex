@@ -31,6 +31,21 @@ interface PreferenceResponseData {
 export class PaymentService {
   private functions: Functions = inject(Functions);
 
+  private async retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retries <= 0) {
+        throw error;
+      }
+      console.warn(
+        `[Mercado Pago Retry] Falló la conexión con Mercado Pago. Reintentando en ${delay}ms... Intentos restantes: ${retries}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return this.retryWithBackoff(fn, retries - 1, delay * 2);
+    }
+  }
+
   async initiatePayment(items: CartItem[], orderId: string): Promise<PaymentResponse> {
     try {
       const preferenceItems = items.map((item) => ({
@@ -46,10 +61,12 @@ export class PaymentService {
         'createPaymentPreference'
       );
 
-      const result = await createPaymentPreference({
-        items: preferenceItems,
-        external_reference: orderId,
-      });
+      const result = await this.retryWithBackoff(() =>
+        createPaymentPreference({
+          items: preferenceItems,
+          external_reference: orderId,
+        })
+      );
 
       return {
         success: true,

@@ -1,0 +1,389 @@
+<div class="wizard-wrapper" role="dialog" aria-modal="true" aria-label="First-Run Setup Wizard">
+  <div class="glass-wizard-card">
+    <div class="wizard-header">
+      <h1 class="wizard-header__title">
+        <i class="bi bi-shop-window text-primary-glow"></i> Aprovisionamiento de Tienda
+      </h1>
+      <p class="wizard-header__sub text-soft">
+        Completá los metadatos core de tu plataforma de comercio electrónico
+      </p>
+    </div>
+
+    <!-- Stepper Indicator -->
+    <div class="stepper">
+      @for (i of [1, 2, 3]; track i) {
+        <div
+          class="stepper__item"
+          [class.stepper__item--active]="step() === i"
+          [class.stepper__item--done]="step() > i"
+        >
+          <div class="stepper__circle">
+            @if (step() > i) {
+              <i class="bi bi-check-lg"></i>
+            } @else {
+              {{ i }}
+            }
+          </div>
+          <span class="stepper__label">
+            @if (i === 1) {
+              Identidad
+            } @else if (i === 2) {
+              Estética & Colores
+            } @else {
+              Negocio & Pagos
+            }
+          </span>
+        </div>
+        @if (i < 3) {
+          <div class="stepper__line" [class.stepper__line--done]="step() > i"></div>
+        }
+      }
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="$event.preventDefault()" novalidate>
+      <div class="wizard-body">
+        <!-- Paso 1: Identidad Core -->
+        @if (step() === 1) {
+          <div class="wizard-step float-in-anim">
+            <h2 class="step-title">
+              <i class="bi bi-shop me-2"></i>Paso 1: Identidad Core de la Tienda
+            </h2>
+            <p class="text-soft mb-4">
+              Ingresá el nombre oficial y eslogan comercial de tu marca blanca.
+            </p>
+
+            <div class="form-group mb-3">
+              <label class="form-label text-label"
+                >Nombre de la tienda <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-tag-fill"></i></span>
+                <input
+                  formControlName="storeName"
+                  type="text"
+                  class="form-control glass-input"
+                  [class.is-invalid]="
+                    form.get('storeName')?.invalid && form.get('storeName')?.touched
+                  "
+                  placeholder="Ej: Vertex Premium Store"
+                />
+              </div>
+              @if (form.get('storeName')?.invalid && form.get('storeName')?.touched) {
+                <div class="invalid-feedback d-block mt-2">
+                  El nombre de la tienda es obligatorio.
+                </div>
+              }
+            </div>
+
+            <div class="form-group mb-4">
+              <label class="form-label text-label"
+                >Eslogan / Tagline <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-chat-quote-fill"></i></span>
+                <input
+                  formControlName="tagline"
+                  type="text"
+                  class="form-control glass-input"
+                  [class.is-invalid]="form.get('tagline')?.invalid && form.get('tagline')?.touched"
+                  placeholder="Ej: Tu estilo urbano e identidad"
+                />
+              </div>
+              @if (form.get('tagline')?.invalid && form.get('tagline')?.touched) {
+                <div class="invalid-feedback d-block mt-2">
+                  El eslogan comercial es obligatorio.
+                </div>
+              }
+            </div>
+
+            <div class="form-group mb-2">
+              <label class="form-label text-label">Logo de Marca Blanca</label>
+              <div class="d-flex align-items-center gap-3">
+                <div class="wizard-logo-preview">
+                  @if (form.get('logoUrl')?.value) {
+                    <img
+                      [src]="form.get('logoUrl')?.value"
+                      alt="Logo de tienda"
+                      class="wizard-preview-img"
+                    />
+                  } @else {
+                    <i class="bi bi-image text-muted" style="font-size: 1.5rem"></i>
+                  }
+                </div>
+                <div class="flex-grow-1">
+                  <input
+                    type="file"
+                    (change)="onLogoUpload($event)"
+                    accept="image/*"
+                    class="form-control glass-input file-input"
+                    [disabled]="logoUploading()"
+                  />
+                  @if (logoUploading()) {
+                    <div class="progress mt-2 custom-progress">
+                      <div
+                        class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                        role="progressbar"
+                        [style.width.%]="logoProgress()"
+                      >
+                        {{ logoProgress() }}%
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Paso 2: Colores & Personalización Visual -->
+        @if (step() === 2) {
+          <div class="wizard-step float-in-anim" formGroupName="colors">
+            <h2 class="step-title">
+              <i class="bi bi-palette-fill me-2"></i>Paso 2: Visual de Marca Blanca
+            </h2>
+            <p class="text-soft mb-4">
+              Seleccioná los colores institucionales. Podés previsualizar la interfaz en tiempo
+              real.
+            </p>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="form-label text-label">Color Primario</label>
+                <div class="input-group color-input-group">
+                  <input
+                    formControlName="primary"
+                    type="color"
+                    class="form-control glass-input color-picker-input"
+                  />
+                  <span class="input-group-text font-monospace text-uppercase">{{
+                    form.get('colors.primary')?.value
+                  }}</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-label">Color Acento</label>
+                <div class="input-group color-input-group">
+                  <input
+                    formControlName="accent"
+                    type="color"
+                    class="form-control glass-input color-picker-input"
+                  />
+                  <span class="input-group-text font-monospace text-uppercase">{{
+                    form.get('colors.accent')?.value
+                  }}</span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-label">Fondo de Tienda</label>
+                <div class="input-group color-input-group">
+                  <input
+                    formControlName="background"
+                    type="color"
+                    class="form-control glass-input color-picker-input"
+                  />
+                  <span class="input-group-text font-monospace text-uppercase">{{
+                    form.get('colors.background')?.value
+                  }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live preview container -->
+            <div
+              class="wizard-live-preview-box rounded-3 border p-3"
+              [style.background-color]="form.get('colors.background')?.value"
+            >
+              <div
+                class="d-flex justify-content-between align-items-center p-2 rounded mb-3"
+                style="background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.08)"
+              >
+                <span class="fw-bold" style="color: #333; font-size: 0.8rem">{{
+                  form.get('storeName')?.value || 'Mi Tienda'
+                }}</span>
+                <span
+                  class="badge"
+                  [style.background-color]="form.get('colors.accent')?.value"
+                  style="font-size: 0.65rem"
+                  >Catálogo</span
+                >
+              </div>
+              <div
+                class="p-3 rounded shadow-sm d-flex flex-column gap-2 text-center"
+                style="background: white; border: 1px solid rgba(0, 0, 0, 0.05)"
+              >
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #111">
+                  {{ form.get('tagline')?.value || 'Eslogan comercial' }}
+                </h3>
+                <button
+                  type="button"
+                  class="btn text-white fw-semibold py-1 px-3 mx-auto"
+                  [style.background-color]="form.get('colors.primary')?.value"
+                  style="border: none; border-radius: 6px; font-size: 0.75rem"
+                >
+                  Comprar Ahora
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Paso 3: Contacto, Pagos y Finalización -->
+        @if (step() === 3) {
+          <div class="wizard-step float-in-anim">
+            <h2 class="step-title">
+              <i class="bi bi-wallet2 me-2"></i>Paso 3: Infraestructura & Operaciones
+            </h2>
+            <p class="text-soft mb-4">
+              Ingresá los datos de contacto y la llave pública de pasarela de pagos.
+            </p>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6" formGroupName="contact">
+                <label class="form-label text-label"
+                  >Email de contacto <span class="text-danger">*</span></label
+                >
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                  <input
+                    formControlName="email"
+                    type="email"
+                    class="form-control glass-input"
+                    [class.is-invalid]="
+                      form.get('contact.email')?.invalid && form.get('contact.email')?.touched
+                    "
+                    placeholder="contacto@miempresa.com"
+                  />
+                </div>
+                @if (form.get('contact.email')?.invalid && form.get('contact.email')?.touched) {
+                  <div class="invalid-feedback d-block mt-2">
+                    Ingresá un correo electrónico de contacto válido.
+                  </div>
+                }
+              </div>
+
+              <div class="col-md-6" formGroupName="contact">
+                <label class="form-label text-label"
+                  >Teléfono de contacto <span class="text-danger">*</span></label
+                >
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
+                  <input
+                    formControlName="phone"
+                    type="tel"
+                    class="form-control glass-input"
+                    [class.is-invalid]="
+                      form.get('contact.phone')?.invalid && form.get('contact.phone')?.touched
+                    "
+                    placeholder="+54 11 1234-5678"
+                  />
+                </div>
+                @if (form.get('contact.phone')?.invalid && form.get('contact.phone')?.touched) {
+                  <div class="invalid-feedback d-block mt-2">El teléfono es obligatorio.</div>
+                }
+              </div>
+            </div>
+
+            <div class="form-group mb-3" formGroupName="payments">
+              <label class="form-label text-label"
+                >Clave Pública Mercado Pago <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-key-fill"></i></span>
+                <input
+                  formControlName="mercadoPagoPublicKey"
+                  [type]="showMpKey() ? 'text' : 'password'"
+                  class="form-control glass-input font-monospace"
+                  [class.is-invalid]="
+                    form.get('payments.mercadoPagoPublicKey')?.invalid &&
+                    form.get('payments.mercadoPagoPublicKey')?.touched
+                  "
+                  placeholder="APP_USR-... o TEST-..."
+                />
+                <button
+                  (click)="toggleMpKeyVisibility()"
+                  type="button"
+                  class="btn btn-outline-secondary glass-btn"
+                >
+                  <i
+                    class="bi"
+                    [class.bi-eye-slash-fill]="showMpKey()"
+                    [class.bi-eye-fill]="!showMpKey()"
+                  ></i>
+                </button>
+              </div>
+              @if (
+                form.get('payments.mercadoPagoPublicKey')?.invalid &&
+                form.get('payments.mercadoPagoPublicKey')?.touched
+              ) {
+                <div class="invalid-feedback d-block mt-2">
+                  La clave pública es obligatoria para procesar transacciones.
+                </div>
+              }
+            </div>
+
+            <div class="form-group" formGroupName="seo">
+              <label class="form-label text-label"
+                >Meta Description (SEO) <span class="text-danger">*</span></label
+              >
+              <div class="input-group">
+                <span class="input-group-text align-items-start pt-3"
+                  ><i class="bi bi-search"></i
+                ></span>
+                <textarea
+                  formControlName="metaDescription"
+                  class="form-control glass-input glass-textarea"
+                  rows="2"
+                  [class.is-invalid]="
+                    form.get('seo.metaDescription')?.invalid &&
+                    form.get('seo.metaDescription')?.touched
+                  "
+                  placeholder="Breve descripción que aparecerá en buscadores..."
+                ></textarea>
+              </div>
+              @if (
+                form.get('seo.metaDescription')?.invalid && form.get('seo.metaDescription')?.touched
+              ) {
+                <div class="invalid-feedback d-block mt-2">La meta descripción es obligatoria.</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </form>
+
+    <!-- Stepper Navigation -->
+    <div class="wizard-actions mt-4">
+      @if (step() > 1) {
+        <button type="button" class="btn-outline-secondary" (click)="prev()">
+          <i class="bi bi-arrow-left me-2"></i> Atrás
+        </button>
+      }
+
+      @if (step() < totalSteps) {
+        <button
+          type="button"
+          class="btn-primary ms-auto"
+          [disabled]="step() === 1 ? !isStep1Valid() : !isStep2Valid()"
+          (click)="next()"
+        >
+          Siguiente <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+      }
+
+      @if (step() === totalSteps) {
+        <button
+          type="button"
+          class="btn-success ms-auto"
+          [disabled]="form.invalid || isSubmitting()"
+          (click)="onFinish()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          <i class="bi bi-rocket-takeoff-fill me-2" [class.d-none]="isSubmitting()"></i>
+          {{ isSubmitting() ? 'Iniciando tienda...' : 'Completar Setup' }}
+        </button>
+      }
+    </div>
+  </div>
+</div>

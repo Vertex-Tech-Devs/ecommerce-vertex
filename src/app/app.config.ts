@@ -1,5 +1,5 @@
 import type { ApplicationConfig } from '@angular/core';
-import { importProvidersFrom, provideAppInitializer, inject } from '@angular/core';
+import { importProvidersFrom, provideAppInitializer, inject, ErrorHandler } from '@angular/core';
 import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import type { FirebaseOptions } from 'firebase/app';
@@ -22,12 +22,18 @@ import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor
 import { StoreConfigService } from './core/services/store-config.service';
 import { SeoService } from './core/services/seo.service';
 import { StoreTitleStrategy } from './core/strategies/store-title.strategy';
+import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { routes } from './app.routes';
 
 export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationConfig {
   const createFirestore = (): Firestore => {
     const app = getApp();
+    const isCypress =
+      typeof window !== 'undefined' && (window as unknown as { Cypress?: unknown }).Cypress;
     try {
+      if (isCypress) {
+        return getFirestore(app);
+      }
       return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
     } catch {
       return getFirestore(app);
@@ -52,6 +58,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         inject(SeoService);
       }),
       { provide: TitleStrategy, useClass: StoreTitleStrategy },
+      { provide: ErrorHandler, useClass: GlobalErrorHandler },
     ],
   };
 }
