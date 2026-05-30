@@ -179,29 +179,48 @@ export class SeedContentService {
   }
 
   async seedFooter(): Promise<void> {
-    const storeName = this.storeConfigService.storeName() || 'Store';
-    const email = `contacto@${storeName.toLowerCase().replace(/\s+/g, '')}.com`;
-    await this.run(() =>
-      setDoc(doc(this.firestore, 'configuracion', 'footer'), {
-        contactPhone: '+54 11 4567-8900',
-        contactEmail: email,
-        socialInstagramUrl: `https://instagram.com/${storeName.toLowerCase().replace(/\s+/g, '')}`,
-        socialFacebookUrl: `https://facebook.com/${storeName.toLowerCase().replace(/\s+/g, '')}`,
-        socialWhatsAppUrl: 'https://wa.me/5491145678900',
-        copyrightText: `© 2026 ${storeName}. Todos los derechos reservados.`,
-      })
-    );
-  }
-
-  async seedStoreConfig(): Promise<void> {
+    const storeName = 'Mi Tienda Online';
+    const email = 'contacto@mitiendaonline.com';
     const payload: StoreConfig = {
       ...DEFAULT_STORE_CONFIG,
       tenantId: environment.tenantId,
       storeId: environment.tenantId,
+      storeName,
+      tagline: 'Tu tienda de moda de marca blanca',
+      colors: {
+        primary: '#ea580c',
+        accent: '#ef4444',
+        background: '#ffffff',
+      },
+      payments: {
+        mercadoPagoPublicKey: 'TEST-YOUR_PUBLIC_KEY',
+      },
+      contact: {
+        phone: '+54 11 4567-8900',
+        email,
+        whatsApp: 'https://wa.me/5491145678900',
+        instagram: 'https://instagram.com/mitiendaonline',
+        facebook: 'https://facebook.com/mitiendaonline',
+      },
+      seo: {
+        metaDescription: 'Bienvenido a nuestra tienda online de marca blanca.',
+      },
       setupCompleted: true,
+
+      // Mapeo legacy para mantener compatibilidad
+      contactPhone: '+54 11 4567-8900',
+      contactEmail: email,
+      socialInstagramUrl: 'https://instagram.com/mitiendaonline',
+      socialFacebookUrl: 'https://facebook.com/mitiendaonline',
+      socialWhatsAppUrl: 'https://wa.me/5491145678900',
+      copyrightText: `© 2026 ${storeName}. Todos los derechos reservados.`,
     };
     await this.run(() =>
       setDoc(doc(this.firestore, 'configuracion', environment.tenantId), payload)
     );
+  }
+
+  async seedStoreConfig(): Promise<void> {
+    // Ya cubierto por seedFooter para mantener la compatibilidad con el flujo de seedAllData
   }
 }
