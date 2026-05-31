@@ -8,6 +8,7 @@ import { SetupWizardComponent } from './setup-wizard.component';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { Firestore } from '@angular/fire/firestore';
 
 describe('SetupWizardComponent', () => {
   let component: SetupWizardComponent;
@@ -16,12 +17,14 @@ describe('SetupWizardComponent', () => {
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let firestoreSpy: jasmine.SpyObj<Firestore>;
 
   beforeEach(async () => {
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', ['saveConfig']);
     storageServiceSpy = jasmine.createSpyObj('StorageService', ['uploadFile']);
     sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['success', 'error']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    firestoreSpy = jasmine.createSpyObj('Firestore', ['type']);
 
     // Mock signals
     const mockStoreNameSignal = signal<string>('Test Store');
@@ -47,11 +50,13 @@ describe('SetupWizardComponent', () => {
         { provide: StorageService, useValue: storageServiceSpy },
         { provide: SweetAlertService, useValue: sweetAlertSpy },
         { provide: Router, useValue: routerSpy },
+        { provide: Firestore, useValue: firestoreSpy },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SetupWizardComponent);
     component = fixture.componentInstance;
+    spyOn(component, 'preAuthorizeAdminLocal').and.returnValue(Promise.resolve());
     fixture.detectChanges();
   });
 
@@ -129,6 +134,15 @@ describe('SetupWizardComponent', () => {
         metaDescription: 'My Meta Desc',
       },
     });
+
+    spyOn(window, 'fetch').and.returnValue(
+      Promise.resolve(
+        new Response(JSON.stringify({ result: { success: true } }), {
+          status: 200,
+          statusText: 'OK',
+        })
+      )
+    );
 
     await component.onFinish();
     expect(storeConfigServiceSpy.saveConfig).toHaveBeenCalled();
