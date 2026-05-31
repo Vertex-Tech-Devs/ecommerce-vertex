@@ -7,6 +7,8 @@ import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 import { environment } from '../../../../../environments/environment';
+import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { z } from 'zod';
 
 @Component({
   selector: 'app-setup-wizard',
@@ -20,6 +22,7 @@ export class SetupWizardComponent {
   private storeConfigService = inject(StoreConfigService);
   private storageService = inject(StorageService);
   private sweetAlert = inject(SweetAlertService);
+  private firestore = inject(Firestore);
 
   readonly step = signal(1);
   readonly totalSteps = 3;
@@ -137,21 +140,94 @@ export class SetupWizardComponent {
           ?.setValue(`Bienvenido a ${this.form.get('storeName')?.value as string}.`);
       }
 
-      const payload: StoreConfig = {
-        ...this.form.value,
-        tenantId: environment.tenantId,
+      const email = this.form.value.contact?.email;
+      const storeName = this.form.value.storeName;
+      const tenantId = environment.tenantId;
+
+      const rawPayload = {
+        email,
+        storeName,
+        tenantId,
+        contact: {
+          phone: this.form.value.contact?.phone ?? '',
+          email: this.form.value.contact?.email ?? '',
+          whatsApp: this.form.value.contact?.whatsApp ?? '',
+          instagram: this.form.value.contact?.instagram ?? '',
+          facebook: this.form.value.contact?.facebook ?? '',
+        },
       };
 
-      await this.storeConfigService.saveConfig(payload);
+      const ProvisionStoreAdminPayloadSchema = z.object({
+        email: z.string().email(),
+        storeName: z.string().min(1),
+        tenantId: z.string().min(1),
+        contact: z.object({
+          phone: z.string().min(1),
+          email: z.string().email(),
+          whatsApp: z.string().optional().or(z.literal('')),
+          instagram: z.string().optional().or(z.literal('')),
+          facebook: z.string().optional().or(z.literal('')),
+        }),
+      });
+
+      // Zod Validation
+      const validatedPayload = ProvisionStoreAdminPayloadSchema.parse(rawPayload);
+
+      // Determine platform function URL
+      const platformProjectId = environment.production
+        ? 'vertex-platform-app'
+        : 'vertex-platform-dev';
+      const isLocalhost =
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const functionUrl = isLocalhost
+        ? `http://127.0.0.1:5001/${platformProjectId}/us-central1/provisionStoreAdmin`
+        : `https://us-central1-${platformProjectId}.cloudfunctions.net/provisionStoreAdmin`;
+
+      // Dispatch HTTP POST request directly to vertex-platform central function
+      const response = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: validatedPayload }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}: ${await response.text()}`);
+      }
+
+      const resData = await response.json();
+      if (resData.error) {
+        throw new Error((resData.error.message as string) ?? 'Error en la provisión central.');
+      }
+
+      // Pre-authorize the email as admin in the tenant's local database
+      await this.preAuthorizeAdminLocal(email);
+
+      // Save local configuration to mark setupCompleted: true
+      const configPayload: StoreConfig = {
+        ...this.form.value,
+        tenantId,
+      };
+
+      await this.storeConfigService.saveConfig(configPayload);
       this.sweetAlert.success(
         '¡Felicitaciones!',
         'Tu tienda de marca blanca ha sido configurada con éxito corporativo.'
       );
-    } catch (err) {
+    } catch (err: unknown) {
       console.error(err);
-      this.sweetAlert.error('Error', 'No se pudo completar la configuración de la tienda.');
+      const errMsg =
+        err instanceof Error ? err.message : 'No se pudo completar la configuración de la tienda.';
+      this.sweetAlert.error('Error', errMsg);
     } finally {
       this.isSubmitting.set(false);
     }
+  }
+
+  async preAuthorizeAdminLocal(email: string): Promise<void> {
+    const adminRoleRef = doc(this.firestore, `admin_roles/${email.toLowerCase()}`);
+    await setDoc(adminRoleRef, { role: 'admin', updatedAt: new Date() });
   }
 }
