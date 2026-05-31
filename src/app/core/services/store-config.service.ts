@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
 import { environment } from '../../../environments/environment';
@@ -49,20 +50,44 @@ export class StoreConfigService {
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
   readonly isFirstRun = computed(() => !this.storeConfig()?.setupCompleted);
 
+  private titleService = inject(Title);
+
   constructor() {
-    // Dynamic theme injection reactive effect
+    // Dynamic theme, title and favicon injection reactive effect
     effect(() => {
       const config = this.storeConfig();
-      if (config?.colors) {
-        const root = document.documentElement;
-        if (config.colors.primary) {
-          root.style.setProperty('--color-primary', config.colors.primary);
+      if (config) {
+        // 1. Title reactivity
+        if (config.storeName) {
+          this.titleService.setTitle(config.storeName);
         }
-        if (config.colors.accent) {
-          root.style.setProperty('--color-accent', config.colors.accent);
+
+        // 2. Favicon reactivity
+        if (config.faviconUrl) {
+          const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+          if (link) {
+            link.href = config.faviconUrl;
+          } else {
+            const newLink = document.createElement('link');
+            newLink.rel = 'icon';
+            newLink.type = 'image/x-icon';
+            newLink.href = config.faviconUrl;
+            document.head.appendChild(newLink);
+          }
         }
-        if (config.colors.background) {
-          root.style.setProperty('--shop-bg', config.colors.background);
+
+        // 3. Colors styling injection
+        if (config.colors) {
+          const root = document.documentElement;
+          if (config.colors.primary) {
+            root.style.setProperty('--color-primary', config.colors.primary);
+          }
+          if (config.colors.accent) {
+            root.style.setProperty('--color-accent', config.colors.accent);
+          }
+          if (config.colors.background) {
+            root.style.setProperty('--shop-bg', config.colors.background);
+          }
         }
       }
     });
