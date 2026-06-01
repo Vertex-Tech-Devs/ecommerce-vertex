@@ -72,7 +72,7 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
  * Called from the login flow if the user doesn't yet have an admin claim,
  * to handle the race condition where onRoleChange ran before the user existed in Auth.
  */
-export const refreshMyAdminClaim = onCall(async (request) => {
+export const refreshMyAdminClaim = onCall({ cors: true }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
