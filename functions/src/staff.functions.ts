@@ -74,7 +74,7 @@ function buildInvitationEmailHtml(params: {
   `;
 }
 
-export const getAdminStaff = onCall(async (request) => {
+export const getAdminStaff = onCall({ cors: true }, async (request) => {
   ensureAdmin(request.auth);
 
   const staffSnapshot = await db
@@ -104,7 +104,7 @@ export const getAdminStaff = onCall(async (request) => {
   return { staff };
 });
 
-export const upsertAdminStaff = onCall(async (request) => {
+export const upsertAdminStaff = onCall({ cors: true }, async (request) => {
   ensureAdmin(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));
@@ -164,7 +164,7 @@ export const upsertAdminStaff = onCall(async (request) => {
   return { success: true, email, role: AUTHORIZED_ROLE };
 });
 
-export const revokeAdminStaff = onCall(async (request) => {
+export const revokeAdminStaff = onCall({ cors: true }, async (request) => {
   ensureAdmin(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));
