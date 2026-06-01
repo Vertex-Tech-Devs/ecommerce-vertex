@@ -1,6 +1,5 @@
 import type { Routes } from '@angular/router';
 import { AdminGuard } from '@core/guards/admin.guard';
-import { SeedDataGuard } from '@core/guards/seed-data.guard';
 
 export const routes: Routes = [
   {
@@ -19,11 +18,6 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () =>
           import('./features/admin/components/login/login.component').then((m) => m.LoginComponent),
-      },
-      {
-        path: '_dev',
-        canActivate: [AdminGuard, SeedDataGuard],
-        loadChildren: () => import('./features/dev/dev.routes').then((m) => m.DEV_ROUTES),
       },
       {
         path: '',
