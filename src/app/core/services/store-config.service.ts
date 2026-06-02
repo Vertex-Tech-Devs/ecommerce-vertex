@@ -102,7 +102,42 @@ export class StoreConfigService {
         const validatedData = StoreConfigSchema.parse(snap.data());
         this._storeConfig.set(validatedData as StoreConfig);
       } else {
-        this._storeConfig.set(null);
+        const fallbackRef = doc(this.firestore, 'settings', 'storeConfig');
+        const fallbackSnap = await Promise.race([getDoc(fallbackRef), timeout]);
+        if (fallbackSnap?.exists()) {
+          const raw = fallbackSnap.data();
+          const fallbackData = {
+            tenantId: environment.tenantId,
+            storeId: 'white-label-store',
+            storeName: raw['storeName'] ?? 'Mi Tienda',
+            tagline: raw['tagline'] ?? raw['strapline'] ?? '',
+            logoUrl: raw['logoUrl'] ?? '',
+            faviconUrl: raw['faviconUrl'] ?? '',
+            colors: raw['colors'] ?? {
+              primary: '#ea580c',
+              accent: '#ef4444',
+              background: '#ffffff',
+            },
+            payments: {
+              mercadoPagoPublicKey: raw['payments']?.['mercadoPago']?.['publicKey'] ?? '',
+            },
+            contact: {
+              phone: raw['contact']?.['phone'] ?? '',
+              email: raw['contact']?.['email'] ?? '',
+              whatsApp: raw['contact']?.['whatsapp'] ?? '',
+              instagram: '',
+              facebook: '',
+            },
+            seo: {
+              metaDescription: raw['seo']?.['metaDescription'] ?? 'Bienvenido',
+            },
+            setupCompleted: true,
+          };
+          const validatedData = StoreConfigSchema.parse(fallbackData);
+          this._storeConfig.set(validatedData as StoreConfig);
+        } else {
+          this._storeConfig.set(null);
+        }
       }
     } catch (err) {
       console.error('Error al cargar la configuración de la tienda:', err);
