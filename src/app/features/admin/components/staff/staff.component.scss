@@ -178,6 +178,8 @@
 }
 
 .staff-table {
+  --bs-table-bg: transparent !important;
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04) !important;
   color: rgba(255, 255, 255, 0.85);
 
   thead th {
