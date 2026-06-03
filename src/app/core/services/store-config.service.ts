@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
 import { environment } from '../../../environments/environment';
 import { z } from 'zod';
@@ -93,43 +94,60 @@ export class StoreConfigService {
     });
   }
 
+  protected getDocRef(path: string, ...segments: string[]): DocumentReference {
+    return doc(this.firestore, path, ...segments);
+  }
+
+  protected async getDocSnap(ref: DocumentReference): Promise<DocumentSnapshot> {
+    return getDoc(ref);
+  }
+
+  protected async setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
+    return setDoc(ref, data);
+  }
+
   async loadConfig(): Promise<void> {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
     try {
-      const docRef = doc(this.firestore, 'configuracion', environment.tenantId);
-      const snap = await Promise.race([getDoc(docRef), timeout]);
+      const docRef = this.getDocRef('configuracion', environment.tenantId);
+      const snap = await Promise.race([this.getDocSnap(docRef), timeout]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
         this._storeConfig.set(validatedData as StoreConfig);
       } else {
-        const fallbackRef = doc(this.firestore, 'settings', 'storeConfig');
-        const fallbackSnap = await Promise.race([getDoc(fallbackRef), timeout]);
+        const fallbackRef = this.getDocRef('settings', 'storeConfig');
+        const fallbackSnap = await Promise.race([this.getDocSnap(fallbackRef), timeout]);
         if (fallbackSnap?.exists()) {
-          const raw = fallbackSnap.data();
+          const raw = (fallbackSnap.data() as Record<string, unknown>) || {};
           const fallbackData = {
             tenantId: environment.tenantId,
             storeId: 'white-label-store',
-            storeName: raw['storeName'] ?? 'Mi Tienda',
-            tagline: raw['tagline'] ?? raw['strapline'] ?? '',
-            logoUrl: raw['logoUrl'] ?? '',
-            faviconUrl: raw['faviconUrl'] ?? '',
+            storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
+            tagline: (raw['tagline'] as string) ?? (raw['strapline'] as string) ?? '',
+            logoUrl: (raw['logoUrl'] as string) ?? '',
+            faviconUrl: (raw['faviconUrl'] as string) ?? '',
             colors: raw['colors'] ?? {
               primary: '#ea580c',
               accent: '#ef4444',
               background: '#ffffff',
             },
             payments: {
-              mercadoPagoPublicKey: raw['payments']?.['mercadoPago']?.['publicKey'] ?? '',
+              mercadoPagoPublicKey: (raw['payments'] as Record<string, unknown>)?.['mercadoPago']
+                ? ((raw['payments'] as Record<string, Record<string, string>>)['mercadoPago'][
+                    'publicKey'
+                  ] ?? '')
+                : '',
             },
             contact: {
-              phone: raw['contact']?.['phone'] ?? '',
-              email: raw['contact']?.['email'] ?? '',
-              whatsApp: raw['contact']?.['whatsapp'] ?? '',
+              phone: (raw['contact'] as Record<string, string>)?.['phone'] ?? '',
+              email: (raw['contact'] as Record<string, string>)?.['email'] ?? '',
+              whatsApp: (raw['contact'] as Record<string, string>)?.['whatsapp'] ?? '',
               instagram: '',
               facebook: '',
             },
             seo: {
-              metaDescription: raw['seo']?.['metaDescription'] ?? 'Bienvenido',
+              metaDescription:
+                (raw['seo'] as Record<string, string>)?.['metaDescription'] ?? 'Bienvenido',
             },
             setupCompleted: true,
           };
@@ -146,8 +164,11 @@ export class StoreConfigService {
   }
 
   async saveConfig(data: StoreConfig): Promise<void> {
-    const docRef = doc(this.firestore, 'configuracion', environment.tenantId);
-    await setDoc(docRef, { ...data, updatedAt: new Date() });
+    const docRef = this.getDocRef('configuracion', environment.tenantId);
+    await this.setDocData(docRef, {
+      ...(data as unknown as Record<string, unknown>),
+      updatedAt: new Date().toISOString(),
+    });
     this._storeConfig.set(data);
   }
 }

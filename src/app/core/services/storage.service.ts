@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Storage } from '@angular/fire/storage';
-import type { UploadTaskSnapshot } from 'firebase/storage';
+import type { StorageReference, UploadTask, UploadTaskSnapshot } from 'firebase/storage';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -18,11 +18,27 @@ export class StorageService {
   private readonly storage: Storage = inject(Storage);
   private sweetAlertService = inject(SweetAlertService);
 
+  protected getStorageRef(path: string): StorageReference {
+    return ref(this.storage, path);
+  }
+
+  protected uploadBytes(storageRef: StorageReference, file: File): UploadTask {
+    return uploadBytesResumable(storageRef, file);
+  }
+
+  protected async getDownloadUrl(taskRef: StorageReference): Promise<string> {
+    return getDownloadURL(taskRef);
+  }
+
+  protected async deleteStorageObject(storageRef: StorageReference): Promise<void> {
+    return deleteObject(storageRef);
+  }
+
   uploadFile(file: File, path: string): Upload {
     const filePath = `${path}/${Date.now()}_${file.name}`;
 
-    const storageRef = ref(this.storage, filePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const storageRef = this.getStorageRef(filePath);
+    const uploadTask = this.uploadBytes(storageRef, file);
 
     const progress$ = new Observable<number>((observer) => {
       const unsubscribe = uploadTask.on(
@@ -42,7 +58,7 @@ export class StorageService {
     const downloadUrl$ = new Observable<string>((observer) => {
       uploadTask
         .then((snapshot) => {
-          getDownloadURL(snapshot.ref)
+          this.getDownloadUrl(snapshot.ref)
             .then((url) => {
               observer.next(url);
               observer.complete();
@@ -65,8 +81,8 @@ export class StorageService {
       return from(Promise.resolve());
     }
 
-    const imageRef = ref(this.storage, imageUrl);
-    return from(deleteObject(imageRef)).pipe(
+    const imageRef = this.getStorageRef(imageUrl);
+    return from(this.deleteStorageObject(imageRef)).pipe(
       catchError((error) => {
         if (error.code === 'storage/object-not-found') {
           console.warn(

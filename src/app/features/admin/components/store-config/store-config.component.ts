@@ -1,11 +1,13 @@
 import type { OnInit } from '@angular/core';
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StoreConfigService, StoreConfigSchema } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { AuthService } from '@core/services/auth.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 
 @Component({
@@ -20,7 +22,9 @@ export class StoreConfigComponent implements OnInit {
   private storeConfigService = inject(StoreConfigService);
   private storageService = inject(StorageService);
   private sweetAlert = inject(SweetAlertService);
+  private authService = inject(AuthService);
 
+  readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   isSubmitting = false;
   activeTab = signal<'identity' | 'colors' | 'payments' | 'contact-seo'>('identity');
 
@@ -66,6 +70,19 @@ export class StoreConfigComponent implements OnInit {
     if (cfg) {
       this.form.patchValue(cfg);
     }
+
+    // Manage payments validators dynamically so non-owner admins can submit changes to identity/contact
+    this.authService.isOwner$.subscribe((isOwner) => {
+      const pmCtrl = this.form.get('payments.mercadoPagoPublicKey');
+      if (pmCtrl) {
+        if (isOwner) {
+          pmCtrl.setValidators([Validators.required]);
+        } else {
+          pmCtrl.clearValidators();
+        }
+        pmCtrl.updateValueAndValidity();
+      }
+    });
   }
 
   setTab(tab: 'identity' | 'colors' | 'payments' | 'contact-seo'): void {

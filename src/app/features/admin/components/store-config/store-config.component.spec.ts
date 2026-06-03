@@ -7,6 +7,7 @@ import { StoreConfigComponent } from './store-config.component';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { AuthService } from '@core/services/auth.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 
 describe('StoreConfigComponent', () => {
@@ -15,6 +16,7 @@ describe('StoreConfigComponent', () => {
   let storeConfigServiceSpy: jasmine.SpyObj<StoreConfigService>;
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
+  let authServiceSpy: jasmine.SpyObj<AuthService>;
 
   const mockConfig: StoreConfig = {
     tenantId: 'store',
@@ -51,6 +53,9 @@ describe('StoreConfigComponent', () => {
     ]);
     storageServiceSpy = jasmine.createSpyObj('StorageService', ['uploadFile']);
     sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['success', 'error']);
+    authServiceSpy = jasmine.createSpyObj('AuthService', [], {
+      isOwner$: of(true),
+    });
 
     // Mock signals
     const mockConfigSignal = signal<StoreConfig | null>(mockConfig);
@@ -79,6 +84,7 @@ describe('StoreConfigComponent', () => {
         { provide: StoreConfigService, useValue: storeConfigServiceSpy },
         { provide: StorageService, useValue: storageServiceSpy },
         { provide: SweetAlertService, useValue: sweetAlertSpy },
+        { provide: AuthService, useValue: authServiceSpy },
       ],
     }).compileComponents();
 
