@@ -126,28 +126,52 @@
                           </div>
                         </td>
                         <td>
-                          <span class="badge badge-role rounded-pill">
-                            <i class="bi bi-shield-fill-check me-1"></i>
-                            Administrador
-                          </span>
+                          @if (isOwner() && member.email.toLowerCase() !== currentUserEmail()) {
+                            <select
+                              class="form-select form-select-sm glass-input py-1 px-2"
+                              style="max-width: 180px; font-size: 0.8rem; height: auto"
+                              [value]="member.role"
+                              (change)="changeRole(member.email, $any($event.target).value)"
+                            >
+                              <option value="admin">Administrador</option>
+                              <option value="owner">Dueño (Owner)</option>
+                            </select>
+                          } @else {
+                            <span
+                              class="badge rounded-pill"
+                              [class.badge-owner]="member.role === 'owner'"
+                              [class.badge-role]="member.role !== 'owner'"
+                            >
+                              <i
+                                class="bi me-1"
+                                [class.bi-shield-fill-check]="member.role === 'admin'"
+                                [class.bi-star-fill]="member.role === 'owner'"
+                              ></i>
+                              {{ member.role === 'owner' ? 'Dueño' : 'Administrador' }}
+                            </span>
+                          }
                         </td>
                         <td class="text-end">
-                          <button
-                            type="button"
-                            class="btn btn-action-delete"
-                            [disabled]="removingEmail() === member.email"
-                            (click)="removeStaff(member.email)"
-                            title="Revocar acceso de administrador"
-                          >
-                            @if (removingEmail() === member.email) {
-                              <span
-                                class="spinner-border spinner-border-sm"
-                                aria-hidden="true"
-                              ></span>
-                            } @else {
-                              <i class="bi bi-trash3-fill"></i>
-                            }
-                          </button>
+                          @if (isOwner() && member.email.toLowerCase() !== currentUserEmail()) {
+                            <button
+                              type="button"
+                              class="btn btn-action-delete"
+                              [disabled]="removingEmail() === member.email"
+                              (click)="removeStaff(member.email)"
+                              title="Revocar acceso de administrador"
+                            >
+                              @if (removingEmail() === member.email) {
+                                <span
+                                  class="spinner-border spinner-border-sm"
+                                  aria-hidden="true"
+                                ></span>
+                              } @else {
+                                <i class="bi bi-trash3-fill"></i>
+                              }
+                            </button>
+                          } @else {
+                            <span class="text-muted small">-</span>
+                          }
                         </td>
                       </tr>
                     }

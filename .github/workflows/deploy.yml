@@ -274,7 +274,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event_name == 'repository_dispatch' && 'main' || github.ref }}
+          ref: ${{ github.event_name == 'repository_dispatch' && (github.event.client_payload.ref || 'main') || github.ref }}
 
       - uses: actions/setup-node@v6
         with:

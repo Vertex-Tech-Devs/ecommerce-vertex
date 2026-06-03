@@ -105,7 +105,7 @@ describe('refreshMyAdminClaim', () => {
       auth: { uid: 'uid-1', token: { email: 'admin@example.com' } },
     });
 
-    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-1', { admin: true, role: 'admin' });
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-1', { admin: true, role: 'admin', tenantId: 'store' });
     expect(result).toEqual({ granted: true });
   });
 
@@ -141,6 +141,6 @@ describe('refreshMyAdminClaim', () => {
       auth: { uid: 'uid-4', token: { email: '  ADMIN@Example.COM  ' } },
     });
 
-    expect(mockCollectionDoc).toHaveBeenCalledWith('admin@example.com');
+    expect(mockCollectionDoc).toHaveBeenCalledWith('store_admin@example.com');
   });
 });

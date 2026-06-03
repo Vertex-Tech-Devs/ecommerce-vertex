@@ -4,7 +4,6 @@ import { SweetAlertService } from './sweet-alert.service';
 import { SeedContentService } from './seed-content.service';
 import { SeedProductsService } from './seed-products.service';
 import { SeedOrdersService } from './seed-orders.service';
-import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class SeedDataService {
@@ -52,7 +51,6 @@ export class SeedDataService {
     for (const [c, d] of [
       ['siteContent', 'homePage'],
       ['pages', 'aboutUs'],
-      ['configuracion', environment.tenantId],
     ] as const) {
       await this.run(() => deleteDoc(doc(this.firestore, c, d)));
     }

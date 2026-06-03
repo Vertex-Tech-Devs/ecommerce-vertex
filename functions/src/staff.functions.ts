@@ -4,9 +4,8 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { COLLECTIONS } from "./core/config";
 
 const db = admin.firestore();
-const AUTHORIZED_ROLE = "admin";
 
-type StaffRole = "admin";
+type StaffRole = "admin" | "owner";
 
 interface StaffMember {
   email: string;
@@ -15,9 +14,9 @@ interface StaffMember {
   updatedAt?: string;
 }
 
-function ensureAdmin(requestAuth: { token?: Record<string, unknown>; uid?: string } | null | undefined): void {
-  if (!requestAuth?.token?.["admin"]) {
-    throw new HttpsError("permission-denied", "Only store admins can manage staff.");
+function ensureOwner(requestAuth: { token?: Record<string, unknown>; uid?: string } | null | undefined): void {
+  if (requestAuth?.token?.["role"] !== "owner") {
+    throw new HttpsError("permission-denied", "Only store owners can perform this action.");
   }
 }
 
@@ -74,57 +73,83 @@ function buildInvitationEmailHtml(params: {
   `;
 }
 
-export const getAdminStaff = onCall(async (request) => {
-  ensureAdmin(request.auth);
+function resolveTenantId(request: any): string {
+  if (request.auth?.token?.["tenantId"]) {
+    return String(request.auth.token["tenantId"]);
+  }
+  const origin = request.rawRequest?.headers?.origin || "";
+  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
+  const firstLabel = host.split(".")[0];
+  return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
+}
 
+export const getAdminStaff = onCall({ cors: true }, async (request) => {
+  ensureOwner(request.auth);
+
+  const tenantId = resolveTenantId(request);
   const staffSnapshot = await db
     .collection(COLLECTIONS.ADMIN_ROLES)
-    .orderBy("updatedAt", "desc")
+    .where("tenantId", "==", tenantId)
     .get();
 
   const staffCandidates = staffSnapshot.docs.map((doc): StaffMember | null => {
       const data = doc.data();
       const role = String(data["role"] || "").trim().toLowerCase();
-      if (role !== AUTHORIZED_ROLE) {
+      if (role !== "admin" && role !== "owner") {
         return null;
       }
 
+      const docId = doc.id;
+      const prefix = `${tenantId}_`;
+      let email = docId;
+      if (docId.startsWith(prefix)) {
+        email = docId.substring(prefix.length);
+      }
+
       return {
-        email: doc.id,
-        role: AUTHORIZED_ROLE,
+        email,
+        role: role as StaffRole,
         createdAt: formatTimestamp(data["createdAt"]),
         updatedAt: formatTimestamp(data["updatedAt"]),
       };
     });
 
-  const staff: StaffMember[] = staffCandidates.filter(
-    (item): item is StaffMember => item !== null,
-  );
+  const staff: StaffMember[] = staffCandidates
+    .filter((item): item is StaffMember => item !== null)
+    .sort((a, b) => {
+      const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+      const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+      return bTime - aTime;
+    });
 
   return { staff };
 });
 
-export const upsertAdminStaff = onCall(async (request) => {
-  ensureAdmin(request.auth);
+export const upsertAdminStaff = onCall({ cors: true }, async (request) => {
+  ensureOwner(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));
-  const role = String(request.data?.["role"] || "").trim().toLowerCase();
+  const role = String(request.data?.["role"] || "").trim().toLowerCase() as StaffRole;
 
   if (!email || !email.includes("@")) {
     throw new HttpsError("invalid-argument", "A valid email is required.");
   }
 
-  if (role !== AUTHORIZED_ROLE) {
-    throw new HttpsError("invalid-argument", "Only admin role is supported.");
+  if (role !== "admin" && role !== "owner") {
+    throw new HttpsError("invalid-argument", "Only owner or admin roles are supported.");
   }
 
+  const tenantId = resolveTenantId(request);
+  const compositeKey = `${tenantId}_${email}`;
+
   const now = admin.firestore.FieldValue.serverTimestamp();
-  const roleRef = db.collection(COLLECTIONS.ADMIN_ROLES).doc(email);
+  const roleRef = db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey);
   const existing = await roleRef.get();
 
   await roleRef.set(
     {
-      role: AUTHORIZED_ROLE,
+      role,
+      tenantId,
       source: "store-admin-panel",
       updatedAt: now,
       createdAt: existing.exists ? existing.get("createdAt") || now : now,
@@ -141,18 +166,18 @@ export const upsertAdminStaff = onCall(async (request) => {
     await db.collection(COLLECTIONS.MAIL).add({
       to: [email],
       message: {
-        subject: `Admin access granted for ${storeName}`,
+        subject: `${roleLabel(role)} access granted for ${storeName}`,
         html: buildInvitationEmailHtml({
           storeName,
-          role: AUTHORIZED_ROLE,
+          role,
           loginUrl,
           invitedByEmail,
         }),
-        text: `You now have admin access for ${storeName}. Sign in with Google OAuth: ${loginUrl}`,
+        text: `You now have ${roleLabel(role)} access for ${storeName}. Sign in with Google OAuth: ${loginUrl}`,
       },
       meta: {
         type: "staff-invite",
-        role: AUTHORIZED_ROLE,
+        role,
         invitedByEmail: invitedByEmail || null,
       },
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -161,11 +186,11 @@ export const upsertAdminStaff = onCall(async (request) => {
     logger.error("Failed to enqueue store staff invitation email", error);
   }
 
-  return { success: true, email, role: AUTHORIZED_ROLE };
+  return { success: true, email, role };
 });
 
-export const revokeAdminStaff = onCall(async (request) => {
-  ensureAdmin(request.auth);
+export const revokeAdminStaff = onCall({ cors: true }, async (request) => {
+  ensureOwner(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));
   if (!email || !email.includes("@")) {
@@ -177,6 +202,9 @@ export const revokeAdminStaff = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "You cannot revoke your own admin role.");
   }
 
-  await db.collection(COLLECTIONS.ADMIN_ROLES).doc(email).delete();
+  const tenantId = resolveTenantId(request);
+  const compositeKey = `${tenantId}_${email}`;
+
+  await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).delete();
   return { success: true, email };
 });

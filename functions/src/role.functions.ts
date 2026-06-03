@@ -7,14 +7,29 @@ import { COLLECTIONS } from "./core/config";
 
 const auth = admin.auth();
 const db = admin.firestore();
-const AUTHORIZED_ROLES = new Set(['admin']);
+const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
+
+function resolveTenantId(request: any): string {
+  if (request.auth?.token?.["tenantId"]) {
+    return String(request.auth.token["tenantId"]);
+  }
+  const origin = request.rawRequest?.headers?.origin || "";
+  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
+  const firstLabel = host.split(".")[0];
+  return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
+}
 
 /**
  * Triggered when a document is written in the 'admin_roles' collection.
  * Sets the corresponding custom claim on the user's auth token.
  */
-export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email}`, async (event) => {
-  const email = event.params.email;
+export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{compositeId}`, async (event) => {
+  const compositeId = event.params.compositeId;
+  const firstUnderscore = compositeId.indexOf('_');
+  if (firstUnderscore === -1) return;
+  const tenantId = compositeId.substring(0, firstUnderscore);
+  const email = compositeId.substring(firstUnderscore + 1);
+
   const afterData = event.data?.after.data();
   const nextRole = String(afterData?.role || '').trim().toLowerCase();
   const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
@@ -33,7 +48,7 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email
   
   if (!afterData || !isAuthorizedRole) {
     logger.info(`Revoking admin access for user: ${email} (UID: ${user.uid})`);
-    await auth.setCustomUserClaims(user.uid, { admin: false });
+    await auth.setCustomUserClaims(user.uid, { admin: false, role: null, tenantId: null });
     return;
   }
 
@@ -42,8 +57,8 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{email
     return;
   }
 
-  logger.info(`Setting admin access claims for user: ${email} (UID: ${user.uid}) role=${nextRole}`);
-  await auth.setCustomUserClaims(user.uid, { admin: true, role: nextRole });
+  logger.info(`Setting admin access claims for user: ${email} (UID: ${user.uid}) role=${nextRole} tenantId=${tenantId}`);
+  await auth.setCustomUserClaims(user.uid, { admin: true, role: nextRole, tenantId });
 });
 
 /**
@@ -56,11 +71,16 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
 
   const email = user.email.trim().toLowerCase();
   try {
-    const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(email).get();
-    const role = String(doc.data()?.role || '').trim().toLowerCase();
-    if (doc.exists && AUTHORIZED_ROLES.has(role)) {
-      logger.info(`Setting admin access claims for newly registered user: ${email} (UID: ${user.uid}) role=${role}`);
-      await auth.setCustomUserClaims(user.uid, { admin: true, role });
+    const snapshot = await db.collection(COLLECTIONS.ADMIN_ROLES).get();
+    const doc = snapshot.docs.find(d => d.id.endsWith(`_${email}`));
+    if (doc) {
+      const data = doc.data();
+      const role = String(data?.role || '').trim().toLowerCase();
+      const tenantId = data?.tenantId || '';
+      if (AUTHORIZED_ROLES.has(role)) {
+        logger.info(`Setting admin access claims for newly registered user: ${email} (UID: ${user.uid}) role=${role} tenantId=${tenantId}`);
+        await auth.setCustomUserClaims(user.uid, { admin: true, role, tenantId });
+      }
     }
   } catch (error) {
     logger.error(`Error setting admin claim on user creation for ${email}:`, error);
@@ -72,7 +92,7 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
  * Called from the login flow if the user doesn't yet have an admin claim,
  * to handle the race condition where onRoleChange ran before the user existed in Auth.
  */
-export const refreshMyAdminClaim = onCall(async (request) => {
+export const refreshMyAdminClaim = onCall({ cors: true }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
@@ -83,12 +103,15 @@ export const refreshMyAdminClaim = onCall(async (request) => {
   }
 
   const uid = request.auth.uid;
-  const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(String(email).trim().toLowerCase()).get();
+  const tenantId = resolveTenantId(request);
+  const compositeKey = `${tenantId}_${String(email).trim().toLowerCase()}`;
+
+  const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
   const role = String(doc.data()?.role || '').trim().toLowerCase();
 
   if (doc.exists && AUTHORIZED_ROLES.has(role)) {
-    logger.info(`refreshMyAdminClaim: granting admin claim to ${email} (UID: ${uid})`);
-    await auth.setCustomUserClaims(uid, { admin: true, role });
+    logger.info(`refreshMyAdminClaim: granting admin claim to ${email} (UID: ${uid}) tenantId=${tenantId}`);
+    await auth.setCustomUserClaims(uid, { admin: true, role, tenantId });
     return { granted: true };
   }
 

@@ -42,6 +42,21 @@ export class AuthService {
     })
   );
 
+  isOwner$: Observable<boolean> = this.currentUser$.pipe(
+    switchMap((currentUser) => {
+      if (!currentUser) {
+        return of(false);
+      }
+      return from(currentUser.getIdTokenResult());
+    }),
+    map((tokenResult) => {
+      if (tokenResult && typeof tokenResult === 'object') {
+        return tokenResult.claims['role'] === 'owner';
+      }
+      return false;
+    })
+  );
+
   loginWithGoogle(): Observable<UserCredential> {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
