@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import type { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, AbstractControl } from '@angular/forms';
@@ -8,9 +9,11 @@ import { firstValueFrom } from 'rxjs';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
 
+import { map } from 'rxjs/operators';
+
 export interface AdminRole {
   email: string;
-  role: 'admin';
+  role: 'admin' | 'owner';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -28,10 +31,16 @@ export class StaffComponent implements OnInit {
   private sweetAlertService = inject(SweetAlertService);
   private authService = inject(AuthService);
 
+  readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
+  readonly currentUserEmail = toSignal(
+    this.authService.currentUser$.pipe(map((u) => u?.email?.toLowerCase() ?? '')),
+    { initialValue: '' }
+  );
   readonly staffList = signal<AdminRole[]>([]);
   readonly staffForm: FormGroup;
-  readonly roleOptions: Array<{ value: 'admin'; label: string }> = [
-    { value: 'admin', label: 'Administrador (Acceso completo)' },
+  readonly roleOptions: Array<{ value: 'admin' | 'owner'; label: string }> = [
+    { value: 'admin', label: 'Administrador (Acceso limitado)' },
+    { value: 'owner', label: 'Dueño (Acceso completo)' },
   ];
 
   readonly isLoading = signal(true);
@@ -88,14 +97,14 @@ export class StaffComponent implements OnInit {
 
     try {
       const upsertStaff = httpsCallable<
-        { email: string; role: 'admin' },
-        { success: boolean; email: string; role: 'admin' }
+        { email: string; role: 'admin' | 'owner' },
+        { success: boolean; email: string; role: 'admin' | 'owner' }
       >(this.functions, 'upsertAdminStaff');
-      await upsertStaff({ email: normalizedEmail, role: role as 'admin' });
+      await upsertStaff({ email: normalizedEmail, role: role as 'admin' | 'owner' });
 
       this.sweetAlertService.success(
         'Miembro Agregado',
-        `El usuario ${normalizedEmail} fue autorizado como administrador.`
+        `El usuario ${normalizedEmail} fue autorizado con el rol seleccionado.`
       );
       this.staffForm.reset({ email: '', role: 'admin' });
       await this.loadStaff();
@@ -149,6 +158,45 @@ export class StaffComponent implements OnInit {
       this.sweetAlertService.error('Error', 'No se pudieron revocar los privilegios del usuario.');
     } finally {
       this.removingEmail.set(null);
+    }
+  }
+
+  async changeRole(email: string, newRole: 'admin' | 'owner'): Promise<void> {
+    if (this.currentUserEmail() === email.toLowerCase()) {
+      this.sweetAlertService.error('Acción no permitida', 'No podés cambiar tu propio rol.');
+      return;
+    }
+
+    const confirmResult = await this.sweetAlertService.confirm(
+      '¿Confirmás el cambio de rol?',
+      `El usuario ${email} pasará a tener el rol de ${newRole === 'owner' ? 'Dueño' : 'Administrador'}.`,
+      'question'
+    );
+
+    if (!confirmResult) {
+      // Re-load staff to revert select state in UI
+      void this.loadStaff();
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    try {
+      const upsertStaff = httpsCallable<
+        { email: string; role: 'admin' | 'owner' },
+        { success: boolean; email: string; role: 'admin' | 'owner' }
+      >(this.functions, 'upsertAdminStaff');
+      await upsertStaff({ email: email.toLowerCase(), role: newRole });
+
+      this.sweetAlertService.success(
+        'Rol Actualizado',
+        `El rol de ${email} fue actualizado con éxito.`
+      );
+      await this.loadStaff();
+    } catch (err: unknown) {
+      console.error('[Change Role Error]:', err);
+      this.sweetAlertService.error('Error', 'No se pudo actualizar el rol del usuario.');
+      await this.loadStaff();
     }
   }
 }

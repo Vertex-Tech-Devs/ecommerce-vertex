@@ -22,28 +22,20 @@
           <i class="bi bi-palette-fill me-2"></i>Identidad
         </button>
       </li>
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          [class.active]="activeTab() === 'colors'"
-          (click)="setTab('colors')"
-          type="button"
-          role="tab"
-        >
-          <i class="bi bi-brush-fill me-2"></i>Colores & Visual
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          [class.active]="activeTab() === 'payments'"
-          (click)="setTab('payments')"
-          type="button"
-          role="tab"
-        >
-          <i class="bi bi-credit-card-fill me-2"></i>Pasarela de Pagos
-        </button>
-      </li>
+
+      @if (isOwner()) {
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            [class.active]="activeTab() === 'payments'"
+            (click)="setTab('payments')"
+            type="button"
+            role="tab"
+          >
+            <i class="bi bi-credit-card-fill me-2"></i>Pasarela de Pagos
+          </button>
+        </li>
+      }
       <li class="nav-item" role="presentation">
         <button
           class="nav-link"
@@ -200,160 +192,8 @@
           </div>
         }
 
-        <!-- Tab 2: Colores y Visual -->
-        @if (activeTab() === 'colors') {
-          <div class="tab-pane active" role="tabpanel" formGroupName="colors">
-            <div class="glass-card card-colors">
-              <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-palette me-2"></i> Paleta de Colores Corporativos
-              </div>
-              <div class="card-body">
-                <div class="row g-4">
-                  <div class="col-md-4">
-                    <label class="form-label text-label"
-                      >Color Primario <span class="text-danger">*</span></label
-                    >
-                    <div class="input-group color-input-group">
-                      <input
-                        formControlName="primary"
-                        type="color"
-                        class="form-control glass-input color-picker-input"
-                      />
-                      <span class="input-group-text font-monospace text-uppercase">{{
-                        form.get('colors.primary')?.value
-                      }}</span>
-                    </div>
-                  </div>
-
-                  <div class="col-md-4">
-                    <label class="form-label text-label"
-                      >Color Acento <span class="text-danger">*</span></label
-                    >
-                    <div class="input-group color-input-group">
-                      <input
-                        formControlName="accent"
-                        type="color"
-                        class="form-control glass-input color-picker-input"
-                      />
-                      <span class="input-group-text font-monospace text-uppercase">{{
-                        form.get('colors.accent')?.value
-                      }}</span>
-                    </div>
-                  </div>
-
-                  <div class="col-md-4">
-                    <label class="form-label text-label"
-                      >Fondo Principal <span class="text-danger">*</span></label
-                    >
-                    <div class="input-group color-input-group">
-                      <input
-                        formControlName="background"
-                        type="color"
-                        class="form-control glass-input color-picker-input"
-                      />
-                      <span class="input-group-text font-monospace text-uppercase">{{
-                        form.get('colors.background')?.value
-                      }}</span>
-                    </div>
-                  </div>
-
-                  <div class="col-12 mt-5">
-                    <h5 class="text-white mb-3">
-                      <i class="bi bi-eye me-2"></i>Previsualización en Vivo (Live Preview)
-                    </h5>
-                    <div
-                      class="preview-theme-container p-4 rounded-3 border d-flex flex-column gap-3"
-                      [style.background-color]="form.get('colors.background')?.value"
-                    >
-                      <nav
-                        class="preview-navbar d-flex justify-content-between align-items-center p-3 rounded"
-                        style="
-                          background: rgba(0, 0, 0, 0.05);
-                          border: 1px solid rgba(0, 0, 0, 0.1);
-                        "
-                      >
-                        <span class="fw-bold" style="color: #333">{{
-                          form.get('storeName')?.value || 'Mi Tienda'
-                        }}</span>
-                        <div class="d-flex gap-3">
-                          <span style="font-size: 0.85rem; font-weight: 500; color: #555"
-                            >Inicio</span
-                          >
-                          <span style="font-size: 0.85rem; font-weight: 500; color: #555"
-                            >Catálogo</span
-                          >
-                        </div>
-                      </nav>
-
-                      <div class="row g-3">
-                        <div class="col-md-8">
-                          <div
-                            class="p-4 rounded shadow-sm d-flex flex-column gap-2"
-                            style="background: white; border: 1px solid rgba(0, 0, 0, 0.08)"
-                          >
-                            <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: #111">
-                              {{ form.get('tagline')?.value || 'Eslogan de tu tienda' }}
-                            </h2>
-                            <p style="margin: 0; font-size: 0.9rem; color: #666">
-                              Descubrí nuestra increíble línea de productos premium con despacho a
-                              todo el país y pagos totalmente seguros.
-                            </p>
-                            <div class="d-flex gap-2 mt-2">
-                              <button
-                                type="button"
-                                class="btn text-white fw-semibold"
-                                [style.background-color]="form.get('colors.primary')?.value"
-                                [style.border-color]="form.get('colors.primary')?.value"
-                              >
-                                Comprar Ahora
-                              </button>
-                              <button
-                                type="button"
-                                class="btn fw-semibold"
-                                [style.color]="form.get('colors.accent')?.value"
-                                [style.border-color]="form.get('colors.accent')?.value"
-                                style="background: transparent; border: 1px solid"
-                              >
-                                Ver Detalles
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="col-md-4">
-                          <div
-                            class="p-3 rounded shadow-sm d-flex flex-column gap-2 text-center"
-                            style="background: white; border: 1px solid rgba(0, 0, 0, 0.08)"
-                          >
-                            <div
-                              class="mx-auto rounded-circle d-flex align-items-center justify-content-center"
-                              [style.background-color]="form.get('colors.accent')?.value"
-                              style="width: 48px; height: 48px; color: white"
-                            >
-                              <i class="bi bi-gift-fill" style="font-size: 1.25rem"></i>
-                            </div>
-                            <h4 style="margin: 0; font-size: 1rem; font-weight: 600; color: #222">
-                              Ofertas Especiales
-                            </h4>
-                            <span
-                              class="badge"
-                              [style.background-color]="form.get('colors.primary')?.value"
-                              style="font-size: 0.75rem"
-                              >Hasta 30% OFF</span
-                            >
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-
         <!-- Tab 3: Pasarela de Pagos -->
-        @if (activeTab() === 'payments') {
+        @if (activeTab() === 'payments' && isOwner()) {
           <div class="tab-pane active" role="tabpanel" formGroupName="payments">
             <div class="glass-card card-payments">
               <div class="card-header border-0 fw-bold d-flex align-items-center">
