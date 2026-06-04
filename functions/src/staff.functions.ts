@@ -74,16 +74,16 @@ function buildInvitationEmailHtml(params: {
 }
 
 function resolveTenantId(request: any): string {
-  if (request.auth?.token?.["tenantId"]) {
-    return String(request.auth.token["tenantId"]);
-  }
   const origin = request.rawRequest?.headers?.origin || "";
   const host = origin.replace(/^https?:\/\//, "").split(":")[0];
-  const firstLabel = host.split(".")[0];
+  let firstLabel = host.split(".")[0];
+  if (firstLabel && firstLabel.startsWith("vtx-")) {
+    firstLabel = firstLabel.substring(4);
+  }
   return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
 }
 
-export const getAdminStaff = onCall({ cors: true }, async (request) => {
+export const getAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {
   ensureOwner(request.auth);
 
   const tenantId = resolveTenantId(request);
@@ -125,7 +125,7 @@ export const getAdminStaff = onCall({ cors: true }, async (request) => {
   return { staff };
 });
 
-export const upsertAdminStaff = onCall({ cors: true }, async (request) => {
+export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {
   ensureOwner(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));
@@ -189,7 +189,7 @@ export const upsertAdminStaff = onCall({ cors: true }, async (request) => {
   return { success: true, email, role };
 });
 
-export const revokeAdminStaff = onCall({ cors: true }, async (request) => {
+export const revokeAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {
   ensureOwner(request.auth);
 
   const email = normalizeEmail(String(request.data?.["email"] || ""));

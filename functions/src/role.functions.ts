@@ -15,7 +15,10 @@ function resolveTenantId(request: any): string {
   }
   const origin = request.rawRequest?.headers?.origin || "";
   const host = origin.replace(/^https?:\/\//, "").split(":")[0];
-  const firstLabel = host.split(".")[0];
+  let firstLabel = host.split(".")[0];
+  if (firstLabel && firstLabel.startsWith("vtx-")) {
+    firstLabel = firstLabel.substring(4);
+  }
   return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
 }
 
@@ -92,7 +95,7 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
  * Called from the login flow if the user doesn't yet have an admin claim,
  * to handle the race condition where onRoleChange ran before the user existed in Auth.
  */
-export const refreshMyAdminClaim = onCall({ cors: true }, async (request) => {
+export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Must be signed in.');
   }
