@@ -62,7 +62,7 @@ async function resolveSecret(secretId: string): Promise<string> {
   }
 }
 
-export const validateMercadoPagoCredentials = onCall({ cors: true }, async (request) => {
+export const validateMercadoPagoCredentials = onCall({ cors: true, invoker: 'public' }, async (request) => {
   if (!request.auth?.token?.['admin']) {
     throw new HttpsError('permission-denied', 'Solo admins pueden validar credenciales de Mercado Pago.');
   }
@@ -105,7 +105,7 @@ export const validateMercadoPagoCredentials = onCall({ cors: true }, async (requ
   }
 });
 
-export const upsertMercadoPagoCredentials = onCall({ cors: true }, async (request) => {
+export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'public' }, async (request) => {
   if (!request.auth?.token?.['admin']) {
     throw new HttpsError('permission-denied', 'Solo admins pueden actualizar credenciales de Mercado Pago.');
   }
@@ -209,7 +209,7 @@ async function revertStockOnFailure(orderId: string) {
   }
 }
 
-export const createPaymentPreference = onCall({ cors: true }, async (request) => {
+export const createPaymentPreference = onCall({ cors: true, invoker: 'public' }, async (request) => {
   const validationResult = PaymentRequestSchema.safeParse(request.data);
   if (!validationResult.success) {
     logger.warn("Solicitud de pago con datos inválidos.", {

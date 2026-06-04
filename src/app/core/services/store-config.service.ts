@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
@@ -7,31 +7,39 @@ import { environment } from '../../../environments/environment';
 import { z } from 'zod';
 
 export const StoreConfigSchema = z.object({
-  tenantId: z.string(),
-  storeId: z.string(),
-  storeName: z.string(),
-  tagline: z.string(),
-  logoUrl: z.string(),
-  faviconUrl: z.string(),
-  colors: z.object({
-    primary: z.string(),
-    accent: z.string(),
-    background: z.string(),
-  }),
-  payments: z.object({
-    mercadoPagoPublicKey: z.string(),
-  }),
-  contact: z.object({
-    phone: z.string(),
-    email: z.string(),
-    whatsApp: z.string(),
-    instagram: z.string(),
-    facebook: z.string(),
-  }),
-  seo: z.object({
-    metaDescription: z.string(),
-  }),
-  setupCompleted: z.boolean(),
+  tenantId: z.string().default('').catch(''),
+  storeId: z.string().default('white-label-store').catch('white-label-store'),
+  storeName: z.string().default('Mi Tienda').catch('Mi Tienda'),
+  tagline: z.string().default('').catch(''),
+  logoUrl: z.string().default('').catch(''),
+  faviconUrl: z.string().default('').catch(''),
+  colors: z
+    .object({
+      primary: z.string().default('#ea580c').catch('#ea580c'),
+      accent: z.string().default('#ef4444').catch('#ef4444'),
+      background: z.string().default('#ffffff').catch('#ffffff'),
+    })
+    .default({}),
+  payments: z
+    .object({
+      mercadoPagoPublicKey: z.string().default('').catch(''),
+    })
+    .default({}),
+  contact: z
+    .object({
+      phone: z.string().default('').catch(''),
+      email: z.string().default('').catch(''),
+      whatsApp: z.string().default('').catch(''),
+      instagram: z.string().default('').catch(''),
+      facebook: z.string().default('').catch(''),
+    })
+    .default({}),
+  seo: z
+    .object({
+      metaDescription: z.string().default('').catch(''),
+    })
+    .default({}),
+  setupCompleted: z.boolean().default(true).catch(true),
   contactPhone: z.string().optional(),
   contactEmail: z.string().optional(),
   socialInstagramUrl: z.string().optional(),
@@ -43,6 +51,8 @@ export const StoreConfigSchema = z.object({
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
   private firestore = inject(Firestore);
+  private titleService = inject(Title);
+  private metaService = inject(Meta);
 
   private readonly _storeConfig = signal<StoreConfig | null>(null);
   readonly storeConfig = this._storeConfig.asReadonly();
@@ -50,8 +60,6 @@ export class StoreConfigService {
   readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
   readonly isFirstRun = computed(() => !this.storeConfig()?.setupCompleted);
-
-  private titleService = inject(Title);
 
   constructor() {
     // Dynamic theme, title and favicon injection reactive effect
@@ -61,6 +69,11 @@ export class StoreConfigService {
         // 1. Title reactivity
         if (config.storeName) {
           this.titleService.setTitle(config.storeName);
+        }
+
+        // 1b. SEO Meta Description reactivity
+        if (config.seo?.metaDescription) {
+          this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
         }
 
         // 2. Favicon reactivity
