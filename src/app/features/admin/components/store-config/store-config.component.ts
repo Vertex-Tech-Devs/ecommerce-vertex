@@ -50,7 +50,7 @@ export class StoreConfigComponent implements OnInit {
       background: ['#ffffff', Validators.required],
     }),
     payments: this.fb.group({
-      mercadoPagoPublicKey: ['', Validators.required],
+      mercadoPagoPublicKey: [''],
     }),
     contact: this.fb.group({
       phone: ['', Validators.required],
@@ -68,21 +68,54 @@ export class StoreConfigComponent implements OnInit {
   ngOnInit(): void {
     const cfg = this.storeConfigService.storeConfig();
     if (cfg) {
-      this.form.patchValue(cfg);
+      this.form.patchValue({
+        tenantId: cfg.tenantId || '',
+        storeId: cfg.storeId || 'white-label-store',
+        storeName: cfg.storeName || '',
+        tagline: cfg.tagline || 'La mejor tienda online',
+        logoUrl: cfg.logoUrl || '',
+        faviconUrl: cfg.faviconUrl || '',
+        colors: {
+          primary: cfg.colors?.primary || '#ea580c',
+          accent: cfg.colors?.accent || '#ef4444',
+          background: cfg.colors?.background || '#ffffff',
+        },
+        payments: {
+          mercadoPagoPublicKey: cfg.payments?.mercadoPagoPublicKey || '',
+        },
+        contact: {
+          phone: cfg.contact?.phone || '+54 11 1234-5678',
+          email: cfg.contact?.email || 'contacto@mitienda.com',
+          whatsApp: cfg.contact?.whatsApp || '',
+          instagram: cfg.contact?.instagram || '',
+          facebook: cfg.contact?.facebook || '',
+        },
+        seo: {
+          metaDescription: cfg.seo?.metaDescription || 'Bienvenidos a mi tienda virtual.',
+        },
+        setupCompleted: cfg.setupCompleted ?? true,
+      });
+    } else {
+      this.form.patchValue({
+        storeName: 'Mi Tienda',
+        tagline: 'La mejor tienda online',
+        colors: {
+          primary: '#ea580c',
+          accent: '#ef4444',
+          background: '#ffffff',
+        },
+        contact: {
+          phone: '+54 11 1234-5678',
+          email: 'contacto@mitienda.com',
+          whatsApp: '',
+          instagram: '',
+          facebook: '',
+        },
+        seo: {
+          metaDescription: 'Bienvenidos a mi tienda virtual.',
+        },
+      });
     }
-
-    // Manage payments validators dynamically so non-owner admins can submit changes to identity/contact
-    this.authService.isOwner$.subscribe((isOwner) => {
-      const pmCtrl = this.form.get('payments.mercadoPagoPublicKey');
-      if (pmCtrl) {
-        if (isOwner) {
-          pmCtrl.setValidators([Validators.required]);
-        } else {
-          pmCtrl.clearValidators();
-        }
-        pmCtrl.updateValueAndValidity();
-      }
-    });
   }
 
   setTab(tab: 'identity' | 'colors' | 'payments' | 'contact-seo'): void {

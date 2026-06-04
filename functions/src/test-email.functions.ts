@@ -56,7 +56,7 @@ function buildTestEmailHtml(template: string, testData: { [key: string]: string 
 }
 
 
-export const sendAdvancedTestEmail = onCall({ cors: true }, async (request) => {
+export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, async (request) => {
   if (!request.auth || !request.auth.token.admin) {
     logger.error(
       "Unauthorized attempt to call 'sendAdvancedTestEmail'",

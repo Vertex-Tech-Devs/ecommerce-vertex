@@ -5,15 +5,39 @@ import { AppComponent } from './app/app.component';
 import { environment } from './environments/environment';
 import { STORE_CONFIG } from './environments/store.config';
 
+// 1. Dynamic Tenant ID inference from Hostname & Query Parameter override
+if (globalThis.location) {
+  const host = (globalThis.location.hostname ?? '').trim().toLowerCase();
+  if (host && host !== 'localhost' && host !== '127.0.0.1') {
+    let firstLabel = host.split('.')[0] ?? '';
+    if (firstLabel.startsWith('vtx-')) {
+      firstLabel = firstLabel.substring(4);
+    }
+    if (firstLabel) {
+      environment.tenantId = firstLabel;
+    }
+  }
+
+  const urlParams = new URLSearchParams(globalThis.location.search);
+  const queryTenantId = urlParams.get('tenantId');
+  if (queryTenantId) {
+    environment.tenantId = queryTenantId.trim();
+  }
+}
+
 function inferStoreNameFromHostname(): string {
   const host = (globalThis.location?.hostname ?? '').trim().toLowerCase();
   if (!host) {
     return '';
   }
 
-  const firstLabel = host.split('.')[0] ?? '';
+  let firstLabel = host.split('.')[0] ?? '';
   if (!firstLabel || firstLabel === 'localhost') {
     return '';
+  }
+
+  if (firstLabel.startsWith('vtx-')) {
+    firstLabel = firstLabel.substring(4);
   }
 
   return firstLabel
