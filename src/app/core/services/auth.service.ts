@@ -16,6 +16,7 @@ import { switchMap, map } from 'rxjs/operators';
 import { user } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SweetAlertService } from './sweet-alert.service';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -90,6 +91,13 @@ export class AuthService {
           if (!tokenResult.claims['admin']) {
             await signOut(this.auth);
             throw new Error('permission-denied');
+          }
+
+          // Validate this admin belongs to the current store's tenant.
+          const claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+          if (claimedTenantId && claimedTenantId !== environment.tenantId) {
+            await signOut(this.auth);
+            throw new Error('wrong-tenant');
           }
 
           return result;

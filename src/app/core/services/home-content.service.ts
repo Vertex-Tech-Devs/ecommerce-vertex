@@ -1,10 +1,13 @@
 import { inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { docData, Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { firstValueFrom } from 'rxjs';
+import { from } from 'rxjs';
+import { firstValueFrom, switchMap } from 'rxjs';
 import type { HeroBanner } from '../models/home-content.model';
 import { StorageService } from './storage.service';
+import { tenantPath } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -14,12 +17,21 @@ export class HomeContentService {
   private storageService = inject(StorageService);
   private injector = inject(Injector);
 
-  private readonly docPath = 'siteContent/homePage';
+  private get docRef(): DocumentReference<DocumentData> {
+    return doc(this.firestore, tenantPath('siteContent'), 'homePage');
+  }
 
   getHeroBanner(): Observable<HeroBanner | null> {
     return runInInjectionContext(this.injector, () => {
-      const docRef = doc(this.firestore, this.docPath);
-      return docData(docRef) as Observable<HeroBanner | null>;
+      const tenantRef = this.docRef;
+      const legacyRef = doc(this.firestore, 'siteContent', 'homePage');
+      return from(getDoc(tenantRef)).pipe(
+        switchMap((snap) =>
+          snap.exists()
+            ? (docData(tenantRef) as Observable<HeroBanner | null>)
+            : (docData(legacyRef) as Observable<HeroBanner | null>)
+        )
+      );
     });
   }
 
@@ -29,7 +41,7 @@ export class HomeContentService {
     newCategoryFiles: (File | null)[],
     newHeroFiles: File[] = []
   ): Promise<void> {
-    const docRef = doc(this.firestore, this.docPath);
+    const docRef = this.docRef;
     const dataToSave = { ...contentData };
 
     const currentDocSnap = await getDoc(docRef);

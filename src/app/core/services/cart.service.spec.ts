@@ -4,6 +4,9 @@ import { CartService } from './cart.service';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
 import type { Product, ProductVariant } from '@core/models/product.model';
+import { environment } from '../../../environments/environment';
+
+const CART_KEY = `cart_${environment.tenantId}`;
 
 const makeProduct = (overrides: Partial<Product> = {}): Product => ({
   id: 'prod-1',
@@ -195,7 +198,7 @@ describe('CartService', () => {
       service.addItem(makeProduct(), makeVariant(), 1);
       TestBed.flushEffects();
 
-      const stored = localStorage.getItem('my_cart');
+      const stored = localStorage.getItem(CART_KEY);
       expect(stored).toBeTruthy();
       const parsed = JSON.parse(stored!);
       expect(parsed.items.length).toBe(1);
@@ -203,7 +206,7 @@ describe('CartService', () => {
 
     it('should load the cart from localStorage on init', () => {
       const cart = { items: [{ id: 'var-1', quantity: 2, price: 50 }], total: 100 };
-      localStorage.setItem('my_cart', JSON.stringify(cart));
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
 
       // Re-create service to trigger constructor load
       TestBed.resetTestingModule();
@@ -220,7 +223,7 @@ describe('CartService', () => {
     });
 
     it('should return empty cart when stored JSON has no items array', () => {
-      localStorage.setItem('my_cart', JSON.stringify({ total: 0 }));
+      localStorage.setItem(CART_KEY, JSON.stringify({ total: 0 }));
 
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
@@ -236,7 +239,7 @@ describe('CartService', () => {
     });
 
     it('should return empty cart when stored JSON is malformed', () => {
-      localStorage.setItem('my_cart', 'not-valid-json');
+      localStorage.setItem(CART_KEY, 'not-valid-json');
 
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({

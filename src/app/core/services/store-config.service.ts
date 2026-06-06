@@ -5,6 +5,7 @@ import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestor
 import type { StoreConfig } from '@core/models/store-config.model';
 import { environment } from '../../../environments/environment';
 import { z } from 'zod';
+import { tenantPath } from '@core/utils/tenant';
 
 export const StoreConfigSchema = z.object({
   tenantId: z.string().default('').catch(''),
@@ -122,53 +123,43 @@ export class StoreConfigService {
   async loadConfig(): Promise<void> {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
     try {
-      const docRef = this.getDocRef('configuracion', environment.tenantId);
-      const snap = await Promise.race([this.getDocSnap(docRef), timeout]);
+      const snap = await Promise.race([
+        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')),
+        timeout,
+      ]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
         this._storeConfig.set(validatedData as StoreConfig);
+        this.applyConfigToDom(validatedData as StoreConfig);
+        return;
+      }
+
+      const fallbackSnap = await Promise.race([
+        this.getDocSnap(this.getDocRef(tenantPath('settings'), 'storeConfig')),
+        timeout,
+      ]);
+      if (fallbackSnap?.exists()) {
+        const validatedData = StoreConfigSchema.parse(
+          this.parseSettingsRaw(fallbackSnap.data() as Record<string, unknown>)
+        );
+        this._storeConfig.set(validatedData as StoreConfig);
+        this.applyConfigToDom(validatedData as StoreConfig);
+        return;
+      }
+
+      // Legacy flat path: configuracion/{tenantId} (provisioned before tenant namespace)
+      const legacySnap = await Promise.race([
+        this.getDocSnap(this.getDocRef('configuracion', environment.tenantId)),
+        timeout,
+      ]);
+      if (legacySnap?.exists()) {
+        const validatedData = StoreConfigSchema.parse(
+          this.parseLegacyConfigRaw(legacySnap.data() as Record<string, unknown>)
+        );
+        this._storeConfig.set(validatedData as StoreConfig);
+        this.applyConfigToDom(validatedData as StoreConfig);
       } else {
-        const fallbackRef = this.getDocRef('settings', 'storeConfig');
-        const fallbackSnap = await Promise.race([this.getDocSnap(fallbackRef), timeout]);
-        if (fallbackSnap?.exists()) {
-          const raw = (fallbackSnap.data() as Record<string, unknown>) || {};
-          const fallbackData = {
-            tenantId: environment.tenantId,
-            storeId: 'white-label-store',
-            storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
-            tagline: (raw['tagline'] as string) ?? (raw['strapline'] as string) ?? '',
-            logoUrl: (raw['logoUrl'] as string) ?? '',
-            faviconUrl: (raw['faviconUrl'] as string) ?? '',
-            colors: raw['colors'] ?? {
-              primary: '#ea580c',
-              accent: '#ef4444',
-              background: '#ffffff',
-            },
-            payments: {
-              mercadoPagoPublicKey: (raw['payments'] as Record<string, unknown>)?.['mercadoPago']
-                ? ((raw['payments'] as Record<string, Record<string, string>>)['mercadoPago'][
-                    'publicKey'
-                  ] ?? '')
-                : '',
-            },
-            contact: {
-              phone: (raw['contact'] as Record<string, string>)?.['phone'] ?? '',
-              email: (raw['contact'] as Record<string, string>)?.['email'] ?? '',
-              whatsApp: (raw['contact'] as Record<string, string>)?.['whatsapp'] ?? '',
-              instagram: '',
-              facebook: '',
-            },
-            seo: {
-              metaDescription:
-                (raw['seo'] as Record<string, string>)?.['metaDescription'] ?? 'Bienvenido',
-            },
-            setupCompleted: true,
-          };
-          const validatedData = StoreConfigSchema.parse(fallbackData);
-          this._storeConfig.set(validatedData as StoreConfig);
-        } else {
-          this._storeConfig.set(null);
-        }
+        this._storeConfig.set(null);
       }
     } catch (err) {
       console.error('Error al cargar la configuración de la tienda:', err);
@@ -176,12 +167,103 @@ export class StoreConfigService {
     }
   }
 
+  private parseSettingsRaw(raw: Record<string, unknown>): Record<string, unknown> {
+    const payments = raw['payments'] as Record<string, unknown> | undefined;
+    const mpKey = payments?.['mercadoPago']
+      ? ((payments as Record<string, Record<string, string>>)['mercadoPago']['publicKey'] ?? '')
+      : '';
+    const contact = raw['contact'] as Record<string, string> | undefined;
+    return {
+      tenantId: environment.tenantId,
+      storeId: 'white-label-store',
+      storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
+      tagline: (raw['tagline'] as string) ?? (raw['strapline'] as string) ?? '',
+      logoUrl: (raw['logoUrl'] as string) ?? '',
+      faviconUrl: (raw['faviconUrl'] as string) ?? '',
+      colors: raw['colors'] ?? { primary: '#ea580c', accent: '#ef4444', background: '#ffffff' },
+      payments: { mercadoPagoPublicKey: mpKey },
+      contact: {
+        phone: contact?.['phone'] ?? '',
+        email: contact?.['email'] ?? '',
+        whatsApp: contact?.['whatsapp'] ?? '',
+        instagram: '',
+        facebook: '',
+      },
+      seo: {
+        metaDescription:
+          (raw['seo'] as Record<string, string>)?.['metaDescription'] ?? 'Bienvenido',
+      },
+      setupCompleted: true,
+    };
+  }
+
+  private parseLegacyConfigRaw(raw: Record<string, unknown>): Record<string, unknown> {
+    const payments = raw['payments'] as Record<string, string> | undefined;
+    return {
+      tenantId: environment.tenantId,
+      storeId: (raw['storeId'] as string) ?? 'white-label-store',
+      storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
+      tagline: (raw['tagline'] as string) ?? '',
+      logoUrl: (raw['logoUrl'] as string) ?? '',
+      faviconUrl: (raw['faviconUrl'] as string) ?? '',
+      colors: (raw['colors'] as Record<string, string>) ?? {
+        primary: '#ea580c',
+        accent: '#ef4444',
+        background: '#ffffff',
+      },
+      payments: {
+        mercadoPagoPublicKey:
+          (raw['mercadoPagoPublicKey'] as string) ?? payments?.['mercadoPagoPublicKey'] ?? '',
+      },
+      contact: {
+        phone: (raw['contactPhone'] as string) ?? '',
+        email: (raw['contactEmail'] as string) ?? '',
+        whatsApp: (raw['socialWhatsAppUrl'] as string) ?? '',
+        instagram: (raw['socialInstagramUrl'] as string) ?? '',
+        facebook: (raw['socialFacebookUrl'] as string) ?? '',
+      },
+      seo: { metaDescription: (raw['metaDescription'] as string) ?? '' },
+      setupCompleted: (raw['setupCompleted'] as boolean) ?? true,
+    };
+  }
+
   async saveConfig(data: StoreConfig): Promise<void> {
-    const docRef = this.getDocRef('configuracion', environment.tenantId);
+    const docRef = this.getDocRef(tenantPath('configuracion'), 'store');
     await this.setDocData(docRef, {
       ...(data as unknown as Record<string, unknown>),
       updatedAt: new Date().toISOString(),
     });
     this._storeConfig.set(data);
+  }
+
+  private applyConfigToDom(config: StoreConfig): void {
+    if (config.storeName) {
+      this.titleService.setTitle(config.storeName);
+    }
+    if (config.seo?.metaDescription) {
+      this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
+    }
+    if (config.faviconUrl) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        link.type = 'image/x-icon';
+        document.head.appendChild(link);
+      }
+      link.href = config.faviconUrl;
+    }
+    if (config.colors) {
+      const root = document.documentElement;
+      if (config.colors.primary) {
+        root.style.setProperty('--color-primary', config.colors.primary);
+      }
+      if (config.colors.accent) {
+        root.style.setProperty('--color-accent', config.colors.accent);
+      }
+      if (config.colors.background) {
+        root.style.setProperty('--shop-bg', config.colors.background);
+      }
+    }
   }
 }

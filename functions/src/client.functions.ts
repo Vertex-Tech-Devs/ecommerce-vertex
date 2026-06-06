@@ -3,12 +3,13 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import { FieldValue } from "firebase-admin/firestore";
 import { OrderSchema } from "./core/order.model";
-import { COLLECTIONS } from "./core/config";
+import { COLLECTIONS, tenantCollection } from "./core/config";
 
 const db = admin.firestore();
 
-export const onOrderCreateUpdateClients = onDocumentCreated(`${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
+export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
   const snap = event.data;
+  const tenantId = event.params.tenantId;
   if (!snap) {
     logger.warn(`Evento de creación de orden sin datos. ID: ${event.params.orderId}`);
     return;
@@ -30,7 +31,7 @@ export const onOrderCreateUpdateClients = onDocumentCreated(`${COLLECTIONS.ORDER
     return;
   }
 
-  const clientRef = db.collection(COLLECTIONS.CLIENTS).doc(clientEmail);
+  const clientRef = db.collection(tenantCollection(tenantId, COLLECTIONS.CLIENTS)).doc(clientEmail);
 
   try {
     await db.runTransaction(async (transaction) => {

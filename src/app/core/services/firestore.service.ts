@@ -1,10 +1,12 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
 import type { DocumentReference, UpdateData, WithFieldValue } from 'firebase/firestore';
-import { collection, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { from } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
+import { tenantPath } from '@core/utils/tenant';
 
 interface BaseEntity {
   id?: string;
@@ -17,36 +19,51 @@ export class FirestoreService<T extends BaseEntity> {
   private firestore: Firestore = inject(Firestore);
   private injector = inject(Injector);
 
-  getAll(path: string): Observable<T[]> {
+  getAll(collectionName: string): Observable<T[]> {
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, path);
-      return (collectionData(collectionRef, { idField: 'id' }) as Observable<T[]>).pipe(
+      const tenantRef = collection(this.firestore, tenantPath(collectionName));
+      const legacyRef = collection(this.firestore, collectionName);
+      return from(getDocs(tenantRef)).pipe(
+        switchMap((snap) =>
+          snap.empty
+            ? (collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>)
+            : (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>)
+        ),
         map((items) => items.map((item) => convertTimestampsToDates(item) as T))
       );
     });
   }
 
-  get(path: string, id: string): Observable<T | undefined> {
+  get(collectionName: string, id: string): Observable<T | undefined> {
     return runInInjectionContext(this.injector, () => {
-      const documentRef = doc(this.firestore, `${path}/${id}`);
-      return (docData(documentRef, { idField: 'id' }) as Observable<T | undefined>).pipe(
+      const tenantDocRef = doc(this.firestore, tenantPath(collectionName), id);
+      const legacyDocRef = doc(this.firestore, collectionName, id);
+      return from(getDoc(tenantDocRef)).pipe(
+        switchMap((snap) =>
+          snap.exists()
+            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>)
+            : (docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>)
+        ),
         map((item) => (item ? (convertTimestampsToDates(item) as T) : undefined))
       );
     });
   }
 
-  create(path: string, data: WithFieldValue<Omit<T, 'id'>>): Promise<DocumentReference<T>> {
-    const collectionRef = collection(this.firestore, path);
+  create(
+    collectionName: string,
+    data: WithFieldValue<Omit<T, 'id'>>
+  ): Promise<DocumentReference<T>> {
+    const collectionRef = collection(this.firestore, tenantPath(collectionName));
     return addDoc(collectionRef, data) as Promise<DocumentReference<T>>;
   }
 
-  update(path: string, id: string, data: Partial<T>): Promise<void> {
-    const documentRef = doc(this.firestore, `${path}/${id}`);
+  update(collectionName: string, id: string, data: Partial<T>): Promise<void> {
+    const documentRef = doc(this.firestore, tenantPath(collectionName), id);
     return updateDoc(documentRef, data as UpdateData<T>);
   }
 
-  delete(path: string, id: string): Promise<void> {
-    const documentRef = doc(this.firestore, `${path}/${id}`);
+  delete(collectionName: string, id: string): Promise<void> {
+    const documentRef = doc(this.firestore, tenantPath(collectionName), id);
     return deleteDoc(documentRef);
   }
 }

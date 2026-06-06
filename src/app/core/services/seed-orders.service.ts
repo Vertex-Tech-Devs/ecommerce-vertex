@@ -7,6 +7,7 @@ import {
   CLIENT_ORDER_COUNTS,
   ORDER_DATA,
 } from '../constants/seed-orders.constants';
+import { tenantPath } from '@core/utils/tenant';
 
 export interface SeedClient {
   id: string;
@@ -27,11 +28,13 @@ export class SeedOrdersService {
   async seedClients(): Promise<SeedClient[]> {
     const seeded: SeedClient[] = [];
 
-    for (let i = 0; i < CLIENT_DATA.length; i++) {
-      const d = CLIENT_DATA[i];
+    // Limit to 10 clients to keep seed data lean
+    const clientSubset = CLIENT_DATA.slice(0, 10);
+    for (let i = 0; i < clientSubset.length; i++) {
+      const d = clientSubset[i];
       const days = CLIENT_DAYS_LIST[i] ?? 30;
       const ref = await this.run(() =>
-        addDoc(collection(this.firestore, 'clients'), {
+        addDoc(collection(this.firestore, tenantPath('clients')), {
           ...d,
           firstOrderDate: new Date(Date.now() - days * 86_400_000),
           lastOrderDate: new Date(Date.now() - Math.max(1, Math.floor(days / 4)) * 86_400_000),
@@ -44,8 +47,10 @@ export class SeedOrdersService {
   }
 
   async seedOrders(prods: SeedProduct[], clients: SeedClient[]): Promise<void> {
-    for (let i = 0; i < ORDER_DATA.length; i++) {
-      const o = ORDER_DATA[i];
+    // Limit to 10 orders to keep seed data lean
+    const ordersToSeed = ORDER_DATA.slice(0, 10);
+    for (let i = 0; i < ordersToSeed.length; i++) {
+      const o = ordersToSeed[i];
       const cl = clients[o.clientIdx] ?? clients[0];
       const orderDate = new Date(Date.now() - o.daysAgo * 86_400_000);
 
@@ -69,7 +74,7 @@ export class SeedOrdersService {
       });
 
       await this.run(() =>
-        addDoc(collection(this.firestore, 'orders'), {
+        addDoc(collection(this.firestore, tenantPath('orders')), {
           userId: `user-${cl.id}`,
           clientName: cl.fullName,
           clientEmail: cl.email,

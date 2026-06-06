@@ -1,12 +1,19 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs';
+import { from } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 import { Firestore, collectionData } from '@angular/fire/firestore';
-import type { DocumentReference, WithFieldValue } from 'firebase/firestore';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import type {
+  DocumentReference,
+  WithFieldValue,
+  CollectionReference,
+  DocumentData,
+} from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
+import { tenantPath } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -15,40 +22,57 @@ export class OrderService {
   private firestoreService = inject(FirestoreService<Order>);
   private firestore = inject(Firestore);
   private injector = inject(Injector);
-  private readonly collectionPath = 'orders';
+  private readonly collectionName = 'orders';
+
+  private get collectionRef(): CollectionReference<DocumentData> {
+    return collection(this.firestore, tenantPath(this.collectionName));
+  }
+
+  private get legacyCollectionRef(): CollectionReference<DocumentData> {
+    return collection(this.firestore, this.collectionName);
+  }
+
+  private tenantOrLegacyRef(): Observable<CollectionReference<DocumentData>> {
+    return from(getDocs(this.collectionRef)).pipe(
+      map((snap) => (snap.empty ? this.legacyCollectionRef : this.collectionRef))
+    );
+  }
 
   getOrders(): Observable<Order[]> {
-    return this.firestoreService.getAll(this.collectionPath);
+    return this.firestoreService.getAll(this.collectionName);
   }
 
   getOrderById(id: string): Observable<Order | undefined> {
-    return this.firestoreService.get(this.collectionPath, id) as Observable<Order | undefined>;
+    return this.firestoreService.get(this.collectionName, id) as Observable<Order | undefined>;
   }
 
   createOrder(order: WithFieldValue<Omit<Order, 'id'>>): Promise<DocumentReference<Order>> {
-    return this.firestoreService.create(this.collectionPath, order) as Promise<
+    return this.firestoreService.create(this.collectionName, order) as Promise<
       DocumentReference<Order>
     >;
   }
 
   updateOrder(id: string, order: Partial<Order>): Promise<void> {
-    return this.firestoreService.update(this.collectionPath, id, order);
+    return this.firestoreService.update(this.collectionName, id, order);
   }
 
   deleteOrder(id: string): Promise<void> {
-    return this.firestoreService.delete(this.collectionPath, id);
+    return this.firestoreService.delete(this.collectionName, id);
   }
 
   getGlobalSalesAndOrders(): Observable<{ totalSales: number; totalOrders: number }> {
-    return this.getOrders().pipe(
-      map((orders) => {
-        const totalSales = orders
-          .filter((order) => order.status === 'delivered')
-          .reduce((sum, order) => sum + order.total, 0);
-        const totalOrders = orders.length;
-        return { totalSales, totalOrders };
-      })
-    );
+    return runInInjectionContext(this.injector, () => {
+      return this.tenantOrLegacyRef().pipe(
+        switchMap((ref) => {
+          const q = query(ref, where('status', '==', 'delivered'));
+          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+        }),
+        map((orders) => {
+          const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
+          return { totalSales, totalOrders: orders.length };
+        })
+      );
+    });
   }
 
   getMonthlySalesAndOrders(): Observable<{ monthlySales: number; monthlyOrders: number }> {
@@ -58,10 +82,12 @@ export class OrderService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(collectionRef, where('orderDate', '>=', startOfMonth));
+      return this.tenantOrLegacyRef().pipe(
+        switchMap((ref) => {
+          const q = query(ref, where('orderDate', '>=', startOfMonth));
+          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+        }),
 
-      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((ordersInCurrentMonth) => {
           const monthlyOrdersCount = ordersInCurrentMonth.length;
@@ -78,9 +104,11 @@ export class OrderService {
 
   getPendingOrProcessingOrders(): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(collectionRef, where('status', 'in', ['pending', 'processing']));
-      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
+      return this.tenantOrLegacyRef().pipe(
+        switchMap((ref) => {
+          const q = query(ref, where('status', 'in', ['pending', 'processing']));
+          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+        }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((orders) =>
           orders.sort((a, b) => {
@@ -95,9 +123,11 @@ export class OrderService {
 
   getLatestOrders(count: number = 10): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, this.collectionPath);
-      const q = query(collectionRef, orderBy('orderDate', 'desc'), limit(count));
-      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
+      return this.tenantOrLegacyRef().pipe(
+        switchMap((ref) => {
+          const q = query(ref, orderBy('orderDate', 'desc'), limit(count));
+          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+        }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order))
       );
     });

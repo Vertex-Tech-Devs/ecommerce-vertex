@@ -148,7 +148,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
     cy.window().then((win) => {
       win.localStorage.setItem(
-        'my_cart',
+        'cart_store',
         JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
       );
     });
@@ -162,7 +162,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
     cy.window().then((win) => {
       win.localStorage.setItem(
-        'my_cart',
+        'cart_store',
         JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
       );
     });
@@ -177,7 +177,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
   it('shows empty-cart state when localStorage has no items', () => {
     cy.visit('/shop/cart');
-    cy.window().then((win) => win.localStorage.removeItem('my_cart'));
+    cy.window().then((win) => win.localStorage.removeItem('cart_store'));
     cy.reload();
 
     // No product item rows should be visible
@@ -207,7 +207,9 @@ describe('5 · Checkout Flow', () => {
 
   beforeEach(() => {
     cy.visit('/shop/cart');
-    cy.window().then((win) => win.localStorage.setItem('my_cart', JSON.stringify(CART_WITH_ITEM)));
+    cy.window().then((win) =>
+      win.localStorage.setItem('cart_store', JSON.stringify(CART_WITH_ITEM))
+    );
     cy.reload();
   });
 

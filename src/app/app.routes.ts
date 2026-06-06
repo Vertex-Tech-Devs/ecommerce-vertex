@@ -28,6 +28,7 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'shop',
+    loadComponent: () =>
+      import('./features/shared/not-found/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];

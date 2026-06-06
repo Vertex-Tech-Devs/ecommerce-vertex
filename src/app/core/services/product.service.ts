@@ -1,8 +1,15 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map, combineLatest } from 'rxjs';
+import { from } from 'rxjs';
+import { map, combineLatest, switchMap } from 'rxjs';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
-import type { WithFieldValue, QueryConstraint } from 'firebase/firestore';
+import type {
+  WithFieldValue,
+  QueryConstraint,
+  CollectionReference,
+  DocumentReference,
+  DocumentData,
+} from 'firebase/firestore';
 import {
   doc,
   collection,
@@ -12,9 +19,12 @@ import {
   where,
   orderBy,
   limit,
+  getDocs,
+  getDoc,
 } from 'firebase/firestore';
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
+import { tenantPath } from '@core/utils/tenant';
 
 export interface ProductFilters {
   categoryId?: string | null;
@@ -30,12 +40,24 @@ export interface ProductFilters {
 export class ProductService {
   private firestore: Firestore = inject(Firestore);
   private injector = inject(Injector);
-  private readonly collectionPath = 'products';
+  private readonly collectionName = 'products';
+
+  private get collectionRef(): CollectionReference<DocumentData> {
+    return collection(this.firestore, tenantPath(this.collectionName));
+  }
+
+  private get legacyCollectionRef(): CollectionReference<DocumentData> {
+    return collection(this.firestore, this.collectionName);
+  }
 
   getProducts(): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, this.collectionPath);
-      return (collectionData(collectionRef, { idField: 'id' }) as Observable<Product[]>).pipe(
+      return from(getDocs(this.collectionRef)).pipe(
+        switchMap((snap) =>
+          snap.empty
+            ? (collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<Product[]>)
+            : (collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>)
+        ),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
@@ -47,9 +69,12 @@ export class ProductService {
       if (categoryId && categoryId !== 'all') {
         constraints.push(where('categoryId', '==', categoryId));
       }
-
-      const q = query(collection(this.firestore, this.collectionPath), ...constraints);
-      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
+      return from(getDocs(this.collectionRef)).pipe(
+        switchMap((snap) => {
+          const ref = snap.empty ? this.legacyCollectionRef : this.collectionRef;
+          const q = query(ref, ...constraints);
+          return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
+        }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
       );
     });
@@ -57,8 +82,22 @@ export class ProductService {
 
   getProductById(id: string): Observable<Product | undefined> {
     return runInInjectionContext(this.injector, () => {
-      const docRef = doc(this.firestore, `${this.collectionPath}/${id}`);
-      return (docData(docRef, { idField: 'id' }) as Observable<Product | undefined>).pipe(
+      const tenantDocRef: DocumentReference<DocumentData> = doc(
+        this.firestore,
+        tenantPath(this.collectionName),
+        id
+      );
+      const legacyDocRef: DocumentReference<DocumentData> = doc(
+        this.firestore,
+        this.collectionName,
+        id
+      );
+      return from(getDoc(tenantDocRef)).pipe(
+        switchMap((snap) =>
+          snap.exists()
+            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>)
+            : (docData(legacyDocRef, { idField: 'id' }) as Observable<Product | undefined>)
+        ),
         map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined))
       );
     });
@@ -69,10 +108,8 @@ export class ProductService {
   ): Observable<{ product: Product; variants: ProductVariant[] } | undefined> {
     return runInInjectionContext(this.injector, () => {
       const product$ = this.getProductById(id);
-      const variantsCollectionRef = collection(
-        this.firestore,
-        `${this.collectionPath}/${id}/variants`
-      );
+      const productRef = doc(this.firestore, tenantPath(this.collectionName), id);
+      const variantsCollectionRef = collection(productRef, 'variants');
       const variants$ = collectionData(variantsCollectionRef, { idField: 'id' }) as Observable<
         ProductVariant[]
       >;
@@ -96,8 +133,7 @@ export class ProductService {
     variants: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[]
   ): Promise<string> {
     const batch = writeBatch(this.firestore);
-    const productCollectionRef = collection(this.firestore, this.collectionPath);
-    const newProductRef = doc(productCollectionRef);
+    const newProductRef = doc(this.collectionRef);
 
     batch.set(newProductRef, product);
 
@@ -122,7 +158,7 @@ export class ProductService {
     variantIdsToDelete: string[]
   ): Promise<void> {
     const batch = writeBatch(this.firestore);
-    const productRef = doc(this.firestore, this.collectionPath, productId);
+    const productRef = doc(this.firestore, tenantPath(this.collectionName), productId);
 
     batch.update(productRef, productData);
 
@@ -151,14 +187,14 @@ export class ProductService {
   }
 
   deleteProduct(id: string): Promise<void> {
-    const docRef = doc(this.firestore, `${this.collectionPath}/${id}`);
+    const docRef = doc(this.firestore, tenantPath(this.collectionName), id);
     return deleteDoc(docRef);
   }
 
   getProductsLowInStock(threshold: number = 5): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
       const q = query(
-        collection(this.firestore, this.collectionPath),
+        this.collectionRef,
         where('totalStock', '>', 0),
         where('totalStock', '<=', threshold),
         orderBy('totalStock', 'asc')
@@ -171,13 +207,28 @@ export class ProductService {
 
   getLatestProducts(count: number = 10): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      const q = query(
-        collection(this.firestore, this.collectionPath),
-        orderBy('createdAt', 'desc'),
-        limit(count)
-      );
+      const q = query(this.collectionRef, orderBy('createdAt', 'desc'), limit(count));
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
+      );
+    });
+  }
+
+  checkStockAvailability(
+    productId: string,
+    variantId: string,
+    quantity: number
+  ): Observable<boolean> {
+    return runInInjectionContext(this.injector, () => {
+      const productRef = doc(this.firestore, tenantPath(this.collectionName), productId);
+      const variantRef = doc(collection(productRef, 'variants'), variantId);
+      return (docData(variantRef) as Observable<{ stock?: number } | undefined>).pipe(
+        map((variant) => {
+          if (!variant) {
+            return false;
+          }
+          return (variant.stock ?? 0) >= quantity;
+        })
       );
     });
   }

@@ -7,6 +7,7 @@ import { FirestoreService } from './firestore.service';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
+import { tenantPath } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -15,21 +16,21 @@ export class ClientService {
   private firestoreService = inject(FirestoreService<Client>);
   private firestore: Firestore = inject(Firestore);
   private injector = inject(Injector);
-  private readonly clientsCollectionPath = 'clients';
-  private readonly ordersCollectionPath = 'orders';
+  private readonly clientsCollectionName = 'clients';
+  private readonly ordersCollectionName = 'orders';
 
   getClients(): Observable<Client[]> {
-    return this.firestoreService.getAll(this.clientsCollectionPath);
+    return this.firestoreService.getAll(this.clientsCollectionName);
   }
 
   getClientByEmail(email: string): Observable<Client | undefined> {
-    return this.firestoreService.get(this.clientsCollectionPath, email);
+    return this.firestoreService.get(this.clientsCollectionName, email);
   }
 
   getOrdersByClientEmail(email: string): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
       const q = query(
-        collection(this.firestore, this.ordersCollectionPath),
+        collection(this.firestore, tenantPath(this.ordersCollectionName)),
         where('clientEmail', '==', email)
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
@@ -48,7 +49,7 @@ export class ClientService {
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
       const q = query(
-        collection(this.firestore, this.clientsCollectionPath),
+        collection(this.firestore, tenantPath(this.clientsCollectionName)),
         where('firstOrderDate', '>=', startOfMonth)
       );
 
@@ -58,7 +59,7 @@ export class ClientService {
 
   getLatestClients(count: number = 10): Observable<Client[]> {
     return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, this.clientsCollectionPath);
+      const collectionRef = collection(this.firestore, tenantPath(this.clientsCollectionName));
       const q = query(collectionRef, orderBy('lastOrderDate', 'desc'), limit(count));
       return (collectionData(q, { idField: 'id' }) as Observable<Client[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Client))

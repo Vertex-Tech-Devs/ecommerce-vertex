@@ -2,6 +2,7 @@ import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '
 import { Firestore, collection, addDoc, getDocs, updateDoc } from '@angular/fire/firestore';
 import type { Attribute } from '@core/models/attribute.model';
 import { PRODUCT_CATALOGUE } from '../constants/seed-products.constants';
+import { tenantPath } from '@core/utils/tenant';
 
 /** Unsplash CDN – specific fashion photo by ID */
 function u(id: string, w: number, h: number): string {
@@ -54,7 +55,9 @@ export class SeedProductsService {
   async seedProducts(cats: Record<string, { id: string; name: string }>): Promise<SeedProduct[]> {
     const seeded: SeedProduct[] = [];
 
-    const attrsSnap = await this.run(() => getDocs(collection(this.firestore, 'attributes')));
+    const attrsSnap = await this.run(() =>
+      getDocs(collection(this.firestore, tenantPath('attributes')))
+    );
     const allAttrs = attrsSnap.docs.map((d) => {
       const data = d.data();
       return {
@@ -82,14 +85,16 @@ export class SeedProductsService {
         continue;
       }
 
-      for (const item of cat.items) {
+      // Limit to 3 products per category to keep seed data lean
+      const itemsToSeed = cat.items.slice(0, 3);
+      for (const item of itemsToSeed) {
         const mainImg = u(item.imgs[0], 600, 600);
         const extraImgs = item.imgs.slice(1).map((id) => u(id, 600, 600));
         const fp =
           item.discount > 0 ? Math.round(item.price * (1 - item.discount / 100)) : item.price;
 
         const productRef = await this.run(() =>
-          addDoc(collection(this.firestore, 'products'), {
+          addDoc(collection(this.firestore, tenantPath('products')), {
             name: item.name,
             description: item.desc,
             categoryId: catData.id,
