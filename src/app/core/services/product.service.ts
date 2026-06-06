@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { from } from 'rxjs';
-import { map, combineLatest, switchMap } from 'rxjs';
+import { map, combineLatest, switchMap, of, catchError } from 'rxjs';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
 import type {
   WithFieldValue,
@@ -58,7 +58,11 @@ export class ProductService {
             ? (collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<Product[]>)
             : (collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>)
         ),
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
+        catchError((err) => {
+          console.warn('Unable to load products:', err);
+          return of([]);
+        })
       );
     });
   }
@@ -75,7 +79,11 @@ export class ProductService {
           const q = query(ref, ...constraints);
           return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
         }),
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
+        catchError((err) => {
+          console.warn(`Unable to load products with query category ${categoryId}:`, err);
+          return of([]);
+        })
       );
     });
   }
@@ -98,7 +106,11 @@ export class ProductService {
             ? (docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>)
             : (docData(legacyDocRef, { idField: 'id' }) as Observable<Product | undefined>)
         ),
-        map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined))
+        map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined)),
+        catchError((err) => {
+          console.warn(`Unable to load product ${id}:`, err);
+          return of(undefined);
+        })
       );
     });
   }
@@ -110,9 +122,14 @@ export class ProductService {
       const product$ = this.getProductById(id);
       const productRef = doc(this.firestore, tenantPath(this.collectionName), id);
       const variantsCollectionRef = collection(productRef, 'variants');
-      const variants$ = collectionData(variantsCollectionRef, { idField: 'id' }) as Observable<
-        ProductVariant[]
-      >;
+      const variants$ = (
+        collectionData(variantsCollectionRef, { idField: 'id' }) as Observable<ProductVariant[]>
+      ).pipe(
+        catchError((err) => {
+          console.warn(`Unable to load variants for product ${id}:`, err);
+          return of([]);
+        })
+      );
 
       return combineLatest([product$, variants$]).pipe(
         map(([product, variants]) => {
@@ -123,6 +140,10 @@ export class ProductService {
             product,
             variants: variants.map((v) => convertTimestampsToDates(v) as ProductVariant),
           };
+        }),
+        catchError((err) => {
+          console.warn(`Unable to resolve product and variants combined for product ${id}:`, err);
+          return of(undefined);
         })
       );
     });
@@ -200,7 +221,11 @@ export class ProductService {
         orderBy('totalStock', 'asc')
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
+        catchError((err) => {
+          console.warn('Unable to load products low in stock:', err);
+          return of([]);
+        })
       );
     });
   }
@@ -209,7 +234,11 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       const q = query(this.collectionRef, orderBy('createdAt', 'desc'), limit(count));
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
+        catchError((err) => {
+          console.warn('Unable to load latest products:', err);
+          return of([]);
+        })
       );
     });
   }
@@ -228,6 +257,13 @@ export class ProductService {
             return false;
           }
           return (variant.stock ?? 0) >= quantity;
+        }),
+        catchError((err) => {
+          console.warn(
+            `Unable to check stock availability for variant ${variantId} of product ${productId}:`,
+            err
+          );
+          return of(false);
         })
       );
     });
