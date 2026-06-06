@@ -95,7 +95,7 @@ test.describe('Cart route', () => {
         stock: 20,
       };
       window.localStorage.setItem(
-        'my_cart',
+        'cart_store',
         JSON.stringify({ items: [cartItem], total: 1000 })
       );
     });

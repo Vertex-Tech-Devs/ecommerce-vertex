@@ -4,6 +4,7 @@ import type { StoreConfig } from '@core/models/store-config.model';
 import { DEFAULT_STORE_CONFIG } from '@core/models/store-config.model';
 import { StoreConfigService } from './store-config.service';
 import { environment } from '../../../environments/environment';
+import { tenantPath } from '@core/utils/tenant';
 
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
@@ -74,7 +75,7 @@ export class SeedContentService {
       { name: 'Material', values: ['Algodón', 'Poliéster', 'Lino', 'Cuero', 'Denim', 'Lana'] },
     ];
     for (const a of list) {
-      await this.run(() => addDoc(collection(this.firestore, 'attributes'), a));
+      await this.run(() => addDoc(collection(this.firestore, tenantPath('attributes')), a));
     }
   }
 
@@ -89,7 +90,7 @@ export class SeedContentService {
     const out: Record<string, { id: string; name: string }> = {};
     for (const d of defs) {
       const ref = await this.run(() =>
-        addDoc(collection(this.firestore, 'categories'), {
+        addDoc(collection(this.firestore, tenantPath('categories')), {
           name: d.name,
           slug: d.slug,
           parentId: null,
@@ -105,7 +106,7 @@ export class SeedContentService {
 
   async seedHeroBanner(cats: Record<string, { id: string; name: string }>): Promise<void> {
     await this.run(() =>
-      setDoc(doc(this.firestore, 'siteContent', 'homePage'), {
+      setDoc(doc(this.firestore, tenantPath('siteContent'), 'homePage'), {
         heroImages: HERO.map((id) => u(id, 1920, 700)),
         carouselSettings: { interval: 4500, showIndicators: true },
         title: 'Nueva Colección 2026',
@@ -139,7 +140,7 @@ export class SeedContentService {
   async seedAboutUs(): Promise<void> {
     const storeName = this.storeConfigService.storeName() || 'Nuestra Tienda';
     await this.run(() =>
-      setDoc(doc(this.firestore, 'pages', 'aboutUs'), {
+      setDoc(doc(this.firestore, tenantPath('pages'), 'aboutUs'), {
         bannerTitle: 'Quiénes Somos',
         bannerSubtitle: 'Moda argentina con identidad propia y alcance nacional.',
         bannerImageUrl: u('1558769132-cb1aea458c5e', 1920, 600),
@@ -216,7 +217,7 @@ export class SeedContentService {
       copyrightText: `© 2026 ${storeName}. Todos los derechos reservados.`,
     };
     await this.run(() =>
-      setDoc(doc(this.firestore, 'configuracion', environment.tenantId), payload)
+      setDoc(doc(this.firestore, tenantPath('configuracion'), 'store'), payload)
     );
   }
 

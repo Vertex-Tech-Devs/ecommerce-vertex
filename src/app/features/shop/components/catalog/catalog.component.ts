@@ -41,6 +41,7 @@ export class CatalogComponent implements OnInit {
   readonly page = signal<number>(1);
   readonly itemsPerPage = signal<number>(12);
   readonly productsFromQuery = signal<Product[]>([]);
+  readonly isLoading = signal<boolean>(true);
 
   // Signals for form values to keep computed pipeline pure
   readonly minPrice = signal<number | null>(null);
@@ -209,6 +210,7 @@ export class CatalogComponent implements OnInit {
 
           this.productService.getProductsByQuery(newCatId).subscribe((products) => {
             this.productsFromQuery.set(products);
+            this.isLoading.set(false);
           });
         }
       });

@@ -1,12 +1,15 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { firstValueFrom } from 'rxjs';
+import { from } from 'rxjs';
+import { firstValueFrom, switchMap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import type { AboutUsData } from '@core/models/about-us.model';
 import { StorageService } from './storage.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
+import { tenantPath } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -16,11 +19,20 @@ export class AboutUsService {
   private storageService = inject(StorageService);
   private injector = inject(Injector);
 
-  private readonly docRef = doc(this.firestore, 'pages/aboutUs');
+  private get docRef(): DocumentReference<DocumentData> {
+    return doc(this.firestore, tenantPath('pages'), 'aboutUs');
+  }
 
   getAboutUsData(): Observable<AboutUsData | undefined> {
     return runInInjectionContext(this.injector, () => {
-      return (docData(this.docRef) as Observable<AboutUsData | undefined>).pipe(
+      const tenantRef = this.docRef;
+      const legacyRef = doc(this.firestore, 'pages', 'aboutUs');
+      return from(getDoc(tenantRef)).pipe(
+        switchMap((snap) =>
+          snap.exists()
+            ? (docData(tenantRef) as Observable<AboutUsData | undefined>)
+            : (docData(legacyRef) as Observable<AboutUsData | undefined>)
+        ),
         map((data) => convertTimestampsToDates(data) as AboutUsData | undefined)
       );
     });
