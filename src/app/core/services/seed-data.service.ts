@@ -4,6 +4,7 @@ import { SweetAlertService } from './sweet-alert.service';
 import { SeedContentService } from './seed-content.service';
 import { SeedProductsService } from './seed-products.service';
 import { SeedOrdersService } from './seed-orders.service';
+import { tenantPath } from '@core/utils/tenant';
 
 @Injectable({ providedIn: 'root' })
 export class SeedDataService {
@@ -43,7 +44,7 @@ export class SeedDataService {
   private async clearAll(): Promise<void> {
     const cols = ['products', 'categories', 'clients', 'orders', 'attributes'];
     for (const col of cols) {
-      const snap = await this.run(() => getDocs(collection(this.firestore, col)));
+      const snap = await this.run(() => getDocs(collection(this.firestore, tenantPath(col))));
       for (const d of snap.docs) {
         await this.run(() => deleteDoc(d.ref));
       }
@@ -52,7 +53,7 @@ export class SeedDataService {
       ['siteContent', 'homePage'],
       ['pages', 'aboutUs'],
     ] as const) {
-      await this.run(() => deleteDoc(doc(this.firestore, c, d)));
+      await this.run(() => deleteDoc(doc(this.firestore, tenantPath(c), d)));
     }
   }
 }

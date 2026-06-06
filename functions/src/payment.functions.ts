@@ -4,7 +4,7 @@ import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
-import { COLLECTIONS } from "./core/config";
+import { COLLECTIONS, tenantCollection } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
 import * as crypto from "crypto";
 
@@ -154,18 +154,31 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
 });
 
 async function revertStockOnFailure(orderId: string) {
-  logger.info(`Iniciando reversión de stock para pedido cancelado/fallido: ${orderId}`);
-  const orderRef = db.collection(COLLECTIONS.ORDERS).doc(orderId);
+  logger.info(`Iniciando reversón de stock para pedido cancelado/fallido: ${orderId}`);
+
+  // Resolve the order document via collectionGroup query to support multi-tenant
+  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS)
+    .where('__name__', '>=', `tenants/`)
+    .get();
+  const orderDoc = orderSnaps.docs.find(d => d.id === orderId);
+  if (!orderDoc) {
+    logger.error(`Pedido ${orderId} no existe. No se puede revertir stock.`);
+    return;
+  }
+
+  const pathSegments = orderDoc.ref.path.split('/');
+  const tenantId = pathSegments[1] ?? '';
+  const orderRef = orderDoc.ref;
 
   try {
     await db.runTransaction(async (transaction) => {
-      const orderDoc = await transaction.get(orderRef);
-      if (!orderDoc.exists) {
+      const freshOrderDoc = await transaction.get(orderRef);
+      if (!freshOrderDoc.exists) {
         logger.error(`Pedido ${orderId} no existe. No se puede revertir stock.`);
         return;
       }
 
-      const orderData = orderDoc.data();
+      const orderData = freshOrderDoc.data();
       if (!orderData) {
         logger.error(`Pedido ${orderId} sin datos. No se puede revertir stock.`);
         return;
@@ -186,7 +199,7 @@ async function revertStockOnFailure(orderId: string) {
         const validItem = itemValidation.data;
         
         const variantRef = db
-          .collection(COLLECTIONS.PRODUCTS)
+          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
           .doc(validItem.productId)
           .collection("variants")
           .doc(validItem.variantId);
@@ -223,7 +236,18 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
   const orderId = paymentData.external_reference;
   
   logger.info(`Iniciando creación de preferencia para el pedido: ${orderId}`);
-  const orderRef = db.collection(COLLECTIONS.ORDERS).doc(orderId);
+
+  // Resolve order document across tenant namespaces
+  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS)
+    .where('__name__', '>=', `tenants/`)
+    .get();
+  const orderDocSnap = orderSnaps.docs.find(d => d.id === orderId);
+  if (!orderDocSnap) {
+    throw new HttpsError("not-found", `La orden con ID ${orderId} no fue encontrada.`);
+  }
+  const orderRef = orderDocSnap.ref;
+  const pathSegments = orderDocSnap.ref.path.split('/');
+  const tenantId = pathSegments[1] ?? '';
 
   try {
     const preference = await db.runTransaction(async (transaction) => {
@@ -243,7 +267,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
 
       for (const item of paymentData.items) {
         const variantRef = db
-          .collection(COLLECTIONS.PRODUCTS)
+          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
           .doc(item.productId)
           .collection("variants")
           .doc(item.variantId);
@@ -264,7 +288,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
 
       for (const item of paymentData.items) {
         const variantRef = db
-          .collection(COLLECTIONS.PRODUCTS)
+          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
           .doc(item.productId)
           .collection("variants")
           .doc(item.variantId);
@@ -407,12 +431,18 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
       return;
     }
 
-    const orderRef = db.collection(COLLECTIONS.ORDERS).doc(orderId);
+    // Resolve order via collectionGroup to support multi-tenant paths
+    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS)
+      .where('__name__', '>=', 'tenants/')
+      .get();
+    const foundOrderDoc = orderQuery.docs.find(d => d.id === orderId);
+    const resolvedOrderRef = foundOrderDoc?.ref ?? db.collection(`tenants/_/orders`).doc(orderId);
+    const tenantIdForWebhook = foundOrderDoc?.ref.path.split('/')[1] ?? '';
 
     if (paymentStatus === "approved") {
       logger.info(`Pago ${paymentId} (pedido ${orderId}) aprobado. Stock ya fue descontado.`);
       
-      const orderDoc = await orderRef.get();
+      const orderDoc = await resolvedOrderRef.get();
       if (orderDoc.exists && !orderDoc.data()?.stockDecremented) {
          logger.warn(`El pago ${paymentId} fue aprobado, pero el stock no estaba marcado como descontado. Re-ejecutando lógica de descuento.`);
          
@@ -426,7 +456,7 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
              const validItem = itemValidation.data;
 
              const variantRef = db
-               .collection(COLLECTIONS.PRODUCTS)
+               .collection(tenantCollection(tenantIdForWebhook, COLLECTIONS.PRODUCTS))
                .doc(validItem.productId)
                .collection("variants")
                .doc(validItem.variantId);
@@ -436,14 +466,14 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
              });
            }
            
-           transaction.update(orderRef, { 
+           transaction.update(resolvedOrderRef, { 
              "paymentDetails.paymentId": paymentId,
              status: "processing",
              stockDecremented: true
            });
          });
       } else {
-         await orderRef.update({ 
+         await resolvedOrderRef.update({ 
            "paymentDetails.paymentId": paymentId,
            status: "processing"
          });

@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { COLLECTIONS } from "./core/config";
+import { COLLECTIONS, tenantCollection, tenantDoc } from "./core/config";
 
 const db = admin.firestore();
 
@@ -157,13 +157,13 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
     { merge: true },
   );
 
-  const storeConfig = await db.collection(COLLECTIONS.SETTINGS).doc("storeConfig").get();
+  const storeConfig = await db.doc(tenantDoc(tenantId, 'configuracion', 'store')).get();
   const storeName = String(storeConfig.data()?.["storeName"] || "Vertex Store").trim() || "Vertex Store";
   const loginUrl = `https://${process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"]}.web.app/admin/login`;
   const invitedByEmail = String(request.auth?.token?.["email"] || "").trim().toLowerCase() || undefined;
 
   try {
-    await db.collection(COLLECTIONS.MAIL).add({
+    await db.collection(tenantCollection(tenantId, COLLECTIONS.MAIL)).add({
       to: [email],
       message: {
         subject: `${roleLabel(role)} access granted for ${storeName}`,

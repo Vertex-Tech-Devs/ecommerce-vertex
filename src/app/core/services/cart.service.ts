@@ -4,6 +4,7 @@ import type { Cart, CartItem } from '@core/models/cart.model';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
 import { take } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,7 @@ import { take } from 'rxjs';
 export class CartService {
   private sweetAlertService = inject(SweetAlertService);
   private attributeService = inject(AttributeService);
-  private readonly CART_STORAGE_KEY = 'my_cart';
+  private readonly CART_STORAGE_KEY = `cart_${environment.tenantId}`;
 
   private attributeMap = new Map<string, string>();
   cart = signal<Cart>(this.getCartFromStorage());
