@@ -3,8 +3,8 @@ import { Firestore, collectionData, docData } from '@angular/fire/firestore';
 import type { DocumentReference, UpdateData, WithFieldValue } from 'firebase/firestore';
 import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { from } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { from, of } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath } from '@core/utils/tenant';
 
@@ -29,7 +29,11 @@ export class FirestoreService<T extends BaseEntity> {
             ? (collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>)
             : (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>)
         ),
-        map((items) => items.map((item) => convertTimestampsToDates(item) as T))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as T)),
+        catchError((err) => {
+          console.warn(`Unable to load collection ${collectionName}:`, err);
+          return of([]);
+        })
       );
     });
   }
@@ -44,7 +48,11 @@ export class FirestoreService<T extends BaseEntity> {
             ? (docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>)
             : (docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>)
         ),
-        map((item) => (item ? (convertTimestampsToDates(item) as T) : undefined))
+        map((item) => (item ? (convertTimestampsToDates(item) as T) : undefined)),
+        catchError((err) => {
+          console.warn(`Unable to load document ${id} from ${collectionName}:`, err);
+          return of(undefined);
+        })
       );
     });
   }
