@@ -3,8 +3,8 @@ import { Firestore, docData } from '@angular/fire/firestore';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { from } from 'rxjs';
-import { firstValueFrom, switchMap } from 'rxjs';
+import { from, of } from 'rxjs';
+import { firstValueFrom, switchMap, catchError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import type { AboutUsData } from '@core/models/about-us.model';
 import { StorageService } from './storage.service';
@@ -33,7 +33,11 @@ export class AboutUsService {
             ? (docData(tenantRef) as Observable<AboutUsData | undefined>)
             : (docData(legacyRef) as Observable<AboutUsData | undefined>)
         ),
-        map((data) => convertTimestampsToDates(data) as AboutUsData | undefined)
+        map((data) => convertTimestampsToDates(data) as AboutUsData | undefined),
+        catchError((err) => {
+          console.warn('Unable to load about us data:', err);
+          return of(undefined);
+        })
       );
     });
   }

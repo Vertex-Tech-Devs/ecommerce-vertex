@@ -3,8 +3,8 @@ import { docData, Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { DocumentReference, DocumentData } from 'firebase/firestore';
 import type { Observable } from 'rxjs';
-import { from } from 'rxjs';
-import { firstValueFrom, switchMap } from 'rxjs';
+import { from, of } from 'rxjs';
+import { firstValueFrom, switchMap, catchError } from 'rxjs';
 import type { HeroBanner } from '../models/home-content.model';
 import { StorageService } from './storage.service';
 import { tenantPath } from '@core/utils/tenant';
@@ -30,7 +30,11 @@ export class HomeContentService {
           snap.exists()
             ? (docData(tenantRef) as Observable<HeroBanner | null>)
             : (docData(legacyRef) as Observable<HeroBanner | null>)
-        )
+        ),
+        catchError((err) => {
+          console.warn('Unable to load hero banner data:', err);
+          return of(null);
+        })
       );
     });
   }
