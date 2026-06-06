@@ -1,6 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import type { Client } from '../models/client.model';
 import type { Order } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
@@ -34,7 +35,11 @@ export class ClientService {
         where('clientEmail', '==', email)
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Order))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
+        catchError((err) => {
+          console.warn(`Unable to load orders for client ${email}:`, err);
+          return of([]);
+        })
       );
     });
   }
@@ -53,7 +58,13 @@ export class ClientService {
         where('firstOrderDate', '>=', startOfMonth)
       );
 
-      return (collectionData(q) as Observable<Client[]>).pipe(map((clients) => clients.length));
+      return (collectionData(q) as Observable<Client[]>).pipe(
+        map((clients) => clients.length),
+        catchError((err) => {
+          console.warn('Unable to load new clients count this month:', err);
+          return of(0);
+        })
+      );
     });
   }
 
@@ -62,7 +73,11 @@ export class ClientService {
       const collectionRef = collection(this.firestore, tenantPath(this.clientsCollectionName));
       const q = query(collectionRef, orderBy('lastOrderDate', 'desc'), limit(count));
       return (collectionData(q, { idField: 'id' }) as Observable<Client[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Client))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Client)),
+        catchError((err) => {
+          console.warn('Unable to load latest clients:', err);
+          return of([]);
+        })
       );
     });
   }
