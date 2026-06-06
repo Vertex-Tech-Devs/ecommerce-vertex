@@ -6,6 +6,8 @@ import { Functions } from '@angular/fire/functions';
 import type { Functions as FirebaseFunctions } from 'firebase/functions';
 import { httpsCallable } from 'firebase/functions';
 import type { Observable } from 'rxjs';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
 import { tenantPath } from '@core/utils/tenant';
 
@@ -37,7 +39,12 @@ export class EmailSettingsService {
 
   getEmailSettings(): Observable<EmailSettings | undefined> {
     return runInInjectionContext(this.injector, () => {
-      return docData(this.docRef) as Observable<EmailSettings | undefined>;
+      return (docData(this.docRef) as Observable<EmailSettings | undefined>).pipe(
+        catchError((err) => {
+          console.warn('Unable to load email settings:', err);
+          return of(undefined);
+        })
+      );
     });
   }
 
