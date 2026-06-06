@@ -124,7 +124,7 @@ export class StoreConfigService {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
     try {
       const snap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')),
+        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')).catch(() => null),
         timeout,
       ]);
       if (snap?.exists()) {
@@ -135,7 +135,7 @@ export class StoreConfigService {
       }
 
       const fallbackSnap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('settings'), 'storeConfig')),
+        this.getDocSnap(this.getDocRef(tenantPath('settings'), 'storeConfig')).catch(() => null),
         timeout,
       ]);
       if (fallbackSnap?.exists()) {
@@ -149,7 +149,7 @@ export class StoreConfigService {
 
       // Legacy flat path: configuracion/{tenantId} (provisioned before tenant namespace)
       const legacySnap = await Promise.race([
-        this.getDocSnap(this.getDocRef('configuracion', environment.tenantId)),
+        this.getDocSnap(this.getDocRef('configuracion', environment.tenantId)).catch(() => null),
         timeout,
       ]);
       if (legacySnap?.exists()) {
