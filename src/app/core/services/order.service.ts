@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { from } from 'rxjs';
-import { map, switchMap } from 'rxjs';
+import { map, switchMap, of, catchError } from 'rxjs';
 import { Firestore, collectionData } from '@angular/fire/firestore';
 import type {
   DocumentReference,
@@ -34,7 +34,11 @@ export class OrderService {
 
   private tenantOrLegacyRef(): Observable<CollectionReference<DocumentData>> {
     return from(getDocs(this.collectionRef)).pipe(
-      map((snap) => (snap.empty ? this.legacyCollectionRef : this.collectionRef))
+      map((snap) => (snap.empty ? this.legacyCollectionRef : this.collectionRef)),
+      catchError((err) => {
+        console.warn('Unable to resolve tenant orders collection, falling back to legacy:', err);
+        return of(this.legacyCollectionRef);
+      })
     );
   }
 
@@ -70,6 +74,10 @@ export class OrderService {
         map((orders) => {
           const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
           return { totalSales, totalOrders: orders.length };
+        }),
+        catchError((err) => {
+          console.warn('Unable to load global sales and orders metrics:', err);
+          return of({ totalSales: 0, totalOrders: 0 });
         })
       );
     });
@@ -97,6 +105,10 @@ export class OrderService {
             .reduce((sum, order) => sum + order.total, 0);
 
           return { monthlySales, monthlyOrders: monthlyOrdersCount };
+        }),
+        catchError((err) => {
+          console.warn('Unable to load monthly sales and orders metrics:', err);
+          return of({ monthlySales: 0, monthlyOrders: 0 });
         })
       );
     });
@@ -116,7 +128,11 @@ export class OrderService {
             const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
             return dateA - dateB;
           })
-        )
+        ),
+        catchError((err) => {
+          console.warn('Unable to load pending/processing orders:', err);
+          return of([]);
+        })
       );
     });
   }
@@ -128,7 +144,11 @@ export class OrderService {
           const q = query(ref, orderBy('orderDate', 'desc'), limit(count));
           return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
         }),
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Order))
+        map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
+        catchError((err) => {
+          console.warn('Unable to load latest orders:', err);
+          return of([]);
+        })
       );
     });
   }

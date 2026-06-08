@@ -1,6 +1,8 @@
 export const environment = {
   production: false,
-  tenantId: 'store',
+  // 'tienda-dos' is a seeded tenant in vertex-platform-dev with real product/homepage data.
+  // To test a different store locally: npm start -- and append ?tenantId=<slug> to the URL.
+  tenantId: 'tienda-dos',
   firebaseConfig: {
     apiKey: 'YOUR_API_KEY',
     authDomain: 'YOUR_AUTH_DOMAIN',
