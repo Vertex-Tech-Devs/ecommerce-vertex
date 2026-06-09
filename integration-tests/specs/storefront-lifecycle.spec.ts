@@ -94,10 +94,10 @@ test.describe('Cart route', () => {
         attributes: {},
         stock: 20,
       };
-      window.localStorage.setItem(
-        'cart_store',
-        JSON.stringify({ items: [cartItem], total: 1000 })
-      );
+      const cartData = JSON.stringify({ items: [cartItem], total: 1000 });
+      window.localStorage.setItem('cart_store', cartData);
+      window.localStorage.setItem('cart_tienda-dos', cartData);
+      window.localStorage.setItem('cart_', cartData);
     });
 
     await page.goto('/shop/cart');
