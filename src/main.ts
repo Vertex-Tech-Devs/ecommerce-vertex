@@ -13,7 +13,7 @@ if (globalThis.location) {
     if (firstLabel.startsWith('vtx-')) {
       firstLabel = firstLabel.substring(4);
     }
-    if (firstLabel) {
+    if (firstLabel && (!environment.tenantId || environment.tenantId === 'store')) {
       environment.tenantId = firstLabel;
     }
   }

@@ -10,6 +10,9 @@ const db = admin.firestore();
 const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
 
 function resolveTenantId(request: any): string {
+  if (request.data && typeof request.data === 'object' && request.data.tenantId) {
+    return String(request.data.tenantId);
+  }
   if (request.auth?.token?.["tenantId"]) {
     return String(request.auth.token["tenantId"]);
   }
