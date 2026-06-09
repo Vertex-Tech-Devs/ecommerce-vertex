@@ -267,6 +267,13 @@ jobs:
       - name: Deploy to Firebase Production
         run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions --force
 
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          gh release create "v$VERSION" --title "v$VERSION" --generate-notes || true
+
   provision-store:
     name: '→ Provision Store (${{ github.event.client_payload.project_id }}) [${{ github.event.client_payload.site_id || github.event.client_payload.store_id }}]'
     runs-on: ubuntu-latest
