@@ -49,8 +49,8 @@ jobs:
       has_stores: ${{ steps.parse.outputs.has_stores }}
     steps:
       - name: Fetch from platform API
-        id: fetch
-        run: |
+         id: fetch
+         run: |
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
@@ -60,7 +60,7 @@ jobs:
       - name: Parse stores into canary + rest
         id: parse
         run: |
-          STORES=$(echo '${{ steps.fetch.outputs.response }}' | jq -c '.result.stores // []')
+          STORES=$(echo '${{ steps.fetch.outputs.response }}' | jq -c '[.result.stores[]? | select(.autoUpdate == true)]')
           COUNT=$(echo "$STORES" | jq 'length')
 
           if [ "$COUNT" -eq "0" ]; then
@@ -98,6 +98,26 @@ jobs:
           FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
         run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
 
+      - name: Write minimal firebase.json for store deployment
+        run: |
+          python3 << 'PYEOF'
+          import os, json
+          site_id = os.environ.get("SITE_ID", "").strip()
+          payload = {
+            "hosting": {
+              "public": "dist/ecommerce-vertex/browser",
+              "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+            }
+          }
+          if site_id and site_id != "default":
+              payload["hosting"]["site"] = site_id
+          with open("firebase.json", "w") as f:
+              json.dump(payload, f, indent=2)
+          PYEOF
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -113,7 +133,7 @@ jobs:
       - name: Health check (30s)
         run: |
           sleep 30
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${{ matrix.store.projectId }}.web.app")
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://${{ matrix.store.siteId }}.web.app")
           if [ "$STATUS" != "200" ]; then
             echo "❌ Health check failed: HTTP $STATUS"
             exit 1
@@ -142,6 +162,26 @@ jobs:
         env:
           FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
         run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
+
+      - name: Write minimal firebase.json for store deployment
+        run: |
+          python3 << 'PYEOF'
+          import os, json
+          site_id = os.environ.get("SITE_ID", "").strip()
+          payload = {
+            "hosting": {
+              "public": "dist/ecommerce-vertex/browser",
+              "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+            }
+          }
+          if site_id and site_id != "default":
+              payload["hosting"]["site"] = site_id
+          with open("firebase.json", "w") as f:
+              json.dump(payload, f, indent=2)
+          PYEOF
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
