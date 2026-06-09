@@ -74,7 +74,7 @@ export class AuthService {
             // Attempt to sync the claim synchronously via callable.
             // This handles the race where onRoleChange fired before the user existed in Auth.
             try {
-              await this.refreshMyAdminClaim({});
+              await this.refreshMyAdminClaim({ tenantId: environment.tenantId });
             } catch {
               // If callable fails, fall back to waiting for the background trigger.
             }
