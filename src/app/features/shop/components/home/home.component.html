@@ -1,5 +1,10 @@
 <div class="home-page">
-  @if (heroBanner$ | async; as banner) {
+  @if (bannerLoading()) {
+    <div class="hero-loading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <span class="visually-hidden">Cargando banner...</span>
+    </div>
+  } @else if (heroBanner(); as banner) {
     @if (banner.heroImages && banner.heroImages.length > 0) {
       <section class="hero" aria-label="Banner principal">
         @if (isCarousel(banner)) {
@@ -23,8 +28,8 @@
       </section>
     }
 
-    <div class="home-container">
-      @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
+    @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
+      <div class="home-container">
         <section class="section" aria-label="Categorías destacadas">
           <a routerLink="/shop/catalog" class="section__title-link">
             <h2 class="section__title">Categorías Destacadas</h2>
@@ -51,13 +56,8 @@
             }
           </div>
         </section>
-      }
-    </div>
-  } @else {
-    <div class="hero-loading">
-      <div class="spinner-border text-primary" role="status"></div>
-      <span class="visually-hidden">Cargando banner...</span>
-    </div>
+      </div>
+    }
   }
 
   <div class="home-container">
@@ -66,9 +66,14 @@
         <h2 class="section__title">Nuevos Ingresos</h2>
       </a>
 
-      @if (newArrivals$ | async; as products) {
+      @if (productsLoading()) {
+        <div class="loading-state" role="status">
+          <div class="spinner-border text-primary" aria-hidden="true"></div>
+          <span class="visually-hidden">Cargando productos...</span>
+        </div>
+      } @else if (newArrivals()?.length) {
         <div class="product-grid">
-          @for (product of products; track product.id) {
+          @for (product of newArrivals(); track product.id) {
             <a
               [routerLink]="['/shop/product', product.id]"
               class="product-card"
@@ -94,17 +99,12 @@
                 <p class="product-card__shipping">Envío gratis</p>
               </div>
             </a>
-          } @empty {
-            <p class="empty-state" role="status">
-              No hay productos nuevos para mostrar en este momento.
-            </p>
           }
         </div>
       } @else {
-        <div class="loading-state" role="status">
-          <div class="spinner-border text-primary" aria-hidden="true"></div>
-          <span class="visually-hidden">Cargando productos...</span>
-        </div>
+        <p class="empty-state" role="status">
+          No hay productos nuevos para mostrar en este momento.
+        </p>
       }
     </section>
   </div>
