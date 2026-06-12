@@ -20,12 +20,18 @@ export const StoreConfigSchema = z.object({
       accent: z.string().default('#ef4444').catch('#ef4444'),
       background: z.string().default('#ffffff').catch('#ffffff'),
     })
-    .default({}),
+    .default({
+      primary: '#ea580c',
+      accent: '#ef4444',
+      background: '#ffffff',
+    }),
   payments: z
     .object({
       mercadoPagoPublicKey: z.string().default('').catch(''),
     })
-    .default({}),
+    .default({
+      mercadoPagoPublicKey: '',
+    }),
   contact: z
     .object({
       phone: z.string().default('').catch(''),
@@ -34,12 +40,20 @@ export const StoreConfigSchema = z.object({
       instagram: z.string().default('').catch(''),
       facebook: z.string().default('').catch(''),
     })
-    .default({}),
+    .default({
+      phone: '',
+      email: '',
+      whatsApp: '',
+      instagram: '',
+      facebook: '',
+    }),
   seo: z
     .object({
       metaDescription: z.string().default('').catch(''),
     })
-    .default({}),
+    .default({
+      metaDescription: '',
+    }),
   setupCompleted: z.boolean().default(true).catch(true),
   contactPhone: z.string().optional(),
   contactEmail: z.string().optional(),
