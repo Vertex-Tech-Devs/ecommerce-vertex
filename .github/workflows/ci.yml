@@ -54,7 +54,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Lint
         run: npm run lint
@@ -74,7 +74,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Run tests
         run: npm run test:ci
@@ -98,7 +98,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file for build check
         run: cp src/environments/environment.example.ts src/environments/environment.prod.ts
@@ -145,7 +145,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Audit frontend
         run: npm audit --audit-level=high
@@ -171,7 +171,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file
         run: cp src/environments/environment.example.ts src/environments/environment.ts
@@ -185,15 +185,13 @@ jobs:
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
       - name: Build storefront
-        run: |
-          npm run build --workspace=@vertex/contracts --if-present
-          npm run build:dev
+        run: npm run build
 
       - name: Start static server
-        run: npx --yes serve -s dist/ecommerce-vertex/browser -l 4200 &
+        run: npx serve -s dist/ecommerce-vertex/browser -l 4200 &
 
       - name: Wait for server to be ready
-        run: npx wait-on tcp:127.0.0.1:4200 --timeout 300000
+        run: npx wait-on http://127.0.0.1:4200 --timeout 300000
 
       - name: Run E2E tests
         run: npm run e2e:ci
@@ -221,7 +219,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file
         run: cp src/environments/environment.example.ts src/environments/environment.ts
@@ -231,9 +229,7 @@ jobs:
           echo '{"apiKey":"test","authDomain":"ci-stub.firebaseapp.com","projectId":"ci-stub","storageBucket":"ci-stub.appspot.com","messagingSenderId":"000000000000","appId":"1:000000000000:web:000000000000000000000000"}' > src/firebase-config.json
 
       - name: Build storefront
-        run: |
-          npm run build --workspace=@vertex/contracts --if-present
-          npm run build:dev
+        run: npm run build
 
       - name: Mark integration mode
         id: integration-mode
