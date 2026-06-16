@@ -13,7 +13,8 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: 'npm run start -- --port 4201',
+    command: 'npx serve -s dist/ecommerce-vertex/browser -l 4201',
+    cwd: '..',
     url: 'http://localhost:4201',
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
