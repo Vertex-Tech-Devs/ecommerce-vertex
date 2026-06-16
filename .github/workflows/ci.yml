@@ -184,13 +184,11 @@ jobs:
         id: e2e-mode
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
-      - name: Start Angular dev server
-        run: |
-          sudo sysctl fs.inotify.max_user_watches=524288 || true
-          npm start -- --host 127.0.0.1 < /dev/null &
-        env:
-          CI: true
-          NG_CLI_ANALYTICS: false
+      - name: Build storefront
+        run: npm run build:dev
+
+      - name: Start static server
+        run: npx --yes http-server dist/ecommerce-vertex/browser -p 4200 &
 
       - name: Wait for server to be ready
         run: npx wait-on tcp:127.0.0.1:4200 --timeout 300000
