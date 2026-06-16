@@ -185,7 +185,9 @@ jobs:
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
       - name: Start Angular dev server
-        run: npm start -- --host 127.0.0.1 --watch=false &
+        run: |
+          sudo sysctl fs.inotify.max_user_watches=524288 || true
+          npm start -- --host 127.0.0.1 &
         env:
           CI: true
           NG_CLI_ANALYTICS: false
