@@ -184,13 +184,16 @@ jobs:
         id: e2e-mode
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
-      - name: Start Angular dev server
-        run: npm start &
-        env:
-          CI: true
+      - name: Build storefront
+        run: |
+          npm run build --workspace=@vertex/contracts --if-present
+          npm run build:dev
+
+      - name: Start static server
+        run: npx --yes serve -s dist/ecommerce-vertex/browser -l 4200 &
 
       - name: Wait for server to be ready
-        run: npx wait-on http://localhost:4200 --timeout 60000
+        run: npx wait-on tcp:127.0.0.1:4200 --timeout 300000
 
       - name: Run E2E tests
         run: npm run e2e:ci
