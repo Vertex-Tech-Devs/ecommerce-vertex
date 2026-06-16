@@ -185,7 +185,9 @@ jobs:
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
       - name: Build storefront
-        run: npm run build:dev
+        run: |
+          npm run build --workspace=@vertex/contracts --if-present
+          npm run build:dev
 
       - name: Start static server
         run: npx --yes http-server dist/ecommerce-vertex/browser -p 4200 &
