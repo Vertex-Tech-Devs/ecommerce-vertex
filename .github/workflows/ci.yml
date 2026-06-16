@@ -185,7 +185,7 @@ jobs:
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
 
       - name: Start Angular dev server
-        run: npm start -- --host 127.0.0.1 &
+        run: npm start -- --host 127.0.0.1 --watch=false &
         env:
           CI: true
           NG_CLI_ANALYTICS: false
