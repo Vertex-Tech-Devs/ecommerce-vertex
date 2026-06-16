@@ -14,8 +14,8 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npx serve -s dist/ecommerce-vertex/browser -l 4200',
-    cwd: '.',
     url: 'http://localhost:4200',
+    cwd: process.env['CI'] ? '.' : '../..',
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
   },
