@@ -187,7 +187,7 @@ jobs:
       - name: Start Angular dev server
         run: |
           sudo sysctl fs.inotify.max_user_watches=524288 || true
-          npm start -- --host 127.0.0.1 &
+          npm start -- --host 127.0.0.1 < /dev/null &
         env:
           CI: true
           NG_CLI_ANALYTICS: false
