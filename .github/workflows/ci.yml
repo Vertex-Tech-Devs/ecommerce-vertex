@@ -223,6 +223,18 @@ jobs:
 
       - run: npm ci
 
+      - name: Generate stub environment file
+        run: cp src/environments/environment.example.ts src/environments/environment.ts
+
+      - name: Generate stub Firebase config
+        run: |
+          echo '{"apiKey":"test","authDomain":"ci-stub.firebaseapp.com","projectId":"ci-stub","storageBucket":"ci-stub.appspot.com","messagingSenderId":"000000000000","appId":"1:000000000000:web:000000000000000000000000"}' > src/firebase-config.json
+
+      - name: Build storefront
+        run: |
+          npm run build --workspace=@vertex/contracts --if-present
+          npm run build:dev
+
       - name: Mark integration mode
         id: integration-mode
         run: echo "mode=real" >> "$GITHUB_OUTPUT"
