@@ -190,7 +190,7 @@ jobs:
           npm run build:dev
 
       - name: Start static server
-        run: npx --yes http-server dist/ecommerce-vertex/browser -p 4200 &
+        run: npx --yes http-server dist/ecommerce-vertex/browser -p 4200 --spa &
 
       - name: Wait for server to be ready
         run: npx wait-on tcp:127.0.0.1:4200 --timeout 300000
