@@ -1,9 +1,8 @@
 {
-  "apiKey": "YOUR_API_KEY",
-  "authDomain": "YOUR_PROJECT_ID.firebaseapp.com",
-  "projectId": "YOUR_PROJECT_ID",
-  "storageBucket": "YOUR_PROJECT_ID.firebasestorage.app",
-  "messagingSenderId": "YOUR_MESSAGING_SENDER_ID",
-  "appId": "YOUR_APP_ID",
-  "measurementId": "YOUR_MEASUREMENT_ID"
+  "apiKey": "AIzaSyCUTO8Dh3RpCh8wlp4ZYhTK1NBhDOQkbqY",
+  "authDomain": "ecommerce-vertex-dev.firebaseapp.com",
+  "projectId": "ecommerce-vertex-dev",
+  "storageBucket": "ecommerce-vertex-dev.firebasestorage.app",
+  "messagingSenderId": "988454979046",
+  "appId": "1:988454979046:web:1bd66872e636fe1d5b0227"
 }

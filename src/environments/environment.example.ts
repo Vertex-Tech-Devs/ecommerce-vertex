@@ -1,28 +1,22 @@
 export const environment = {
   production: false,
-  tenantId: 'store',
+  tenantId: 'tienda-dos',
   firebaseConfig: {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID',
+    apiKey: 'AIzaSyCUTO8Dh3RpCh8wlp4ZYhTK1NBhDOQkbqY',
+    authDomain: 'ecommerce-vertex-dev.firebaseapp.com',
+    projectId: 'ecommerce-vertex-dev',
+    storageBucket: 'ecommerce-vertex-dev.firebasestorage.app',
+    messagingSenderId: '988454979046',
+    appId: '1:988454979046:web:1bd66872e636fe1d5b0227',
   },
   mercadoPago: {
-    // MercadoPago public key — use a TEST- prefixed key for sandbox environments.
-    // Get yours at https://www.mercadopago.com.ar/developers/panel/credentials
     publicKey: 'TEST-YOUR_PUBLIC_KEY',
   },
   api: {
-    // Base URL for Firebase Cloud Functions.
-    // Local emulator: 'http://127.0.0.1:5001/<project-id>/us-central1'
-    // Deployed:       'https://us-central1-<project-id>.cloudfunctions.net'
-    cloudFunctionsUrl: 'http://127.0.0.1:5001/YOUR_PROJECT_ID/us-central1',
+    cloudFunctionsUrl: 'https://us-central1-ecommerce-vertex-dev.cloudfunctions.net',
   },
   features: {
-    // Enable verbose console logging throughout the app
-    seedDataEnabled: false,
+    seedDataEnabled: true,
     debugLogging: false,
   },
 };
