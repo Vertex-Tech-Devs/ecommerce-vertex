@@ -45,7 +45,9 @@
             ],
             "stylePreprocessorOptions": {
               "includePaths": [
-                "src/styles"
+                "src/styles",
+                "node_modules",
+                "../node_modules"
               ]
             },
             "allowedCommonJsDependencies": [
@@ -116,7 +118,9 @@
             "karmaConfig": "karma.conf.js",
             "stylePreprocessorOptions": {
               "includePaths": [
-                "src/styles"
+                "src/styles",
+                "node_modules",
+                "../node_modules"
               ]
             },
             "codeCoverageExclude": [
