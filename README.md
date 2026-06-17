@@ -1,8 +1,20 @@
-# 🛒 Vertex Ecommerce
+# 🛒 Vertex Ecommerce (Storefront)
 
 Plantilla de comercio electrónico para la tienda (storefront) y panel de administración (backoffice) de cada cliente en el ecosistema multi-tenant de Vertex.
 
-Cada tienda cliente recibe un proyecto de Firebase aislado y dedicado con esta aplicación desplegada de forma automática. La aplicación lee dinámicamente la configuración específica del comercio desde la colección de Firestore (`settings/storeConfig`).
+## 🏢 Arquitectura Multi-Repo en Paralelo (Side-by-Side)
+
+Este proyecto opera bajo una topología de repositorios hermanos en paralelo:
+- **Plano de control (Backoffice central/API):** `platform/` (Asociado al repositorio `vertex-tech-devs/vertex-platform`)
+- **Plantilla de Tienda (Storefront/Admin cliente):** `storefront/` (Asociado al repositorio `vertex-tech-devs/ecommerce-vertex`)
+
+### Consumo de Contratos Compartidos via File-Path
+La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente de forma local sin depender de un monorepo global artificial, mediante la directiva `file:` en `package.json`:
+```json
+"dependencies": {
+  "@vertex/contracts": "file:../platform/packages/shared-contracts"
+}
+```
 
 ---
 
@@ -10,15 +22,17 @@ Cada tienda cliente recibe un proyecto de Firebase aislado y dedicado con esta a
 
 Sigue estos pasos para configurar e iniciar la aplicación localmente en tu entorno de desarrollo:
 
-1. **Instalar dependencias:**
-   Instala los paquetes tanto para la aplicación frontend de Angular como para el backend de Cloud Functions:
+1. **Configurar el entorno (Script interactivo CLI):**
    ```bash
-   npm install
-   cd functions && npm ci && cd ..
+   npm run setup
    ```
 
-2. **Iniciar el servidor local:**
-   Levanta la aplicación Angular en modo de desarrollo:
+2. **Instalar dependencias y vincular contratos:**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+
+3. **Iniciar el servidor local de desarrollo:**
    ```bash
    npm start
    ```

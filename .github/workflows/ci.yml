@@ -54,7 +54,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
+
+      - run: npm ci --legacy-peer-deps
 
       - name: Lint
         run: npm run lint
@@ -74,7 +85,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
+
+      - run: npm ci --legacy-peer-deps
 
       - name: Run tests
         run: npm run test:ci
@@ -98,7 +120,18 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
+
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file for build check
         run: cp src/environments/environment.example.ts src/environments/environment.prod.ts
@@ -166,12 +199,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file
         run: cp src/environments/environment.example.ts src/environments/environment.ts
@@ -186,7 +225,7 @@ jobs:
 
       - name: Build storefront
         run: |
-          npm run build --workspace=@vertex/contracts --if-present
+          npm run build --prefix ../platform/packages/shared-contracts --if-present
           npm run build:dev
 
       - name: Start static server
@@ -216,12 +255,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Generate stub environment file
         run: cp src/environments/environment.example.ts src/environments/environment.ts
@@ -232,7 +277,7 @@ jobs:
 
       - name: Build storefront
         run: |
-          npm run build --workspace=@vertex/contracts --if-present
+          npm run build --prefix ../platform/packages/shared-contracts --if-present
           npm run build:dev
 
       - name: Mark integration mode
