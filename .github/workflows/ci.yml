@@ -181,7 +181,19 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci
+      - name: Checkout Platform Shared Contracts
+        uses: actions/checkout@v4
+        with:
+          repository: Vertex-Tech-Devs/vertex-platform
+          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
+          path: platform
+      - name: Move platform to sister directory
+        run: mv platform ../platform
+      - name: Install Shared Contracts Dependencies
+        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
+
+      - run: npm ci --legacy-peer-deps
 
       - name: Audit frontend
         run: npm audit --audit-level=high
