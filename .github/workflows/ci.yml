@@ -59,6 +59,7 @@ jobs:
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
           path: platform
       - name: Move platform to sister directory
         run: mv platform ../platform
@@ -90,6 +91,7 @@ jobs:
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
           path: platform
       - name: Move platform to sister directory
         run: mv platform ../platform
@@ -125,6 +127,7 @@ jobs:
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
           path: platform
       - name: Move platform to sister directory
         run: mv platform ../platform
@@ -204,6 +207,7 @@ jobs:
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
           path: platform
       - name: Move platform to sister directory
         run: mv platform ../platform
@@ -260,6 +264,7 @@ jobs:
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
+          ref: develop
           path: platform
       - name: Move platform to sister directory
         run: mv platform ../platform
