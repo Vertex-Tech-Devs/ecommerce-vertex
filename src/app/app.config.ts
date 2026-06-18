@@ -9,7 +9,7 @@ import { provideFirestore } from '@angular/fire/firestore';
 import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
 
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getApp } from 'firebase/app';
 import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
@@ -51,11 +51,8 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
       provideAuth(() => {
-        const auth = getAuth();
-        if (isLocal) {
-          connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-        }
-        return auth;
+        // Auth uses real Google servers — emulator breaks signInWithPopup (Google SSO).
+        return getAuth();
       }),
       provideFirestore(() => {
         const db = createFirestore();
