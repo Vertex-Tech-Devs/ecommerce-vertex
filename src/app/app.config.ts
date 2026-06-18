@@ -9,10 +9,10 @@ import { provideFirestore } from '@angular/fire/firestore';
 import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
 
-import { getAuth } from 'firebase/auth';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getApp } from 'firebase/app';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
+import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
 import type { Firestore } from 'firebase/firestore';
 
@@ -40,15 +40,37 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
     }
   };
 
+  const isLocal =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   return {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
       provideHttpClient(withInterceptors([loadingInterceptor, httpErrorInterceptor])),
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
-      provideAuth(() => getAuth()),
-      provideFirestore(() => createFirestore()),
-      provideFunctions(() => getFunctions()),
+      provideAuth(() => {
+        const auth = getAuth();
+        if (isLocal) {
+          connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+        }
+        return auth;
+      }),
+      provideFirestore(() => {
+        const db = createFirestore();
+        if (isLocal) {
+          connectFirestoreEmulator(db, 'localhost', 8080);
+        }
+        return db;
+      }),
+      provideFunctions(() => {
+        const fns = getFunctions();
+        if (isLocal) {
+          connectFunctionsEmulator(fns, 'localhost', 5001);
+        }
+        return fns;
+      }),
       provideStorage(() => getStorage()),
 
       importProvidersFrom(ModalModule.forRoot()),
