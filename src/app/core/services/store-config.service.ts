@@ -148,19 +148,6 @@ export class StoreConfigService {
         return;
       }
 
-      const fallbackSnap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('settings'), 'storeConfig')).catch(() => null),
-        timeout,
-      ]);
-      if (fallbackSnap?.exists()) {
-        const validatedData = StoreConfigSchema.parse(
-          this.parseSettingsRaw(fallbackSnap.data() as Record<string, unknown>)
-        );
-        this._storeConfig.set(validatedData as StoreConfig);
-        this.applyConfigToDom(validatedData as StoreConfig);
-        return;
-      }
-
       // Legacy flat path: configuracion/{tenantId} (provisioned before tenant namespace)
       const legacySnap = await Promise.race([
         this.getDocSnap(this.getDocRef('configuracion', environment.tenantId)).catch(() => null),
@@ -179,36 +166,6 @@ export class StoreConfigService {
       console.error('Error al cargar la configuración de la tienda:', err);
       this._storeConfig.set(null);
     }
-  }
-
-  private parseSettingsRaw(raw: Record<string, unknown>): Record<string, unknown> {
-    const payments = raw['payments'] as Record<string, unknown> | undefined;
-    const mpKey = payments?.['mercadoPago']
-      ? ((payments as Record<string, Record<string, string>>)['mercadoPago']['publicKey'] ?? '')
-      : '';
-    const contact = raw['contact'] as Record<string, string> | undefined;
-    return {
-      tenantId: environment.tenantId,
-      storeId: 'white-label-store',
-      storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
-      tagline: (raw['tagline'] as string) ?? (raw['strapline'] as string) ?? '',
-      logoUrl: (raw['logoUrl'] as string) ?? '',
-      faviconUrl: (raw['faviconUrl'] as string) ?? '',
-      colors: raw['colors'] ?? { primary: '#ea580c', accent: '#ef4444', background: '#ffffff' },
-      payments: { mercadoPagoPublicKey: mpKey },
-      contact: {
-        phone: contact?.['phone'] ?? '',
-        email: contact?.['email'] ?? '',
-        whatsApp: contact?.['whatsapp'] ?? '',
-        instagram: '',
-        facebook: '',
-      },
-      seo: {
-        metaDescription:
-          (raw['seo'] as Record<string, string>)?.['metaDescription'] ?? 'Bienvenido',
-      },
-      setupCompleted: true,
-    };
   }
 
   private parseLegacyConfigRaw(raw: Record<string, unknown>): Record<string, unknown> {

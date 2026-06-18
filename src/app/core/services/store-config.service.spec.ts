@@ -85,7 +85,7 @@ describe('StoreConfigService', () => {
     expect(service.isFirstRun()).toBeFalse();
   });
 
-  it("should load config from fallback settings collection when configuracion doesn't exist", async () => {
+  it("should load config from legacy flat configuracion/{tenantId} collection when namespaced configuracion/store doesn't exist", async () => {
     let callCount = 0;
     const mockSnapEmpty = {
       exists: () => false,
@@ -103,12 +103,12 @@ describe('StoreConfigService', () => {
           background: '#ffffff',
         },
         payments: {
-          mercadoPago: { publicKey: 'TEST-MP' },
+          mercadoPagoPublicKey: 'TEST-MP',
         },
         contact: {
           phone: '987654',
           email: 'fallback@store.com',
-          whatsapp: '98765',
+          whatsApp: '98765',
         },
         seo: {
           metaDescription: 'Fallback Meta',

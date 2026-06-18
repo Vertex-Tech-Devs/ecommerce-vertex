@@ -111,3 +111,8 @@ emulator-data/
 .cache/
 .local/
 settings.json
+
+# Operational tracking files
+task.md
+implementation_plan.md
+walkthrough.md
