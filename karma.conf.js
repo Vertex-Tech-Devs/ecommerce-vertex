@@ -38,7 +38,7 @@ module.exports = function (config) {
       check: {
         global: {
           statements: 80,
-          branches: 55, // TODO: improve CartService branch coverage back to 80% (see cart.service.spec.ts)
+          branches: 80, // Restored CartService branch coverage minimum threshold
           functions: 80,
           lines: 80,
         },
