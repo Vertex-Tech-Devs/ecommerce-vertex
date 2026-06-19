@@ -37,10 +37,10 @@ module.exports = function (config) {
       ],
       check: {
         global: {
-          statements: 80,
-          branches: 80, // Restored CartService branch coverage minimum threshold
-          functions: 80,
-          lines: 80,
+          statements: 85,
+          branches: 85, // Restored and set to 85% minimum threshold
+          functions: 85,
+          lines: 85,
         },
       },
     },

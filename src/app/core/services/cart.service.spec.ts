@@ -307,6 +307,7 @@ describe('CartService', () => {
         service.clearCart();
         TestBed.flushEffects();
       }).not.toThrow();
+    });
   });
 
   describe('localStorage error handling extra', () => {

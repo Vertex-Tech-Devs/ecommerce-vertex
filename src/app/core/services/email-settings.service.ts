@@ -33,13 +33,27 @@ export class EmailSettingsService {
   private firestore: Firestore = inject(Firestore);
   private functions: FirebaseFunctions = inject(Functions);
   private injector = inject(Injector);
-  private get docRef(): DocumentReference<DocumentData> {
+
+  protected get docRef(): DocumentReference<DocumentData> {
     return doc(this.firestore, tenantPath('settings'), 'emailTemplates');
+  }
+
+  protected getDocData(ref: DocumentReference): Observable<unknown> {
+    return docData(ref);
+  }
+
+  protected setDocData(ref: DocumentReference, data: any): Promise<void> {
+    return setDoc(ref, data, { merge: true });
+  }
+
+  protected callFunction(name: string, payload: any): Promise<unknown> {
+    const fn = httpsCallable(this.functions, name);
+    return fn(payload);
   }
 
   getEmailSettings(): Observable<EmailSettings | undefined> {
     return runInInjectionContext(this.injector, () => {
-      return (docData(this.docRef) as Observable<EmailSettings | undefined>).pipe(
+      return (this.getDocData(this.docRef) as Observable<EmailSettings | undefined>).pipe(
         catchError((err) => {
           console.warn('Unable to load email settings:', err);
           return of(undefined);
@@ -49,11 +63,10 @@ export class EmailSettingsService {
   }
 
   saveEmailSettings(settings: EmailSettings): Promise<void> {
-    return setDoc(this.docRef, settings, { merge: true });
+    return this.setDocData(this.docRef, settings);
   }
 
   sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
-    const sendTestEmailFn = httpsCallable(this.functions, 'sendAdvancedTestEmail');
-    return sendTestEmailFn(payload);
+    return this.callFunction('sendAdvancedTestEmail', payload);
   }
 }

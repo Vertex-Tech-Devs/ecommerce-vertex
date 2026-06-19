@@ -65,15 +65,19 @@ describe('StoreConfigComponent', () => {
 
     Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
       value: mockConfigSignal.asReadonly(),
+      configurable: true,
     });
     Object.defineProperty(storeConfigServiceSpy, 'storeName', {
       value: mockStoreNameSignal.asReadonly(),
+      configurable: true,
     });
     Object.defineProperty(storeConfigServiceSpy, 'logoUrl', {
       value: mockLogoUrlSignal.asReadonly(),
+      configurable: true,
     });
     Object.defineProperty(storeConfigServiceSpy, 'isFirstRun', {
       value: mockIsFirstRunSignal.asReadonly(),
+      configurable: true,
     });
 
     storeConfigServiceSpy.saveConfig.and.returnValue(Promise.resolve());
@@ -222,5 +226,67 @@ describe('StoreConfigComponent', () => {
 
     expect(component.faviconUploading()).toBeFalse();
     expect(sweetAlertSpy.error).toHaveBeenCalled();
+  });
+
+  it('should initialize form with defaults in ngOnInit when config is null', () => {
+    const mockConfigSignalNull = signal<StoreConfig | null>(null);
+    Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
+      value: mockConfigSignalNull.asReadonly(),
+      configurable: true,
+    });
+
+    component.ngOnInit();
+    expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
+    expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
+  });
+
+  it('should use fallback values in ngOnInit when config is empty or missing properties', () => {
+    const mockConfigSignalEmpty = signal<StoreConfig>({} as StoreConfig);
+    Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
+      value: mockConfigSignalEmpty.asReadonly(),
+      configurable: true,
+    });
+
+    component.ngOnInit();
+    expect(component.form.get('storeId')?.value).toBe('white-label-store');
+    expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
+    expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
+    expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');
+    expect(component.form.get('contact.email')?.value).toBe('contacto@mitienda.com');
+    expect(component.form.get('seo.metaDescription')?.value).toBe('Bienvenidos a mi tienda virtual.');
+    expect(component.form.get('setupCompleted')?.value).toBeTrue();
+  });
+
+  it('should return early onLogoUpload if no files are selected', () => {
+    const event = {
+      target: {
+        files: null,
+      },
+    } as unknown as Event;
+
+    storageServiceSpy.uploadFile.calls.reset();
+    component.onLogoUpload(event);
+    expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
+  });
+
+  it('should return early onFaviconUpload if no files are selected', () => {
+    const event = {
+      target: {
+        files: [],
+      },
+    } as unknown as Event;
+
+    storageServiceSpy.uploadFile.calls.reset();
+    component.onFaviconUpload(event);
+    expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
+  });
+
+  it('should handle saveConfig error on submit', async () => {
+    storeConfigServiceSpy.saveConfig.and.returnValue(Promise.reject(new Error('Save error')));
+
+    await component.onSubmit();
+
+    expect(sweetAlertSpy.error).toHaveBeenCalledWith('Error', 'No se pudo guardar la configuración de la tienda.');
+    expect(component.isSubmitting).toBeFalse();
   });
 });
