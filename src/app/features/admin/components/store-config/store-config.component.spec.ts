@@ -253,7 +253,9 @@ describe('StoreConfigComponent', () => {
     expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
     expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');
     expect(component.form.get('contact.email')?.value).toBe('contacto@mitienda.com');
-    expect(component.form.get('seo.metaDescription')?.value).toBe('Bienvenidos a mi tienda virtual.');
+    expect(component.form.get('seo.metaDescription')?.value).toBe(
+      'Bienvenidos a mi tienda virtual.'
+    );
     expect(component.form.get('setupCompleted')?.value).toBeTrue();
   });
 
@@ -286,7 +288,10 @@ describe('StoreConfigComponent', () => {
 
     await component.onSubmit();
 
-    expect(sweetAlertSpy.error).toHaveBeenCalledWith('Error', 'No se pudo guardar la configuración de la tienda.');
+    expect(sweetAlertSpy.error).toHaveBeenCalledWith(
+      'Error',
+      'No se pudo guardar la configuración de la tienda.'
+    );
     expect(component.isSubmitting).toBeFalse();
   });
 });
