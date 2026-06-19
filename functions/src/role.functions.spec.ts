@@ -38,6 +38,7 @@ vi.mock('firebase-admin/firestore', () => ({
   getFirestore: vi.fn(() => ({
     collection: vi.fn(() => ({ doc: mockCollectionDoc })),
   })),
+  FieldValue: { serverTimestamp: vi.fn(() => 'SERVER_TIMESTAMP') },
 }));
 
 vi.mock('firebase-functions/v1', () => ({
