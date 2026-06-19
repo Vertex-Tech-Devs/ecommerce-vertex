@@ -143,7 +143,7 @@ describe('LoginComponent', () => {
     component.onGoogleLogin();
 
     expect(component.authErrorMessage).toBe(
-      'No se pudo iniciar sesión con Google. Intentá de nuevo.'
+      'No se pudo iniciar sesión con Google. Error: some-unknown-error'
     );
     expect(component.isGoogleSubmitting).toBeFalse();
   });

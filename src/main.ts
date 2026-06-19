@@ -55,7 +55,7 @@ if (bootTitle) {
   document.title = bootTitle;
 }
 
-fetch('/firebase-config.json')
+fetch('/firebase-config.json?t=' + new Date().getTime())
   .then((r) => (r.ok ? (r.json() as Promise<FirebaseOptions>) : Promise.reject(r.status)))
   .catch(() => environment.firebaseConfig)
   .then((firebaseConfig) => bootstrapApplication(AppComponent, createAppConfig(firebaseConfig)))
