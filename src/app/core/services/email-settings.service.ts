@@ -42,11 +42,11 @@ export class EmailSettingsService {
     return docData(ref);
   }
 
-  protected setDocData(ref: DocumentReference, data: any): Promise<void> {
+  protected setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
     return setDoc(ref, data, { merge: true });
   }
 
-  protected callFunction(name: string, payload: any): Promise<unknown> {
+  protected callFunction(name: string, payload: Record<string, unknown>): Promise<unknown> {
     const fn = httpsCallable(this.functions, name);
     return fn(payload);
   }
@@ -63,10 +63,13 @@ export class EmailSettingsService {
   }
 
   saveEmailSettings(settings: EmailSettings): Promise<void> {
-    return this.setDocData(this.docRef, settings);
+    return this.setDocData(this.docRef, settings as unknown as Record<string, unknown>);
   }
 
   sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
-    return this.callFunction('sendAdvancedTestEmail', payload);
+    return this.callFunction(
+      'sendAdvancedTestEmail',
+      payload as unknown as Record<string, unknown>
+    );
   }
 }

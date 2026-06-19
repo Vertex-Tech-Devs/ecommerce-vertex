@@ -1,14 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { Firestore } from '@angular/fire/firestore';
 import { Functions } from '@angular/fire/functions';
-import { Injector } from '@angular/core';
 import { of, throwError } from 'rxjs';
+import type { Observable } from 'rxjs';
+import type { DocumentReference } from 'firebase/firestore';
 import { EmailSettingsService } from './email-settings.service';
 import type { AdvancedTestEmailPayload } from './email-settings.service';
 import type { EmailSettings } from '@core/models/email-settings.model';
 
+interface EmailSettingsServiceTest {
+  docRef: DocumentReference;
+  getDocData(ref: DocumentReference): Observable<unknown>;
+  setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void>;
+  callFunction(name: string, payload: Record<string, unknown>): Promise<unknown>;
+}
+
 describe('EmailSettingsService', () => {
   let service: EmailSettingsService;
+  let serviceTest: EmailSettingsServiceTest;
   let firestoreSpy: jasmine.SpyObj<Firestore>;
   let functionsSpy: jasmine.SpyObj<Functions>;
 
@@ -27,6 +36,8 @@ describe('EmailSettingsService', () => {
     },
   };
 
+  const dummyRef = {} as DocumentReference;
+
   beforeEach(() => {
     firestoreSpy = jasmine.createSpyObj('Firestore', ['type']);
     functionsSpy = jasmine.createSpyObj('Functions', ['type']);
@@ -40,9 +51,10 @@ describe('EmailSettingsService', () => {
     });
 
     service = TestBed.inject(EmailSettingsService);
-    
+    serviceTest = service as unknown as EmailSettingsServiceTest;
+
     // Spy on the docRef getter to avoid running actual Firebase doc() function which validates firestore instance
-    spyOnProperty(service as any, 'docRef', 'get').and.returnValue({} as any);
+    spyOnProperty(serviceTest, 'docRef', 'get').and.returnValue(dummyRef);
   });
 
   it('should be created', () => {
@@ -50,7 +62,7 @@ describe('EmailSettingsService', () => {
   });
 
   it('should get email settings successfully', (done) => {
-    spyOn(service as any, 'getDocData').and.returnValue(of(mockEmailSettings));
+    spyOn(serviceTest, 'getDocData').and.returnValue(of(mockEmailSettings));
 
     service.getEmailSettings().subscribe((settings) => {
       expect(settings).toEqual(mockEmailSettings);
@@ -59,7 +71,9 @@ describe('EmailSettingsService', () => {
   });
 
   it('should return undefined and catch error when getEmailSettings fails', (done) => {
-    spyOn(service as any, 'getDocData').and.returnValue(throwError(() => new Error('Firestore read error')));
+    spyOn(serviceTest, 'getDocData').and.returnValue(
+      throwError(() => new Error('Firestore read error'))
+    );
     spyOn(console, 'warn');
 
     service.getEmailSettings().subscribe((settings) => {
@@ -70,11 +84,14 @@ describe('EmailSettingsService', () => {
   });
 
   it('should save email settings successfully', async () => {
-    const setDocSpy = spyOn(service as any, 'setDocData').and.returnValue(Promise.resolve());
+    const setDocSpy = spyOn(serviceTest, 'setDocData').and.returnValue(Promise.resolve());
 
     await service.saveEmailSettings(mockEmailSettings);
 
-    expect(setDocSpy).toHaveBeenCalledWith(jasmine.any(Object), mockEmailSettings);
+    expect(setDocSpy).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      mockEmailSettings as unknown as Record<string, unknown>
+    );
   });
 
   it('should send advanced test email successfully', async () => {
@@ -90,28 +107,31 @@ describe('EmailSettingsService', () => {
       templates: {},
     };
 
-    const callFnSpy = spyOn(service as any, 'callFunction').and.returnValue(Promise.resolve({ success: true }));
+    const callFnSpy = spyOn(serviceTest, 'callFunction').and.returnValue(
+      Promise.resolve({ success: true })
+    );
 
     const result = await service.sendAdvancedTestEmail(payload);
 
-    expect(callFnSpy).toHaveBeenCalledWith('sendAdvancedTestEmail', payload);
+    expect(callFnSpy).toHaveBeenCalledWith(
+      'sendAdvancedTestEmail',
+      payload as unknown as Record<string, unknown>
+    );
     expect(result).toEqual({ success: true });
   });
 
   it('should cover base helper wrappers for coverage', async () => {
-    const dummyRef = {} as any;
-
     // We call the real wrapper methods directly to cover the return statements
     try {
-      (service as any).getDocData(dummyRef);
+      serviceTest.getDocData(dummyRef);
     } catch {}
 
     try {
-      await (service as any).setDocData(dummyRef, {});
+      await serviceTest.setDocData(dummyRef, {});
     } catch {}
 
     try {
-      await (service as any).callFunction('test', {});
+      await serviceTest.callFunction('test', {});
     } catch {}
 
     expect(service.getEmailSettings).toBeDefined();
