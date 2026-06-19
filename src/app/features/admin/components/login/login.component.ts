@@ -62,8 +62,11 @@ export class LoginComponent implements OnInit {
           } else if (msg.includes('auth/popup-blocked')) {
             this.authErrorMessage =
               'El navegador bloqueó la ventana emergente de Google. Permitila e intentá de nuevo.';
+          } else if (msg.includes('wrong-tenant')) {
+            this.authErrorMessage =
+              'Tu cuenta pertenece a otra tienda. Ingresá a la URL correcta o solicitá acceso.';
           } else {
-            this.authErrorMessage = 'No se pudo iniciar sesión con Google. Intentá de nuevo.';
+            this.authErrorMessage = `No se pudo iniciar sesión con Google. Error: ${msg}`;
           }
           this.isGoogleSubmitting = false;
         },

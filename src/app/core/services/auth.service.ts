@@ -69,10 +69,12 @@ export class AuthService {
 
           // Force refresh the token to grab custom claims.
           let tokenResult = await result.user.getIdTokenResult(true);
+          let claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
 
-          if (!tokenResult.claims['admin']) {
+          if (!tokenResult.claims['admin'] || claimedTenantId !== environment.tenantId) {
             // Attempt to sync the claim synchronously via callable.
-            // This handles the race where onRoleChange fired before the user existed in Auth.
+            // This handles the race where onRoleChange fired before the user existed in Auth,
+            // or if the user is logging into a new tenant.
             try {
               await this.refreshMyAdminClaim({ tenantId: environment.tenantId });
             } catch {
@@ -82,7 +84,8 @@ export class AuthService {
             for (let i = 0; i < 4; i++) {
               await new Promise((resolve) => setTimeout(resolve, 3000));
               tokenResult = await result.user.getIdTokenResult(true);
-              if (tokenResult.claims['admin']) {
+              claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+              if (tokenResult.claims['admin'] && claimedTenantId === environment.tenantId) {
                 break;
               }
             }
@@ -93,8 +96,6 @@ export class AuthService {
             throw new Error('permission-denied');
           }
 
-          // Validate this admin belongs to the current store's tenant.
-          const claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
           if (claimedTenantId && claimedTenantId !== environment.tenantId) {
             await signOut(this.auth);
             throw new Error('wrong-tenant');

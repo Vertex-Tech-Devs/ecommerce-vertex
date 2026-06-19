@@ -3,6 +3,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as functions from "firebase-functions/v1";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { COLLECTIONS } from "./core/config";
 
 const auth = admin.auth();
@@ -122,7 +123,7 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
       email: emailLower,
       role: 'admin',
       tenantId,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
     doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
   }
