@@ -309,4 +309,38 @@ describe('CartService', () => {
       }).not.toThrow();
     });
   });
+
+  describe('localStorage error handling extra', () => {
+    it('should handle error when localStorage.getItem throws', () => {
+      spyOn(Storage.prototype, 'getItem').and.throwError('SecurityError');
+      const spyRemove = spyOn(Storage.prototype, 'removeItem');
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          CartService,
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+        ],
+      });
+      const newService = TestBed.inject(CartService);
+
+      expect(newService.cart().items).toEqual([]);
+      expect(spyRemove).toHaveBeenCalledWith(`cart_${environment.tenantId}`);
+    });
+  });
+
+  describe('addItem image fallback', () => {
+    it('should use variant image if present, otherwise fall back to product image', () => {
+      const product = makeProduct({ image: 'https://example.com/prod.jpg' });
+      const variantNoImage = makeVariant({ image: undefined });
+      service.addItem(product, variantNoImage, 1);
+      expect(service.cart().items[0].image).toBe('https://example.com/prod.jpg');
+
+      service.clearCart();
+      const variantWithImage = makeVariant({ id: 'var-2', image: 'https://example.com/var.jpg' });
+      service.addItem(product, variantWithImage, 1);
+      expect(service.cart().items[0].image).toBe('https://example.com/var.jpg');
+    });
+  });
 });

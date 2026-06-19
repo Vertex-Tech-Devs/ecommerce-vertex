@@ -11,6 +11,7 @@ import * as crypto from "crypto";
 
 const db = getFirestore();
 const secretsClient = new SecretManagerServiceClient();
+const secretCache = new Map<string, string>();
 
 function resolveProjectId(): string {
   return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
@@ -46,16 +47,26 @@ async function upsertSecret(secretId: string, payload: string): Promise<void> {
     parent: secretName,
     payload: { data: Buffer.from(payload, "utf8") },
   });
+
+  // Update memory cache
+  secretCache.set(secretId, payload.trim());
 }
 
 async function resolveSecret(secretId: string): Promise<string> {
+  if (secretCache.has(secretId)) {
+    return secretCache.get(secretId)!;
+  }
   const projectId = resolveProjectId();
   if (!projectId) return "";
   try {
     const [version] = await secretsClient.accessSecretVersion({
       name: `projects/${projectId}/secrets/${secretId}/versions/latest`,
     });
-    return version.payload?.data?.toString().trim() || "";
+    const val = version.payload?.data?.toString().trim() || "";
+    if (val) {
+      secretCache.set(secretId, val);
+    }
+    return val;
   } catch (error) {
     logger.warn(`No se pudo leer el secreto ${secretId} de Secret Manager:`, error);
     return "";
