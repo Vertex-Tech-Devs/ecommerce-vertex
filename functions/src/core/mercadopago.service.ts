@@ -13,7 +13,10 @@ function resolveProjectId(): string {
   return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
 }
 
+let cachedAccessToken: string | null = null;
+
 async function resolveAccessTokenFromSecret(secretName: string): Promise<string> {
+  if (cachedAccessToken) return cachedAccessToken;
   const projectId = resolveProjectId();
   if (!projectId) {
     throw new Error("No se pudo resolver el proyecto para leer Secret Manager.");
@@ -22,7 +25,8 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
   const [version] = await secretsClient.accessSecretVersion({
     name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
   });
-  return version.payload?.data?.toString().trim() || "";
+  cachedAccessToken = version.payload?.data?.toString().trim() || "";
+  return cachedAccessToken;
 }
 
 async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; webhook: string }> {
