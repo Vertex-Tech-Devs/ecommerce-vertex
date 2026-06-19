@@ -110,9 +110,23 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
 
   const uid = request.auth.uid;
   const tenantId = resolveTenantId(request);
-  const compositeKey = `${tenantId}_${String(email).trim().toLowerCase()}`;
+  const emailLower = String(email).trim().toLowerCase();
+  const compositeKey = `${tenantId}_${emailLower}`;
 
-  const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+  let doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+
+  const devEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+  if (!doc.exists && devEmails.includes(emailLower)) {
+    logger.info(`refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`);
+    await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).set({
+      email: emailLower,
+      role: 'admin',
+      tenantId,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+  }
+
   const role = String(doc.data()?.role || '').trim().toLowerCase();
 
   if (doc.exists && AUTHORIZED_ROLES.has(role)) {
