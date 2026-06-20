@@ -34,18 +34,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
-
       - run: npm ci --legacy-peer-deps
 
       - name: Lint
@@ -65,18 +53,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -104,18 +80,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -163,18 +127,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -241,18 +193,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
-
       - run: npm ci --legacy-peer-deps
 
       - run: npm ci
@@ -297,18 +237,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -359,18 +287,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 

@@ -14,7 +14,7 @@ This file contains universal instructions for AI agents and developers working o
 * **Design Injection (Anti-FOUC):** The Angular `APP_INITIALIZER` must block view rendering while fetching tenant configuration. Colors (`primary`, `accent`, `background`) must be set dynamically on `document.documentElement.style` via CSS custom properties (`--color-primary`, etc.).
 * **State Management:** Expose reactive states using Angular Signals. Always expose signals as read-only (`asReadonly()`) and mutate them through explicit public methods.
 * **Error Handling:** Use a centralized handler that degrades gracefully, falling back to clean visual warnings via `SweetAlertService` rather than failing silently or crashing the layout.
-* **Shared Contracts:** Schema contracts are consumed from `@vertex/contracts` via local paths in `package.json` (`file:../platform/packages/shared-contracts`).
+* **Shared Contracts:** Schema contracts are consumed from `@vertex/contracts` via the local package path in `package.json` (`file:./packages/shared-contracts`).
 
 ## 🔄 Git Flow & PR Governance
 * **Branch Protection:** Direct pushes to permanent branches `develop` and `main` are strictly blocked by server-side rules.

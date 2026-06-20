@@ -9,10 +9,10 @@ Este proyecto opera bajo una topología de repositorios hermanos en paralelo:
 - **Plantilla de Tienda (Storefront/Admin cliente):** `storefront/` (Asociado al repositorio `vertex-tech-devs/ecommerce-vertex`)
 
 ### Consumo de Contratos Compartidos via File-Path
-La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente de forma local sin depender de un monorepo global artificial, mediante la directiva `file:` en `package.json`:
+La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente desde el paquete local del repositorio, mediante la directiva `file:` en `package.json`:
 ```json
 "dependencies": {
-  "@vertex/contracts": "file:../platform/packages/shared-contracts"
+   "@vertex/contracts": "file:./packages/shared-contracts"
 }
 ```
 
