@@ -37,8 +37,16 @@ vi.mock('firebase-admin', () => ({
 vi.mock('firebase-admin/firestore', () => ({
   getFirestore: vi.fn(() => ({
     collection: vi.fn(() => ({ doc: mockCollectionDoc })),
+    doc: vi.fn(() => ({ get: mockDocGet, set: mockDocSet })),
   })),
   FieldValue: { serverTimestamp: vi.fn(() => 'SERVER_TIMESTAMP') },
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn(() => ({
+    setCustomUserClaims: mockSetCustomUserClaims,
+    getUserByEmail: mockGetUserByEmail,
+  })),
 }));
 
 vi.mock('firebase-functions/v1', () => ({

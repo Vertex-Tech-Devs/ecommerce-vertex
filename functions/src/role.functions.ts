@@ -2,12 +2,13 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as functions from "firebase-functions/v1";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
+import type { UserRecord } from "firebase-admin/auth";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { COLLECTIONS } from "./core/config";
 
-const auth = admin.auth();
-const db = admin.firestore();
+const auth = getAuth();
+const db = getFirestore();
 const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
 
 function resolveTenantId(request: any): string {
@@ -41,7 +42,7 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{compo
   const nextRole = String(afterData?.role || '').trim().toLowerCase();
   const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
 
-  let user: admin.auth.UserRecord;
+  let user: UserRecord;
   try {
     user = await auth.getUserByEmail(email);
   } catch (error: any) {

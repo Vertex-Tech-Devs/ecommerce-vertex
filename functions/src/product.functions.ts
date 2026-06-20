@@ -1,10 +1,10 @@
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 import { ProductVariantSchema } from "./core/product.model";
 import { COLLECTIONS, tenantCollection } from "./core/config";
 
-const db = admin.firestore();
+const db = getFirestore();
 
 export const onVariantStockChange = onDocumentWritten(
   "tenants/{tenantId}/products/{productId}/variants/{variantId}",

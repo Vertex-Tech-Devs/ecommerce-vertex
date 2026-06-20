@@ -1,11 +1,11 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
 import { COLLECTIONS, DOCS } from "./core/config";
 import { defineString } from "firebase-functions/params";
 
-const db = admin.firestore();
+const db = getFirestore();
 const siteUrl = defineString("SITE_URL", { default: "http://localhost:4200" });
 
 const EmailTemplateSchema = z.object({
