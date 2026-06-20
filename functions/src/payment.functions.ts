@@ -249,9 +249,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
   logger.info(`Iniciando creación de preferencia para el pedido: ${orderId}`);
 
   // Resolve order document across tenant namespaces
-  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS)
-    .where('__name__', '>=', `tenants/`)
-    .get();
+  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS).get();
   const orderDocSnap = orderSnaps.docs.find(d => d.id === orderId);
   if (!orderDocSnap) {
     throw new HttpsError("not-found", `La orden con ID ${orderId} no fue encontrada.`);
@@ -443,9 +441,7 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
     }
 
     // Resolve order via collectionGroup to support multi-tenant paths
-    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS)
-      .where('__name__', '>=', 'tenants/')
-      .get();
+    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS).get();
     const foundOrderDoc = orderQuery.docs.find(d => d.id === orderId);
     const resolvedOrderRef = foundOrderDoc?.ref ?? db.collection(`tenants/_/orders`).doc(orderId);
     const tenantIdForWebhook = foundOrderDoc?.ref.path.split('/')[1] ?? '';

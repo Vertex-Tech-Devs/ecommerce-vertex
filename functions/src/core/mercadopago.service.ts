@@ -50,6 +50,16 @@ async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; web
 export async function createPreference(data: PaymentRequestData) {
   const { items, external_reference } = data;
 
+  if (process.env.FUNCTIONS_EMULATOR === "true") {
+    logger.info(`[Emulator] Simulating Mercado Pago preference creation for ${external_reference}`);
+    const host = siteUrl.value() || "http://localhost:4201";
+    return {
+      id: `mp-mock-pref-${Date.now()}`,
+      init_point: `${host}/shop/order-confirmation/${external_reference}?status=approved`,
+      date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
+    };
+  }
+
   const runtime = await getMercadoPagoRuntimeConfig();
 
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
@@ -84,6 +94,17 @@ export async function createPreference(data: PaymentRequestData) {
 
 export async function getPaymentDetails(paymentId: string) {
   logger.info(`Obteniendo detalles del pago: ${paymentId}`);
+
+  if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-")) {
+    logger.info(`[Emulator] Simulating getPaymentDetails for ${paymentId}`);
+    const orderId = paymentId.split("-").pop() || "";
+    return {
+      id: paymentId,
+      status: "approved",
+      external_reference: orderId,
+    };
+  }
+
   const runtime = await getMercadoPagoRuntimeConfig();
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
   const paymentClient = new Payment(mpClient);
