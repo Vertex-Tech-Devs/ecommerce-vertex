@@ -50,11 +50,13 @@ jobs:
     steps:
       - name: Fetch from platform dev API
         id: fetch
+        env:
+          PLATFORM_DEPLOY_TOKEN_DEV: ${{ secrets['PLATFORM_DEPLOY_TOKEN_DEV'] }}
         run: |
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
-            -d "{\"data\":{\"deployToken\":\"${{ secrets.PLATFORM_DEPLOY_TOKEN_DEV }}\"}}")
+            -d "{\"data\":{\"deployToken\":\"$PLATFORM_DEPLOY_TOKEN_DEV\"}}")
           echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Parse stores into canary + rest
@@ -121,8 +123,10 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
         run: |
@@ -187,8 +191,10 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
         run: |

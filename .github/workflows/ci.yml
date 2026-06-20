@@ -149,12 +149,10 @@ jobs:
 
       - name: Audit frontend
         run: npm audit --audit-level=high
-        continue-on-error: true
 
       - name: Audit functions
         run: npm audit --audit-level=high
         working-directory: functions
-        continue-on-error: true
 
   e2e-tests:
     name: E2E Tests
@@ -257,8 +255,8 @@ jobs:
           git fetch origin main develop
           DIFF=$(git diff origin/develop..origin/main -- '*.ts' '*.html' '*.scss' '*.json' 2>/dev/null | head -c 500)
           if [ -n "$DIFF" ]; then
-            echo "::warning::develop está desincronizado de main. Ejecutar el Back-Merge obligatorio:"
-            echo "::warning::  git checkout develop && git pull origin develop && git merge origin/main && git push origin develop"
+            echo "::error::develop está desincronizado de main. Ejecutar el Back-Merge obligatorio:"
+            echo "::error::  git checkout develop && git pull origin develop && git merge origin/main && git push origin develop"
             echo "### ⚠️ Back-Merge Pendiente" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "\`develop\` tiene commits de \`main\` que aún no fueron sincronizados." >> $GITHUB_STEP_SUMMARY
@@ -266,6 +264,7 @@ jobs:
             echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
             echo "git checkout develop && git pull origin develop && git merge origin/main && git push origin develop" >> $GITHUB_STEP_SUMMARY
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
           else
             echo "✅ develop está sincronizado con main." >> $GITHUB_STEP_SUMMARY
           fi
@@ -290,16 +289,18 @@ jobs:
       - name: Check secret availability
         id: check
         env:
-          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         run: |
-          [ -n "$SA" ] && echo "available=true" >> "$GITHUB_OUTPUT" || echo "available=false" >> "$GITHUB_OUTPUT"
+          [ -n "$FIREBASE_SERVICE_ACCOUNT_DEV" ] && echo "available=true" >> "$GITHUB_OUTPUT" || echo "available=false" >> "$GITHUB_OUTPUT"
 
       - name: Deploy preview channel
         if: steps.check.outputs.available == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
           projectId: ecommerce-vertex-dev
           channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
@@ -336,7 +337,7 @@ jobs:
           echo "| E2E Tests | ${{ needs.e2e-tests.result == 'success' && needs.e2e-tests.outputs.mode == 'stub' && '⏭ Stub (no suite yet)' || needs.e2e-tests.result == 'success' && '✅ Pass' || needs.e2e-tests.result == 'skipped' && '⏭ Skipped (push)' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Functions | ${{ needs.functions-build.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security Audit | ${{ needs.security-audit.result == 'success' && '✅ Pass' || '⚠️ See logs' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security-audit.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ Pass' || needs.integration-tests.result == 'skipped' && '⏭ Skipped (non-main PR)' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Hosting Preview | ${{ needs.preview.result == 'success' && '✅ Pass' || needs.preview.result == 'skipped' && '⏭ Skipped' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
 
@@ -361,7 +362,8 @@ jobs:
           if [[ "${{ needs.validate.result }}"        != "success" || \
                 "${{ needs.unit-tests.result }}"      != "success" || \
                 "${{ needs.build.result }}"           != "success" || \
-                "${{ needs.functions-build.result }}" != "success" ]]; then
+                "${{ needs.functions-build.result }}" != "success" || \
+                "${{ needs.security-audit.result }}"  != "success" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**❌ Critical checks failed — merge blocked.**" >> $GITHUB_STEP_SUMMARY
             exit 1
