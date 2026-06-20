@@ -9,8 +9,8 @@ service cloud.firestore {
 
     function isTenantAdmin(tenantId) {
       return isAuthenticated()
-        && request.auth.token.admin == true
-        && request.auth.token.tenantId == tenantId;
+        && request.auth.token.get('admin', false) == true
+        && request.auth.token.get('tenantId', '') == tenantId;
     }
 
     function isOwner(userId) {

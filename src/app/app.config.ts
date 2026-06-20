@@ -8,6 +8,7 @@ import { provideAuth } from '@angular/fire/auth';
 import { provideFirestore } from '@angular/fire/firestore';
 import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getApp } from 'firebase/app';
@@ -54,6 +55,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
   return {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
+      provideAnimations(),
       provideHttpClient(withInterceptors([loadingInterceptor, httpErrorInterceptor])),
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
