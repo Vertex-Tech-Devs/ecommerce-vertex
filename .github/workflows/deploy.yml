@@ -60,7 +60,7 @@ jobs:
         run: npm run test:ci
 
       - name: Install backend dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Run backend tests
@@ -171,7 +171,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - run: npm run build
@@ -195,7 +195,7 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Download frontend build
@@ -240,7 +240,7 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Download frontend build
