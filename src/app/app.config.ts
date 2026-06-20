@@ -26,6 +26,17 @@ import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { routes } from './app.routes';
 
 export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationConfig {
+  const isLocal =
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+  if (isLocal) {
+    firebaseConfig = {
+      ...firebaseConfig,
+      projectId: 'demo-vertex',
+    };
+  }
+
   const createFirestore = (): Firestore => {
     const app = getApp();
     const isCypress =
@@ -39,10 +50,6 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       return getFirestore(app);
     }
   };
-
-  const isLocal =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
   return {
     providers: [
