@@ -15,7 +15,6 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "isolatedModules": true,
-    "types": ["jasmine"],
     "paths": {
       "@core/*": [
         "./src/app/core/*"
