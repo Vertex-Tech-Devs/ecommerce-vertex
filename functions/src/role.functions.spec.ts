@@ -158,7 +158,7 @@ describe('refreshMyAdminClaim', () => {
   it('auto-creates admin_roles and grants claim for pre-authorized developer emails', async () => {
     mockDocGet
       .mockResolvedValueOnce({ exists: false, data: () => null })
-      .mockResolvedValueOnce({ exists: true, data: () => ({ role: 'admin' }) });
+      .mockResolvedValueOnce({ exists: true, data: () => ({ role: 'owner' }) });
     mockSetCustomUserClaims.mockResolvedValueOnce(undefined);
 
     const result = await callable()({
@@ -166,7 +166,7 @@ describe('refreshMyAdminClaim', () => {
     });
 
     expect(mockDocSet).toHaveBeenCalled();
-    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-dev', { admin: true, role: 'admin', tenantId: 'store' });
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-dev', { admin: true, role: 'owner', tenantId: 'store' });
     expect(result).toEqual({ granted: true });
   });
 });

@@ -122,7 +122,7 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
     logger.info(`refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`);
     await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).set({
       email: emailLower,
-      role: 'admin',
+      role: 'owner',
       tenantId,
       createdAt: FieldValue.serverTimestamp(),
     });
