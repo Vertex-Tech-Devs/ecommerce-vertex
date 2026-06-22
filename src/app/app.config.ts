@@ -1,7 +1,8 @@
 import type { ApplicationConfig } from '@angular/core';
-import { ErrorHandler, APP_INITIALIZER } from '@angular/core';
+import { ErrorHandler, APP_INITIALIZER, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { FirebaseApp } from '@angular/fire/app';
 import type { FirebaseOptions } from 'firebase/app';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { provideAuth } from '@angular/fire/auth';
@@ -11,7 +12,6 @@ import { provideStorage } from '@angular/fire/storage';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getApp } from 'firebase/app';
 import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
@@ -40,8 +40,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
     };
   }
 
-  const createFirestore = (): Firestore => {
-    const app = getApp();
+  const createFirestore = (app: FirebaseApp): Firestore => {
     const isCypress =
       typeof window !== 'undefined' && (window as unknown as { Cypress?: unknown }).Cypress;
     try {
@@ -62,27 +61,27 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
       provideAuth(() => {
-        const auth = getAuth();
+        const auth = getAuth(inject(FirebaseApp));
         if (isLocal) {
           connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
         }
         return auth;
       }),
       provideFirestore(() => {
-        const db = createFirestore();
+        const db = createFirestore(inject(FirebaseApp));
         if (isLocal) {
           connectFirestoreEmulator(db, 'localhost', 8080);
         }
         return db;
       }),
       provideFunctions(() => {
-        const fns = getFunctions();
+        const fns = getFunctions(inject(FirebaseApp));
         if (isLocal) {
           connectFunctionsEmulator(fns, 'localhost', 5001);
         }
         return fns;
       }),
-      provideStorage(() => getStorage()),
+      provideStorage(() => getStorage(inject(FirebaseApp))),
       BsModalService,
       ComponentLoaderFactory,
       PositioningService,
