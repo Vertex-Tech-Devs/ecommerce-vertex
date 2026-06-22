@@ -54,9 +54,13 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       return from(getDocs(this.collectionRef)).pipe(
         switchMap((snap) =>
-          snap.empty
-            ? (collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<Product[]>)
-            : (collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>)
+          runInInjectionContext(this.injector, () =>
+            snap.empty
+              ? (collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<
+                  Product[]
+                >)
+              : (collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>)
+          )
         ),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
@@ -75,9 +79,11 @@ export class ProductService {
       }
       return from(getDocs(this.collectionRef)).pipe(
         switchMap((snap) => {
-          const ref = snap.empty ? this.legacyCollectionRef : this.collectionRef;
-          const q = query(ref, ...constraints);
-          return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
+          return runInInjectionContext(this.injector, () => {
+            const ref = snap.empty ? this.legacyCollectionRef : this.collectionRef;
+            const q = query(ref, ...constraints);
+            return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
+          });
         }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
@@ -102,9 +108,11 @@ export class ProductService {
       );
       return from(getDoc(tenantDocRef)).pipe(
         switchMap((snap) =>
-          snap.exists()
-            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>)
-            : (docData(legacyDocRef, { idField: 'id' }) as Observable<Product | undefined>)
+          runInInjectionContext(this.injector, () =>
+            snap.exists()
+              ? (docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>)
+              : (docData(legacyDocRef, { idField: 'id' }) as Observable<Product | undefined>)
+          )
         ),
         map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined)),
         catchError((err) => {

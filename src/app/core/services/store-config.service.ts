@@ -1,4 +1,12 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  computed,
+  effect,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
@@ -68,6 +76,7 @@ export class StoreConfigService {
   private firestore = inject(Firestore);
   private titleService = inject(Title);
   private metaService = inject(Meta);
+  private injector = inject(Injector);
 
   private readonly _storeConfig = signal<StoreConfig | null>(null);
   readonly storeConfig = this._storeConfig.asReadonly();
@@ -127,7 +136,7 @@ export class StoreConfigService {
   }
 
   protected async getDocSnap(ref: DocumentReference): Promise<DocumentSnapshot> {
-    return getDoc(ref);
+    return runInInjectionContext(this.injector, () => getDoc(ref));
   }
 
   protected async setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {

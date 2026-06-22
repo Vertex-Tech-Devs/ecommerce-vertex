@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
 import { Router } from '@angular/router';
 import type { User, UserCredential } from '@angular/fire/auth';
 import {
@@ -24,6 +24,7 @@ export class AuthService {
   private router = inject(Router);
   private functions = inject(Functions);
   private sweetAlertService = inject(SweetAlertService);
+  private injector = inject(Injector);
   private refreshMyAdminClaim = httpsCallable(this.functions, 'refreshMyAdminClaim');
 
   currentUser$ = user(this.auth);
@@ -65,7 +66,9 @@ export class AuthService {
     return from(
       (async (): Promise<UserCredential> => {
         try {
-          const result = await signInWithPopup(this.auth, provider);
+          const result = await runInInjectionContext(this.injector, () =>
+            signInWithPopup(this.auth, provider)
+          );
 
           // Force refresh the token to grab custom claims.
           let tokenResult = await result.user.getIdTokenResult(true);
