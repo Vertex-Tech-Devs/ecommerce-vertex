@@ -82,7 +82,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       }),
       provideStorage(() => getStorage()),
 
-      importProvidersFrom(ModalModule),
+      importProvidersFrom(ModalModule.forRoot()),
 
       {
         provide: APP_INITIALIZER,
