@@ -11,11 +11,15 @@ import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getStorage } from 'firebase/storage';
-import type { Firestore } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from '@angular/fire/auth';
+import {
+  getFirestore,
+  initializeFirestore,
+  connectFirestoreEmulator,
+} from '@angular/fire/firestore';
+import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
+import { getStorage } from '@angular/fire/storage';
+import type { Firestore } from '@angular/fire/firestore';
 
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';

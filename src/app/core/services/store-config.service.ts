@@ -132,7 +132,7 @@ export class StoreConfigService {
   }
 
   protected getDocRef(path: string, ...segments: string[]): DocumentReference {
-    return doc(this.firestore, path, ...segments);
+    return runInInjectionContext(this.injector, () => doc(this.firestore, path, ...segments));
   }
 
   protected async getDocSnap(ref: DocumentReference): Promise<DocumentSnapshot> {
@@ -140,7 +140,7 @@ export class StoreConfigService {
   }
 
   protected async setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
-    return setDoc(ref, data);
+    return runInInjectionContext(this.injector, () => setDoc(ref, data));
   }
 
   async loadConfig(): Promise<void> {
