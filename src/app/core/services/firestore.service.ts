@@ -26,9 +26,11 @@ export class FirestoreService<T extends BaseEntity> {
       const legacyRef = collection(this.firestore, collectionName);
       return from(getDocs(tenantRef)).pipe(
         switchMap((snap) =>
-          snap.empty
-            ? (collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>)
-            : (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>)
+          runInInjectionContext(this.injector, () =>
+            snap.empty
+              ? (collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>)
+              : (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>)
+          )
         ),
         map((items) =>
           items.map((item) => {
@@ -53,9 +55,11 @@ export class FirestoreService<T extends BaseEntity> {
       const legacyDocRef = doc(this.firestore, collectionName, id);
       return from(getDoc(tenantDocRef)).pipe(
         switchMap((snap) =>
-          snap.exists()
-            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>)
-            : (docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>)
+          runInInjectionContext(this.injector, () =>
+            snap.exists()
+              ? (docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>)
+              : (docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>)
+          )
         ),
         map((item) => {
           if (!item) {

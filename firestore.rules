@@ -92,8 +92,8 @@ service cloud.firestore {
     // and sets custom auth claims. Written exclusively by the platform via Admin SDK.
     match /admin_roles/{compositeId} {
       allow read: if isAuthenticated()
-        && request.auth.token.admin == true
-        && compositeId.matches(request.auth.token.tenantId + '_.*');
+        && request.auth.token.get('admin', false) == true
+        && compositeId.matches(request.auth.token.get('tenantId', '') + '_.*');
       allow write: if false;
     }
 
