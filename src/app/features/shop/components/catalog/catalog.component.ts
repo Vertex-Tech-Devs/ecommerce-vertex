@@ -47,7 +47,7 @@ export class CatalogComponent implements OnInit {
   readonly minPrice = signal<number | null>(null);
   readonly maxPrice = signal<number | null>(null);
   readonly dynamicAttributesFilter = signal<Record<string, Record<string, boolean>>>({});
-  readonly selectedCategoryId = signal<string | null>(null);
+  readonly selectedCategoryId = signal<string | null | undefined>(undefined);
 
   // Properties mapped to observables for template async pipe
   readonly paginatedProducts$: Observable<Product[]>;
