@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
-import type { DocumentReference, UpdateData, WithFieldValue } from 'firebase/firestore';
-import { collection, doc, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import type { DocumentReference, UpdateData, WithFieldValue } from '@angular/fire/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { of } from 'rxjs';
 import { map, switchMap, catchError, shareReplay, take } from 'rxjs/operators';

@@ -3,7 +3,7 @@ import { Firestore } from '@angular/fire/firestore';
 import { Functions } from '@angular/fire/functions';
 import { of, throwError } from 'rxjs';
 import type { Observable } from 'rxjs';
-import type { DocumentReference } from 'firebase/firestore';
+import type { DocumentReference } from '@angular/fire/firestore';
 import { EmailSettingsService } from './email-settings.service';
 import type { AdvancedTestEmailPayload } from './email-settings.service';
 import type { EmailSettings } from '@core/models/email-settings.model';

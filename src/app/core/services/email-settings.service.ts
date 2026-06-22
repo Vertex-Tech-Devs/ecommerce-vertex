@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
-import { doc, setDoc } from 'firebase/firestore';
-import type { DocumentReference, DocumentData } from 'firebase/firestore';
+import { doc, setDoc } from '@angular/fire/firestore';
+import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import { Functions } from '@angular/fire/functions';
 import type { Functions as FirebaseFunctions } from 'firebase/functions';
 import { httpsCallable } from 'firebase/functions';

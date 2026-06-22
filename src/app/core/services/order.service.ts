@@ -8,8 +8,8 @@ import type {
   WithFieldValue,
   CollectionReference,
   DocumentData,
-} from 'firebase/firestore';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+} from '@angular/fire/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from '@angular/fire/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';

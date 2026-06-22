@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import type { DocumentReference, DocumentData } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from '@angular/fire/firestore';
+import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
 import { firstValueFrom, switchMap, catchError } from 'rxjs';

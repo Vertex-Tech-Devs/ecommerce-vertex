@@ -5,7 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import type { Client } from '../models/client.model';
 import type { Order } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from '@angular/fire/firestore';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath } from '@core/utils/tenant';

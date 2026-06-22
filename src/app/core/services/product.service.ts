@@ -9,7 +9,7 @@ import type {
   CollectionReference,
   DocumentReference,
   DocumentData,
-} from 'firebase/firestore';
+} from '@angular/fire/firestore';
 import {
   doc,
   collection,
@@ -20,7 +20,7 @@ import {
   orderBy,
   limit,
   getDocs,
-} from 'firebase/firestore';
+} from '@angular/fire/firestore';
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath } from '@core/utils/tenant';
