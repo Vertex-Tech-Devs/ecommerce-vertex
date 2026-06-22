@@ -8,7 +8,7 @@ import { provideAuth } from '@angular/fire/auth';
 import { provideFirestore } from '@angular/fire/firestore';
 import { provideFunctions } from '@angular/fire/functions';
 import { provideStorage } from '@angular/fire/storage';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getApp } from 'firebase/app';
@@ -55,7 +55,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
   return {
     providers: [
       provideRouter(routes, withComponentInputBinding()),
-      importProvidersFrom(BrowserAnimationsModule),
+      provideAnimations(),
       provideHttpClient(withInterceptors([loadingInterceptor, httpErrorInterceptor])),
 
       provideFirebaseApp(() => initializeApp(firebaseConfig)),
@@ -82,7 +82,8 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       }),
       provideStorage(() => getStorage()),
 
-      importProvidersFrom(ModalModule),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      importProvidersFrom((ModalModule as any).forRoot()),
 
       {
         provide: APP_INITIALIZER,
