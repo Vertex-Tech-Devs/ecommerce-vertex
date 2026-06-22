@@ -82,6 +82,8 @@ application_default_credentials.json
 # Testing
 test-results/
 playwright-report/
+cypress/screenshots/
+cypress/videos/
 *.lcov
 
 # Logs
