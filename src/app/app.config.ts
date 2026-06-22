@@ -1,5 +1,5 @@
 import type { ApplicationConfig } from '@angular/core';
-import { importProvidersFrom, ErrorHandler, APP_INITIALIZER } from '@angular/core';
+import { ErrorHandler, APP_INITIALIZER } from '@angular/core';
 import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import type { FirebaseOptions } from 'firebase/app';
@@ -17,7 +17,9 @@ import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
 import type { Firestore } from 'firebase/firestore';
 
-import { ModalModule } from 'ngx-bootstrap/modal';
+import { BsModalService } from 'ngx-bootstrap/modal';
+import { ComponentLoaderFactory } from 'ngx-bootstrap/component-loader';
+import { PositioningService } from 'ngx-bootstrap/positioning';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { StoreConfigService } from './core/services/store-config.service';
@@ -81,10 +83,9 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         return fns;
       }),
       provideStorage(() => getStorage()),
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      importProvidersFrom((ModalModule as any).forRoot()),
-
+      BsModalService,
+      ComponentLoaderFactory,
+      PositioningService,
       {
         provide: APP_INITIALIZER,
         useFactory: (configService: StoreConfigService) => (): Promise<void> =>

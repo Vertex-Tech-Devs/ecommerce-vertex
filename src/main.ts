@@ -57,6 +57,12 @@ if (bootTitle) {
 
 fetch('/firebase-config.json?t=' + new Date().getTime())
   .then((r) => (r.ok ? (r.json() as Promise<FirebaseOptions>) : Promise.reject(r.status)))
+  .then((config) => {
+    if (!config?.apiKey || !config.projectId) {
+      throw new Error('Invalid or incomplete firebase-config.json');
+    }
+    return config;
+  })
   .catch(() => environment.firebaseConfig)
   .then((firebaseConfig) => bootstrapApplication(AppComponent, createAppConfig(firebaseConfig)))
   .catch((err) => {
