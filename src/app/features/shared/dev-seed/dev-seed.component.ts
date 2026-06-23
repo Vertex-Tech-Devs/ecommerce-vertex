@@ -12,7 +12,7 @@ import { environment } from '@environments/environment';
 })
 export class DevSeedComponent {
   private seedDataService = inject(SeedDataService);
-  
+
   tenantId = environment.tenantId;
   projectId = environment.firebaseConfig.projectId;
   production = environment.production;
@@ -28,9 +28,10 @@ export class DevSeedComponent {
     try {
       await this.seedDataService.seedAllData();
       this.successMessage = '¡Base de datos inicializada y sembrada con éxito!';
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      this.errorMessage = error?.message || 'Error al ejecutar el semillero. Ver consola para más detalles.';
+      const msg = error instanceof Error ? error.message : String(error);
+      this.errorMessage = msg ?? 'Error al ejecutar el semillero. Ver consola para más detalles.';
     } finally {
       this.isSeeding = false;
     }

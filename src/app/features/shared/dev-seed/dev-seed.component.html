@@ -4,7 +4,7 @@
       <h1>Panel de Semillero (Database Seeder)</h1>
       <p class="subtitle">Herramienta de inicialización de datos de prueba para Vertex</p>
     </div>
-    
+
     <div class="card-body">
       <div class="info-grid">
         <div class="info-item">
@@ -28,20 +28,27 @@
       <div class="warning-box">
         <i class="bi bi-exclamation-triangle-fill warning-icon"></i>
         <div class="warning-content">
-          <strong>Atención:</strong> Al ejecutar el semillero, se vaciarán por completo las colecciones de productos, categorías, atributos, clientes, pedidos y configuraciones para el Tenant actual (<code>{{ tenantId }}</code>), reemplazándolas con un set completo de datos de prueba limpios.
+          <strong>Atención:</strong> Al ejecutar el semillero, se vaciarán por completo las
+          colecciones de productos, categorías, atributos, clientes, pedidos y configuraciones para
+          el Tenant actual (<code>{{ tenantId }}</code
+          >), reemplazándolas con un set completo de datos de prueba limpios.
         </div>
       </div>
 
       <div class="actions">
-        <button 
-          (click)="onSeed()" 
-          [disabled]="isSeeding" 
+        <button
+          (click)="onSeed()"
+          [disabled]="isSeeding"
           class="btn-seed"
           [class.loading]="isSeeding"
         >
           <span class="btn-text">
             @if (isSeeding) {
-              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
               Sembrando datos...
             } @else {
               <i class="bi bi-cloud-arrow-down-fill me-2"></i>

@@ -39,4 +39,3 @@ export const routes: Routes = [
       import('./features/shared/not-found/not-found.component').then((m) => m.NotFoundComponent),
   },
 ];
-
