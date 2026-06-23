@@ -1,18 +1,11 @@
 import type { Routes } from '@angular/router';
 import { AdminGuard } from '@core/guards/admin.guard';
-import { SeedDataGuard } from '@core/guards/seed-data.guard';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
     redirectTo: 'shop',
-  },
-  {
-    path: 'dev/seed',
-    canActivate: [SeedDataGuard],
-    loadComponent: () =>
-      import('./features/shared/dev-seed/dev-seed.component').then((m) => m.DevSeedComponent),
   },
   {
     path: 'shop',
