@@ -16,7 +16,8 @@ export const environment = {
     cloudFunctionsUrl: '',
   },
   features: {
-    seedDataEnabled: false,
+    seedDataEnabled: true,
     debugLogging: false,
   },
 };
+
