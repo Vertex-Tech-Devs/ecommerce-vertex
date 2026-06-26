@@ -33,10 +33,10 @@
                     id="contactEmail"
                     class="form-control glass-input"
                     formControlName="contactEmail"
-                    [class.is-invalid]="email?.invalid && email.touched"
+                    [class.is-invalid]="email.invalid && email.touched"
                   />
                 </div>
-                @if (email?.invalid && email.touched) {
+                @if (email.invalid && email.touched) {
                   <div class="invalid-feedback d-block mt-2">
                     @if (email.errors?.['required']) {
                       <span>Email es obligatorio.</span>
@@ -92,7 +92,7 @@
                     placeholder="https://instagram.com/usuario"
                   />
                 </div>
-                @if (instagram?.invalid && instagram.touched) {
+                @if (instagram.invalid && instagram.touched) {
                   <div class="invalid-feedback d-block mt-2">
                     La URL debe ser válida. Dejar vacío si no aplica.
                   </div>
@@ -112,7 +112,7 @@
                     placeholder="https://facebook.com/pagina"
                   />
                 </div>
-                @if (facebook?.invalid && facebook.touched) {
+                @if (facebook.invalid && facebook.touched) {
                   <div class="invalid-feedback d-block mt-2">
                     La URL debe ser válida. Dejar vacío si no aplica.
                   </div>
@@ -132,7 +132,7 @@
                     placeholder="https://wa.me/549..."
                   />
                 </div>
-                @if (whatsapp?.invalid && whatsapp.touched) {
+                @if (whatsapp.invalid && whatsapp.touched) {
                   <div class="invalid-feedback d-block mt-2">
                     La URL debe ser válida. Dejar vacío si no aplica.
                   </div>
@@ -161,7 +161,7 @@
               <div class="form-text mt-2 text-soft small">
                 El año (Ej: © 2025) se añadirá automáticamente en la tienda.
               </div>
-              @if (copyright?.invalid && copyright.touched) {
+              @if (copyright.invalid && copyright.touched) {
                 <div class="invalid-feedback d-block mt-2">
                   El texto de copyright es obligatorio.
                 </div>

@@ -18,10 +18,10 @@
           id="attribute-name"
           class="form-control glass-input"
           formControlName="name"
-          [ngClass]="{ 'is-invalid': name?.invalid && (name.dirty || name.touched) }"
+          [ngClass]="{ 'is-invalid': name.invalid && (name.dirty || name.touched) }"
           placeholder="Ej: Talle"
         />
-        @if (name?.invalid && (name.dirty || name.touched)) {
+        @if (name.invalid && (name.dirty || name.touched)) {
           <div class="invalid-feedback mt-2">
             <div>El nombre es obligatorio (mín. 3 caracteres).</div>
           </div>

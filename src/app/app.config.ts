@@ -18,7 +18,7 @@ import {
   connectFirestoreEmulator,
 } from '@angular/fire/firestore';
 import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
-import { getStorage } from '@angular/fire/storage';
+import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
 
 import { ModalModule } from 'ngx-bootstrap/modal';
@@ -83,7 +83,13 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         }
         return fns;
       }),
-      provideStorage(() => getStorage(inject(FirebaseApp))),
+      provideStorage(() => {
+        const storage = getStorage(inject(FirebaseApp));
+        if (isLocal) {
+          connectStorageEmulator(storage, 'localhost', 9199);
+        }
+        return storage;
+      }),
       importProvidersFrom(ModalModule),
       {
         provide: APP_INITIALIZER,

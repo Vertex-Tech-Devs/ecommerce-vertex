@@ -126,17 +126,17 @@ export class ProductCreateComponent implements OnInit {
       });
   }
 
-  get name(): AbstractControl | null {
-    return this.productForm.get('name');
+  get name(): AbstractControl {
+    return this.productForm.get('name')!;
   }
-  get price(): AbstractControl | null {
-    return this.productForm.get('price');
+  get price(): AbstractControl {
+    return this.productForm.get('price')!;
   }
-  get categoryId(): AbstractControl | null {
-    return this.productForm.get('categoryId');
+  get categoryId(): AbstractControl {
+    return this.productForm.get('categoryId')!;
   }
-  get image(): AbstractControl | null {
-    return this.productForm.get('image');
+  get image(): AbstractControl {
+    return this.productForm.get('image')!;
   }
   get variants(): FormArray {
     return this.productForm.get('variants') as FormArray;

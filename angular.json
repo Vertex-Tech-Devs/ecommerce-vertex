@@ -82,7 +82,7 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "outputHashing": "all"
+              "outputHashing": "none"
             }
           },
           "defaultConfiguration": "production"

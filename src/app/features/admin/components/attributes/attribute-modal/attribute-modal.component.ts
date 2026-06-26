@@ -38,8 +38,8 @@ export class AttributeModalComponent implements OnInit {
     });
   }
 
-  get name(): AbstractControl | null {
-    return this.attributeForm.get('name');
+  get name(): AbstractControl {
+    return this.attributeForm.get('name')!;
   }
 
   get values(): FormArray {
