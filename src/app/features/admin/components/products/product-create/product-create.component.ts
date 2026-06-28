@@ -1,5 +1,5 @@
-import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import type { OnInit, QueryList, ElementRef } from '@angular/core';
+import { Component, inject, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -40,6 +40,13 @@ export class ProductCreateComponent implements OnInit {
   private storageService = inject(StorageService);
   private modalService = inject(BsModalService);
   private variantFormService = inject(ProductVariantFormService);
+
+  @ViewChildren('additionalImageInput') additionalImageInputs!: QueryList<
+    ElementRef<HTMLInputElement>
+  >;
+  @ViewChildren('variantFirstSelect') variantFirstSelects!: QueryList<
+    ElementRef<HTMLSelectElement>
+  >;
 
   productForm!: FormGroup;
   categories$!: Observable<Category[]>;
@@ -179,6 +186,15 @@ export class ProductCreateComponent implements OnInit {
     }
   }
 
+  getFirstActiveAttributeId(allAttributes: Attribute[] | null): string | null {
+    if (!allAttributes) {
+      return null;
+    }
+    const selectedIds = this.variantAttributes.value as string[];
+    const firstActive = allAttributes.find((a) => a.id && selectedIds.includes(a.id));
+    return firstActive?.id ?? null;
+  }
+
   openAttributeModal(): void {
     this.bsModalRef = this.modalService.show(AttributeModalComponent, {
       class: 'modal-lg modal-dialog-centered',
@@ -204,6 +220,9 @@ export class ProductCreateComponent implements OnInit {
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant)
     );
+    setTimeout(() => {
+      this.variantFirstSelects.last?.nativeElement.focus();
+    });
   }
 
   removeVariant(index: number): void {
@@ -246,6 +265,9 @@ export class ProductCreateComponent implements OnInit {
 
   addImage(imageUrl: string = ''): void {
     this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
+    setTimeout(() => {
+      this.additionalImageInputs.last?.nativeElement.focus();
+    });
   }
 
   removeImage(index: number): void {
