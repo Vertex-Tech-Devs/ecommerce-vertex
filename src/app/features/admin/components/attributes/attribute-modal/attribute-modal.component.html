@@ -14,6 +14,7 @@
       <div class="mb-0">
         <label for="attribute-name" class="form-label">Nombre del Atributo</label>
         <input
+          #attributeNameInput
           type="text"
           id="attribute-name"
           class="form-control glass-input"
@@ -49,6 +50,7 @@
         @for (valueControl of values.controls; track i; let i = $index) {
           <div class="input-group mb-2 glass-input-group">
             <input
+              #valueInput
               type="text"
               [formControlName]="i"
               class="form-control glass-input"
