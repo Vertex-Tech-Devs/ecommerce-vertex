@@ -21,7 +21,7 @@ import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions'
 import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
 
-import { ModalModule } from 'ngx-bootstrap/modal';
+import { ModalModule, BsModalService } from 'ngx-bootstrap/modal';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { StoreConfigService } from './core/services/store-config.service';
@@ -91,6 +91,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         return storage;
       }),
       importProvidersFrom(ModalModule),
+      BsModalService,
       {
         provide: APP_INITIALIZER,
         useFactory: (configService: StoreConfigService) => (): Promise<void> =>
