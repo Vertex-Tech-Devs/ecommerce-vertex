@@ -83,7 +83,10 @@ export class StoreConfigService {
 
   readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
-  readonly isFirstRun = computed(() => !this.storeConfig()?.setupCompleted);
+  readonly isFirstRun = computed(() => {
+    const config = this.storeConfig();
+    return config ? !config.setupCompleted : false;
+  });
 
   constructor() {
     // Dynamic theme, title and favicon injection reactive effect
