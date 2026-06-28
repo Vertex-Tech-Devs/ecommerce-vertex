@@ -1,5 +1,5 @@
-import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import type { OnInit, AfterViewInit, ElementRef, QueryList } from '@angular/core';
+import { Component, inject, ViewChild, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -14,7 +14,9 @@ import type { Attribute } from '@core/models/attribute.model';
   templateUrl: './attribute-modal.component.html',
   styleUrls: ['./attribute-modal.component.scss'],
 })
-export class AttributeModalComponent implements OnInit {
+export class AttributeModalComponent implements OnInit, AfterViewInit {
+  @ViewChild('attributeNameInput') attributeNameInput!: ElementRef<HTMLInputElement>;
+  @ViewChildren('valueInput') valueInputs!: QueryList<ElementRef<HTMLInputElement>>;
   title: string = 'Nuevo Atributo';
   attribute?: Attribute;
   onClose: Subject<Partial<Attribute> | null> = new Subject();
@@ -38,6 +40,12 @@ export class AttributeModalComponent implements OnInit {
     });
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.attributeNameInput.nativeElement.focus();
+    }, 100);
+  }
+
   get name(): AbstractControl {
     return this.attributeForm.get('name')!;
   }
@@ -51,6 +59,12 @@ export class AttributeModalComponent implements OnInit {
       return;
     }
     this.values.push(this.fb.control('', Validators.required));
+    setTimeout(() => {
+      const lastInput = this.valueInputs.last;
+      if (lastInput) {
+        lastInput.nativeElement.focus();
+      }
+    });
   }
 
   removeValue(index: number): void {
