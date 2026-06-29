@@ -12,11 +12,8 @@ import { provideStorage } from '@angular/fire/storage';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { getAuth, connectAuthEmulator } from '@angular/fire/auth';
-import {
-  getFirestore,
-  initializeFirestore,
-  connectFirestoreEmulator,
-} from '@angular/fire/firestore';
+import { getFirestore } from '@angular/fire/firestore';
+import { initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
