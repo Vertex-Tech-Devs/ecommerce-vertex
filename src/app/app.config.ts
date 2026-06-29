@@ -50,7 +50,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       if (isCypress) {
         return getFirestore(app);
       }
-      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true, forceLongPolling: true });
+      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true, forceLongPolling: true } as any);
     } catch {
       return getFirestore(app);
     }
