@@ -31,7 +31,7 @@
     "@types/cors": "^2.8.19",
     "@types/sockjs": "^0.3.36",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
-    "@typescript-eslint/parser": "^8.60.0",
+    "@typescript-eslint/parser": "^8.62.0",
     "eslint": "^9.0.0",
     "eslint-plugin-import": "^2.29.1",
     "typescript": "^5.0.0",
