@@ -93,11 +93,6 @@ export class StoreConfigService {
     effect(() => {
       const config = this.storeConfig();
       if (config) {
-        // 1. Title reactivity
-        if (config.storeName) {
-          this.titleService.setTitle(config.storeName);
-        }
-
         // 1b. SEO Meta Description reactivity
         if (config.seo?.metaDescription) {
           this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
@@ -220,9 +215,6 @@ export class StoreConfigService {
   }
 
   private applyConfigToDom(config: StoreConfig): void {
-    if (config.storeName) {
-      this.titleService.setTitle(config.storeName);
-    }
     if (config.seo?.metaDescription) {
       this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
     }
