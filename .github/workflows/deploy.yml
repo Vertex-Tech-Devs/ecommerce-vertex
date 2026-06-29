@@ -220,7 +220,7 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy to Firebase Development
-        run: npx --yes firebase-tools@15.3.0 deploy --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: npx --yes firebase-tools@15.16.0 deploy --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
 
   deploy-prod:
     name: '→ Production'
@@ -265,7 +265,7 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Deploy to Firebase Production
-        run: npx --yes firebase-tools@15.3.0 deploy --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: npx --yes firebase-tools@15.16.0 deploy --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
 
       - name: Create GitHub Release
         env:
@@ -372,7 +372,7 @@ jobs:
 
       - name: Deploy to store Firebase project
         run: |
-          npx --yes firebase-tools@15.3.0 deploy \
+          npx --yes firebase-tools@15.16.0 deploy \
             --project '${{ github.event.client_payload.project_id }}' \
             --only hosting \
             --non-interactive
