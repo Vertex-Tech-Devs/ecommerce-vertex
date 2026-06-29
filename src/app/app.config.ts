@@ -50,6 +50,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       if (isCypress) {
         return getFirestore(app);
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return initializeFirestore(app, { experimentalAutoDetectLongPolling: true, forceLongPolling: true } as any);
     } catch {
       return getFirestore(app);
