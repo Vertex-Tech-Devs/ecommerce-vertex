@@ -1,4 +1,9 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.diagnostics.ignoredCodes": [80001]
+  "github-actions.workflows.pinnedVersionWarning": "ignore",
+  "github-actions.validation.enabled": false,
+  "yaml.schemaStore.enable": false,
+  "yaml.schemas": {
+    "http://json.schemastore.org/github-workflow": []
+  },
+  "yaml.validate": false
 }

@@ -22,6 +22,7 @@ import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
 
 import { ModalModule, BsModalService } from 'ngx-bootstrap/modal';
+import { normalizeFirebaseOptions } from './core/utils/firebase-config.util';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { StoreConfigService } from './core/services/store-config.service';
@@ -31,6 +32,8 @@ import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { routes } from './app.routes';
 
 export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationConfig {
+  firebaseConfig = normalizeFirebaseOptions(firebaseConfig);
+
   const isLocal =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -39,6 +42,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
     firebaseConfig = {
       ...firebaseConfig,
       projectId: 'demo-vertex',
+      storageBucket: 'demo-vertex.appspot.com',
     };
   }
 
@@ -49,7 +53,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       if (isCypress) {
         return getFirestore(app);
       }
-      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true, forceLongPolling: true });
     } catch {
       return getFirestore(app);
     }

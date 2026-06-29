@@ -51,6 +51,7 @@
     "scripts",
     "cypress",
     "integration-tests",
+    "**/*.spec.ts",
     "**/*.cy.ts",
     "cypress.config.ts",
     "integration-tests/playwright.config.ts",

@@ -130,7 +130,7 @@ jobs:
 
       - name: Deploy
         run: |
-          npx --yes firebase-tools deploy \
+          npx --yes firebase-tools@14 deploy \
             --project ${{ matrix.store.projectId }} \
             --only hosting \
             --non-interactive
@@ -198,7 +198,7 @@ jobs:
 
       - name: Deploy
         run: |
-          npx --yes firebase-tools deploy \
+          npx --yes firebase-tools@14 deploy \
             --project ${{ matrix.store.projectId }} \
             --only hosting \
             --non-interactive

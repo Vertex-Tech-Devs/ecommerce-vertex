@@ -2,6 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import type { FirebaseOptions } from 'firebase/app';
 import { createAppConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
+import { normalizeFirebaseOptions } from './app/core/utils/firebase-config.util';
 import { environment } from './environments/environment';
 import { STORE_CONFIG } from './environments/store.config';
 
@@ -64,7 +65,9 @@ fetch('/firebase-config.json?t=' + new Date().getTime())
     return config;
   })
   .catch(() => environment.firebaseConfig)
-  .then((firebaseConfig) => bootstrapApplication(AppComponent, createAppConfig(firebaseConfig)))
+  .then((firebaseConfig) =>
+    bootstrapApplication(AppComponent, createAppConfig(normalizeFirebaseOptions(firebaseConfig)))
+  )
   .catch((err) => {
     console.error('Failed to load Firebase config:', err);
     document.body.innerHTML =
