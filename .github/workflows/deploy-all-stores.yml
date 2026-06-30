@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: "24"
+  NODE_VERSION: "24.18.0"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   PLATFORM_FUNCTIONS_URL: "https://us-central1-vertex-platform-app.cloudfunctions.net"
 
