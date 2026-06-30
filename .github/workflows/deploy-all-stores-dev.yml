@@ -106,6 +106,9 @@ jobs:
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
+          project_id = os.environ.get("PROJECT_ID", "").strip()
+          if site_id == "default":
+              site_id = project_id
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -113,13 +116,14 @@ jobs:
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          if site_id and site_id != "default":
+          if site_id:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -174,6 +178,9 @@ jobs:
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
+          project_id = os.environ.get("PROJECT_ID", "").strip()
+          if site_id == "default":
+              site_id = project_id
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -181,13 +188,14 @@ jobs:
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          if site_id and site_id != "default":
+          if site_id:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
