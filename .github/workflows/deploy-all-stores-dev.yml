@@ -64,7 +64,7 @@ jobs:
         env:
           RESPONSE: ${{ steps.fetch.outputs.response }}
         run: |
-          STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]? | select(.autoUpdate == true)]')
+          STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]? | select(.autoUpdate == true)] | unique_by({projectId, siteId})')
           COUNT=$(echo "$STORES" | jq 'length')
 
           if [ "$COUNT" -eq "0" ]; then
