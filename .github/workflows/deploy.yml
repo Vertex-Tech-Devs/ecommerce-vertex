@@ -220,7 +220,22 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy to Firebase Development
-        run: npx --yes firebase-tools@15.22.2 deploy --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: |
+          set +e
+          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
+            --project development \
+            --only hosting:ecommerce-vertex,functions \
+            --force \
+            --non-interactive 2>&1)
+          DEPLOY_EXIT=$?
+          echo "$DEPLOY_OUTPUT"
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
+              echo "ℹ️  Hosting already up-to-date. Treating as success."
+              exit 0
+            fi
+            exit $DEPLOY_EXIT
+          fi
 
   deploy-prod:
     name: '→ Production'
@@ -265,7 +280,22 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Deploy to Firebase Production
-        run: npx --yes firebase-tools@15.22.2 deploy --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: |
+          set +e
+          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
+            --project production \
+            --only hosting:ecommerce-vertex,functions \
+            --force \
+            --non-interactive 2>&1)
+          DEPLOY_EXIT=$?
+          echo "$DEPLOY_OUTPUT"
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
+              echo "ℹ️  Hosting already up-to-date. Treating as success."
+              exit 0
+            fi
+            exit $DEPLOY_EXIT
+          fi
 
       - name: Create GitHub Release
         env:
