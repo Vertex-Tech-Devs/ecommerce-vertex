@@ -215,9 +215,18 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+
+      - name: Prepare Firebase CLI credentials
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project ecommerce-vertex-dev
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to Firebase Development
         run: |
@@ -261,9 +270,18 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+
+      - name: Prepare Firebase CLI credentials
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
+          gcloud config set project ecommerce-vertex
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to Firebase Production
         run: |
@@ -380,9 +398,20 @@ jobs:
           PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
+        id: auth-store
         uses: google-github-actions/auth@v3
         with:
           credentials_json: "${{ github.event.client_payload.platform_project_id == 'vertex-platform-dev' && secrets.FIREBASE_SERVICE_ACCOUNT_DEV || secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}"
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-store.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to store Firebase project
         env:

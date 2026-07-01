@@ -127,9 +127,20 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy
         env:
@@ -202,9 +213,20 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy
         env:

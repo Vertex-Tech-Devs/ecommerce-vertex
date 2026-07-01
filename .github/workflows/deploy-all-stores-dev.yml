@@ -128,11 +128,22 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         env:
           FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy
         env:
@@ -206,11 +217,22 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         env:
           FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy
         env:
