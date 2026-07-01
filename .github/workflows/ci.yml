@@ -301,7 +301,7 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
-          firebaseToolsVersion: '14'
+          firebaseToolsVersion: '15.22.2'
           projectId: ecommerce-vertex-dev
           channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
