@@ -221,21 +221,7 @@ jobs:
 
       - name: Deploy to Firebase Development
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --project development \
-            --only hosting:ecommerce-vertex,functions \
-            --force \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
 
   deploy-prod:
     name: '→ Production'
@@ -281,21 +267,7 @@ jobs:
 
       - name: Deploy to Firebase Production
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --project production \
-            --only hosting:ecommerce-vertex,functions \
-            --force \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
 
       - name: Create GitHub Release
         env:
@@ -414,22 +386,7 @@ jobs:
 
       - name: Deploy to store Firebase project
         run: |
-          # Firebase Hosting returns HTTP 400 "already active version" when the
-          # uploaded content hash matches what is already live. This is not an
-          # error — the store IS deployed correctly — so we treat it as success.
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --only hosting --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''

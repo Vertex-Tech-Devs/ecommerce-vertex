@@ -133,19 +133,7 @@ jobs:
 
       - name: Deploy
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --only hosting --non-interactive
 
       - name: Health check (30s)
         run: |
@@ -213,16 +201,4 @@ jobs:
 
       - name: Deploy
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --only hosting --non-interactive
