@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '24'
+  NODE_VERSION: '24.18.0'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
@@ -301,6 +301,7 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          firebaseToolsVersion: '15.22.2'
           projectId: ecommerce-vertex-dev
           channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
