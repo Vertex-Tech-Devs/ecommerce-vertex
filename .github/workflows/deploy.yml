@@ -385,8 +385,15 @@ jobs:
           credentials_json: "${{ github.event.client_payload.platform_project_id == 'vertex-platform-dev' && secrets.FIREBASE_SERVICE_ACCOUNT_DEV || secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}"
 
       - name: Deploy to store Firebase project
+        env:
+          SITE_ID: ${{ github.event.client_payload.site_id }}
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
         run: |
-          node scripts/firebase-deploy.js --only hosting --non-interactive
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
+          fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''

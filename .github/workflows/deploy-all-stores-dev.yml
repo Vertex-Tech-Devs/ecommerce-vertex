@@ -135,8 +135,15 @@ jobs:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
         run: |
-          node scripts/firebase-deploy.js --only hosting --non-interactive
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
+          fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
 
       - name: Health check (30s)
         run: |
@@ -206,5 +213,12 @@ jobs:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
         run: |
-          node scripts/firebase-deploy.js --only hosting --non-interactive
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
+          fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
