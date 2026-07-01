@@ -345,7 +345,7 @@ jobs:
       - name: Build production
         run: npm run build
 
-      - name: Write minimal firebase.json for store deployment
+      - name: Write firebase.json and .firebaserc for store deployment
         run: |
           python3 << 'PYEOF'
           import os, json
@@ -353,6 +353,8 @@ jobs:
           project_id = os.environ.get("PROJECT_ID", "").strip()
           if site_id == "default":
               site_id = project_id
+
+          # Write minimal firebase.json targeting this store's hosting site.
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -364,6 +366,12 @@ jobs:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
+
+          # Overwrite .firebaserc so the CLI resolves the project unambiguously.
+          # The checked-out .firebaserc uses named aliases (development/production)
+          # which cause "projects/-" in API calls when we pass the literal project ID.
+          with open(".firebaserc", "w") as f:
+              json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ github.event.client_payload.site_id }}
@@ -376,10 +384,22 @@ jobs:
 
       - name: Deploy to store Firebase project
         run: |
-          npx --yes firebase-tools@15.22.2 deploy \
-            --project '${{ github.event.client_payload.project_id }}' \
+          # Firebase Hosting returns HTTP 400 "already active version" when the
+          # uploaded content hash matches what is already live. This is not an
+          # error — the store IS deployed correctly — so we treat it as success.
+          set +e
+          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
             --only hosting \
-            --non-interactive
+            --non-interactive 2>&1)
+          DEPLOY_EXIT=$?
+          echo "$DEPLOY_OUTPUT"
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
+              echo "ℹ️  Store hosting already up-to-date. Treating as success."
+              exit 0
+            fi
+            exit $DEPLOY_EXIT
+          fi
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''

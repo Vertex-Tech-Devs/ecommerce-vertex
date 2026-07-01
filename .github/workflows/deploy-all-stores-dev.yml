@@ -101,7 +101,7 @@ jobs:
           FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
         run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
 
-      - name: Write minimal firebase.json for store deployment
+      - name: Write firebase.json and .firebaserc for store deployment
         run: |
           python3 << 'PYEOF'
           import os, json
@@ -120,6 +120,8 @@ jobs:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
+          with open(".firebaserc", "w") as f:
+              json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ matrix.store.siteId }}
@@ -134,10 +136,19 @@ jobs:
 
       - name: Deploy
         run: |
-          npx --yes firebase-tools@15.22.2 deploy \
-            --project ${{ matrix.store.projectId }} \
+          set +e
+          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
             --only hosting \
-            --non-interactive
+            --non-interactive 2>&1)
+          DEPLOY_EXIT=$?
+          echo "$DEPLOY_OUTPUT"
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
+              echo "ℹ️  Store hosting already up-to-date. Treating as success."
+              exit 0
+            fi
+            exit $DEPLOY_EXIT
+          fi
 
       - name: Health check (30s)
         run: |
@@ -173,7 +184,7 @@ jobs:
           FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
         run: printf '%s' "$FIREBASE_CONFIG_JSON" > dist/ecommerce-vertex/browser/firebase-config.json
 
-      - name: Write minimal firebase.json for store deployment
+      - name: Write firebase.json and .firebaserc for store deployment
         run: |
           python3 << 'PYEOF'
           import os, json
@@ -192,6 +203,8 @@ jobs:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
+          with open(".firebaserc", "w") as f:
+              json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ matrix.store.siteId }}
@@ -206,7 +219,16 @@ jobs:
 
       - name: Deploy
         run: |
-          npx --yes firebase-tools@15.22.2 deploy \
-            --project ${{ matrix.store.projectId }} \
+          set +e
+          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
             --only hosting \
-            --non-interactive
+            --non-interactive 2>&1)
+          DEPLOY_EXIT=$?
+          echo "$DEPLOY_OUTPUT"
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
+              echo "ℹ️  Store hosting already up-to-date. Treating as success."
+              exit 0
+            fi
+            exit $DEPLOY_EXIT
+          fi
