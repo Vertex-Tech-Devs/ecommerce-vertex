@@ -14,7 +14,6 @@ export class FooterComponent {
 
   private storeConfig = inject(StoreConfigService);
 
-
   readonly viewData = computed(() => {
     const config = this.storeConfig.storeConfig();
     const configuredStoreName = (config?.storeName ?? '').trim();
@@ -34,5 +33,5 @@ export class FooterComponent {
     };
   });
 
-  constructor() { }
+  constructor() {}
 }

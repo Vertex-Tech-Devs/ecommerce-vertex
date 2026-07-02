@@ -215,27 +215,22 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Prepare Firebase CLI credentials
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project ecommerce-vertex-dev
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
       - name: Deploy to Firebase Development
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --project development \
-            --only hosting:ecommerce-vertex,functions \
-            --force \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
 
   deploy-prod:
     name: '→ Production'
@@ -275,27 +270,22 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
+      - name: Prepare Firebase CLI credentials
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
+          gcloud config set project ecommerce-vertex
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
       - name: Deploy to Firebase Production
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --project production \
-            --only hosting:ecommerce-vertex,functions \
-            --force \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
-          fi
+          node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
 
       - name: Create GitHub Release
         env:
@@ -408,28 +398,31 @@ jobs:
           PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
+        id: auth-store
         uses: google-github-actions/auth@v3
         with:
           credentials_json: "${{ github.event.client_payload.platform_project_id == 'vertex-platform-dev' && secrets.FIREBASE_SERVICE_ACCOUNT_DEV || secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}"
 
-      - name: Deploy to store Firebase project
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
         run: |
-          # Firebase Hosting returns HTTP 400 "already active version" when the
-          # uploaded content hash matches what is already live. This is not an
-          # error — the store IS deployed correctly — so we treat it as success.
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-store.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
+      - name: Deploy to store Firebase project
+        env:
+          SITE_ID: ${{ github.event.client_payload.site_id }}
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
+        run: |
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
           fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''

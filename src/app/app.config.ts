@@ -13,7 +13,11 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 
 import { getAuth, connectAuthEmulator } from '@angular/fire/auth';
 import { getFirestore } from '@angular/fire/firestore';
-import { initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  connectFirestoreEmulator,
+  type FirestoreSettings,
+} from 'firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions';
 import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
@@ -51,8 +55,10 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       if (isCypress) {
         return getFirestore(app);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return initializeFirestore(app, { experimentalAutoDetectLongPolling: true, forceLongPolling: true } as any);
+      const firestoreSettings: FirestoreSettings = {
+        experimentalAutoDetectLongPolling: true,
+      };
+      return initializeFirestore(app, firestoreSettings);
     } catch {
       return getFirestore(app);
     }

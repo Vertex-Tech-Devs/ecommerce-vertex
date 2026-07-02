@@ -128,27 +128,33 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         env:
           FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
-      - name: Deploy
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
+      - name: Deploy
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
           fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
 
       - name: Health check (30s)
         run: |
@@ -211,24 +217,30 @@ jobs:
           PROJECT_ID: ${{ matrix.store.projectId }}
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         env:
           FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
           credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
-      - name: Deploy
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
         run: |
-          set +e
-          DEPLOY_OUTPUT=$(npx --yes firebase-tools@15.22.2 deploy \
-            --only hosting \
-            --non-interactive 2>&1)
-          DEPLOY_EXIT=$?
-          echo "$DEPLOY_OUTPUT"
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            if echo "$DEPLOY_OUTPUT" | grep -q "is the current active version"; then
-              echo "ℹ️  Store hosting already up-to-date. Treating as success."
-              exit 0
-            fi
-            exit $DEPLOY_EXIT
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
+      - name: Deploy
+        env:
+          SITE_ID: ${{ matrix.store.siteId }}
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: |
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
           fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
