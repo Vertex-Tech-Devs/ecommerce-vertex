@@ -61,20 +61,20 @@ export class FooterManagementComponent implements OnInit {
     });
   }
 
-  get email(): AbstractControl | null {
-    return this.footerForm.get('contactEmail');
+  get email(): AbstractControl {
+    return this.footerForm.get('contactEmail')!;
   }
-  get instagram(): AbstractControl | null {
-    return this.footerForm.get('socialInstagramUrl');
+  get instagram(): AbstractControl {
+    return this.footerForm.get('socialInstagramUrl')!;
   }
-  get facebook(): AbstractControl | null {
-    return this.footerForm.get('socialFacebookUrl');
+  get facebook(): AbstractControl {
+    return this.footerForm.get('socialFacebookUrl')!;
   }
-  get whatsapp(): AbstractControl | null {
-    return this.footerForm.get('socialWhatsAppUrl');
+  get whatsapp(): AbstractControl {
+    return this.footerForm.get('socialWhatsAppUrl')!;
   }
-  get copyright(): AbstractControl | null {
-    return this.footerForm.get('copyrightText');
+  get copyright(): AbstractControl {
+    return this.footerForm.get('copyrightText')!;
   }
 
   onSubmit(): void {

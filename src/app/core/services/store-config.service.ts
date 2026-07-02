@@ -1,4 +1,12 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  computed,
+  effect,
+  Injector,
+  runInInjectionContext,
+} from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
@@ -68,24 +76,23 @@ export class StoreConfigService {
   private firestore = inject(Firestore);
   private titleService = inject(Title);
   private metaService = inject(Meta);
+  private injector = inject(Injector);
 
   private readonly _storeConfig = signal<StoreConfig | null>(null);
   readonly storeConfig = this._storeConfig.asReadonly();
 
   readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
-  readonly isFirstRun = computed(() => !this.storeConfig()?.setupCompleted);
+  readonly isFirstRun = computed(() => {
+    const config = this.storeConfig();
+    return config ? !config.setupCompleted : false;
+  });
 
   constructor() {
     // Dynamic theme, title and favicon injection reactive effect
     effect(() => {
       const config = this.storeConfig();
       if (config) {
-        // 1. Title reactivity
-        if (config.storeName) {
-          this.titleService.setTitle(config.storeName);
-        }
-
         // 1b. SEO Meta Description reactivity
         if (config.seo?.metaDescription) {
           this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
@@ -123,15 +130,15 @@ export class StoreConfigService {
   }
 
   protected getDocRef(path: string, ...segments: string[]): DocumentReference {
-    return doc(this.firestore, path, ...segments);
+    return runInInjectionContext(this.injector, () => doc(this.firestore, path, ...segments));
   }
 
   protected async getDocSnap(ref: DocumentReference): Promise<DocumentSnapshot> {
-    return getDoc(ref);
+    return runInInjectionContext(this.injector, () => getDoc(ref));
   }
 
   protected async setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
-    return setDoc(ref, data);
+    return runInInjectionContext(this.injector, () => setDoc(ref, data));
   }
 
   async loadConfig(): Promise<void> {
@@ -143,19 +150,6 @@ export class StoreConfigService {
       ]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
-        this._storeConfig.set(validatedData as StoreConfig);
-        this.applyConfigToDom(validatedData as StoreConfig);
-        return;
-      }
-
-      const fallbackSnap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('settings'), 'storeConfig')).catch(() => null),
-        timeout,
-      ]);
-      if (fallbackSnap?.exists()) {
-        const validatedData = StoreConfigSchema.parse(
-          this.parseSettingsRaw(fallbackSnap.data() as Record<string, unknown>)
-        );
         this._storeConfig.set(validatedData as StoreConfig);
         this.applyConfigToDom(validatedData as StoreConfig);
         return;
@@ -179,36 +173,6 @@ export class StoreConfigService {
       console.error('Error al cargar la configuración de la tienda:', err);
       this._storeConfig.set(null);
     }
-  }
-
-  private parseSettingsRaw(raw: Record<string, unknown>): Record<string, unknown> {
-    const payments = raw['payments'] as Record<string, unknown> | undefined;
-    const mpKey = payments?.['mercadoPago']
-      ? ((payments as Record<string, Record<string, string>>)['mercadoPago']['publicKey'] ?? '')
-      : '';
-    const contact = raw['contact'] as Record<string, string> | undefined;
-    return {
-      tenantId: environment.tenantId,
-      storeId: 'white-label-store',
-      storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
-      tagline: (raw['tagline'] as string) ?? (raw['strapline'] as string) ?? '',
-      logoUrl: (raw['logoUrl'] as string) ?? '',
-      faviconUrl: (raw['faviconUrl'] as string) ?? '',
-      colors: raw['colors'] ?? { primary: '#ea580c', accent: '#ef4444', background: '#ffffff' },
-      payments: { mercadoPagoPublicKey: mpKey },
-      contact: {
-        phone: contact?.['phone'] ?? '',
-        email: contact?.['email'] ?? '',
-        whatsApp: contact?.['whatsapp'] ?? '',
-        instagram: '',
-        facebook: '',
-      },
-      seo: {
-        metaDescription:
-          (raw['seo'] as Record<string, string>)?.['metaDescription'] ?? 'Bienvenido',
-      },
-      setupCompleted: true,
-    };
   }
 
   private parseLegacyConfigRaw(raw: Record<string, unknown>): Record<string, unknown> {
@@ -251,9 +215,6 @@ export class StoreConfigService {
   }
 
   private applyConfigToDom(config: StoreConfig): void {
-    if (config.storeName) {
-      this.titleService.setTitle(config.storeName);
-    }
     if (config.seo?.metaDescription) {
       this.metaService.updateTag({ name: 'description', content: config.seo.metaDescription });
     }

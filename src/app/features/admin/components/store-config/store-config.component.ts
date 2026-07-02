@@ -29,9 +29,7 @@ export class StoreConfigComponent implements OnInit {
   activeTab = signal<'identity' | 'colors' | 'payments' | 'contact-seo'>('identity');
 
   // File uploading states
-  logoProgress = signal<number>(0);
   faviconProgress = signal<number>(0);
-  logoUploading = signal<boolean>(false);
   faviconUploading = signal<boolean>(false);
 
   // Visibility toggle for keys
@@ -41,7 +39,7 @@ export class StoreConfigComponent implements OnInit {
     tenantId: [''],
     storeId: ['white-label-store'],
     storeName: ['', Validators.required],
-    tagline: ['', Validators.required],
+    tagline: [''],
     logoUrl: [''],
     faviconUrl: [''],
     colors: this.fb.group({
@@ -99,6 +97,7 @@ export class StoreConfigComponent implements OnInit {
       this.form.patchValue({
         storeName: 'Mi Tienda',
         tagline: 'La mejor tienda online',
+        logoUrl: '',
         colors: {
           primary: '#ea580c',
           accent: '#ef4444',
@@ -120,31 +119,6 @@ export class StoreConfigComponent implements OnInit {
 
   setTab(tab: 'identity' | 'colors' | 'payments' | 'contact-seo'): void {
     this.activeTab.set(tab);
-  }
-
-  onLogoUpload(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
-    const file = input.files[0];
-    this.logoUploading.set(true);
-    this.logoProgress.set(0);
-
-    const upload = this.storageService.uploadFile(file, 'store/branding');
-    upload.progress$.subscribe((progress) => this.logoProgress.set(Math.round(progress)));
-    upload.downloadUrl$.subscribe({
-      next: (url) => {
-        this.form.patchValue({ logoUrl: url });
-        this.logoUploading.set(false);
-        this.sweetAlert.success('Logo subido', 'El logo corporativo fue cargado exitosamente.');
-      },
-      error: (err) => {
-        console.error('Error al subir el logo:', err);
-        this.logoUploading.set(false);
-        this.sweetAlert.error('Error de subida', 'No se pudo cargar el logo corporativo.');
-      },
-    });
   }
 
   onFaviconUpload(event: Event): void {

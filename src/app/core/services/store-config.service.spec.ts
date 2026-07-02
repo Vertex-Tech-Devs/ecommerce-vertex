@@ -58,7 +58,7 @@ describe('StoreConfigService', () => {
   it('should have initial fallback values', () => {
     expect(service.storeName()).toBe('Mi Tienda');
     expect(service.logoUrl()).toBe('');
-    expect(service.isFirstRun()).toBeTrue();
+    expect(service.isFirstRun()).toBeFalse();
   });
 
   it('should cover loadConfig and saveConfig error paths', async () => {
@@ -85,7 +85,25 @@ describe('StoreConfigService', () => {
     expect(service.isFirstRun()).toBeFalse();
   });
 
-  it("should load config from fallback settings collection when configuracion doesn't exist", async () => {
+  it('should evaluate isFirstRun to true if setupCompleted is false', async () => {
+    const mockConfigFirstRun: StoreConfig = {
+      ...mockConfig,
+      setupCompleted: false,
+    };
+    const mockSnap = {
+      exists: () => true,
+      data: () => mockConfigFirstRun,
+    } as unknown as DocumentSnapshot;
+
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+    spyOn(privSvc, 'getDocSnap').and.returnValue(Promise.resolve(mockSnap));
+
+    await service.loadConfig();
+    expect(service.isFirstRun()).toBeTrue();
+  });
+
+  it("should load config from legacy flat configuracion/{tenantId} collection when namespaced configuracion/store doesn't exist", async () => {
     let callCount = 0;
     const mockSnapEmpty = {
       exists: () => false,
@@ -103,12 +121,12 @@ describe('StoreConfigService', () => {
           background: '#ffffff',
         },
         payments: {
-          mercadoPago: { publicKey: 'TEST-MP' },
+          mercadoPagoPublicKey: 'TEST-MP',
         },
         contact: {
           phone: '987654',
           email: 'fallback@store.com',
-          whatsapp: '98765',
+          whatsApp: '98765',
         },
         seo: {
           metaDescription: 'Fallback Meta',

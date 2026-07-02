@@ -1,3 +1,7 @@
+import { environment } from '../../src/environments/environment';
+
+const CART_KEY = `cart_${environment.tenantId}`;
+
 /**
  * E2E: Full SaaS Storefront Lifecycle
  *
@@ -14,7 +18,7 @@
  *   6. Checkout form can be filled and submitted
  *   7. Admin can view the resulting order in the dashboard
  *   8. Unknown routes show a 404/not-found page
- */
+ *   */
 
 /** Seed the Firestore product intercept with N mock products. */
 function stubProducts(count = 25): void {
@@ -148,7 +152,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
     cy.window().then((win) => {
       win.localStorage.setItem(
-        'cart_store',
+        CART_KEY,
         JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
       );
     });
@@ -162,7 +166,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
     cy.window().then((win) => {
       win.localStorage.setItem(
-        'cart_store',
+        CART_KEY,
         JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
       );
     });
@@ -177,7 +181,7 @@ describe('4 · Add-to-Cart Flow', () => {
 
   it('shows empty-cart state when localStorage has no items', () => {
     cy.visit('/shop/cart');
-    cy.window().then((win) => win.localStorage.removeItem('cart_store'));
+    cy.window().then((win) => win.localStorage.removeItem(CART_KEY));
     cy.reload();
 
     // No product item rows should be visible
@@ -207,9 +211,7 @@ describe('5 · Checkout Flow', () => {
 
   beforeEach(() => {
     cy.visit('/shop/cart');
-    cy.window().then((win) =>
-      win.localStorage.setItem('cart_store', JSON.stringify(CART_WITH_ITEM))
-    );
+    cy.window().then((win) => win.localStorage.setItem(CART_KEY, JSON.stringify(CART_WITH_ITEM)));
     cy.reload();
   });
 

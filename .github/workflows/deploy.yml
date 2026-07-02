@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24.18.0'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
@@ -27,24 +27,12 @@ jobs:
     name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -59,24 +47,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -84,7 +60,7 @@ jobs:
         run: npm run test:ci
 
       - name: Install backend dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Run backend tests
@@ -98,24 +74,12 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.environment == 'development')
     environment: development
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -144,7 +108,7 @@ jobs:
       - name: Build development
         run: npm run build:dev
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4 # v4
         with:
           name: dist-dev-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -157,24 +121,12 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'production')
     environment: production
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -203,7 +155,7 @@ jobs:
       - name: Build production
         run: npm run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4 # v4
         with:
           name: dist-prod-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -213,13 +165,13 @@ jobs:
     name: Functions Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - run: npm run build
@@ -234,32 +186,20 @@ jobs:
       name: development
       url: https://ecommerce-vertex-dev.web.app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
-
       - run: npm ci --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Download frontend build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4 # v4
         with:
           name: dist-dev-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -282,7 +222,7 @@ jobs:
 
       - name: Prepare Firebase CLI credentials
         env:
-          PROJECT_ID: development
+          PROJECT_ID: ecommerce-vertex-dev
         run: |
           echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
@@ -302,32 +242,20 @@ jobs:
       name: production
       url: https://ecommerce-vertex.web.app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
-
       - run: npm ci --legacy-peer-deps
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
         working-directory: functions
 
       - name: Download frontend build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4 # v4
         with:
           name: dist-prod-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -350,7 +278,7 @@ jobs:
 
       - name: Prepare Firebase CLI credentials
         env:
-          PROJECT_ID: production
+          PROJECT_ID: ecommerce-vertex
         run: |
           echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
@@ -373,26 +301,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'repository_dispatch' && (github.event.action == 'provision-store' || github.event.action == 'update-store-version')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # v4
         with:
           ref: ${{ github.event_name == 'repository_dispatch' && (github.event.client_payload.ref || 'main') || github.ref }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-
-      - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
-        with:
-          repository: Vertex-Tech-Devs/vertex-platform
-          token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name == 'main' && 'main' || 'develop' }}
-          path: platform
-      - name: Move platform to sister directory
-        run: mv platform ../platform
-      - name: Install Shared Contracts Dependencies
-        run: npm install --prefix ../platform/packages/shared-contracts --legacy-peer-deps
 
       - run: npm ci --legacy-peer-deps
 
@@ -460,6 +376,7 @@ jobs:
           if site_id == "default":
               site_id = project_id
 
+          # Write minimal firebase.json targeting this store's hosting site.
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -472,6 +389,9 @@ jobs:
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
 
+          # Overwrite .firebaserc so the CLI resolves the project unambiguously.
+          # The checked-out .firebaserc uses named aliases (development/production)
+          # which cause "projects/-" in API calls when we pass the literal project ID.
           with open(".firebaserc", "w") as f:
               json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF

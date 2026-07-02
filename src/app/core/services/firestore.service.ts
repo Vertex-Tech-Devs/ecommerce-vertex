@@ -1,10 +1,10 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
-import type { DocumentReference, UpdateData, WithFieldValue } from 'firebase/firestore';
-import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc } from 'firebase/firestore';
+import type { DocumentReference, UpdateData, WithFieldValue } from '@angular/fire/firestore';
+import { collection, doc, addDoc, updateDoc, deleteDoc } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
-import { from, of } from 'rxjs';
-import { map, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, switchMap, catchError, shareReplay, take } from 'rxjs/operators';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath } from '@core/utils/tenant';
 import { StoreConfigSchema } from '@vertex/contracts';
@@ -24,12 +24,20 @@ export class FirestoreService<T extends BaseEntity> {
     return runInInjectionContext(this.injector, () => {
       const tenantRef = collection(this.firestore, tenantPath(collectionName));
       const legacyRef = collection(this.firestore, collectionName);
-      return from(getDocs(tenantRef)).pipe(
-        switchMap((snap) =>
-          snap.empty
-            ? (collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>)
-            : (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>)
-        ),
+
+      const tenantData$ = (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>).pipe(
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+      const legacyData$ = collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>;
+
+      return tenantData$.pipe(
+        take(1),
+        switchMap((items) => {
+          if (items.length === 0) {
+            return legacyData$;
+          }
+          return tenantData$;
+        }),
         map((items) =>
           items.map((item) => {
             const converted = convertTimestampsToDates(item);
@@ -51,12 +59,20 @@ export class FirestoreService<T extends BaseEntity> {
     return runInInjectionContext(this.injector, () => {
       const tenantDocRef = doc(this.firestore, tenantPath(collectionName), id);
       const legacyDocRef = doc(this.firestore, collectionName, id);
-      return from(getDoc(tenantDocRef)).pipe(
-        switchMap((snap) =>
-          snap.exists()
-            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>)
-            : (docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>)
-        ),
+
+      const tenantData$ = (
+        docData(tenantDocRef, { idField: 'id' }) as Observable<T | undefined>
+      ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+      const legacyData$ = docData(legacyDocRef, { idField: 'id' }) as Observable<T | undefined>;
+
+      return tenantData$.pipe(
+        take(1),
+        switchMap((item) => {
+          if (!item) {
+            return legacyData$;
+          }
+          return tenantData$;
+        }),
         map((item) => {
           if (!item) {
             return undefined;

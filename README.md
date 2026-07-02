@@ -9,10 +9,10 @@ Este proyecto opera bajo una topología de repositorios hermanos en paralelo:
 - **Plantilla de Tienda (Storefront/Admin cliente):** `storefront/` (Asociado al repositorio `vertex-tech-devs/ecommerce-vertex`)
 
 ### Consumo de Contratos Compartidos via File-Path
-La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente de forma local sin depender de un monorepo global artificial, mediante la directiva `file:` en `package.json`:
+La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente desde el paquete local del repositorio, mediante la directiva `file:` en `package.json`:
 ```json
 "dependencies": {
-  "@vertex/contracts": "file:../platform/packages/shared-contracts"
+   "@vertex/contracts": "file:./packages/shared-contracts"
 }
 ```
 
@@ -20,7 +20,21 @@ La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contr
 
 ## 🚀 Inicio Rápido (10 minutos)
 
-Sigue estos pasos para configurar e iniciar la aplicación localmente en tu entorno de desarrollo:
+Puedes inicializar y ejecutar la aplicación usando el entorno contenedorizado unificado o mediante tu host de forma nativa:
+
+### Opción A: Entorno Contenedorizado Unificado (Recomendado)
+Si tienes **Docker Desktop** instalado, puedes levantar el **Storefront** junto con la **Platform** y los **Emuladores de Firebase** en un solo comando desde el repositorio hermano `platform/`:
+```bash
+# Entrar al repositorio de platform y arrancar el stack
+cd ../platform
+bash docker/start.sh
+```
+Esto levantará la tienda de cara al cliente en [http://localhost:4201](http://localhost:4201) y el panel administrativo en [http://localhost:4201/admin](http://localhost:4201/admin) de manera automática.
+
+---
+
+### Opción B: Arranque Local (Nativo en el Host)
+Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 1. **Configurar el entorno (Script interactivo CLI):**
    ```bash
@@ -37,7 +51,7 @@ Sigue estos pasos para configurar e iniciar la aplicación localmente en tu ento
    npm start
    ```
 
-3. **Ejecutar validaciones de calidad (Quality Gates):**
+4. **Ejecutar validaciones de calidad (Quality Gates):**
    Asegúrate de que el formateo, los tipos y las pruebas unitarias pasan sin errores:
    ```bash
    npm run lint && npm run typecheck && npm run test:ci && npm run build
@@ -151,4 +165,4 @@ Este repositorio opera bajo políticas estrictas de flujo de trabajo y protecci�
 
 ---
 
-📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal para el desarrollo diario y los flujos de lanzamiento.
+📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal. Para reglas de agentes de IA y flujos de QA unificados, consulta [agent.md](agent.md).

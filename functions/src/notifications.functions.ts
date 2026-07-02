@@ -1,12 +1,12 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 import { defineString } from "firebase-functions/params";
 import { OrderSchema } from "./core/order.model";
 import type { Order } from "./core/order.model";
 import { COLLECTIONS, DOCS, tenantCollection, tenantDoc } from "./core/config";
 
-const db = admin.firestore();
+const db = getFirestore();
 const siteUrl = defineString("SITE_URL");
 
 async function getEmailConfig(tenantId: string) {

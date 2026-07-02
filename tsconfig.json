@@ -15,7 +15,6 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "isolatedModules": true,
-    "types": ["jasmine"],
     "paths": {
       "@core/*": [
         "./src/app/core/*"
@@ -52,6 +51,7 @@
     "scripts",
     "cypress",
     "integration-tests",
+    "**/*.spec.ts",
     "**/*.cy.ts",
     "cypress.config.ts",
     "integration-tests/playwright.config.ts",

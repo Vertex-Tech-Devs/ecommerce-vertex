@@ -8,8 +8,8 @@ import type {
   WithFieldValue,
   CollectionReference,
   DocumentData,
-} from 'firebase/firestore';
-import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+} from '@angular/fire/firestore';
+import { collection, query, where, orderBy, limit, getDocs } from '@angular/fire/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
@@ -68,8 +68,10 @@ export class OrderService {
     return runInInjectionContext(this.injector, () => {
       return this.tenantOrLegacyRef().pipe(
         switchMap((ref) => {
-          const q = query(ref, where('status', '==', 'delivered'));
-          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          return runInInjectionContext(this.injector, () => {
+            const q = query(ref, where('status', '==', 'delivered'));
+            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          });
         }),
         map((orders) => {
           const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
@@ -92,8 +94,10 @@ export class OrderService {
     return runInInjectionContext(this.injector, () => {
       return this.tenantOrLegacyRef().pipe(
         switchMap((ref) => {
-          const q = query(ref, where('orderDate', '>=', startOfMonth));
-          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          return runInInjectionContext(this.injector, () => {
+            const q = query(ref, where('orderDate', '>=', startOfMonth));
+            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          });
         }),
 
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
@@ -118,8 +122,10 @@ export class OrderService {
     return runInInjectionContext(this.injector, () => {
       return this.tenantOrLegacyRef().pipe(
         switchMap((ref) => {
-          const q = query(ref, where('status', 'in', ['pending', 'processing']));
-          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          return runInInjectionContext(this.injector, () => {
+            const q = query(ref, where('status', 'in', ['pending', 'processing']));
+            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          });
         }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((orders) =>
@@ -141,8 +147,10 @@ export class OrderService {
     return runInInjectionContext(this.injector, () => {
       return this.tenantOrLegacyRef().pipe(
         switchMap((ref) => {
-          const q = query(ref, orderBy('orderDate', 'desc'), limit(count));
-          return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          return runInInjectionContext(this.injector, () => {
+            const q = query(ref, orderBy('orderDate', 'desc'), limit(count));
+            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
+          });
         }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         catchError((err) => {

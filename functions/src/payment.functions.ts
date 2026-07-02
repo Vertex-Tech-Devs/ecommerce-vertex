@@ -11,6 +11,7 @@ import * as crypto from "crypto";
 
 const db = getFirestore();
 const secretsClient = new SecretManagerServiceClient();
+const secretCache = new Map<string, string>();
 
 function resolveProjectId(): string {
   return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
@@ -46,16 +47,26 @@ async function upsertSecret(secretId: string, payload: string): Promise<void> {
     parent: secretName,
     payload: { data: Buffer.from(payload, "utf8") },
   });
+
+  // Update memory cache
+  secretCache.set(secretId, payload.trim());
 }
 
 async function resolveSecret(secretId: string): Promise<string> {
+  if (secretCache.has(secretId)) {
+    return secretCache.get(secretId)!;
+  }
   const projectId = resolveProjectId();
   if (!projectId) return "";
   try {
     const [version] = await secretsClient.accessSecretVersion({
       name: `projects/${projectId}/secrets/${secretId}/versions/latest`,
     });
-    return version.payload?.data?.toString().trim() || "";
+    const val = version.payload?.data?.toString().trim() || "";
+    if (val) {
+      secretCache.set(secretId, val);
+    }
+    return val;
   } catch (error) {
     logger.warn(`No se pudo leer el secreto ${secretId} de Secret Manager:`, error);
     return "";
@@ -238,9 +249,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
   logger.info(`Iniciando creación de preferencia para el pedido: ${orderId}`);
 
   // Resolve order document across tenant namespaces
-  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS)
-    .where('__name__', '>=', `tenants/`)
-    .get();
+  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS).get();
   const orderDocSnap = orderSnaps.docs.find(d => d.id === orderId);
   if (!orderDocSnap) {
     throw new HttpsError("not-found", `La orden con ID ${orderId} no fue encontrada.`);
@@ -432,9 +441,7 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
     }
 
     // Resolve order via collectionGroup to support multi-tenant paths
-    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS)
-      .where('__name__', '>=', 'tenants/')
-      .get();
+    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS).get();
     const foundOrderDoc = orderQuery.docs.find(d => d.id === orderId);
     const resolvedOrderRef = foundOrderDoc?.ref ?? db.collection(`tenants/_/orders`).doc(orderId);
     const tenantIdForWebhook = foundOrderDoc?.ref.path.split('/')[1] ?? '';

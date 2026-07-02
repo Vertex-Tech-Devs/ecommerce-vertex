@@ -6,17 +6,19 @@ const {
   mockSetCustomUserClaims,
   mockGetUserByEmail,
   mockDocGet,
+  mockDocSet,
   mockCollectionDoc,
   capturedCallableRef,
 } = vi.hoisted(() => {
   const mockSetCustomUserClaims = vi.fn();
   const mockGetUserByEmail = vi.fn();
   const mockDocGet = vi.fn();
-  const mockCollectionDoc = vi.fn(() => ({ get: mockDocGet }));
+  const mockDocSet = vi.fn(() => Promise.resolve());
+  const mockCollectionDoc = vi.fn(() => ({ get: mockDocGet, set: mockDocSet }));
   const capturedCallableRef: { current: ((request: any) => Promise<any>) | null } = {
     current: null,
   };
-  return { mockSetCustomUserClaims, mockGetUserByEmail, mockDocGet, mockCollectionDoc, capturedCallableRef };
+  return { mockSetCustomUserClaims, mockGetUserByEmail, mockDocGet, mockDocSet, mockCollectionDoc, capturedCallableRef };
 });
 
 vi.mock('firebase-admin', () => ({
@@ -35,6 +37,15 @@ vi.mock('firebase-admin', () => ({
 vi.mock('firebase-admin/firestore', () => ({
   getFirestore: vi.fn(() => ({
     collection: vi.fn(() => ({ doc: mockCollectionDoc })),
+    doc: vi.fn(() => ({ get: mockDocGet, set: mockDocSet })),
+  })),
+  FieldValue: { serverTimestamp: vi.fn(() => 'SERVER_TIMESTAMP') },
+}));
+
+vi.mock('firebase-admin/auth', () => ({
+  getAuth: vi.fn(() => ({
+    setCustomUserClaims: mockSetCustomUserClaims,
+    getUserByEmail: mockGetUserByEmail,
   })),
 }));
 
@@ -76,7 +87,7 @@ import './role.functions';
 describe('refreshMyAdminClaim', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCollectionDoc.mockImplementation(() => ({ get: mockDocGet }));
+    mockCollectionDoc.mockImplementation(() => ({ get: mockDocGet, set: mockDocSet }));
   });
 
   const callable = () => capturedCallableRef.current!;
@@ -142,5 +153,20 @@ describe('refreshMyAdminClaim', () => {
     });
 
     expect(mockCollectionDoc).toHaveBeenCalledWith('store_admin@example.com');
+  });
+
+  it('auto-creates admin_roles and grants claim for pre-authorized developer emails', async () => {
+    mockDocGet
+      .mockResolvedValueOnce({ exists: false, data: () => null })
+      .mockResolvedValueOnce({ exists: true, data: () => ({ role: 'owner' }) });
+    mockSetCustomUserClaims.mockResolvedValueOnce(undefined);
+
+    const result = await callable()({
+      auth: { uid: 'uid-dev', token: { email: 'juan.l.espeche@gmail.com' } },
+    });
+
+    expect(mockDocSet).toHaveBeenCalled();
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-dev', { admin: true, role: 'owner', tenantId: 'store' });
+    expect(result).toEqual({ granted: true });
   });
 });

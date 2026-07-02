@@ -56,8 +56,8 @@ export class CategoryModalComponent implements OnInit {
     });
   }
 
-  get name(): AbstractControl | null {
-    return this.categoryForm.get('name');
+  get name(): AbstractControl {
+    return this.categoryForm.get('name')!;
   }
 
   get attributesForm(): FormGroup {

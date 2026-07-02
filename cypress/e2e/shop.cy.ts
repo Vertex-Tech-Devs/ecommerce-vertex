@@ -1,3 +1,7 @@
+import { environment } from '../../src/environments/environment';
+
+const CART_KEY = `cart_${environment.tenantId}`;
+
 /**
  * E2E: Shop flows — home, catalog, cart
  *
@@ -59,7 +63,7 @@ describe('Shop — Cart', () => {
 
   it('should show empty cart message when cart is empty', () => {
     // localStorage is clean — empty cart expected
-    cy.window().then((win) => win.localStorage.removeItem('cart_store'));
+    cy.window().then((win) => win.localStorage.removeItem(CART_KEY));
     cy.reload();
 
     // At minimum the page exists and there are no item rows
@@ -86,7 +90,7 @@ describe('Shop — Cart', () => {
       total: 5000,
     };
 
-    cy.window().then((win) => win.localStorage.setItem('cart_store', JSON.stringify(cart)));
+    cy.window().then((win) => win.localStorage.setItem(CART_KEY, JSON.stringify(cart)));
     cy.reload();
 
     // Item name should appear somewhere on the page
@@ -112,7 +116,7 @@ describe('Shop — Cart', () => {
       total: 1000,
     };
 
-    cy.window().then((win) => win.localStorage.setItem('cart_store', JSON.stringify(cart)));
+    cy.window().then((win) => win.localStorage.setItem(CART_KEY, JSON.stringify(cart)));
     cy.reload();
 
     // Click a checkout link/button if it exists

@@ -2,11 +2,13 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as functions from "firebase-functions/v1";
 import * as logger from "firebase-functions/logger";
-import * as admin from "firebase-admin";
+import { getAuth } from "firebase-admin/auth";
+import type { UserRecord } from "firebase-admin/auth";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { COLLECTIONS } from "./core/config";
 
-const auth = admin.auth();
-const db = admin.firestore();
+const auth = getAuth();
+const db = getFirestore();
 const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
 
 function resolveTenantId(request: any): string {
@@ -40,7 +42,7 @@ export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{compo
   const nextRole = String(afterData?.role || '').trim().toLowerCase();
   const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
 
-  let user: admin.auth.UserRecord;
+  let user: UserRecord;
   try {
     user = await auth.getUserByEmail(email);
   } catch (error: any) {
@@ -110,9 +112,23 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
 
   const uid = request.auth.uid;
   const tenantId = resolveTenantId(request);
-  const compositeKey = `${tenantId}_${String(email).trim().toLowerCase()}`;
+  const emailLower = String(email).trim().toLowerCase();
+  const compositeKey = `${tenantId}_${emailLower}`;
 
-  const doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+  let doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+
+  const devEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+  if (!doc.exists && devEmails.includes(emailLower)) {
+    logger.info(`refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`);
+    await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).set({
+      email: emailLower,
+      role: 'owner',
+      tenantId,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
+  }
+
   const role = String(doc.data()?.role || '').trim().toLowerCase();
 
   if (doc.exists && AUTHORIZED_ROLES.has(role)) {

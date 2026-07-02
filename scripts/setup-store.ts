@@ -163,7 +163,7 @@ async function main(): Promise<void> {
   writeFileSync(OUTPUT, generateFile(cfg), 'utf-8');
 
   p.outro(
-    `Listo. ${OUTPUT} generado.\n  Próximo paso: abrí la app y usá el seed tool (/dev/seed) para poblar Firestore.`
+    `Listo. ${OUTPUT} generado.\n  Próximo paso: abrí la app y gestioná tu tienda desde el panel de administración.`
   );
 }
 

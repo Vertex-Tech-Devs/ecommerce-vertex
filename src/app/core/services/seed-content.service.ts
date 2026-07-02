@@ -107,7 +107,7 @@ export class SeedContentService {
   async seedHeroBanner(cats: Record<string, { id: string; name: string }>): Promise<void> {
     await this.run(() =>
       setDoc(doc(this.firestore, tenantPath('siteContent'), 'homePage'), {
-        heroImages: HERO.map((id) => u(id, 1920, 700)),
+        heroImages: HERO.map((id) => ({ imageUrl: u(id, 1920, 700) })),
         carouselSettings: { interval: 4500, showIndicators: true },
         title: 'Nueva Colección 2026',
         buttonText: 'Explorar todo',

@@ -6,11 +6,12 @@ const typescriptParser = require('@typescript-eslint/parser');
 
 module.exports = [
   {
-    ignores: ['projects/**/*', 'dist/**/*', 'coverage/**/*', 'node_modules/**/*', '.angular/**/*', '.husky/**/*'],
+    ignores: ['projects/**/*', 'dist/**/*', 'coverage/**/*', 'node_modules/**/*', '.angular/**/*', '.husky/**/*', 'functions/vitest.config.ts', 'functions/lib/**/*', 'functions/coverage/**/*'],
   },
   // Application source code — strict Angular + TypeScript rules
   {
     files: ['src/**/*.ts'],
+    ignores: ['**/*.spec.ts'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
@@ -66,6 +67,27 @@ module.exports = [
       complexity: ['warn', { max: 40 }],
     },
   },
+  // Unit test files — use spec tsconfig with Jasmine types
+  {
+    files: ['src/**/*.spec.ts'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        project: ['tsconfig.spec.json'],
+        createDefaultProgram: true,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslintPlugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
+      'no-debugger': 'error',
+      'prefer-const': 'error',
+    },
+  },
   // Cypress E2E files — use cypress tsconfig, relaxed rules
   {
     files: ['cypress/**/*.ts'],
@@ -98,6 +120,26 @@ module.exports = [
     rules: {
       '@angular-eslint/template/no-negated-async': 'error',
       '@angular-eslint/template/use-track-by-function': 'error',
+    },
+  },
+  // Cloud Functions source code
+  {
+    files: ['functions/src/**/*.ts', 'functions/*.ts'],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        project: ['functions/tsconfig.json'],
+        createDefaultProgram: true,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslintPlugin,
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-debugger': 'error',
+      'prefer-const': 'off',
     },
   },
 ];

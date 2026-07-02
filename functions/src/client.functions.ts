@@ -1,11 +1,11 @@
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
+import { getFirestore } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { FieldValue } from "firebase-admin/firestore";
 import { OrderSchema } from "./core/order.model";
 import { COLLECTIONS, tenantCollection } from "./core/config";
 
-const db = admin.firestore();
+const db = getFirestore();
 
 export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
   const snap = event.data;

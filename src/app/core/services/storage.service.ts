@@ -35,7 +35,7 @@ export class StorageService {
   }
 
   uploadFile(file: File, path: string): Upload {
-    const filePath = `${path}/${Date.now()}_${file.name}`;
+    const filePath = `${path}/${Date.now()}_${this.sanitizeFileName(file.name)}`;
 
     const storageRef = this.getStorageRef(filePath);
     const uploadTask = this.uploadBytes(storageRef, file);
@@ -69,6 +69,21 @@ export class StorageService {
     });
 
     return { progress$, downloadUrl$ };
+  }
+
+  private sanitizeFileName(name: string): string {
+    const lastDot = name.lastIndexOf('.');
+    const ext = lastDot > 0 ? name.slice(lastDot).toLowerCase() : '';
+    const base =
+      (lastDot > 0 ? name.slice(0, lastDot) : name)
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w.-]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 100) || 'file';
+
+    return `${base}${ext}`;
   }
 
   deleteFileByUrl(imageUrl: string): Observable<void> {

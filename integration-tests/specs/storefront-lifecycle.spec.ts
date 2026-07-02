@@ -41,12 +41,12 @@ test.describe('Shop catalog', () => {
     });
 
     // Stub store-config document fetch
-    await page.route('**/documents/settings/storeConfig**', (route) => {
+    await page.route('**/documents/**/configuracion/store**', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          name: 'projects/test/databases/(default)/documents/settings/storeConfig',
+          name: 'projects/test/databases/(default)/documents/configuracion/store',
           fields: {
             storeName: { stringValue: 'Tienda Test Vertex' },
             currency: { stringValue: 'ARS' },

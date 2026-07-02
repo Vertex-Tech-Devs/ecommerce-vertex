@@ -82,6 +82,8 @@ application_default_credentials.json
 # Testing
 test-results/
 playwright-report/
+cypress/screenshots/
+cypress/videos/
 *.lcov
 
 # Logs
@@ -111,3 +113,8 @@ emulator-data/
 .cache/
 .local/
 settings.json
+
+# Operational tracking files
+task.md
+implementation_plan.md
+walkthrough.md

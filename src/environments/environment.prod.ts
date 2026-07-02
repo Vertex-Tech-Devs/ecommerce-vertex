@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useEmulators: false,
   tenantId: '',
   firebaseConfig: {
     apiKey: '',
@@ -16,7 +17,7 @@ export const environment = {
     cloudFunctionsUrl: '',
   },
   features: {
-    seedDataEnabled: false,
+    seedDataEnabled: true,
     debugLogging: false,
   },
 };

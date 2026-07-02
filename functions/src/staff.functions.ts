@@ -1,9 +1,9 @@
-import * as admin from "firebase-admin";
+import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { COLLECTIONS, tenantCollection, tenantDoc } from "./core/config";
 
-const db = admin.firestore();
+const db = getFirestore();
 
 type StaffRole = "admin" | "owner";
 
@@ -25,7 +25,7 @@ function normalizeEmail(email: string): string {
 }
 
 function formatTimestamp(value: unknown): string | undefined {
-  if (value instanceof admin.firestore.Timestamp) {
+  if (value instanceof Timestamp) {
     return value.toDate().toISOString();
   }
   return undefined;
@@ -142,7 +142,7 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
   const tenantId = resolveTenantId(request);
   const compositeKey = `${tenantId}_${email}`;
 
-  const now = admin.firestore.FieldValue.serverTimestamp();
+  const now = FieldValue.serverTimestamp();
   const roleRef = db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey);
   const existing = await roleRef.get();
 
@@ -180,7 +180,7 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
         role,
         invitedByEmail: invitedByEmail || null,
       },
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
   } catch (error) {
     logger.error("Failed to enqueue store staff invitation email", error);

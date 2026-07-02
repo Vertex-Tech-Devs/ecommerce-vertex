@@ -9,7 +9,7 @@ import type {
   CollectionReference,
   DocumentReference,
   DocumentData,
-} from 'firebase/firestore';
+} from '@angular/fire/firestore';
 import {
   doc,
   collection,
@@ -20,11 +20,11 @@ import {
   orderBy,
   limit,
   getDocs,
-  getDoc,
-} from 'firebase/firestore';
+} from '@angular/fire/firestore';
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath } from '@core/utils/tenant';
+import { shareReplay, take } from 'rxjs/operators';
 
 export interface ProductFilters {
   categoryId?: string | null;
@@ -42,6 +42,17 @@ export class ProductService {
   private injector = inject(Injector);
   private readonly collectionName = 'products';
 
+  private isTenantEmpty?: boolean;
+
+  private async checkTenantEmpty(): Promise<boolean> {
+    if (this.isTenantEmpty !== undefined) {
+      return this.isTenantEmpty;
+    }
+    const snap = await getDocs(this.collectionRef);
+    this.isTenantEmpty = snap.empty;
+    return this.isTenantEmpty;
+  }
+
   private get collectionRef(): CollectionReference<DocumentData> {
     return collection(this.firestore, tenantPath(this.collectionName));
   }
@@ -52,12 +63,21 @@ export class ProductService {
 
   getProducts(): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      return from(getDocs(this.collectionRef)).pipe(
-        switchMap((snap) =>
-          snap.empty
-            ? (collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<Product[]>)
-            : (collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>)
-        ),
+      const tenantData$ = (
+        collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>
+      ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+      const legacyData$ = collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<
+        Product[]
+      >;
+
+      return tenantData$.pipe(
+        take(1),
+        switchMap((items) => {
+          if (items.length === 0) {
+            return legacyData$;
+          }
+          return tenantData$;
+        }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
           console.warn('Unable to load products:', err);
@@ -73,11 +93,13 @@ export class ProductService {
       if (categoryId && categoryId !== 'all') {
         constraints.push(where('categoryId', '==', categoryId));
       }
-      return from(getDocs(this.collectionRef)).pipe(
-        switchMap((snap) => {
-          const ref = snap.empty ? this.legacyCollectionRef : this.collectionRef;
-          const q = query(ref, ...constraints);
-          return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
+      return from(this.checkTenantEmpty()).pipe(
+        switchMap((isEmpty) => {
+          return runInInjectionContext(this.injector, () => {
+            const ref = isEmpty ? this.legacyCollectionRef : this.collectionRef;
+            const q = query(ref, ...constraints);
+            return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
+          });
         }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
@@ -100,12 +122,22 @@ export class ProductService {
         this.collectionName,
         id
       );
-      return from(getDoc(tenantDocRef)).pipe(
-        switchMap((snap) =>
-          snap.exists()
-            ? (docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>)
-            : (docData(legacyDocRef, { idField: 'id' }) as Observable<Product | undefined>)
-        ),
+
+      const tenantData$ = (
+        docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>
+      ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
+      const legacyData$ = docData(legacyDocRef, { idField: 'id' }) as Observable<
+        Product | undefined
+      >;
+
+      return tenantData$.pipe(
+        take(1),
+        switchMap((item) => {
+          if (!item) {
+            return legacyData$;
+          }
+          return tenantData$;
+        }),
         map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined)),
         catchError((err) => {
           console.warn(`Unable to load product ${id}:`, err);
