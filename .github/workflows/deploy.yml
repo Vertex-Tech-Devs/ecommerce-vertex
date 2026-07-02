@@ -275,12 +275,23 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-dev
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: development
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
       - name: Deploy to Firebase Development
-        run: npx --yes firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions --force
+        run: node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
 
   deploy-prod:
     name: '→ Production'
@@ -332,12 +343,23 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
+        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: production
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+
       - name: Deploy to Firebase Production
-        run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions --force
+        run: node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
 
       - name: Create GitHub Release
         env:
@@ -378,11 +400,13 @@ jobs:
         env:
           FIREBASE_CONFIG: ${{ github.event.client_payload.firebase_config }}
           STORE_ID: ${{ github.event.client_payload.store_id }}
+          TENANT_ID: ${{ github.event.client_payload.tenant_id }}
         run: |
           python3 << 'PYEOF'
           import os, json
           config = json.loads(os.environ["FIREBASE_CONFIG"])
           store_id = os.environ.get("STORE_ID", "store")
+          tenant_id = os.environ.get("TENANT_ID", "").strip() or store_id
           content = """export const environment = {{
             production: true,
             tenantId: "{tenantId}",
@@ -405,7 +429,7 @@ jobs:
               debugLogging: false
             }}
           }};""".format(
-            tenantId=store_id,
+            tenantId=tenant_id,
             apiKey=config["apiKey"],
             authDomain=config["authDomain"],
             projectId=config["projectId"],
@@ -427,11 +451,15 @@ jobs:
       - name: Build production
         run: npm run build
 
-      - name: Write minimal firebase.json for store deployment
+      - name: Write firebase.json and .firebaserc for store deployment
         run: |
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
+          project_id = os.environ.get("PROJECT_ID", "").strip()
+          if site_id == "default":
+              site_id = project_id
+
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -439,25 +467,44 @@ jobs:
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          if site_id and site_id != "default":
+          if site_id:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
+
+          with open(".firebaserc", "w") as f:
+              json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ github.event.client_payload.site_id }}
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
+        id: auth-store
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}'
+          credentials_json: "${{ github.event.client_payload.platform_project_id == 'vertex-platform-dev' && secrets.FIREBASE_SERVICE_ACCOUNT_DEV || secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}"
+
+      - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
+        run: |
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
+          gcloud auth activate-service-account --key-file "${{ steps.auth-store.outputs.credentials_file_path }}"
+          gcloud config set project "$PROJECT_ID"
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to store Firebase project
+        env:
+          SITE_ID: ${{ github.event.client_payload.site_id }}
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
         run: |
-          npx --yes firebase-tools deploy \
-            --project '${{ github.event.client_payload.project_id }}' \
-            --only hosting \
-            --non-interactive
+          SITE_ARGS=()
+          if [ -n "$SITE_ID" ]; then
+            SITE_ARGS+=(--site "$SITE_ID")
+          fi
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
