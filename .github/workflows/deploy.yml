@@ -221,16 +221,17 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ecommerce-vertex-dev
         run: |
           echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
-          gcloud config set project ecommerce-vertex-dev
+          gcloud config set project "$PROJECT_ID"
           echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to Firebase Development
-        run: |
-          node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
 
   deploy-prod:
     name: '→ Production'
@@ -276,16 +277,17 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Prepare Firebase CLI credentials
+        env:
+          PROJECT_ID: ecommerce-vertex
         run: |
           echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
           gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
-          gcloud config set project ecommerce-vertex
+          gcloud config set project "$PROJECT_ID"
           echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
 
       - name: Deploy to Firebase Production
-        run: |
-          node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
 
       - name: Create GitHub Release
         env:
