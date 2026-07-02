@@ -16,15 +16,15 @@ jobs:
     name: Build template
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
       - name: Checkout Platform Shared Contracts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Vertex-Tech-Devs/vertex-platform
           token: ${{ secrets.CROSS_REPO_PAT || secrets.GITHUB_TOKEN }}
@@ -45,7 +45,7 @@ jobs:
           echo '{}' > src/firebase-config.json
           npm run build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -100,9 +100,9 @@ jobs:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.canary) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -165,9 +165,9 @@ jobs:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.rest) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
