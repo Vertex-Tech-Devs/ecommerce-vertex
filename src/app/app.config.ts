@@ -31,6 +31,7 @@ import { SeoService } from './core/services/seo.service';
 import { StoreTitleStrategy } from './core/strategies/store-title.strategy';
 import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { routes } from './app.routes';
+import { environment } from '../environments/environment';
 
 export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationConfig {
   firebaseConfig = normalizeFirebaseOptions(firebaseConfig);
@@ -93,7 +94,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       }),
       provideStorage(() => {
         const storage = getStorage(inject(FirebaseApp));
-        if (isLocal) {
+        if (environment.production === false && environment.useEmulators === true) {
           connectStorageEmulator(storage, 'localhost', 9199);
         }
         return storage;

@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  useEmulators: false,
   tenantId: '',
   firebaseConfig: {
     apiKey: '',

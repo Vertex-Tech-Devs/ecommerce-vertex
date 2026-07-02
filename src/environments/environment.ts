@@ -1,5 +1,6 @@
 export const environment = {
   production: false,
+  useEmulators: true,
   tenantId: 'tienda-dos',
   firebaseConfig: {
     apiKey: 'AIzaSyCUTO8Dh3RpCh8wlp4ZYhTK1NBhDOQkbqY',

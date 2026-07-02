@@ -84,68 +84,6 @@
                     }
                   </div>
 
-                  <div class="col-md-6">
-                    <label class="form-label text-label"
-                      >Eslogan / Tagline <span class="text-danger">*</span></label
-                    >
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-chat-quote-fill"></i></span>
-                      <input
-                        formControlName="tagline"
-                        type="text"
-                        class="form-control glass-input"
-                        [class.is-invalid]="
-                          form.get('tagline')?.invalid && form.get('tagline')?.touched
-                        "
-                        placeholder="Ej: Vestite con estilo y confort"
-                      />
-                    </div>
-                    @if (form.get('tagline')?.invalid && form.get('tagline')?.touched) {
-                      <div class="invalid-feedback d-block mt-2">
-                        El tagline o eslogan es obligatorio.
-                      </div>
-                    }
-                  </div>
-
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Logo Corporativo</label>
-                    <div class="d-flex align-items-center gap-3">
-                      <div class="avatar-preview-box">
-                        @if (form.get('logoUrl')?.value) {
-                          <img
-                            [src]="form.get('logoUrl')?.value"
-                            alt="Logo de tienda"
-                            class="branding-preview-img"
-                          />
-                        } @else {
-                          <i class="bi bi-image text-muted" style="font-size: 2rem"></i>
-                        }
-                      </div>
-                      <div class="flex-grow-1">
-                        <input
-                          type="file"
-                          (change)="onLogoUpload($event)"
-                          accept="image/*"
-                          class="form-control glass-input file-input"
-                          [disabled]="logoUploading()"
-                        />
-                        @if (logoUploading()) {
-                          <div class="progress mt-2 custom-progress">
-                            <div
-                              class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                              role="progressbar"
-                              [style.width.%]="logoProgress()"
-                              [attr.aria-valuenow]="logoProgress()"
-                              aria-valuemin="0"
-                              aria-valuemax="100"
-                            >
-                              {{ logoProgress() }}%
-                            </div>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </div>
 
                   <div class="col-md-6">
                     <label class="form-label text-label">Favicon Corporativo</label>

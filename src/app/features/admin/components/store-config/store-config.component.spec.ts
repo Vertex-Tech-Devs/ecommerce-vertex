@@ -136,52 +136,6 @@ describe('StoreConfigComponent', () => {
     expect(component.showMpKey()).toBeTrue();
   });
 
-  it('should handle successful logo upload', () => {
-    const file = new File([''], 'logo.png', { type: 'image/png' });
-    const event = {
-      target: {
-        files: [file],
-      },
-    } as unknown as Event;
-
-    const mockUpload = {
-      progress$: of(50, 100),
-      downloadUrl$: of('http://example.com/new-logo.png'),
-    };
-    storageServiceSpy.uploadFile.and.returnValue(
-      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
-    );
-
-    component.onLogoUpload(event);
-
-    expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
-    expect(component.form.get('logoUrl')?.value).toBe('http://example.com/new-logo.png');
-    expect(component.logoUploading()).toBeFalse();
-    expect(sweetAlertSpy.success).toHaveBeenCalled();
-  });
-
-  it('should handle failed logo upload', () => {
-    const file = new File([''], 'logo.png', { type: 'image/png' });
-    const event = {
-      target: {
-        files: [file],
-      },
-    } as unknown as Event;
-
-    const mockUpload = {
-      progress$: of(50),
-      downloadUrl$: throwError(() => new Error('Upload error')),
-    };
-    storageServiceSpy.uploadFile.and.returnValue(
-      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
-    );
-
-    component.onLogoUpload(event);
-
-    expect(component.logoUploading()).toBeFalse();
-    expect(sweetAlertSpy.error).toHaveBeenCalled();
-  });
-
   it('should handle successful favicon upload', () => {
     const file = new File([''], 'favicon.png', { type: 'image/png' });
     const event = {
@@ -257,18 +211,6 @@ describe('StoreConfigComponent', () => {
       'Bienvenidos a mi tienda virtual.'
     );
     expect(component.form.get('setupCompleted')?.value).toBeTrue();
-  });
-
-  it('should return early onLogoUpload if no files are selected', () => {
-    const event = {
-      target: {
-        files: null,
-      },
-    } as unknown as Event;
-
-    storageServiceSpy.uploadFile.calls.reset();
-    component.onLogoUpload(event);
-    expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
   });
 
   it('should return early onFaviconUpload if no files are selected', () => {
