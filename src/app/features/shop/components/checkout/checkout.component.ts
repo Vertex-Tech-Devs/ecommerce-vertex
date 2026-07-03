@@ -18,7 +18,7 @@ import type { Order, OrderItem } from '@core/models/order.model';
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule, OrderSummaryComponent],
   templateUrl: './checkout.component.html',
-  styleUrls: ['./checkout.component.scss'],
+  styleUrl: './checkout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CheckoutComponent implements OnInit {
@@ -64,7 +64,7 @@ export class CheckoutComponent implements OnInit {
       this.checkoutForm.markAllAsTouched();
       this.sweetAlertService.error(
         'Formulario Incompleto',
-        'Por favor, completa todos los campos requeridos.'
+        'Por favor, completa todos los campos requeridos.',
       );
       return;
     }
@@ -81,8 +81,10 @@ export class CheckoutComponent implements OnInit {
       return;
     }
 
+    let orderId: string | null = null;
+
     try {
-      const orderId = await this.createOrder(cart.items, cart.total);
+      orderId = await this.createOrder(cart.items, cart.total);
       const paymentResult = await this.paymentService.initiatePayment(cart.items, orderId);
 
       if (paymentResult.success && paymentResult.init_point) {
@@ -93,6 +95,15 @@ export class CheckoutComponent implements OnInit {
       }
     } catch (error: unknown) {
       console.error('Error en el proceso de checkout:', error);
+
+      // Cancel the orphaned order if it was created before payment failed
+      if (orderId) {
+        try {
+          await this.orderService.updateOrder(orderId, { status: 'cancelled' as const });
+        } catch {
+          console.warn('No se pudo cancelar la orden huérfana:', orderId);
+        }
+      }
 
       let errorMessage = 'Ocurrió un error inesperado al procesar tu pago.';
       const err = error as { code?: string; message?: string };

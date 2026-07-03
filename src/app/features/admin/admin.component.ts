@@ -10,7 +10,7 @@ import { SidebarComponent } from './components/shared/components/sidebar/sidebar
   standalone: true,
   imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent],
   templateUrl: './admin.component.html',
-  styleUrls: ['./admin.component.scss'],
+  styleUrl: './admin.component.scss',
 })
 export class AdminComponent implements OnInit {
   isSidebarOpen: boolean = false;

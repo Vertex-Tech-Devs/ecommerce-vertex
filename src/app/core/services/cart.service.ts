@@ -1,9 +1,10 @@
-import { Injectable, signal, computed, effect, inject } from '@angular/core';
+import { Injectable, signal, computed, effect, inject, DestroyRef } from '@angular/core';
 import type { Product, ProductVariant } from '@core/models/product.model';
 import type { Cart, CartItem } from '@core/models/cart.model';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
 import { take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -11,6 +12,7 @@ import { environment } from '../../../environments/environment';
 })
 export class CartService {
   private sweetAlertService = inject(SweetAlertService);
+  private destroyRef = inject(DestroyRef);
   private attributeService = inject(AttributeService);
   private readonly CART_STORAGE_KEY = `cart_${environment.tenantId}`;
 
@@ -30,6 +32,7 @@ export class CartService {
     this.attributeService
       .getAttributes()
       .pipe(take(1))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((attrs) => {
         attrs.forEach((attr) => {
           if (attr.id) {
@@ -85,7 +88,7 @@ export class CartService {
     if (quantity > variant.stock) {
       this.sweetAlertService.error(
         'Stock insuficiente',
-        `No puedes añadir ${quantity}. Stock disponible: ${variant.stock}.`
+        `No puedes añadir ${quantity}. Stock disponible: ${variant.stock}.`,
       );
       return;
     }
@@ -101,12 +104,12 @@ export class CartService {
         if (newQuantity > variant.stock) {
           this.sweetAlertService.error(
             'Stock insuficiente',
-            `No puedes añadir más. Stock disponible: ${variant.stock}.`
+            `No puedes añadir más. Stock disponible: ${variant.stock}.`,
           );
           return currentCart;
         }
         newItems = currentCart.items.map((item) =>
-          item.id === cartItemId ? { ...item, quantity: newQuantity } : item
+          item.id === cartItemId ? { ...item, quantity: newQuantity } : item,
         );
       } else {
         const variantDescription = this.getVariantDescription(variant.attributes);
@@ -141,7 +144,7 @@ export class CartService {
         newQuantity = itemToUpdate.stock;
         this.sweetAlertService.error(
           'Stock insuficiente',
-          `Solo quedan ${itemToUpdate.stock} unidades de este producto.`
+          `Solo quedan ${itemToUpdate.stock} unidades de este producto.`,
         );
       }
 
@@ -150,7 +153,7 @@ export class CartService {
       }
 
       const newItems = currentCart.items.map((item) =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
+        item.id === itemId ? { ...item, quantity: newQuantity } : item,
       );
 
       return { items: newItems, total: this.calculateTotal(newItems) };

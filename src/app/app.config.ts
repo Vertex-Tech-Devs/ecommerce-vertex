@@ -26,7 +26,6 @@ import { normalizeFirebaseOptions } from './core/utils/firebase-config.util';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
 import { StoreConfigService } from './core/services/store-config.service';
-import { SeoService } from './core/services/seo.service';
 import { StoreTitleStrategy } from './core/strategies/store-title.strategy';
 import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { routes } from './app.routes';
@@ -103,12 +102,6 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         useFactory: (configService: StoreConfigService) => (): Promise<void> =>
           configService.loadConfig(),
         deps: [StoreConfigService],
-        multi: true,
-      },
-      {
-        provide: APP_INITIALIZER,
-        useFactory: (_seoService: SeoService) => (): void => {},
-        deps: [SeoService],
         multi: true,
       },
       { provide: TitleStrategy, useClass: StoreTitleStrategy },

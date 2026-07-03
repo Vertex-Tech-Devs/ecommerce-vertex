@@ -1,11 +1,12 @@
 import type { OnInit, QueryList, ElementRef } from '@angular/core';
-import { Component, inject, ViewChildren } from '@angular/core';
+import { Component, inject, ViewChildren, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
@@ -23,7 +24,7 @@ import type { ProductFormValue } from './product-variant-form.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './product-create.component.html',
-  styleUrls: ['./product-create.component.scss'],
+  styleUrl: './product-create.component.scss',
 })
 export class ProductCreateComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -32,6 +33,7 @@ export class ProductCreateComponent implements OnInit {
   private attributeService = inject(AttributeService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
   private sweetAlertService = inject(SweetAlertService);
   private storageService = inject(StorageService);
   private variantFormService = inject(ProductVariantFormService);
@@ -63,7 +65,7 @@ export class ProductCreateComponent implements OnInit {
     this.categories$ = this.categoryService.getCategories();
     this.attributeService
       .getAttributes()
-      .pipe(take(1))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((attrs) => this.attributesSubject.next(attrs));
     this.initializeForm();
     this.checkEditMode();
@@ -94,7 +96,7 @@ export class ProductCreateComponent implements OnInit {
   private loadProductForEdit(id: string): void {
     this.productService
       .getProductWithVariants(id)
-      .pipe(take(1))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
           if (!data) {
@@ -114,12 +116,12 @@ export class ProductCreateComponent implements OnInit {
           });
           product.images?.forEach((img) => this.images.push(this.fb.control(img)));
           product.variantAttributes?.forEach((attrId) =>
-            this.variantAttributes.push(this.fb.control(attrId))
+            this.variantAttributes.push(this.fb.control(attrId)),
           );
           variants.forEach((v) =>
             this.variants.push(
-              this.variantFormService.createVariantGroup(this.variantAttributes.value, v)
-            )
+              this.variantFormService.createVariantGroup(this.variantAttributes.value, v),
+            ),
           );
         },
         error: () => {
@@ -153,7 +155,10 @@ export class ProductCreateComponent implements OnInit {
 
   onAttributeSelectionChange(): void {
     this.variantAttributes.valueChanges
-      .pipe(startWith(this.variantAttributes.value as string[]))
+      .pipe(
+        startWith(this.variantAttributes.value as string[]),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((selectedIds: string[]) => {
         this.variants.controls.forEach((control) => {
           const attributesGroup = control.get('attributes') as FormGroup;
@@ -192,7 +197,7 @@ export class ProductCreateComponent implements OnInit {
     if (!name || name.length < 2) {
       this.sweetAlertService.warning(
         'Aviso',
-        'El nombre del atributo debe tener al menos 2 caracteres.'
+        'El nombre del atributo debe tener al menos 2 caracteres.',
       );
       return;
     }
@@ -203,7 +208,7 @@ export class ProductCreateComponent implements OnInit {
       this.showAttributeForm = false;
       this.attributeService
         .getAttributes()
-        .pipe(take(1))
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
         .subscribe((a) => this.attributesSubject.next(a));
     } catch {
       this.sweetAlertService.error('Error', 'No se pudo crear el atributo.');
@@ -218,7 +223,7 @@ export class ProductCreateComponent implements OnInit {
 
   addVariant(variant?: ProductVariant): void {
     this.variants.push(
-      this.variantFormService.createVariantGroup(this.variantAttributes.value, variant)
+      this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
     );
   }
 
@@ -227,37 +232,39 @@ export class ProductCreateComponent implements OnInit {
   }
 
   generateVariantCombinations(): void {
-    this.attributes$.pipe(take(1)).subscribe((allAttributes) => {
-      const selectedIds = this.variantAttributes.value as string[];
-      if (!selectedIds.length) {
-        this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
-        return;
-      }
-      const selectedAttrs = allAttributes.filter((a) => a.id && selectedIds.includes(a.id));
-      if (!selectedAttrs.length) {
-        this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
-        return;
-      }
-      const combos = this.variantFormService.generateCombinations(selectedAttrs);
-      if (!combos.length) {
-        this.sweetAlertService.warning(
-          'Aviso',
-          'No se pueden generar combinaciones con los atributos seleccionados.'
-        );
-        return;
-      }
-      this.variants.clear();
-      combos.forEach((combo) => {
-        this.variants.push(
-          this.fb.group({
-            id: [null],
-            attributes: this.fb.group(combo, Validators.required),
-            stock: [0, [Validators.required, Validators.min(0)]],
-          })
-        );
+    this.attributes$
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((allAttributes) => {
+        const selectedIds = this.variantAttributes.value as string[];
+        if (!selectedIds.length) {
+          this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
+          return;
+        }
+        const selectedAttrs = allAttributes.filter((a) => a.id && selectedIds.includes(a.id));
+        if (!selectedAttrs.length) {
+          this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
+          return;
+        }
+        const combos = this.variantFormService.generateCombinations(selectedAttrs);
+        if (!combos.length) {
+          this.sweetAlertService.warning(
+            'Aviso',
+            'No se pueden generar combinaciones con los atributos seleccionados.',
+          );
+          return;
+        }
+        this.variants.clear();
+        combos.forEach((combo) => {
+          this.variants.push(
+            this.fb.group({
+              id: [null],
+              attributes: this.fb.group(combo, Validators.required),
+              stock: [0, [Validators.required, Validators.min(0)]],
+            }),
+          );
+        });
+        this.sweetAlertService.success('¡Éxito!', `Se generaron ${combos.length} variantes.`);
       });
-      this.sweetAlertService.success('¡Éxito!', `Se generaron ${combos.length} variantes.`);
-    });
   }
 
   addImage(imageUrl: string = ''): void {
@@ -275,9 +282,12 @@ export class ProductCreateComponent implements OnInit {
     }
     this.uploadProgress = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
-    progress$.subscribe((p) => (this.uploadProgress = p));
+    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => (this.uploadProgress = p));
     downloadUrl$
-      .pipe(finalize(() => (this.uploadProgress = null)))
+      .pipe(
+        finalize(() => (this.uploadProgress = null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((url) => this.productForm.get('image')?.setValue(url));
   }
 
@@ -289,7 +299,9 @@ export class ProductCreateComponent implements OnInit {
     }
     this.galleryUploadProgress[index] = 0;
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
-    progress$.subscribe((p) => (this.galleryUploadProgress[index] = p));
+    progress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((p) => (this.galleryUploadProgress[index] = p));
     downloadUrl$
       .pipe(finalize(() => (this.galleryUploadProgress[index] = null)))
       .subscribe((url) => control.setValue(url));
@@ -307,7 +319,7 @@ export class ProductCreateComponent implements OnInit {
       if (this.isEditMode && this.productId) {
         const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(
           formValue.variants,
-          this.initialVariants
+          this.initialVariants,
         );
         await this.productService.updateProductWithVariants(
           this.productId,
@@ -322,7 +334,7 @@ export class ProductCreateComponent implements OnInit {
           },
           toUpdate,
           toAdd,
-          toDelete
+          toDelete,
         );
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
         void this.router.navigate(['/admin/products', this.productId]);
@@ -334,7 +346,7 @@ export class ProductCreateComponent implements OnInit {
         }));
         const newId = await this.productService.createProductWithVariants(
           productData,
-          variantsData
+          variantsData,
         );
         this.sweetAlertService.success('¡Éxito!', 'Producto creado.');
         void this.router.navigate(['/admin/products', newId]);
@@ -349,7 +361,7 @@ export class ProductCreateComponent implements OnInit {
 
   onCancel(): void {
     void this.router.navigate(
-      this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products']
+      this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products'],
     );
   }
 }

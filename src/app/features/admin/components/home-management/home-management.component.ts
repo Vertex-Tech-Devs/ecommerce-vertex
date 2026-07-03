@@ -31,7 +31,7 @@ import { HeroImageUploaderService, MAX_HERO_IMAGES } from './hero-image-uploader
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HeroLinkModalComponent, FeaturedCategoriesComponent],
   templateUrl: './home-management.component.html',
-  styleUrls: ['./home-management.component.scss'],
+  styleUrl: './home-management.component.scss',
 })
 export class HomeManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -72,10 +72,10 @@ export class HomeManagementComponent implements OnInit {
       map((categories: Category[]) => {
         this.categoryMap.clear();
         categories.forEach((cat: Category) =>
-          this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug })
+          this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug }),
         );
         return categories;
-      })
+      }),
     );
 
     this.products$ = this.productService.getProducts();
@@ -87,7 +87,7 @@ export class HomeManagementComponent implements OnInit {
         }
         const lowerTerm = term.toLowerCase();
         return products.filter((p) => p.name.toLowerCase().includes(lowerTerm));
-      })
+      }),
     );
 
     this.loadContentData();
@@ -258,7 +258,7 @@ export class HomeManagementComponent implements OnInit {
     if (!file.type.startsWith('image/')) {
       this.sweetAlertService.error(
         'Archivo no válido',
-        'Por favor, selecciona un archivo de imagen.'
+        'Por favor, selecciona un archivo de imagen.',
       );
       input.value = '';
       return;
@@ -307,7 +307,7 @@ export class HomeManagementComponent implements OnInit {
     if (this.heroImages.length === 0) {
       this.sweetAlertService.error(
         'Imágenes requeridas',
-        'Debes agregar al menos una imagen al carrusel hero.'
+        'Debes agregar al menos una imagen al carrusel hero.',
       );
       return;
     }
@@ -315,7 +315,7 @@ export class HomeManagementComponent implements OnInit {
       this.bannerForm.markAllAsTouched();
       this.sweetAlertService.error(
         'Formulario Inválido',
-        'Por favor revisa los campos marcados en rojo.'
+        'Por favor revisa los campos marcados en rojo.',
       );
       return;
     }
@@ -332,7 +332,7 @@ export class HomeManagementComponent implements OnInit {
         contentData,
         null,
         this.selectedCategoryFiles,
-        this.selectedHeroFiles
+        this.selectedHeroFiles,
       );
       this.sweetAlertService.success('¡Éxito!', 'La configuración de la Home ha sido guardada.');
       this.selectedCategoryFiles.fill(null);

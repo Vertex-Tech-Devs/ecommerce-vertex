@@ -1,9 +1,10 @@
 import type { OnInit } from '@angular/core';
-import { Component, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { take } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { QuillEditorComponent } from 'ngx-quill';
 import { QuillModule } from 'ngx-quill';
 import type { AdvancedTestEmailPayload } from '@core/services/email-settings.service';
@@ -22,13 +23,14 @@ import {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, QuillModule],
   templateUrl: './email-management.component.html',
-  styleUrls: ['./email-management.component.scss'],
+  styleUrl: './email-management.component.scss',
 })
 export class EmailManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private emailSettingsService = inject(EmailSettingsService);
   private sweetAlertService = inject(SweetAlertService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('adminEditor') adminEditor!: QuillEditorComponent;
   @ViewChild('customerEditor') customerEditor!: QuillEditorComponent;
@@ -149,7 +151,7 @@ export class EmailManagementComponent implements OnInit {
     this.isLoading = true;
     this.emailSettingsService
       .getEmailSettings()
-      .pipe(take(1))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((settings) => {
         if (settings?.storeOwnerEmail) {
           this.emailForm.patchValue(settings);
@@ -196,7 +198,7 @@ export class EmailManagementComponent implements OnInit {
       if (showAlert) {
         this.sweetAlertService.success(
           'Plantillas Restauradas',
-          'El contenido ha sido restaurado a los valores por defecto en el editor.'
+          'El contenido ha sido restaurado a los valores por defecto en el editor.',
         );
       }
     };
@@ -204,7 +206,7 @@ export class EmailManagementComponent implements OnInit {
     if (showAlert) {
       const isConfirmed = await this.sweetAlertService.confirm(
         '¿Restaurar Plantillas?',
-        'Esto reemplazará el contenido actual de las plantillas con los valores por defecto. Los cambios no se guardarán hasta que hagas clic en "Guardar Cambios".'
+        'Esto reemplazará el contenido actual de las plantillas con los valores por defecto. Los cambios no se guardarán hasta que hagas clic en "Guardar Cambios".',
       );
       if (isConfirmed) {
         applyChanges();
@@ -225,7 +227,7 @@ export class EmailManagementComponent implements OnInit {
     if (!templatesToTest.adminNotification && !templatesToTest.customerConfirmation) {
       this.sweetAlertService.error(
         'Error',
-        'Debes seleccionar al menos una plantilla para probar.'
+        'Debes seleccionar al menos una plantilla para probar.',
       );
       return;
     }
@@ -252,7 +254,7 @@ export class EmailManagementComponent implements OnInit {
       await this.emailSettingsService.sendAdvancedTestEmail(payload);
       this.sweetAlertService.success(
         'Prueba Enviada',
-        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}.`
+        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}.`,
       );
       this.closeTestModal();
     } catch (error) {
@@ -268,7 +270,7 @@ export class EmailManagementComponent implements OnInit {
       this.emailForm.markAllAsTouched();
       this.sweetAlertService.error(
         'Formulario Inválido',
-        'Por favor revisa los campos marcados en rojo.'
+        'Por favor revisa los campos marcados en rojo.',
       );
       return;
     }

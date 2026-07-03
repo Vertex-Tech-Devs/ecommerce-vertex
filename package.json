@@ -47,7 +47,7 @@
     "@vertex/contracts": "file:./packages/shared-contracts",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
-    "firebase": "^11.10.0",
+    "firebase": "^12.15.0",
     "ngx-quill": "^31.0.0",
     "quill": "2.0.2",
     "rxjs": "^7.8.2",
@@ -83,26 +83,10 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.2.0",
     "lint-staged": "^17.0.7",
-    "npm-force-resolutions": "^0.0.10",
     "prettier": "^3.8.4",
     "serve": "^14.2.6",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": true,
-    "quoteProps": "as-needed",
-    "jsxSingleQuote": false,
-    "trailingComma": "es5",
-    "bracketSpacing": true,
-    "bracketSameLine": false,
-    "arrowParens": "always",
-    "htmlWhitespaceSensitivity": "css",
-    "endOfLine": "lf"
   },
   "lint-staged": {
     "src/**/*.ts": [

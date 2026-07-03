@@ -18,7 +18,7 @@ import type { HeroImage } from '@core/models/home-content.model';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './carousel.component.html',
-  styleUrls: ['./carousel.component.scss'],
+  styleUrl: './carousel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('slideAnimation', [

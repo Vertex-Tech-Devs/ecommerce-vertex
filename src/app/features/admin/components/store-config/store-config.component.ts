@@ -1,6 +1,7 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, DestroyRef } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,7 +16,7 @@ import type { StoreConfig } from '@core/models/store-config.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './store-config.component.html',
-  styleUrls: ['./store-config.component.scss'],
+  styleUrl: './store-config.component.scss',
 })
 export class StoreConfigComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -23,6 +24,7 @@ export class StoreConfigComponent implements OnInit {
   private storageService = inject(StorageService);
   private sweetAlert = inject(SweetAlertService);
   private authService = inject(AuthService);
+  private destroyRef = inject(DestroyRef);
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   isSubmitting = false;
@@ -131,14 +133,16 @@ export class StoreConfigComponent implements OnInit {
     this.faviconProgress.set(0);
 
     const upload = this.storageService.uploadFile(file, 'store/branding');
-    upload.progress$.subscribe((progress) => this.faviconProgress.set(Math.round(progress)));
-    upload.downloadUrl$.subscribe({
+    upload.progress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((progress) => this.faviconProgress.set(Math.round(progress)));
+    upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (url) => {
         this.form.patchValue({ faviconUrl: url });
         this.faviconUploading.set(false);
         this.sweetAlert.success(
           'Favicon subido',
-          'El favicon corporativo fue cargado exitosamente.'
+          'El favicon corporativo fue cargado exitosamente.',
         );
       },
       error: (err) => {
@@ -158,7 +162,7 @@ export class StoreConfigComponent implements OnInit {
       this.form.markAllAsTouched();
       this.sweetAlert.error(
         'Formulario inválido',
-        'Revisá los campos obligatorios en cada pestaña.'
+        'Revisá los campos obligatorios en cada pestaña.',
       );
       return;
     }
@@ -171,7 +175,7 @@ export class StoreConfigComponent implements OnInit {
       this.form.markAsPristine();
       this.sweetAlert.success(
         '¡Listo!',
-        'La configuración de marca blanca fue guardada con éxito.'
+        'La configuración de marca blanca fue guardada con éxito.',
       );
     } catch (err) {
       console.error('Error al guardar la configuración:', err);

@@ -7,7 +7,7 @@ import { StoreConfigService } from '@core/services/store-config.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './footer.component.html',
-  styleUrls: ['./footer.component.scss'],
+  styleUrl: './footer.component.scss',
 })
 export class FooterComponent {
   currentYear = new Date().getFullYear();
@@ -32,6 +32,4 @@ export class FooterComponent {
           : 'Todos los derechos reservados.'),
     };
   });
-
-  constructor() {}
 }

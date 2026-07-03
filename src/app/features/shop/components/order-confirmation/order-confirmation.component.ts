@@ -17,7 +17,7 @@ interface ConfirmationData {
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe],
   templateUrl: './order-confirmation.component.html',
-  styleUrls: ['./order-confirmation.component.scss'],
+  styleUrl: './order-confirmation.component.scss',
 })
 export class OrderConfirmationComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -33,7 +33,7 @@ export class OrderConfirmationComponent implements OnInit {
           return this.orderService.getOrderById(orderId);
         }
         return of(undefined);
-      })
+      }),
     );
 
     const paymentStatus$ = this.route.queryParamMap.pipe(map((params) => params.get('status')));

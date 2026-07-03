@@ -4,10 +4,6 @@ export function tenantPath(collection: string): string {
   return `tenants/${environment.tenantId}/${collection}`;
 }
 
-export function tenantDocPath(collection: string, docId: string): string {
-  return `tenants/${environment.tenantId}/${collection}/${docId}`;
-}
-
 /**
  * Resolves the tenant ID with the following priority:
  * 1. environment.tenantId (baked at build time, or set by provisioning)

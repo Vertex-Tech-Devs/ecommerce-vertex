@@ -1,5 +1,12 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { FormGroup, FormControl } from '@angular/forms';
@@ -7,7 +14,7 @@ import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import type { Observable } from 'rxjs';
 import { take } from 'rxjs';
 import { startWith, debounceTime } from 'rxjs/operators';
-import { toObservable } from '@angular/core/rxjs-interop';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import type { Product } from '@core/models/product.model';
 import type { Category } from '@core/models/category.model';
@@ -21,7 +28,7 @@ import { AttributeService } from '@core/services/attribute.service';
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe, ReactiveFormsModule],
   templateUrl: './catalog.component.html',
-  styleUrls: ['./catalog.component.scss'],
+  styleUrl: './catalog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogComponent implements OnInit {
@@ -30,6 +37,7 @@ export class CatalogComponent implements OnInit {
   private attributeService = inject(AttributeService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   // Core signals for state
   readonly categoriesSignal = signal<Category[]>([]);
@@ -161,16 +169,19 @@ export class CatalogComponent implements OnInit {
   }
 
   private loadInitialDataAndInitializeForm(): void {
-    this.categoryService.getCategories().subscribe((categories) => {
-      const categoryMap = new Map<string, Category>();
-      categories.forEach((cat) => categoryMap.set(cat.id!, cat));
-      this.allCategories.set(categoryMap);
-      this.categoriesSignal.set(categories);
-    });
+    this.categoryService
+      .getCategories()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((categories) => {
+        const categoryMap = new Map<string, Category>();
+        categories.forEach((cat) => categoryMap.set(cat.id!, cat));
+        this.allCategories.set(categoryMap);
+        this.categoriesSignal.set(categories);
+      });
 
     this.attributeService
       .getAttributes()
-      .pipe(take(1))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((attrs) => {
         this.allAttributes.set(attrs);
         this.activeAttributes.set([]);
@@ -183,7 +194,7 @@ export class CatalogComponent implements OnInit {
                 acc[val] = this.fb.control(false);
                 return acc;
               },
-              {} as { [key: string]: FormControl }
+              {} as { [key: string]: FormControl },
             );
             dynamicGroup.addControl(attr.id, this.fb.group(controls));
           }
@@ -196,7 +207,11 @@ export class CatalogComponent implements OnInit {
 
   private setupFormListeners(): void {
     this.filterForm.valueChanges
-      .pipe(startWith(this.filterForm.value), debounceTime(200))
+      .pipe(
+        startWith(this.filterForm.value),
+        debounceTime(200),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((filters) => {
         this.minPrice.set(filters.minPrice);
         this.maxPrice.set(filters.maxPrice);
@@ -208,10 +223,13 @@ export class CatalogComponent implements OnInit {
           this.page.set(1);
           this.updateActiveFilters(filters.category ?? null);
 
-          this.productService.getProductsByQuery(newCatId).subscribe((products) => {
-            this.productsFromQuery.set(products);
-            this.isLoading.set(false);
-          });
+          this.productService
+            .getProductsByQuery(newCatId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((products) => {
+              this.productsFromQuery.set(products);
+              this.isLoading.set(false);
+            });
         }
       });
   }
@@ -225,7 +243,7 @@ export class CatalogComponent implements OnInit {
     const category = this.allCategories().get(selectedCategoryId);
     if (category?.filterableAttributes) {
       const active = this.allAttributes().filter((attr) =>
-        category.filterableAttributes!.includes(attr.id!)
+        category.filterableAttributes!.includes(attr.id!),
       );
       this.activeAttributes.set(active);
     } else {
@@ -234,14 +252,16 @@ export class CatalogComponent implements OnInit {
   }
 
   private applyInitialCategoryFilter(): void {
-    this.route.queryParamMap.pipe(take(1)).subscribe((params) => {
-      const categoryId = params.get('category');
-      if (categoryId) {
-        this.filterForm.patchValue({ category: categoryId });
-      } else {
-        this.filterForm.patchValue({ category: 'all' });
-      }
-    });
+    this.route.queryParamMap
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const categoryId = params.get('category');
+        if (categoryId) {
+          this.filterForm.patchValue({ category: categoryId });
+        } else {
+          this.filterForm.patchValue({ category: 'all' });
+        }
+      });
   }
 
   toggleSidebar(): void {

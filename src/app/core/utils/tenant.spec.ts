@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { tenantPath, tenantDocPath, resolveTenantId } from './tenant';
+import { tenantPath, resolveTenantId } from './tenant';
 
 describe('tenantPath', () => {
   it('should return the path with tenant id and collection', () => {
@@ -8,14 +8,6 @@ describe('tenantPath', () => {
 
   it('should handle different collection names', () => {
     expect(tenantPath('productos')).toBe(`tenants/${environment.tenantId}/productos`);
-  });
-});
-
-describe('tenantDocPath', () => {
-  it('should return the path with tenant id, collection and docId', () => {
-    expect(tenantDocPath('configuracion', 'store')).toBe(
-      `tenants/${environment.tenantId}/configuracion/store`
-    );
   });
 });
 
@@ -46,14 +38,14 @@ describe('resolveTenantId', () => {
   it('should parse {slug}-vtx pattern from hostname', () => {
     environment.tenantId = 'store';
     expect(resolveTenantId({ hostname: 'mi-tienda-vtx.example.com', search: '' })).toBe(
-      'mi-tienda'
+      'mi-tienda',
     );
   });
 
   it('should parse vtx-{slug} pattern from hostname', () => {
     environment.tenantId = 'store';
     expect(resolveTenantId({ hostname: 'vtx-mi-tienda.example.com', search: '' })).toBe(
-      'mi-tienda'
+      'mi-tienda',
     );
   });
 
@@ -61,7 +53,7 @@ describe('resolveTenantId', () => {
     environment.tenantId = 'store';
     environment.production = false;
     expect(resolveTenantId({ hostname: 'localhost', search: '?tenantId=test-query-tenant' })).toBe(
-      'test-query-tenant'
+      'test-query-tenant',
     );
   });
 
@@ -69,7 +61,7 @@ describe('resolveTenantId', () => {
     environment.tenantId = 'store';
     environment.production = true;
     expect(resolveTenantId({ hostname: 'localhost', search: '?tenantId=test-query-tenant' })).toBe(
-      'store'
+      'store',
     );
   });
 
@@ -103,9 +95,8 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'example.com', search: '' })).toBe('');
   });
 
-  it('should call tenantPath and tenantDocPath with resolved tenant', () => {
+  it('should call tenantPath with resolved tenant', () => {
     environment.tenantId = 'test-tenant';
     expect(tenantPath('productos')).toBe('tenants/test-tenant/productos');
-    expect(tenantDocPath('configuracion', 'store')).toBe('tenants/test-tenant/configuracion/store');
   });
 });

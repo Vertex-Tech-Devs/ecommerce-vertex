@@ -6,8 +6,6 @@ import Swal from 'sweetalert2';
   providedIn: 'root',
 })
 export class SweetAlertService {
-  constructor() {}
-
   success(title: string, message: string): void {
     void Swal.fire({
       icon: 'success',
