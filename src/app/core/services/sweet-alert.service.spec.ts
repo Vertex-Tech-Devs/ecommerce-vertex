@@ -12,7 +12,7 @@ describe('SweetAlertService', () => {
     service = TestBed.inject(SweetAlertService);
 
     fireSpy = spyOn(Swal, 'fire').and.returnValue(
-      Promise.resolve({ isConfirmed: false, isDenied: false, isDismissed: true })
+      Promise.resolve({ isConfirmed: false, isDenied: false, isDismissed: true }),
     );
     closeSpy = spyOn(Swal, 'close');
   });
@@ -24,27 +24,27 @@ describe('SweetAlertService', () => {
   it('success() should call Swal.fire with success icon', () => {
     service.success('Title', 'Message');
     expect(fireSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ icon: 'success', title: 'Title', text: 'Message' })
+      jasmine.objectContaining({ icon: 'success', title: 'Title', text: 'Message' }),
     );
   });
 
   it('error() should call Swal.fire with error icon', () => {
     service.error('Error title', 'Error msg');
     expect(fireSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ icon: 'error', title: 'Error title', text: 'Error msg' })
+      jasmine.objectContaining({ icon: 'error', title: 'Error title', text: 'Error msg' }),
     );
   });
 
   it('warning() should call Swal.fire with warning icon', () => {
     service.warning('Warn', 'Be careful');
     expect(fireSpy).toHaveBeenCalledWith(
-      jasmine.objectContaining({ icon: 'warning', title: 'Warn', text: 'Be careful' })
+      jasmine.objectContaining({ icon: 'warning', title: 'Warn', text: 'Be careful' }),
     );
   });
 
   it('confirm() should resolve true when user confirms', async () => {
     fireSpy.and.returnValue(
-      Promise.resolve({ isConfirmed: true, isDenied: false, isDismissed: false })
+      Promise.resolve({ isConfirmed: true, isDenied: false, isDismissed: false }),
     );
     const result = await service.confirm('Sure?', 'This is irreversible');
     expect(result).toBeTrue();
@@ -53,7 +53,7 @@ describe('SweetAlertService', () => {
 
   it('confirm() should resolve false when user cancels', async () => {
     fireSpy.and.returnValue(
-      Promise.resolve({ isConfirmed: false, isDenied: false, isDismissed: true })
+      Promise.resolve({ isConfirmed: false, isDenied: false, isDismissed: true }),
     );
     const result = await service.confirm('Sure?', 'This is irreversible');
     expect(result).toBeFalse();
@@ -71,7 +71,7 @@ describe('SweetAlertService', () => {
         title: 'Loading…',
         text: 'Please wait',
         allowOutsideClick: false,
-      })
+      }),
     );
   });
 

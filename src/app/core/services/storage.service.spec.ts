@@ -46,13 +46,13 @@ describe('StorageService', () => {
             _event: string,
             next: (snapshot: UploadTaskSnapshot) => void,
             _error: (err: unknown) => void,
-            complete: () => void
+            complete: () => void,
           ): (() => void) => {
             next({ bytesTransferred: 50, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             next({ bytesTransferred: 100, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             complete();
             return (): void => {};
-          }
+          },
         ),
       then: jasmine
         .createSpy('then')
@@ -60,7 +60,7 @@ describe('StorageService', () => {
           (resolve: (snapshot: { ref: StorageReference }) => Promise<unknown> | void) => {
             void resolve({ ref: mockRef });
             return Promise.resolve({ ref: mockRef } as unknown as UploadTaskSnapshot);
-          }
+          },
         ),
     } as unknown as UploadTask;
 
@@ -107,12 +107,12 @@ describe('StorageService', () => {
             _event: string,
             next: (snapshot: UploadTaskSnapshot) => void,
             _error: (err: unknown) => void,
-            complete: () => void
+            complete: () => void,
           ): (() => void) => {
             next({ bytesTransferred: 100, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             complete();
             return (): void => {};
-          }
+          },
         ),
       then: jasmine
         .createSpy('then')
@@ -120,7 +120,7 @@ describe('StorageService', () => {
           (resolve: (snapshot: { ref: StorageReference }) => Promise<unknown> | void) => {
             void resolve({ ref: mockRef });
             return Promise.resolve({ ref: mockRef } as unknown as UploadTaskSnapshot);
-          }
+          },
         ),
     } as unknown as UploadTask;
 
@@ -165,7 +165,7 @@ describe('StorageService', () => {
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
     spyOn(privSvc, 'deleteStorageObject').and.returnValue(
-      Promise.reject({ code: 'storage/object-not-found' })
+      Promise.reject({ code: 'storage/object-not-found' }),
     );
 
     service
@@ -181,7 +181,7 @@ describe('StorageService', () => {
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
     spyOn(privSvc, 'deleteStorageObject').and.returnValue(
-      Promise.reject({ code: 'storage/unknown' })
+      Promise.reject({ code: 'storage/unknown' }),
     );
 
     service

@@ -19,6 +19,6 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
       if (_activeRequests === 0) {
         loadingService.hide();
       }
-    })
+    }),
   );
 };

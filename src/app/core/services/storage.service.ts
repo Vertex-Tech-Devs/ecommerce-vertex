@@ -48,7 +48,7 @@ export class StorageService {
           observer.next(progress);
         },
         (error) => observer.error(error),
-        () => observer.complete()
+        () => observer.complete(),
       );
       return (): void => {
         unsubscribe();
@@ -101,14 +101,14 @@ export class StorageService {
       catchError((error) => {
         if (error.code === 'storage/object-not-found') {
           console.warn(
-            `El archivo en la URL ${imageUrl} no se encontró. Pudo haber sido eliminado previamente.`
+            `El archivo en la URL ${imageUrl} no se encontró. Pudo haber sido eliminado previamente.`,
           );
           return from(Promise.resolve());
         }
         console.error('Error al eliminar la imagen:', error);
         this.sweetAlertService.error('Error de Borrado', 'No se pudo eliminar la imagen anterior.');
         return throwError(() => error);
-      })
+      }),
     );
   }
 }

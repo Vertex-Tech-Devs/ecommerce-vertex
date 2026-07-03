@@ -34,15 +34,19 @@ function runStep(name: string, cmd: string, cwd?: string): { success: boolean; d
 
 async function main() {
   const startTime = Date.now();
-  console.log(`${colors.bright}${colors.blue}🚀 Starting Vertex Storefront Unified QA Pipeline${colors.reset}`);
-  console.log(`Mode: ${isFull ? colors.yellow + 'FULL (Unit + E2E Tests)' : colors.green + 'QUICK (Unit Tests Only)'}${colors.reset}\n`);
+  console.log(
+    `${colors.bright}${colors.blue}🚀 Starting Vertex Storefront Unified QA Pipeline${colors.reset}`,
+  );
+  console.log(
+    `Mode: ${isFull ? colors.yellow + 'FULL (Unit + E2E Tests)' : colors.green + 'QUICK (Unit Tests Only)'}${colors.reset}\n`,
+  );
 
   const results: Record<string, { success: boolean; duration: number }> = {};
 
   // 1. Prettier Format Check
   results['Code Formatting (Prettier)'] = runStep(
     'Code Formatting',
-    'npx prettier --check "src/**/*.{ts,html,scss}"'
+    'npx prettier --check "src/**/*.{ts,html,scss}"',
   );
 
   // 2. ESLint
@@ -58,8 +62,13 @@ async function main() {
   if (isFull) {
     // Generate stub env and firebase files to allow server startup in CI/headless mode
     try {
-      execSync('cp src/environments/environment.example.ts src/environments/environment.ts', { stdio: 'ignore' });
-      execSync('echo \'{"apiKey":"test","authDomain":"ci-stub.firebaseapp.com","projectId":"ci-stub","storageBucket":"ci-stub.appspot.com","messagingSenderId":"000000000000","appId":"1:000000000000:web:000000000000000000000000"}\' > src/firebase-config.json', { stdio: 'ignore' });
+      execSync('cp src/environments/environment.example.ts src/environments/environment.ts', {
+        stdio: 'ignore',
+      });
+      execSync(
+        'echo \'{"apiKey":"test","authDomain":"ci-stub.firebaseapp.com","projectId":"ci-stub","storageBucket":"ci-stub.appspot.com","messagingSenderId":"000000000000","appId":"1:000000000000:web:000000000000000000000000"}\' > src/firebase-config.json',
+        { stdio: 'ignore' },
+      );
     } catch (_) {}
 
     results['E2E Testing (Cypress)'] = runStep('Cypress E2E tests', 'npm run e2e:ci');
@@ -81,10 +90,14 @@ async function main() {
 
   console.log('\n=======================================');
   if (allPassed) {
-    console.log(`\n🎉 ${colors.bright}${colors.green}EXCELLENT! All checks passed. Ready for deployment!${colors.reset}\n`);
+    console.log(
+      `\n🎉 ${colors.bright}${colors.green}EXCELLENT! All checks passed. Ready for deployment!${colors.reset}\n`,
+    );
     process.exit(0);
   } else {
-    console.log(`\n⚠️ ${colors.bright}${colors.red}QA Pipeline failed. Please resolve the issues shown above.${colors.reset}\n`);
+    console.log(
+      `\n⚠️ ${colors.bright}${colors.red}QA Pipeline failed. Please resolve the issues shown above.${colors.reset}\n`,
+    );
     process.exit(1);
   }
 }

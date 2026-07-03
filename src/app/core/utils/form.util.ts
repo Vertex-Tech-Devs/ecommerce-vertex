@@ -8,7 +8,7 @@ import type { FormGroup } from '@angular/forms';
 export function patchAndMarkDirty<T extends Record<string, unknown>>(
   form: FormGroup,
   value: Partial<T>,
-  options?: { emitEvent?: boolean }
+  options?: { emitEvent?: boolean },
 ): void {
   form.patchValue(value, options);
   form.markAsDirty();

@@ -49,7 +49,7 @@ export class ImageValidationService {
       // Validar resolución mínima
       if (width < this.MIN_WIDTH || height < this.MIN_HEIGHT) {
         errors.push(
-          `La resolución es muy baja (${width}x${height}px). Mínimo recomendado: ${this.MIN_WIDTH}x${this.MIN_HEIGHT}px.`
+          `La resolución es muy baja (${width}x${height}px). Mínimo recomendado: ${this.MIN_WIDTH}x${this.MIN_HEIGHT}px.`,
         );
       }
 
@@ -61,7 +61,7 @@ export class ImageValidationService {
       if (ratioDifference > this.ASPECT_RATIO_TOLERANCE) {
         errors.push(
           `La proporción de la imagen no es 16:9 (proporción actual: ${actualRatio.toFixed(2)}:1). ` +
-            `Redimensiona la imagen correctamente.`
+            `Redimensiona la imagen correctamente.`,
         );
       }
     } catch {

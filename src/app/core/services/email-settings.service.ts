@@ -57,7 +57,7 @@ export class EmailSettingsService {
         catchError((err) => {
           console.warn('Unable to load email settings:', err);
           return of(undefined);
-        })
+        }),
       );
     });
   }
@@ -69,7 +69,7 @@ export class EmailSettingsService {
   sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
     return this.callFunction(
       'sendAdvancedTestEmail',
-      payload as unknown as Record<string, unknown>
+      payload as unknown as Record<string, unknown>,
     );
   }
 }

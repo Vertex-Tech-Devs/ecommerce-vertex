@@ -26,7 +26,7 @@ export class FirestoreService<T extends BaseEntity> {
       const legacyRef = collection(this.firestore, collectionName);
 
       const tenantData$ = (collectionData(tenantRef, { idField: 'id' }) as Observable<T[]>).pipe(
-        shareReplay({ bufferSize: 1, refCount: true })
+        shareReplay({ bufferSize: 1, refCount: true }),
       );
       const legacyData$ = collectionData(legacyRef, { idField: 'id' }) as Observable<T[]>;
 
@@ -45,12 +45,12 @@ export class FirestoreService<T extends BaseEntity> {
               StoreConfigSchema.parse(converted);
             }
             return converted as T;
-          })
+          }),
         ),
         catchError((err) => {
           console.warn(`Unable to load collection ${collectionName}:`, err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -86,14 +86,14 @@ export class FirestoreService<T extends BaseEntity> {
         catchError((err) => {
           console.warn(`Unable to load document ${id} from ${collectionName}:`, err);
           return of(undefined);
-        })
+        }),
       );
     });
   }
 
   create(
     collectionName: string,
-    data: WithFieldValue<Omit<T, 'id'>>
+    data: WithFieldValue<Omit<T, 'id'>>,
   ): Promise<DocumentReference<T>> {
     const collectionRef = collection(this.firestore, tenantPath(collectionName));
     return addDoc(collectionRef, data) as Promise<DocumentReference<T>>;

@@ -5,7 +5,7 @@ const paths = [
   {
     name: 'Frontend',
     file: path.join(__dirname, '../coverage/ecommerce-vertex/coverage-summary.json'),
-  }
+  },
 ];
 
 let failed = false;

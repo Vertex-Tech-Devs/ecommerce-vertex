@@ -19,7 +19,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Productos',
         loadComponent: () =>
           import('./components/products/products-list/products-list.component').then(
-            (m) => m.ProductsListComponent
+            (m) => m.ProductsListComponent,
           ),
       },
       {
@@ -27,7 +27,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Nuevo producto',
         loadComponent: () =>
           import('./components/products/product-create/product-create.component').then(
-            (m) => m.ProductCreateComponent
+            (m) => m.ProductCreateComponent,
           ),
       },
       {
@@ -35,14 +35,14 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Editar producto',
         loadComponent: () =>
           import('./components/products/product-create/product-create.component').then(
-            (m) => m.ProductCreateComponent
+            (m) => m.ProductCreateComponent,
           ),
       },
       {
         path: 'products/:id',
         loadComponent: () =>
           import('./components/products/product-detail/product-detail.component').then(
-            (m) => m.ProductDetailComponent
+            (m) => m.ProductDetailComponent,
           ),
       },
       {
@@ -50,7 +50,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Categorías',
         loadComponent: () =>
           import('./components/categories/categories-list/categories-list.component').then(
-            (m) => m.CategoriesListComponent
+            (m) => m.CategoriesListComponent,
           ),
       },
       {
@@ -58,7 +58,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Atributos',
         loadComponent: () =>
           import('./components/attributes/attributes-list/attributes-list.component').then(
-            (m) => m.AttributesListComponent
+            (m) => m.AttributesListComponent,
           ),
       },
       {
@@ -66,14 +66,14 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Pedidos',
         loadComponent: () =>
           import('./components/orders/orders-list/orders-list.component').then(
-            (m) => m.OrdersListComponent
+            (m) => m.OrdersListComponent,
           ),
       },
       {
         path: 'orders/:id',
         loadComponent: () =>
           import('./components/orders/order-detail/order-detail.component').then(
-            (m) => m.OrderDetailComponent
+            (m) => m.OrderDetailComponent,
           ),
       },
       {
@@ -81,14 +81,14 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Clientes',
         loadComponent: () =>
           import('./components/client/clients-list/clients-list.component').then(
-            (m) => m.ClientsListComponent
+            (m) => m.ClientsListComponent,
           ),
       },
       {
         path: 'customers/:email',
         loadComponent: () =>
           import('./components/client/client-details/client-details.component').then(
-            (m) => m.ClientDetailsComponent
+            (m) => m.ClientDetailsComponent,
           ),
       },
       {
@@ -96,7 +96,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Gestión Home',
         loadComponent: () =>
           import('./components/home-management/home-management.component').then(
-            (m) => m.HomeManagementComponent
+            (m) => m.HomeManagementComponent,
           ),
       },
       {
@@ -104,7 +104,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Gestión Nosotros',
         loadComponent: () =>
           import('./components/about-us-management/about-us-management.component').then(
-            (m) => m.AboutUsManagementComponent
+            (m) => m.AboutUsManagementComponent,
           ),
       },
       {
@@ -112,7 +112,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Gestión Footer',
         loadComponent: () =>
           import('./components/footer-management/footer-management.component').then(
-            (m) => m.FooterManagementComponent
+            (m) => m.FooterManagementComponent,
           ),
       },
       {
@@ -120,7 +120,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Gestión de Emails',
         loadComponent: () =>
           import('./components/email-management/email-management.component').then(
-            (m) => m.EmailManagementComponent
+            (m) => m.EmailManagementComponent,
           ),
       },
       {
@@ -135,7 +135,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Configuración',
         loadComponent: () =>
           import('./components/store-config/store-config.component').then(
-            (m) => m.StoreConfigComponent
+            (m) => m.StoreConfigComponent,
           ),
       },
       {

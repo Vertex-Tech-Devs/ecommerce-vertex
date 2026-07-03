@@ -46,7 +46,7 @@ describe('CategoryService', () => {
 
   it('addCategory() should call firestoreService.create with "categories"', async () => {
     firestoreSpy.create.and.returnValue(
-      Promise.resolve(mockRef) as ReturnType<typeof firestoreSpy.create>
+      Promise.resolve(mockRef) as ReturnType<typeof firestoreSpy.create>,
     );
     const cat = { name: 'Camperas', slug: 'camperas', parentId: null, filterableAttributes: [] };
 

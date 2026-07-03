@@ -22,7 +22,7 @@ export class AttributeService {
   addAttribute(attribute: Attribute): Promise<DocumentReference> {
     return this.firestoreService.create(
       this.collectionPath,
-      attribute
+      attribute,
     ) as Promise<DocumentReference>;
   }
 

@@ -28,10 +28,10 @@ export class SeedProductsService {
 
   private generateVariantCombinations(
     attributes: Attribute[],
-    variantAttrIds: string[]
+    variantAttrIds: string[],
   ): Record<string, string>[] {
     const selectedAttrs = attributes.filter(
-      (a): a is Attribute & { id: string } => a.id !== undefined && variantAttrIds.includes(a.id)
+      (a): a is Attribute & { id: string } => a.id !== undefined && variantAttrIds.includes(a.id),
     );
     if (selectedAttrs.length === 0) {
       return [];
@@ -56,7 +56,7 @@ export class SeedProductsService {
     const seeded: SeedProduct[] = [];
 
     const attrsSnap = await this.run(() =>
-      getDocs(collection(this.firestore, tenantPath('attributes')))
+      getDocs(collection(this.firestore, tenantPath('attributes'))),
     );
     const allAttrs = attrsSnap.docs.map((d) => {
       const data = d.data();
@@ -109,7 +109,7 @@ export class SeedProductsService {
             featured: item.featured,
             active: true,
             createdAt: new Date(),
-          })
+          }),
         );
 
         const variantAttrIds = cat.variants.map((v) => attrNameToId[v]).filter(Boolean);
@@ -137,7 +137,7 @@ export class SeedProductsService {
                 attributes: combo,
                 stock,
                 productId: productRef.id,
-              })
+              }),
             );
           }
 

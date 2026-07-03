@@ -17,7 +17,7 @@ export class GlobalErrorHandler implements ErrorHandler {
       const sweetAlert = this.injector.get(SweetAlertService);
       sweetAlert.error(
         '¡Ups! Algo salió mal',
-        'El sistema ha experimentado una anomalía inesperada. Nos hemos degradado de forma segura; puedes seguir utilizando la aplicación.'
+        'El sistema ha experimentado una anomalía inesperada. Nos hemos degradado de forma segura; puedes seguir utilizando la aplicación.',
       );
     } catch (err) {
       console.error('Failed to notify via SweetAlert:', err);

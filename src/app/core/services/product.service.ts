@@ -82,7 +82,7 @@ export class ProductService {
         catchError((err) => {
           console.warn('Unable to load products:', err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -105,7 +105,7 @@ export class ProductService {
         catchError((err) => {
           console.warn(`Unable to load products with query category ${categoryId}:`, err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -115,12 +115,12 @@ export class ProductService {
       const tenantDocRef: DocumentReference<DocumentData> = doc(
         this.firestore,
         tenantPath(this.collectionName),
-        id
+        id,
       );
       const legacyDocRef: DocumentReference<DocumentData> = doc(
         this.firestore,
         this.collectionName,
-        id
+        id,
       );
 
       const tenantData$ = (
@@ -142,13 +142,13 @@ export class ProductService {
         catchError((err) => {
           console.warn(`Unable to load product ${id}:`, err);
           return of(undefined);
-        })
+        }),
       );
     });
   }
 
   getProductWithVariants(
-    id: string
+    id: string,
   ): Observable<{ product: Product; variants: ProductVariant[] } | undefined> {
     return runInInjectionContext(this.injector, () => {
       const product$ = this.getProductById(id);
@@ -160,7 +160,7 @@ export class ProductService {
         catchError((err) => {
           console.warn(`Unable to load variants for product ${id}:`, err);
           return of([]);
-        })
+        }),
       );
 
       return combineLatest([product$, variants$]).pipe(
@@ -176,14 +176,14 @@ export class ProductService {
         catchError((err) => {
           console.warn(`Unable to resolve product and variants combined for product ${id}:`, err);
           return of(undefined);
-        })
+        }),
       );
     });
   }
 
   async createProductWithVariants(
     product: WithFieldValue<Omit<Product, 'id'>>,
-    variants: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[]
+    variants: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[],
   ): Promise<string> {
     const batch = writeBatch(this.firestore);
     const newProductRef = doc(this.collectionRef);
@@ -208,7 +208,7 @@ export class ProductService {
     productData: Partial<Product>,
     variantsToUpdate: (Partial<ProductVariant> & { id: string })[],
     variantsToAdd: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[],
-    variantIdsToDelete: string[]
+    variantIdsToDelete: string[],
   ): Promise<void> {
     const batch = writeBatch(this.firestore);
     const productRef = doc(this.firestore, tenantPath(this.collectionName), productId);
@@ -250,14 +250,14 @@ export class ProductService {
         this.collectionRef,
         where('totalStock', '>', 0),
         where('totalStock', '<=', threshold),
-        orderBy('totalStock', 'asc')
+        orderBy('totalStock', 'asc'),
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
           console.warn('Unable to load products low in stock:', err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -270,7 +270,7 @@ export class ProductService {
         catchError((err) => {
           console.warn('Unable to load latest products:', err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -278,7 +278,7 @@ export class ProductService {
   checkStockAvailability(
     productId: string,
     variantId: string,
-    quantity: number
+    quantity: number,
   ): Observable<boolean> {
     return runInInjectionContext(this.injector, () => {
       const productRef = doc(this.firestore, tenantPath(this.collectionName), productId);
@@ -293,10 +293,10 @@ export class ProductService {
         catchError((err) => {
           console.warn(
             `Unable to check stock availability for variant ${variantId} of product ${productId}:`,
-            err
+            err,
           );
           return of(false);
-        })
+        }),
       );
     });
   }

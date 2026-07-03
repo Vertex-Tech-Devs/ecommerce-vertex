@@ -42,7 +42,9 @@ async function main() {
   // Verify first-run wizard triggers on setupCompleted = false
   const triggersWizard = !mockStoreConfig.setupCompleted;
   s.stop('✅ Flujo 2: Configuración Multitenant Cargada.');
-  p.log.warn(`Estado de Tienda: ¡Virgin Environment detectado! Wizard Inicial requerido: ${triggersWizard}`);
+  p.log.warn(
+    `Estado de Tienda: ¡Virgin Environment detectado! Wizard Inicial requerido: ${triggersWizard}`,
+  );
 
   s.start('Simulando Wizard de Primer Inicio (Identidad -> Colores -> Pagos)...');
   await setTimeout(1500);
@@ -55,7 +57,9 @@ async function main() {
   // Complete setup wizard
   mockStoreConfig.setupCompleted = true;
   s.stop('✅ Flujo 2: Wizard Completado y Colores Inyectados en el CSSOM.');
-  p.log.info(`CSSOM Properties: --color-primary: ${mockDOMStyles['--color-primary']} | --color-accent: ${mockDOMStyles['--color-accent']}`);
+  p.log.info(
+    `CSSOM Properties: --color-primary: ${mockDOMStyles['--color-primary']} | --color-accent: ${mockDOMStyles['--color-accent']}`,
+  );
 
   // FLOW 3: CART OPERATIONS & MERCADO PAGO EXPONENTIAL RETRY SIMULATION
   s.start('Simulando Flujo 3: Operaciones de Carrito y Checkout...');
@@ -87,7 +91,7 @@ async function main() {
     attempts++;
     if (attempts < maxAttempts) {
       p.log.warn(
-        `[MP Retry] Intento ${attempts}/${maxAttempts} falló (Error Transitorio: 503 Service Unavailable). Reintentando en ${delay}ms...`
+        `[MP Retry] Intento ${attempts}/${maxAttempts} falló (Error Transitorio: 503 Service Unavailable). Reintentando en ${delay}ms...`,
       );
       await setTimeout(delay);
       delay *= 2;

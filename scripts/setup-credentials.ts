@@ -113,7 +113,7 @@ function readFunctionsEnvProject(filePath: string): string | null {
   try {
     const raw = readFileSync(filePath, 'utf-8');
     const match = raw.match(/SITE_URL=https?:\/\/[^.]+\.([^.]+)\./);
-    return match ? raw.match(/SITE_URL=https?:\/\/([^/\n]+)/)?.[1] ?? null : null;
+    return match ? (raw.match(/SITE_URL=https?:\/\/([^/\n]+)/)?.[1] ?? null) : null;
   } catch {
     return null;
   }
@@ -121,11 +121,31 @@ function readFunctionsEnvProject(filePath: string): string | null {
 
 function showCurrentStatus(): void {
   const files = [
-    { label: 'src/firebase-config.json', path: resolve(ROOT, 'src/firebase-config.json'), reader: readCurrentProjectId },
-    { label: 'src/environments/environment.ts', path: resolve(ROOT, 'src/environments/environment.ts'), reader: readCurrentProjectId },
-    { label: 'functions/.env.ecommerce-vertex-dev', path: resolve(ROOT, 'functions/.env.ecommerce-vertex-dev'), reader: readFunctionsEnvProject },
-    { label: 'functions/.env.ecommerce-vertex', path: resolve(ROOT, 'functions/.env.ecommerce-vertex'), reader: readFunctionsEnvProject },
-    { label: 'functions/.env.local', path: resolve(ROOT, 'functions/.env.local'), reader: readFunctionsEnvProject },
+    {
+      label: 'src/firebase-config.json',
+      path: resolve(ROOT, 'src/firebase-config.json'),
+      reader: readCurrentProjectId,
+    },
+    {
+      label: 'src/environments/environment.ts',
+      path: resolve(ROOT, 'src/environments/environment.ts'),
+      reader: readCurrentProjectId,
+    },
+    {
+      label: 'functions/.env.ecommerce-vertex-dev',
+      path: resolve(ROOT, 'functions/.env.ecommerce-vertex-dev'),
+      reader: readFunctionsEnvProject,
+    },
+    {
+      label: 'functions/.env.ecommerce-vertex',
+      path: resolve(ROOT, 'functions/.env.ecommerce-vertex'),
+      reader: readFunctionsEnvProject,
+    },
+    {
+      label: 'functions/.env.local',
+      path: resolve(ROOT, 'functions/.env.local'),
+      reader: readFunctionsEnvProject,
+    },
   ];
 
   const lines = files.map(({ label, path, reader }) => {
@@ -142,18 +162,34 @@ function showCurrentStatus(): void {
 async function promptFirebaseConfigManually(projectId: string): Promise<FirebaseConfig> {
   p.note(
     `Firebase Console → proyecto "${projectId}" → ⚙ Configuración → Tus apps → SDK config`,
-    'Ingresá las credenciales manualmente'
+    'Ingresá las credenciales manualmente',
   );
   const cfg = await p.group(
     {
-      apiKey: () => p.text({ message: 'apiKey', validate: (v) => (v.trim() ? undefined : 'Requerido') }),
-      authDomain: () => p.text({ message: 'authDomain', placeholder: `${projectId}.firebaseapp.com`, defaultValue: `${projectId}.firebaseapp.com` }),
-      storageBucket: () => p.text({ message: 'storageBucket', placeholder: `${projectId}.firebasestorage.app`, defaultValue: `${projectId}.firebasestorage.app` }),
-      messagingSenderId: () => p.text({ message: 'messagingSenderId', validate: (v) => (v.trim() ? undefined : 'Requerido') }),
-      appId: () => p.text({ message: 'appId', validate: (v) => (v.trim() ? undefined : 'Requerido') }),
+      apiKey: () =>
+        p.text({ message: 'apiKey', validate: (v) => (v.trim() ? undefined : 'Requerido') }),
+      authDomain: () =>
+        p.text({
+          message: 'authDomain',
+          placeholder: `${projectId}.firebaseapp.com`,
+          defaultValue: `${projectId}.firebaseapp.com`,
+        }),
+      storageBucket: () =>
+        p.text({
+          message: 'storageBucket',
+          placeholder: `${projectId}.firebasestorage.app`,
+          defaultValue: `${projectId}.firebasestorage.app`,
+        }),
+      messagingSenderId: () =>
+        p.text({
+          message: 'messagingSenderId',
+          validate: (v) => (v.trim() ? undefined : 'Requerido'),
+        }),
+      appId: () =>
+        p.text({ message: 'appId', validate: (v) => (v.trim() ? undefined : 'Requerido') }),
       measurementId: () => p.text({ message: 'measurementId (opcional)', defaultValue: '' }),
     },
-    { onCancel }
+    { onCancel },
   );
   return {
     apiKey: cfg.apiKey,
@@ -170,7 +206,7 @@ async function promptMpCredentials(env: (typeof ENVIRONMENTS)[EnvKey]): Promise<
   const isProd = env.production;
   p.note(
     `https://www.mercadopago.com/developers/panel/credentials\n\nUsá credenciales ${isProd ? 'productivas' : 'de prueba (TEST-)'}.`,
-    'MercadoPago'
+    'MercadoPago',
   );
   const creds = await p.group(
     {
@@ -187,7 +223,7 @@ async function promptMpCredentials(env: (typeof ENVIRONMENTS)[EnvKey]): Promise<
           validate: (v) => (v.trim() ? undefined : 'Requerido'),
         }),
     },
-    { onCancel }
+    { onCancel },
   );
   return creds;
 }
@@ -198,7 +234,7 @@ function writeFirebaseConfig(config: FirebaseConfig): void {
   writeFileSync(
     resolve(ROOT, 'src/firebase-config.json'),
     JSON.stringify(config, null, 2) + '\n',
-    'utf-8'
+    'utf-8',
   );
 }
 
@@ -206,7 +242,7 @@ function writeEnvironmentTs(
   config: FirebaseConfig,
   env: (typeof ENVIRONMENTS)[EnvKey],
   apiUrl: string,
-  mpPublicKey: string
+  mpPublicKey: string,
 ): void {
   writeFileSync(
     resolve(ROOT, 'src/environments/environment.ts'),
@@ -232,21 +268,30 @@ function writeEnvironmentTs(
   },
 };
 `,
-    'utf-8'
+    'utf-8',
   );
 }
 
-function writeFunctionsEnvFile(filePath: string, mpAccessToken: string, webhookUrl: string, siteUrl: string): void {
+function writeFunctionsEnvFile(
+  filePath: string,
+  mpAccessToken: string,
+  webhookUrl: string,
+  siteUrl: string,
+): void {
   writeFileSync(
     filePath,
     `MERCADOPAGO_ACCESSTOKEN=${mpAccessToken}\nMERCADOPAGO_WEBHOOK_URL=${webhookUrl}\nSITE_URL=${siteUrl}\n`,
-    'utf-8'
+    'utf-8',
   );
 }
 
 // ─── Firebase config fetcher with CLI + manual fallback ───────────────────────
 
-async function getFirebaseConfig(env: (typeof ENVIRONMENTS)[EnvKey], hasCli: boolean, isAuth: boolean): Promise<FirebaseConfig> {
+async function getFirebaseConfig(
+  env: (typeof ENVIRONMENTS)[EnvKey],
+  hasCli: boolean,
+  isAuth: boolean,
+): Promise<FirebaseConfig> {
   if (hasCli && isAuth) {
     const spinner = p.spinner();
     spinner.start(`Obteniendo config de Firebase para "${env.projectId}"...`);
@@ -265,7 +310,7 @@ async function getFirebaseConfig(env: (typeof ENVIRONMENTS)[EnvKey], hasCli: boo
 async function configureEnvironment(
   envKey: EnvKey,
   hasCli: boolean,
-  isAuth: boolean
+  isAuth: boolean,
 ): Promise<string[]> {
   const env = ENVIRONMENTS[envKey];
   const written: string[] = [];
@@ -314,7 +359,7 @@ async function configureEnvironment(
       resolve(ROOT, `functions/.env.${env.projectId}`),
       mp.accessToken,
       webhookUrl,
-      env.siteUrl
+      env.siteUrl,
     );
     written.push(`functions/.env.${env.projectId}`);
 
@@ -327,7 +372,7 @@ async function configureEnvironment(
         resolve(ROOT, 'functions/.env.local'),
         mp.accessToken,
         localWebhookUrl,
-        env.siteUrl
+        env.siteUrl,
       );
       written.push('functions/.env.local');
     }
@@ -351,7 +396,9 @@ async function main(): Promise<void> {
     const spinner = p.spinner();
     spinner.start('Verificando sesión de Firebase CLI...');
     isAuth = checkFirebaseAuth();
-    spinner.stop(isAuth ? 'Firebase CLI autenticado' : 'Firebase CLI no autenticado — se usará ingreso manual');
+    spinner.stop(
+      isAuth ? 'Firebase CLI autenticado' : 'Firebase CLI no autenticado — se usará ingreso manual',
+    );
   } else {
     p.log.warn('Firebase CLI no encontrado — se usará ingreso manual para las credenciales.');
   }
@@ -360,7 +407,11 @@ async function main(): Promise<void> {
   const scope = await p.select({
     message: '¿Qué querés configurar?',
     options: [
-      { value: 'development', label: 'Development  (ecommerce-vertex-dev)', hint: 'para ng serve local' },
+      {
+        value: 'development',
+        label: 'Development  (ecommerce-vertex-dev)',
+        hint: 'para ng serve local',
+      },
       { value: 'production', label: 'Production   (ecommerce-vertex)', hint: 'para deploy prod' },
       { value: 'both', label: 'Ambos', hint: 'dev primero, luego prod' },
     ],
@@ -368,8 +419,7 @@ async function main(): Promise<void> {
   });
   if (p.isCancel(scope)) onCancel();
 
-  const envsToRun: EnvKey[] =
-    scope === 'both' ? ['development', 'production'] : [scope as EnvKey];
+  const envsToRun: EnvKey[] = scope === 'both' ? ['development', 'production'] : [scope as EnvKey];
 
   const allWritten: string[] = [];
 
