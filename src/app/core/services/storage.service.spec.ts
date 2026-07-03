@@ -108,13 +108,11 @@ describe('StorageService', () => {
             next: (snapshot: UploadTaskSnapshot) => void,
             _error: (err: unknown) => void,
             complete: () => void,
-            complete: () => void
           ): (() => void) => {
             next({ bytesTransferred: 100, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             complete();
             return (): void => {};
           },
-          }
         ),
       then: jasmine
         .createSpy('then')
@@ -123,7 +121,6 @@ describe('StorageService', () => {
             void resolve({ ref: mockRef });
             return Promise.resolve({ ref: mockRef } as unknown as UploadTaskSnapshot);
           },
-          }
         ),
     } as unknown as UploadTask;
 
