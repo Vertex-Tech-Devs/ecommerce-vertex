@@ -210,6 +210,12 @@ export class ProductCreateComponent implements OnInit {
     }
   }
 
+  getFirstActiveAttributeId(attributes: Attribute[]): string | null {
+    const selectedIds = this.variantAttributes.value as string[];
+    const firstSelected = attributes.find((a) => a.id && selectedIds.includes(a.id));
+    return firstSelected?.id ?? null;
+  }
+
   addVariant(variant?: ProductVariant): void {
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant)
