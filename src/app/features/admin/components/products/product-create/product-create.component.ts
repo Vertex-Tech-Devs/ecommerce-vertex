@@ -2,13 +2,10 @@ import type { OnInit, QueryList, ElementRef } from '@angular/core';
 import { Component, inject, ViewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
 
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
@@ -24,7 +21,7 @@ import type { ProductFormValue } from './product-variant-form.service';
 @Component({
   selector: 'app-product-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './product-create.component.html',
   styleUrls: ['./product-create.component.scss'],
 })
@@ -37,7 +34,6 @@ export class ProductCreateComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private sweetAlertService = inject(SweetAlertService);
   private storageService = inject(StorageService);
-  private modalService = inject(BsModalService);
   private variantFormService = inject(ProductVariantFormService);
 
   @ViewChildren('additionalImageInput') additionalImageInputs!: QueryList<
@@ -50,9 +46,10 @@ export class ProductCreateComponent implements OnInit {
   productForm!: FormGroup;
   categories$!: Observable<Category[]>;
 
+  showAttributeForm = false;
+  newAttributeName = '';
   private attributesSubject = new BehaviorSubject<Attribute[]>([]);
   attributes$ = this.attributesSubject.asObservable();
-  private bsModalRef?: BsModalRef;
 
   isSubmitting = false;
   isEditMode = false;
@@ -132,17 +129,17 @@ export class ProductCreateComponent implements OnInit {
       });
   }
 
-  get name(): AbstractControl {
-    return this.productForm.get('name')!;
+  get name(): AbstractControl | null {
+    return this.productForm.get('name');
   }
-  get price(): AbstractControl {
-    return this.productForm.get('price')!;
+  get price(): AbstractControl | null {
+    return this.productForm.get('price');
   }
-  get categoryId(): AbstractControl {
-    return this.productForm.get('categoryId')!;
+  get categoryId(): AbstractControl | null {
+    return this.productForm.get('categoryId');
   }
-  get image(): AbstractControl {
-    return this.productForm.get('image')!;
+  get image(): AbstractControl | null {
+    return this.productForm.get('image');
   }
   get variants(): FormArray {
     return this.productForm.get('variants') as FormArray;
@@ -185,43 +182,38 @@ export class ProductCreateComponent implements OnInit {
     }
   }
 
-  getFirstActiveAttributeId(allAttributes: Attribute[] | null): string | null {
-    if (!allAttributes) {
-      return null;
-    }
-    const selectedIds = this.variantAttributes.value as string[];
-    const firstActive = allAttributes.find((a) => a.id && selectedIds.includes(a.id));
-    return firstActive?.id ?? null;
+  toggleAttributeForm(): void {
+    this.showAttributeForm = !this.showAttributeForm;
+    this.newAttributeName = '';
   }
 
-  openAttributeModal(): void {
-    this.bsModalRef = this.modalService.show(AttributeModalComponent, {
-      class: 'modal-lg modal-dialog-centered',
-    });
-    this.bsModalRef.content.onClose.subscribe((result: Partial<Attribute> | null) => {
-      if (!result) {
-        return;
-      }
+  async createAttribute(): Promise<void> {
+    const name = this.newAttributeName.trim();
+    if (!name || name.length < 2) {
+      this.sweetAlertService.warning(
+        'Aviso',
+        'El nombre del atributo debe tener al menos 2 caracteres.'
+      );
+      return;
+    }
+    try {
+      await this.attributeService.addAttribute({ name, values: [] } as unknown as Attribute);
+      this.sweetAlertService.success('¡Éxito!', 'Atributo creado.');
+      this.newAttributeName = '';
+      this.showAttributeForm = false;
       this.attributeService
-        .addAttribute(result as Attribute)
-        .then(() => {
-          this.sweetAlertService.success('¡Éxito!', 'Atributo creado.');
-          this.attributeService
-            .getAttributes()
-            .pipe(take(1))
-            .subscribe((a) => this.attributesSubject.next(a));
-        })
-        .catch((_err) => this.sweetAlertService.error('Error', 'No se pudo crear el atributo.'));
-    });
+        .getAttributes()
+        .pipe(take(1))
+        .subscribe((a) => this.attributesSubject.next(a));
+    } catch {
+      this.sweetAlertService.error('Error', 'No se pudo crear el atributo.');
+    }
   }
 
   addVariant(variant?: ProductVariant): void {
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant)
     );
-    setTimeout(() => {
-      this.variantFirstSelects.last?.nativeElement.focus();
-    });
   }
 
   removeVariant(index: number): void {
@@ -264,9 +256,6 @@ export class ProductCreateComponent implements OnInit {
 
   addImage(imageUrl: string = ''): void {
     this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
-    setTimeout(() => {
-      this.additionalImageInputs.last?.nativeElement.focus();
-    });
   }
 
   removeImage(index: number): void {
