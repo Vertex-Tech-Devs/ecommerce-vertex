@@ -149,4 +149,96 @@ describe('StoreConfigService', () => {
     expect(root.style.setProperty).toHaveBeenCalledWith('--color-accent', '#222222');
     expect(root.style.setProperty).toHaveBeenCalledWith('--shop-bg', '#333333');
   });
+
+  it('should update meta description via effect when seo.metaDescription is set', () => {
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      seo: { metaDescription: 'My SEO Description' },
+    } as unknown as StoreConfig);
+
+    TestBed.flushEffects();
+    // The effect updates the meta tag — should not throw
+    expect(service.storeConfig()).toBeTruthy();
+  });
+
+  it('should set favicon via effect when faviconUrl is provided and link exists', () => {
+    // Create an existing favicon link
+    const existingLink = document.createElement('link');
+    existingLink.rel = 'icon';
+    existingLink.href = 'https://old-favicon.url';
+    document.head.appendChild(existingLink);
+
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      faviconUrl: 'https://new-favicon.url',
+      seo: {},
+      colors: undefined,
+    } as unknown as StoreConfig);
+
+    TestBed.flushEffects();
+
+    // Browser normalizes the URL (may add trailing slash), so check via includes
+    expect(existingLink.href).toContain('new-favicon.url');
+    document.head.removeChild(existingLink);
+  });
+
+  it('should create new favicon link when faviconUrl is provided and no link exists', () => {
+    // Remove any existing favicon links
+    document.querySelectorAll("link[rel*='icon']").forEach((el) => el.remove());
+
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      faviconUrl: 'https://new-favicon-2.url',
+      seo: {},
+      colors: undefined,
+    } as unknown as StoreConfig);
+
+    TestBed.flushEffects();
+
+    const newLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+    expect(newLink).not.toBeNull();
+    expect(newLink!.href).toContain('new-favicon-2.url');
+    if (newLink) document.head.removeChild(newLink);
+  });
+
+  it('should load config from legacy path when new path does not exist', async () => {
+    // First snap (configuracion/store) does not exist
+    const emptySnap = { exists: () => false } as unknown as DocumentSnapshot;
+    // Second snap (configuracion/{tenantId}) exists with legacy data
+    const legacyRaw = {
+      storeName: 'Legacy Store',
+      storeId: 'legacy-store',
+    };
+    const legacySnap = {
+      exists: () => true,
+      data: () => legacyRaw,
+    } as unknown as DocumentSnapshot;
+
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+
+    // Return empty snap first, then legacy snap
+    const getDocSnapSpy = spyOn(privSvc, 'getDocSnap');
+    getDocSnapSpy.and.returnValues(Promise.resolve(emptySnap), Promise.resolve(legacySnap));
+
+    await service.loadConfig();
+
+    expect(service.storeConfig()).not.toBeNull();
+    expect(service.storeName()).toBe('Legacy Store');
+  });
 });

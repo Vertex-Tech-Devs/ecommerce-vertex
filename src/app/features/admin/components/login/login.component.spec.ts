@@ -148,6 +148,25 @@ describe('LoginComponent', () => {
     expect(component.isGoogleSubmitting).toBeFalse();
   });
 
+  it('should set wrong-tenant error message', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(throwError(() => new Error('wrong-tenant')));
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('pertenece a otra tienda');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should handle non-Error error objects', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(throwError(() => 'string-error-message'));
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('No se pudo iniciar sesión');
+    expect(component.authErrorMessage).toContain('string-error-message');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
   it('logout() should set isAlreadyLogged to false', async () => {
     authServiceSpy.logout = jasmine.createSpy('logout').and.returnValue(Promise.resolve());
     component.isAlreadyLogged = true;
