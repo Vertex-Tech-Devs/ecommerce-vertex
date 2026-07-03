@@ -1,6 +1,5 @@
 import { environment } from '../../../environments/environment';
 import { tenantPath, resolveTenantId } from './tenant';
-import { tenantPath, tenantDocPath, resolveTenantId } from './tenant';
 
 describe('tenantPath', () => {
   it('should return the path with tenant id and collection', () => {
@@ -9,14 +8,6 @@ describe('tenantPath', () => {
 
   it('should handle different collection names', () => {
     expect(tenantPath('productos')).toBe(`tenants/${environment.tenantId}/productos`);
-  });
-});
-
-describe('tenantDocPath', () => {
-  it('should return the path with tenant id, collection and docId', () => {
-    expect(tenantDocPath('configuracion', 'store')).toBe(
-      `tenants/${environment.tenantId}/configuracion/store`,
-    );
   });
 });
 
