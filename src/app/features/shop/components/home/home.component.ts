@@ -47,4 +47,16 @@ export class HomeComponent implements OnInit {
   getStaticImage(banner: HeroBanner | null | undefined): string | undefined {
     return banner?.heroImages?.[0]?.imageUrl ?? banner?.imageUrl ?? undefined;
   }
+
+  onButtonMouseMove(event: MouseEvent): void {
+    const button = event.currentTarget as HTMLElement;
+    if (!button) {
+      return;
+    }
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    button.style.setProperty('--x', `${x}px`);
+    button.style.setProperty('--y', `${y}px`);
+  }
 }

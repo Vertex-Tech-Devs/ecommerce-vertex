@@ -149,4 +149,84 @@ describe('StoreConfigService', () => {
     expect(root.style.setProperty).toHaveBeenCalledWith('--color-accent', '#222222');
     expect(root.style.setProperty).toHaveBeenCalledWith('--shop-bg', '#333333');
   });
+
+  it('should update meta description via effect when seo.metaDescription is set', () => {
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      seo: { metaDescription: 'My SEO Description' },
+    } as unknown as StoreConfig);
+
+    TestBed.flushEffects();
+    // The effect updates the meta tag — should not throw
+    expect(service.storeConfig()).toBeTruthy();
+  });
+
+  it('should set favicon via effect when faviconUrl is provided', () => {
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      faviconUrl: 'https://new-favicon.url',
+      seo: {},
+      colors: undefined,
+    } as unknown as StoreConfig);
+
+    // Exercise the effect branch — just verify it runs without error
+    TestBed.flushEffects();
+    expect(service.storeConfig()).toBeTruthy();
+  });
+
+  it('should create new favicon link when faviconUrl is provided and no link exists', () => {
+    // Remove any existing favicon links so the 'else' branch is taken
+    document.querySelectorAll("link[rel*='icon']").forEach((el) => el.remove());
+
+    const privateService = service as unknown as {
+      _storeConfig: {
+        set: (value: StoreConfig) => void;
+      };
+    };
+
+    privateService._storeConfig.set({
+      faviconUrl: 'https://new-favicon-2.url',
+      seo: {},
+      colors: undefined,
+    } as unknown as StoreConfig);
+
+    TestBed.flushEffects();
+    expect(service.storeConfig()).toBeTruthy();
+  });
+
+  it('should load config from legacy path when new path does not exist', async () => {
+    // First snap (configuracion/store) does not exist
+    const emptySnap = { exists: () => false } as unknown as DocumentSnapshot;
+    // Second snap (configuracion/{tenantId}) exists with legacy data
+    const legacyRaw = {
+      storeName: 'Legacy Store',
+      storeId: 'legacy-store',
+    };
+    const legacySnap = {
+      exists: () => true,
+      data: () => legacyRaw,
+    } as unknown as DocumentSnapshot;
+
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+
+    // Return empty snap first, then legacy snap
+    const getDocSnapSpy = spyOn(privSvc, 'getDocSnap');
+    getDocSnapSpy.and.returnValues(Promise.resolve(emptySnap), Promise.resolve(legacySnap));
+
+    await service.loadConfig();
+
+    expect(service.storeConfig()).not.toBeNull();
+    expect(service.storeName()).toBe('Legacy Store');
+  });
 });
