@@ -421,11 +421,11 @@ jobs:
           SITE_ID: ${{ github.event.client_payload.site_id }}
           PROJECT_ID: ${{ github.event.client_payload.project_id }}
         run: |
-          SITE_ARGS=()
-          if [ -n "$SITE_ID" ]; then
-            SITE_ARGS+=(--site "$SITE_ID")
+          ONLY_TARGET="hosting"
+          if [ -n "$SITE_ID" ] && [ "$SITE_ID" != "default" ]; then
+            ONLY_TARGET="hosting:$SITE_ID"
           fi
-          node scripts/firebase-deploy.js --project "$PROJECT_ID" "${SITE_ARGS[@]}" --only hosting --non-interactive
+          node scripts/firebase-deploy.js --project "$PROJECT_ID" --only "$ONLY_TARGET" --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
