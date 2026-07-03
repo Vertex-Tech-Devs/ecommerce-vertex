@@ -101,6 +101,17 @@
             </a>
           }
         </div>
+
+        <div class="home__catalog-action">
+          <a
+            routerLink="/shop/catalog"
+            class="catalog-redirect-btn"
+            (mousemove)="onButtonMouseMove($event)"
+          >
+            Ver todos los productos
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
       } @else {
         <p class="empty-state" role="status">
           No hay productos nuevos para mostrar en este momento.
