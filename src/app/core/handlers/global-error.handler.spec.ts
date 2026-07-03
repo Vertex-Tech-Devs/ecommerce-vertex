@@ -30,7 +30,7 @@ describe('GlobalErrorHandler', () => {
     expect(console.error).toHaveBeenCalledWith('[Global Error Intercepted]:', mockError);
     expect(sweetAlertSpy.error).toHaveBeenCalledWith(
       '¡Ups! Algo salió mal',
-      'El sistema ha experimentado una anomalía inesperada. Nos hemos degradado de forma segura; puedes seguir utilizando la aplicación.'
+      'El sistema ha experimentado una anomalía inesperada. Nos hemos degradado de forma segura; puedes seguir utilizando la aplicación.',
     );
   });
 
@@ -50,7 +50,7 @@ describe('GlobalErrorHandler', () => {
 
     expect(console.error).toHaveBeenCalledWith(
       'Failed to notify via SweetAlert:',
-      jasmine.any(Error)
+      jasmine.any(Error),
     );
   });
 });

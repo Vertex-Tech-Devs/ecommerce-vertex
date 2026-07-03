@@ -9,7 +9,7 @@ import { StoreConfigService } from '@core/services/store-config.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
+  styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
   private readonly cartService = inject(CartService);

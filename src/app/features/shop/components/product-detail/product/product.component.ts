@@ -22,7 +22,7 @@ interface AttributeSelection {
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe],
   templateUrl: './product.component.html',
-  styleUrls: ['./product.component.scss'],
+  styleUrl: './product.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductComponent {
@@ -61,7 +61,7 @@ export class ProductComponent {
             });
           }
           return of(null);
-        })
+        }),
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
@@ -122,7 +122,7 @@ export class ProductComponent {
           return { ...attr, selectedValue: attr.selectedValue === value ? null : value };
         }
         return attr;
-      })
+      }),
     );
 
     this.updateAvailableOptions();
@@ -137,7 +137,7 @@ export class ProductComponent {
           acc[a.id] = a.selectedValue;
           return acc;
         },
-        {} as { [key: string]: string | null }
+        {} as { [key: string]: string | null },
       );
 
     this.attributes.update((currentAttributes) =>
@@ -147,7 +147,7 @@ export class ProductComponent {
 
         const possibleVariants = this.variants().filter((v) => {
           return Object.entries(otherSelectedAttributes).every(
-            ([attrId, value]) => v.attributes[attrId] === value
+            ([attrId, value]) => v.attributes[attrId] === value,
           );
         });
 
@@ -159,7 +159,7 @@ export class ProductComponent {
         }
 
         return { ...attr, values: availableValues.sort(), selectedValue: newSelectedValue };
-      })
+      }),
     );
   }
 
@@ -175,7 +175,7 @@ export class ProductComponent {
         acc[a.id] = a.selectedValue;
         return acc;
       },
-      {} as { [key: string]: string | null }
+      {} as { [key: string]: string | null },
     );
 
     const variant = this.variants().find((v) => {

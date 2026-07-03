@@ -31,7 +31,7 @@ describe('OwnerGuard', () => {
     TestBed.runInInjectionContext(() => {
       const result = OwnerGuard(
         {} as ActivatedRouteSnapshot,
-        {} as RouterStateSnapshot
+        {} as RouterStateSnapshot,
       ) as Observable<UrlTree | boolean>;
       if (typeof result === 'boolean') {
         expect(result).toBe(true);
@@ -52,7 +52,7 @@ describe('OwnerGuard', () => {
     TestBed.runInInjectionContext(() => {
       const result = OwnerGuard(
         {} as ActivatedRouteSnapshot,
-        {} as RouterStateSnapshot
+        {} as RouterStateSnapshot,
       ) as Observable<UrlTree | boolean>;
       if (typeof result === 'boolean') {
         fail('Expected observable result');

@@ -25,7 +25,7 @@ import { ReceiptModalComponent } from '../receipt-modal/receipt-modal.component'
     ReceiptModalComponent,
   ],
   templateUrl: './order-detail.component.html',
-  styleUrls: ['./order-detail.component.scss'],
+  styleUrl: './order-detail.component.scss',
 })
 export class OrderDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -54,14 +54,14 @@ export class OrderDetailComponent implements OnInit {
               } else {
                 this.pageTitle = 'Pedido No Encontrado';
               }
-            })
+            }),
           );
         } else {
           this.pageTitle = 'Error: ID de Pedido Faltante';
           void this.router.navigate(['/admin/orders']);
           return of(undefined);
         }
-      })
+      }),
     );
   }
 

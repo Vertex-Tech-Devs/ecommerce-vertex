@@ -35,7 +35,7 @@ export class HeroImageUploaderService {
       if (!this.isValidFile(f)) {
         this.sweetAlertService.error(
           'Formato no permitido',
-          `El archivo "${f.name}" no es un formato permitido (WebP, JPG, PNG).`
+          `El archivo "${f.name}" no es un formato permitido (WebP, JPG, PNG).`,
         );
         return false;
       }
@@ -45,7 +45,7 @@ export class HeroImageUploaderService {
     if (currentCount + validFiles.length > MAX_HERO_IMAGES) {
       this.sweetAlertService.error(
         'Límite de imágenes',
-        `Máximo ${MAX_HERO_IMAGES} imágenes permitidas. Tienes ${currentCount} actualmente.`
+        `Máximo ${MAX_HERO_IMAGES} imágenes permitidas. Tienes ${currentCount} actualmente.`,
       );
       input.value = '';
       return null;
@@ -55,7 +55,7 @@ export class HeroImageUploaderService {
       validFiles.map(async (file) => ({
         file,
         validation: await this.imageValidationService.validateHeroImage(file),
-      }))
+      })),
     );
 
     const bad = results.filter((r) => !r.validation.valid);
@@ -67,14 +67,14 @@ export class HeroImageUploaderService {
         bad
           .map(
             (item) =>
-              `📷 ${item.file.name}\n${item.validation.errors.map((e) => `  • ${e}`).join('\n')}`
+              `📷 ${item.file.name}\n${item.validation.errors.map((e) => `  • ${e}`).join('\n')}`,
           )
           .join('\n\n') +
         `\n\nRecomendaciones:\n✓ Resolución ideal: ${recs.idealResolution}\n✓ Proporción: 16:9\n✓ Tamaño máximo: 2MB\n\n¿Deseas continuar de todas formas?`;
       const ok = await this.sweetAlertService.confirm(
         '⚠️ Imágenes de Baja Calidad',
         msg,
-        'warning'
+        'warning',
       );
       if (!ok) {
         input.value = '';

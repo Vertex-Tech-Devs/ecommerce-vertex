@@ -1,5 +1,12 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -8,18 +15,20 @@ import type { Product } from '@core/models/product.model';
 import { HomeContentService } from '@core/services/home-content.service';
 import { ProductService } from '@core/services/product.service';
 import { CarouselComponent } from '@shared/components/carousel/carousel.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe, CarouselComponent],
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss'],
+  styleUrl: './home.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent implements OnInit {
   private homeContentService = inject(HomeContentService);
   private productService = inject(ProductService);
+  private destroyRef = inject(DestroyRef);
 
   // Signals: undefined = loading, null = no data, value = loaded
   readonly heroBanner = signal<HeroBanner | null | undefined>(undefined);
@@ -29,15 +38,21 @@ export class HomeComponent implements OnInit {
   readonly productsLoading = computed(() => this.newArrivals() === undefined);
 
   ngOnInit(): void {
-    this.homeContentService.getHeroBanner().subscribe({
-      next: (data) => this.heroBanner.set(data),
-      error: () => this.heroBanner.set(null),
-    });
+    this.homeContentService
+      .getHeroBanner()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => this.heroBanner.set(data),
+        error: () => this.heroBanner.set(null),
+      });
 
-    this.productService.getLatestProducts(10).subscribe({
-      next: (data) => this.newArrivals.set(data),
-      error: () => this.newArrivals.set([]),
-    });
+    this.productService
+      .getLatestProducts(10)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => this.newArrivals.set(data),
+        error: () => this.newArrivals.set([]),
+      });
   }
 
   isCarousel(banner: HeroBanner | null | undefined): boolean {

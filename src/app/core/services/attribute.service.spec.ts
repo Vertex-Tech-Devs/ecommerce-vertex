@@ -55,7 +55,7 @@ describe('AttributeService', () => {
 
   it('addAttribute() should call firestoreService.create with "attributes"', async () => {
     firestoreSpy.create.and.returnValue(
-      Promise.resolve(mockRef) as ReturnType<typeof firestoreSpy.create>
+      Promise.resolve(mockRef) as ReturnType<typeof firestoreSpy.create>,
     );
     const attr: Attribute = { name: 'Color', values: ['Red'] };
 

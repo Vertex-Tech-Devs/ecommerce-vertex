@@ -97,7 +97,7 @@ export class SeedContentService {
           filterableAttributes: d.attrs,
           imageUrl: u(CAT[d.slug], 400, 400),
           createdAt: new Date(),
-        })
+        }),
       );
       out[d.slug] = { id: ref.id, name: d.name };
     }
@@ -133,7 +133,7 @@ export class SeedContentService {
           },
         ],
         lastUpdated: new Date(),
-      })
+      }),
     );
   }
 
@@ -175,7 +175,7 @@ export class SeedContentService {
               'Embalajes 100% reciclables, tintas a base de agua y apoyo activo a marcas locales y talleres de producción justa.',
           },
         ],
-      })
+      }),
     );
   }
 
@@ -217,11 +217,7 @@ export class SeedContentService {
       copyrightText: `© 2026 ${storeName}. Todos los derechos reservados.`,
     };
     await this.run(() =>
-      setDoc(doc(this.firestore, tenantPath('configuracion'), 'store'), payload)
+      setDoc(doc(this.firestore, tenantPath('configuracion'), 'store'), payload),
     );
-  }
-
-  async seedStoreConfig(): Promise<void> {
-    // Ya cubierto por seedFooter para mantener la compatibilidad con el flujo de seedAllData
   }
 }

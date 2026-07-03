@@ -1,10 +1,11 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import type { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, from, of } from 'rxjs';
 import {
   map,
@@ -20,7 +21,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 @Component({
   selector: 'app-orders-list',
   templateUrl: './orders-list.component.html',
-  styleUrls: ['./orders-list.component.scss'],
+  styleUrl: './orders-list.component.scss',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe, DatePipe, TitleCasePipe],
@@ -29,6 +30,7 @@ export class OrdersListComponent implements OnInit {
   private _orderService = inject(OrderService);
   private _router = inject(Router);
   private _sweetAlertService = inject(SweetAlertService);
+  private destroyRef = inject(DestroyRef);
 
   currentPageSubject = new BehaviorSubject<number>(1);
   itemsPerPageSubject = new BehaviorSubject<number>(10);
@@ -54,9 +56,9 @@ export class OrdersListComponent implements OnInit {
             catchError((err) => {
               console.error('Error al cargar los pedidos:', err);
               return of([] as Order[]);
-            })
-          )
-        )
+            }),
+          ),
+        ),
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterStatusSubject,
@@ -72,7 +74,7 @@ export class OrdersListComponent implements OnInit {
             (order) =>
               order.clientName.toLowerCase().includes(lowerSearch) ||
               order.id.toLowerCase().includes(lowerSearch) ||
-              order.status.toLowerCase().includes(lowerSearch)
+              order.status.toLowerCase().includes(lowerSearch),
           );
         }
 
@@ -94,7 +96,7 @@ export class OrdersListComponent implements OnInit {
         const endIndex = startIndex + itemsPerPage;
 
         return filteredOrders.slice(startIndex, endIndex);
-      })
+      }),
     );
   }
 
@@ -128,14 +130,16 @@ export class OrdersListComponent implements OnInit {
       .confirm('Eliminar Pedido', `¿Estás seguro de que quieres eliminar el pedido ${order.id}?`)
       .then((confirmed) => {
         if (confirmed) {
-          from(this._orderService.deleteOrder(order.id)).subscribe({
-            next: () => {
-              this.refreshTrigger.next();
-            },
-            error: (error: unknown) => {
-              console.error('Error al eliminar el pedido:', error);
-            },
-          });
+          from(this._orderService.deleteOrder(order.id))
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.refreshTrigger.next();
+              },
+              error: (error: unknown) => {
+                console.error('Error al eliminar el pedido:', error);
+              },
+            });
         }
       });
   }

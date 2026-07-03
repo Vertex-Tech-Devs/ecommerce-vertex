@@ -72,7 +72,7 @@ describe('EmailSettingsService', () => {
 
   it('should return undefined and catch error when getEmailSettings fails', (done) => {
     spyOn(serviceTest, 'getDocData').and.returnValue(
-      throwError(() => new Error('Firestore read error'))
+      throwError(() => new Error('Firestore read error')),
     );
     spyOn(console, 'warn');
 
@@ -90,7 +90,7 @@ describe('EmailSettingsService', () => {
 
     expect(setDocSpy).toHaveBeenCalledWith(
       jasmine.any(Object),
-      mockEmailSettings as unknown as Record<string, unknown>
+      mockEmailSettings as unknown as Record<string, unknown>,
     );
   });
 
@@ -108,14 +108,14 @@ describe('EmailSettingsService', () => {
     };
 
     const callFnSpy = spyOn(serviceTest, 'callFunction').and.returnValue(
-      Promise.resolve({ success: true })
+      Promise.resolve({ success: true }),
     );
 
     const result = await service.sendAdvancedTestEmail(payload);
 
     expect(callFnSpy).toHaveBeenCalledWith(
       'sendAdvancedTestEmail',
-      payload as unknown as Record<string, unknown>
+      payload as unknown as Record<string, unknown>,
     );
     expect(result).toEqual({ success: true });
   });

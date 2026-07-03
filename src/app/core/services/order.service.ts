@@ -38,7 +38,7 @@ export class OrderService {
       catchError((err) => {
         console.warn('Unable to resolve tenant orders collection, falling back to legacy:', err);
         return of(this.legacyCollectionRef);
-      })
+      }),
     );
   }
 
@@ -80,7 +80,7 @@ export class OrderService {
         catchError((err) => {
           console.warn('Unable to load global sales and orders metrics:', err);
           return of({ totalSales: 0, totalOrders: 0 });
-        })
+        }),
       );
     });
   }
@@ -113,7 +113,7 @@ export class OrderService {
         catchError((err) => {
           console.warn('Unable to load monthly sales and orders metrics:', err);
           return of({ monthlySales: 0, monthlyOrders: 0 });
-        })
+        }),
       );
     });
   }
@@ -133,12 +133,12 @@ export class OrderService {
             const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
             const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
             return dateA - dateB;
-          })
+          }),
         ),
         catchError((err) => {
           console.warn('Unable to load pending/processing orders:', err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -156,7 +156,7 @@ export class OrderService {
         catchError((err) => {
           console.warn('Unable to load latest orders:', err);
           return of([]);
-        })
+        }),
       );
     });
   }

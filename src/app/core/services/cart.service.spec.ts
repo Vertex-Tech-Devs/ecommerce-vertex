@@ -258,7 +258,7 @@ describe('CartService', () => {
   describe('getVariantDescription()', () => {
     it('should return formatted attribute names when attributeMap is loaded', () => {
       attributeServiceSpy.getAttributes.and.returnValue(
-        of([{ id: 'color', name: 'Color', values: ['Red'] }])
+        of([{ id: 'color', name: 'Color', values: ['Red'] }]),
       );
 
       TestBed.resetTestingModule();
@@ -282,7 +282,7 @@ describe('CartService', () => {
 
     it('should ignore attributes without an id when loading', () => {
       attributeServiceSpy.getAttributes.and.returnValue(
-        of([{ id: undefined as unknown as string, name: 'NoId', values: [] }])
+        of([{ id: undefined as unknown as string, name: 'NoId', values: [] }]),
       );
 
       TestBed.resetTestingModule();

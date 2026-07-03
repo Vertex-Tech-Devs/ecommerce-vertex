@@ -9,7 +9,7 @@ import type { CartItem } from '@core/models/cart.model';
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe],
   templateUrl: './cart.component.html',
-  styleUrls: ['./cart.component.scss'],
+  styleUrl: './cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CartComponent {

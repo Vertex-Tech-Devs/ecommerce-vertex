@@ -18,7 +18,7 @@ export class CategoryService {
   addCategory(category: WithFieldValue<Omit<Category, 'id'>>): Promise<DocumentReference> {
     return this.firestoreService.create(
       this.collectionPath,
-      category
+      category,
     ) as Promise<DocumentReference>;
   }
 

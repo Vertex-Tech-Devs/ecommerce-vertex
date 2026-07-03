@@ -7,7 +7,7 @@ import type { CartItem } from '@core/models/cart.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './order-summary.component.html',
-  styleUrls: ['./order-summary.component.scss'],
+  styleUrl: './order-summary.component.scss',
 })
 export class OrderSummaryComponent {
   @Input() items: CartItem[] = [];

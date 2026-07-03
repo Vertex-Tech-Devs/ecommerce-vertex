@@ -32,14 +32,14 @@ export class ClientService {
     return runInInjectionContext(this.injector, () => {
       const q = query(
         collection(this.firestore, tenantPath(this.ordersCollectionName)),
-        where('clientEmail', '==', email)
+        where('clientEmail', '==', email),
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         catchError((err) => {
           console.warn(`Unable to load orders for client ${email}:`, err);
           return of([]);
-        })
+        }),
       );
     });
   }
@@ -55,7 +55,7 @@ export class ClientService {
 
       const q = query(
         collection(this.firestore, tenantPath(this.clientsCollectionName)),
-        where('firstOrderDate', '>=', startOfMonth)
+        where('firstOrderDate', '>=', startOfMonth),
       );
 
       return (collectionData(q) as Observable<Client[]>).pipe(
@@ -63,7 +63,7 @@ export class ClientService {
         catchError((err) => {
           console.warn('Unable to load new clients count this month:', err);
           return of(0);
-        })
+        }),
       );
     });
   }
@@ -77,7 +77,7 @@ export class ClientService {
         catchError((err) => {
           console.warn('Unable to load latest clients:', err);
           return of([]);
-        })
+        }),
       );
     });
   }

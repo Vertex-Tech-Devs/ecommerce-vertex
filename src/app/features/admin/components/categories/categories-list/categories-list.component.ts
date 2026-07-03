@@ -13,7 +13,7 @@ import { CategoryService } from '@core/services/category.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './categories-list.component.html',
-  styleUrls: ['./categories-list.component.scss'],
+  styleUrl: './categories-list.component.scss',
 })
 export class CategoriesListComponent implements OnInit {
   private categoryService = inject(CategoryService);
@@ -47,7 +47,7 @@ export class CategoriesListComponent implements OnInit {
     if (!name || name.length < 3) {
       this.sweetAlertService.warning(
         'Aviso',
-        'El nombre de la categoría debe tener al menos 3 caracteres.'
+        'El nombre de la categoría debe tener al menos 3 caracteres.',
       );
       return;
     }
@@ -85,7 +85,7 @@ export class CategoriesListComponent implements OnInit {
   async onDelete(category: Category): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
-      `Esta acción eliminará la categoría "${category.name}". No podrás revertir esto.`
+      `Esta acción eliminará la categoría "${category.name}". No podrás revertir esto.`,
     );
 
     if (isConfirmed && category.id) {

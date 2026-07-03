@@ -39,7 +39,7 @@ export class SeedOrdersService {
           firstOrderDate: new Date(Date.now() - days * 86_400_000),
           lastOrderDate: new Date(Date.now() - Math.max(1, Math.floor(days / 4)) * 86_400_000),
           numberOfOrders: CLIENT_ORDER_COUNTS[i] ?? 1,
-        })
+        }),
       );
       seeded.push({ id: ref.id, ...d });
     }
@@ -98,7 +98,7 @@ export class SeedOrdersService {
           },
           stockDecremented: o.status !== 'cancelled',
           notes: i % 5 === 0 ? 'Cliente solicitó embalaje de regalo.' : null,
-        })
+        }),
       );
     }
   }

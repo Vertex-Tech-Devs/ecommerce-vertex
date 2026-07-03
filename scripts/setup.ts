@@ -123,7 +123,7 @@ async function main() {
           validate: required,
         }),
     },
-    { onCancel }
+    { onCancel },
   );
 
   const spinner = p.spinner();
@@ -201,7 +201,11 @@ async function main() {
       },
     },
   };
-  writeFileSync(resolve(ROOT, '.firebaserc'), JSON.stringify(firebasercContent, null, 2) + '\n', 'utf-8');
+  writeFileSync(
+    resolve(ROOT, '.firebaserc'),
+    JSON.stringify(firebasercContent, null, 2) + '\n',
+    'utf-8',
+  );
 
   // 4. Modificar src/index.html (Title)
   const indexHtmlPath = resolve(ROOT, 'src/index.html');

@@ -29,12 +29,12 @@ export class HomeContentService {
         switchMap((snap) =>
           snap.exists()
             ? (docData(tenantRef) as Observable<HeroBanner | null>)
-            : (docData(legacyRef) as Observable<HeroBanner | null>)
+            : (docData(legacyRef) as Observable<HeroBanner | null>),
         ),
         catchError((err) => {
           console.warn('Unable to load hero banner data:', err);
           return of(null);
-        })
+        }),
       );
     });
   }
@@ -43,7 +43,7 @@ export class HomeContentService {
     contentData: HeroBanner,
     newBannerFile: File | null,
     newCategoryFiles: (File | null)[],
-    newHeroFiles: File[] = []
+    newHeroFiles: File[] = [],
   ): Promise<void> {
     const docRef = this.docRef;
     const dataToSave = { ...contentData };
@@ -69,7 +69,7 @@ export class HomeContentService {
     if (currentData?.heroImages && dataToSave.heroImages) {
       const savedUrls = dataToSave.heroImages.map((img) => img.imageUrl);
       const imagesToDelete = currentData.heroImages.filter(
-        (img) => !savedUrls.includes(img.imageUrl)
+        (img) => !savedUrls.includes(img.imageUrl),
       );
       for (const img of imagesToDelete) {
         try {

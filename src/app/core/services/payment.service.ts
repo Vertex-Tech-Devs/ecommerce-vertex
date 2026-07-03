@@ -39,7 +39,7 @@ export class PaymentService {
         throw error;
       }
       console.warn(
-        `[Mercado Pago Retry] Falló la conexión con Mercado Pago. Reintentando en ${delay}ms... Intentos restantes: ${retries}`
+        `[Mercado Pago Retry] Falló la conexión con Mercado Pago. Reintentando en ${delay}ms... Intentos restantes: ${retries}`,
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
       return this.retryWithBackoff(fn, retries - 1, delay * 2);
@@ -58,14 +58,14 @@ export class PaymentService {
 
       const createPaymentPreference = httpsCallable<RequestData, PreferenceResponseData>(
         this.functions,
-        'createPaymentPreference'
+        'createPaymentPreference',
       );
 
       const result = await this.retryWithBackoff(() =>
         createPaymentPreference({
           items: preferenceItems,
           external_reference: orderId,
-        })
+        }),
       );
 
       return {

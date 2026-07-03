@@ -9,6 +9,6 @@ import { FooterComponent } from '@features/shop/components/shared/footer/footer.
   standalone: true,
   imports: [CommonModule, RouterModule, HeaderComponent, FooterComponent],
   templateUrl: './shop.component.html',
-  styleUrls: ['./shop.component.scss'],
+  styleUrl: './shop.component.scss',
 })
 export class ShopComponent {}

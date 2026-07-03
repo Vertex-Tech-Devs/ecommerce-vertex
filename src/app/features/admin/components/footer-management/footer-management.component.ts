@@ -1,9 +1,10 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 import type { FooterData } from '@core/models/footer.model';
 import { FooterService } from '@core/services/footer.service';
@@ -14,12 +15,13 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './footer-management.component.html',
-  styleUrls: ['./footer-management.component.scss'],
+  styleUrl: './footer-management.component.scss',
 })
 export class FooterManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private footerService = inject(FooterService);
   private alertService = inject(SweetAlertService);
+  private destroyRef = inject(DestroyRef);
 
   footerForm!: FormGroup;
   data$: Observable<FooterData | undefined>;
@@ -52,7 +54,7 @@ export class FooterManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1)).subscribe((data) => {
+    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       if (data) {
         this.buildForm(data);
       } else {
@@ -82,7 +84,7 @@ export class FooterManagementComponent implements OnInit {
       this.footerForm.markAllAsTouched();
       this.alertService.error(
         'Formulario Inválido',
-        'Revisa los campos, algunas URLs o el email no son válidos.'
+        'Revisa los campos, algunas URLs o el email no son válidos.',
       );
       return;
     }
@@ -111,7 +113,7 @@ export class FooterManagementComponent implements OnInit {
     void this.alertService
       .confirm(
         'Descartar Cambios',
-        '¿Quieres descartar los cambios no guardados y recargar los datos actuales?'
+        '¿Quieres descartar los cambios no guardados y recargar los datos actuales?',
       )
       .then((confirmed) => {
         if (confirmed) {

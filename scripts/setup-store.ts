@@ -6,8 +6,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUTPUT = resolve(ROOT, 'src/environments/store.config.ts');
 
-const required = (v: string): string | undefined =>
-  v.trim() ? undefined : 'Campo obligatorio';
+const required = (v: string): string | undefined => (v.trim() ? undefined : 'Campo obligatorio');
 
 const CURRENCY_MAP: Record<string, { symbol: string; country: string }> = {
   ARS: { symbol: '$', country: 'AR' },
@@ -76,15 +75,23 @@ async function main(): Promise<void> {
           defaultValue: '',
         }),
     },
-    { onCancel }
+    { onCancel },
   );
 
   const contact = await p.group(
     {
       email: () =>
-        p.text({ message: 'Email de contacto', placeholder: 'hola@tutienda.com', defaultValue: '' }),
+        p.text({
+          message: 'Email de contacto',
+          placeholder: 'hola@tutienda.com',
+          defaultValue: '',
+        }),
       phone: () =>
-        p.text({ message: 'Teléfono (opcional)', placeholder: '+54 11 1234-5678', defaultValue: '' }),
+        p.text({
+          message: 'Teléfono (opcional)',
+          placeholder: '+54 11 1234-5678',
+          defaultValue: '',
+        }),
       whatsapp: () =>
         p.text({
           message: 'WhatsApp — número completo con código país (opcional)',
@@ -104,7 +111,7 @@ async function main(): Promise<void> {
           defaultValue: '',
         }),
     },
-    { onCancel }
+    { onCancel },
   );
 
   const seo = await p.group(
@@ -122,7 +129,7 @@ async function main(): Promise<void> {
           defaultValue: 'Bienvenido a nuestra tienda online.',
         }),
     },
-    { onCancel }
+    { onCancel },
   );
 
   const regional = await p.group(
@@ -142,7 +149,7 @@ async function main(): Promise<void> {
           initialValue: 'ARS',
         }),
     },
-    { onCancel }
+    { onCancel },
   );
 
   const currency = regional.currency as string;
@@ -163,7 +170,7 @@ async function main(): Promise<void> {
   writeFileSync(OUTPUT, generateFile(cfg), 'utf-8');
 
   p.outro(
-    `Listo. ${OUTPUT} generado.\n  Próximo paso: abrí la app y gestioná tu tienda desde el panel de administración.`
+    `Listo. ${OUTPUT} generado.\n  Próximo paso: abrí la app y gestioná tu tienda desde el panel de administración.`,
   );
 }
 

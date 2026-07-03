@@ -209,7 +209,7 @@ describe('EmailManagementComponent', () => {
 
   it('onSendAdvancedTest should call error when sendAdvancedTestEmail rejects', async () => {
     emailSettingsSpy.sendAdvancedTestEmail.and.returnValue(
-      Promise.reject(new Error('server error'))
+      Promise.reject(new Error('server error')),
     );
     component.testEmailModalForm.get('recipientEmail')?.setValue('test@test.com');
 

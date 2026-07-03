@@ -22,7 +22,7 @@ interface ProductDetailData {
 @Component({
   selector: 'app-product-detail',
   templateUrl: './product-detail.component.html',
-  styleUrls: ['./product-detail.component.scss'],
+  styleUrl: './product-detail.component.scss',
   standalone: true,
   imports: [CommonModule, RouterModule, CurrencyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -73,14 +73,14 @@ export class ProductDetailComponent implements OnInit {
               console.error('Error al cargar los detalles del producto:', error);
               void this.router.navigate(['/admin/products']);
               return EMPTY;
-            })
+            }),
           );
         } else {
           console.error('ID de producto no proporcionado en la ruta.');
           void this.router.navigate(['/admin/products']);
           return EMPTY;
         }
-      })
+      }),
     );
   }
 
@@ -105,7 +105,7 @@ export class ProductDetailComponent implements OnInit {
 
     const isConfirmed = await this.sweetAlertService.confirm(
       'Confirmar Eliminación',
-      `¿Estás seguro de que deseas eliminar "${product.name}"?`
+      `¿Estás seguro de que deseas eliminar "${product.name}"?`,
     );
     if (isConfirmed) {
       try {

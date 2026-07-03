@@ -9,7 +9,7 @@ import type { Product } from '@core/models/product.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: 'hero-link-modal.component.html',
-  styleUrls: ['hero-link-modal.component.scss'],
+  styleUrl: 'hero-link-modal.component.scss',
 })
 export class HeroLinkModalComponent {
   @Input() isVisible = false;

@@ -113,8 +113,8 @@ export class StoreConfigService {
         }
 
         // 3. Colors styling injection
+        const root = document.documentElement;
         if (config.colors) {
-          const root = document.documentElement;
           if (config.colors.primary) {
             root.style.setProperty('--color-primary', config.colors.primary);
           }
@@ -125,6 +125,9 @@ export class StoreConfigService {
             root.style.setProperty('--shop-bg', config.colors.background);
           }
         }
+
+        // 4. Font family
+        root.style.setProperty('--font-family', 'Inter');
       }
     });
   }
@@ -162,7 +165,7 @@ export class StoreConfigService {
       ]);
       if (legacySnap?.exists()) {
         const validatedData = StoreConfigSchema.parse(
-          this.parseLegacyConfigRaw(legacySnap.data() as Record<string, unknown>)
+          this.parseLegacyConfigRaw(legacySnap.data() as Record<string, unknown>),
         );
         this._storeConfig.set(validatedData as StoreConfig);
         this.applyConfigToDom(validatedData as StoreConfig);
@@ -228,8 +231,8 @@ export class StoreConfigService {
       }
       link.href = config.faviconUrl;
     }
+    const root = document.documentElement;
     if (config.colors) {
-      const root = document.documentElement;
       if (config.colors.primary) {
         root.style.setProperty('--color-primary', config.colors.primary);
       }
@@ -240,5 +243,6 @@ export class StoreConfigService {
         root.style.setProperty('--shop-bg', config.colors.background);
       }
     }
+    root.style.setProperty('--font-family', 'Inter');
   }
 }

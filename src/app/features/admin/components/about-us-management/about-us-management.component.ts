@@ -1,10 +1,11 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import type { Observable } from 'rxjs';
 import { take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AboutUsData, AboutUsFeatureCard } from '@core/models/about-us.model';
 import { AboutUsService } from '@core/services/about-us.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -14,12 +15,13 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './about-us-management.component.html',
-  styleUrls: ['./about-us-management.component.scss'],
+  styleUrl: './about-us-management.component.scss',
 })
 export class AboutUsManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private aboutUsService = inject(AboutUsService);
   private alertService = inject(SweetAlertService);
+  private destroyRef = inject(DestroyRef);
 
   aboutUsForm!: FormGroup;
   data$: Observable<AboutUsData | undefined>;
@@ -60,7 +62,7 @@ export class AboutUsManagementComponent implements OnInit {
       cardsSectionTitle: [d.cardsSectionTitle ?? '', Validators.required],
       featureCards: this.fb.array(
         [],
-        [Validators.required, Validators.minLength(1), Validators.maxLength(2)]
+        [Validators.required, Validators.minLength(1), Validators.maxLength(2)],
       ),
     });
     this.initFeatureCards(data);
@@ -76,7 +78,7 @@ export class AboutUsManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1)).subscribe((data) => {
+    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       if (data) {
         this.buildForm(data);
       } else {
@@ -151,7 +153,7 @@ export class AboutUsManagementComponent implements OnInit {
       this.aboutUsForm.markAllAsTouched();
       this.alertService.error(
         'Formulario Inválido',
-        'Por favor, revisa todos los campos marcados en rojo.'
+        'Por favor, revisa todos los campos marcados en rojo.',
       );
       return;
     }
@@ -166,7 +168,7 @@ export class AboutUsManagementComponent implements OnInit {
       .then(() => {
         this.alertService.success(
           '¡Guardado!',
-          'El contenido de la página "Nosotros" ha sido actualizado.'
+          'El contenido de la página "Nosotros" ha sido actualizado.',
         );
         this.aboutUsForm.markAsPristine();
         this.bannerPreviewUrl = null;

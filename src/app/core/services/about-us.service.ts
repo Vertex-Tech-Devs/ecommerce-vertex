@@ -31,13 +31,13 @@ export class AboutUsService {
         switchMap((snap) =>
           snap.exists()
             ? (docData(tenantRef) as Observable<AboutUsData | undefined>)
-            : (docData(legacyRef) as Observable<AboutUsData | undefined>)
+            : (docData(legacyRef) as Observable<AboutUsData | undefined>),
         ),
         map((data) => convertTimestampsToDates(data) as AboutUsData | undefined),
         catchError((err) => {
           console.warn('Unable to load about us data:', err);
           return of(undefined);
-        })
+        }),
       );
     });
   }
@@ -45,7 +45,7 @@ export class AboutUsService {
   async saveAboutUsData(
     data: AboutUsData,
     bannerFile: File | null,
-    centralFile: File | null
+    centralFile: File | null,
   ): Promise<void> {
     const dataToSave = { ...data };
 

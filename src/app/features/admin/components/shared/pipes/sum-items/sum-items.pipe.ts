@@ -10,7 +10,7 @@ export class SumItemsPipe implements PipeTransform {
   transform(
     items: OrderItem[] | undefined,
     priceKey: keyof OrderItem,
-    quantityKey: keyof OrderItem
+    quantityKey: keyof OrderItem,
   ): number {
     if (!items || items.length === 0) {
       return 0;
@@ -21,7 +21,7 @@ export class SumItemsPipe implements PipeTransform {
       if (isNaN(price) || isNaN(quantity)) {
         console.warn(
           `SumItemsPipe: Valor no numérico encontrado para ${priceKey} o ${quantityKey} en un item.`,
-          item
+          item,
         );
         return sum;
       }

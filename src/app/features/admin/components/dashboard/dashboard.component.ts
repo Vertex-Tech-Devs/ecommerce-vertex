@@ -62,7 +62,7 @@ export class DashboardComponent implements OnInit {
         orders: orderStats.monthlyOrders,
         newClients: newClientsCount,
       })),
-      catchError(() => of({ sales: 0, orders: 0, newClients: 0 }))
+      catchError(() => of({ sales: 0, orders: 0, newClients: 0 })),
     );
 
     this.globalMetrics$ = combineLatest([
@@ -74,7 +74,7 @@ export class DashboardComponent implements OnInit {
         totalOrders: orderStats.totalOrders,
         totalClients: totalClientsCount,
       })),
-      catchError(() => of({ totalSales: 0, totalOrders: 0, totalClients: 0 }))
+      catchError(() => of({ totalSales: 0, totalOrders: 0, totalClients: 0 })),
     );
 
     this.pendingOrders$ = this.orderService.getPendingOrProcessingOrders();

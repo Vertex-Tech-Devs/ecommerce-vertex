@@ -41,7 +41,7 @@ export class AuthService {
         return tokenResult.claims['admin'] === true;
       }
       return false;
-    })
+    }),
   );
 
   isOwner$: Observable<boolean> = this.currentUser$.pipe(
@@ -56,7 +56,7 @@ export class AuthService {
         return tokenResult.claims['role'] === 'owner';
       }
       return false;
-    })
+    }),
   );
 
   loginWithGoogle(): Observable<UserCredential> {
@@ -67,7 +67,7 @@ export class AuthService {
       (async (): Promise<UserCredential> => {
         try {
           const result = await runInInjectionContext(this.injector, () =>
-            signInWithPopup(this.auth, provider)
+            signInWithPopup(this.auth, provider),
           );
 
           // Force refresh the token to grab custom claims.
@@ -115,7 +115,7 @@ export class AuthService {
           }
           throw err;
         }
-      })()
+      })(),
     );
   }
 
@@ -132,7 +132,7 @@ export class AuthService {
       console.error('Error al cerrar sesión:', err);
       this.sweetAlertService.error(
         'Error',
-        'No se pudo cerrar la sesión. Por favor, inténtalo de nuevo.'
+        'No se pudo cerrar la sesión. Por favor, inténtalo de nuevo.',
       );
       throw err;
     }
