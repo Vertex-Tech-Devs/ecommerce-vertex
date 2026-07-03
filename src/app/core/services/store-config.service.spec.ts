@@ -115,17 +115,6 @@ describe('StoreConfigService', () => {
     await service.loadConfig();
     expect(service.storeConfig()).toBeNull();
   });
-    const mockSnapEmpty = {
-      exists: () => false,
-    } as unknown as DocumentSnapshot;
-
-    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
-    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
-    spyOn(privSvc, 'getDocSnap').and.returnValue(Promise.resolve(mockSnapEmpty));
-
-    await service.loadConfig();
-    expect(service.storeConfig()).toBeNull();
-  });
 
   it('should save config successfully', async () => {
     const privSvc = service as unknown as StoreConfigServiceWithPrivates;
