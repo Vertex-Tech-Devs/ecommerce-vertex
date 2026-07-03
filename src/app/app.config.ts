@@ -22,7 +22,7 @@ import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions'
 import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
 
-import { ModalModule, BsModalService } from 'ngx-bootstrap/modal';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { normalizeFirebaseOptions } from './core/utils/firebase-config.util';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
