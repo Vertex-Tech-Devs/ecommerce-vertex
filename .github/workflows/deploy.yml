@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: '24.18.0'
+  NODE_VERSION: '24'
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
@@ -27,9 +27,9 @@ jobs:
     name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -47,9 +47,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -74,9 +74,9 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/develop') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/develop' && inputs.environment == 'development')
     environment: development
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -108,7 +108,7 @@ jobs:
       - name: Build development
         run: npm run build:dev
 
-      - uses: actions/upload-artifact@v4 # v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dist-dev-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -121,9 +121,9 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.environment == 'production')
     environment: production
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -155,7 +155,7 @@ jobs:
       - name: Build production
         run: npm run build
 
-      - uses: actions/upload-artifact@v4 # v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dist-prod-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -165,9 +165,9 @@ jobs:
     name: Functions Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -186,9 +186,9 @@ jobs:
       name: development
       url: https://ecommerce-vertex-dev.web.app
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -199,7 +199,7 @@ jobs:
         working-directory: functions
 
       - name: Download frontend build
-        uses: actions/download-artifact@v4 # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: dist-dev-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -215,23 +215,12 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
-        id: auth-dev
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
-      - name: Prepare Firebase CLI credentials
-        env:
-          PROJECT_ID: ecommerce-vertex-dev
-        run: |
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-dev.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          gcloud auth activate-service-account --key-file "${{ steps.auth-dev.outputs.credentials_file_path }}"
-          gcloud config set project "$PROJECT_ID"
-          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
-
       - name: Deploy to Firebase Development
-        run: node scripts/firebase-deploy.js --project development --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: npx --yes firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions --force
 
   deploy-prod:
     name: '→ Production'
@@ -242,9 +231,9 @@ jobs:
       name: production
       url: https://ecommerce-vertex.web.app
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -255,7 +244,7 @@ jobs:
         working-directory: functions
 
       - name: Download frontend build
-        uses: actions/download-artifact@v4 # v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: dist-prod-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
@@ -271,23 +260,12 @@ jobs:
           EOF
 
       - name: Authenticate to Google Cloud
-        id: auth-prod
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
-      - name: Prepare Firebase CLI credentials
-        env:
-          PROJECT_ID: ecommerce-vertex
-        run: |
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-prod.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          gcloud auth activate-service-account --key-file "${{ steps.auth-prod.outputs.credentials_file_path }}"
-          gcloud config set project "$PROJECT_ID"
-          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
-
       - name: Deploy to Firebase Production
-        run: node scripts/firebase-deploy.js --project production --only hosting:ecommerce-vertex,functions --force --non-interactive
+        run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions --force
 
       - name: Create GitHub Release
         env:
@@ -301,11 +279,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'repository_dispatch' && (github.event.action == 'provision-store' || github.event.action == 'update-store-version')
     steps:
-      - uses: actions/checkout@v4 # v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event_name == 'repository_dispatch' && (github.event.client_payload.ref || 'main') || github.ref }}
 
-      - uses: actions/setup-node@v4 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -325,7 +303,6 @@ jobs:
           tenant_id = os.environ.get("TENANT_ID", "").strip() or store_id
           content = """export const environment = {{
             production: true,
-            useEmulators: false,
             tenantId: "{tenantId}",
             firebaseConfig: {{
               apiKey: "{apiKey}",
@@ -368,16 +345,11 @@ jobs:
       - name: Build production
         run: npm run build
 
-      - name: Write firebase.json and .firebaserc for store deployment
+      - name: Write minimal firebase.json for store deployment
         run: |
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
-          project_id = os.environ.get("PROJECT_ID", "").strip()
-          if site_id == "default":
-              site_id = project_id
-
-          # Write minimal firebase.json targeting this store's hosting site.
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -385,47 +357,25 @@ jobs:
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
             }
           }
-          if site_id:
+          if site_id and site_id != "default":
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
-
-          # Overwrite .firebaserc so the CLI resolves the project unambiguously.
-          # The checked-out .firebaserc uses named aliases (development/production)
-          # which cause "projects/-" in API calls when we pass the literal project ID.
-          with open(".firebaserc", "w") as f:
-              json.dump({"projects": {"default": project_id}}, f, indent=2)
           PYEOF
         env:
           SITE_ID: ${{ github.event.client_payload.site_id }}
-          PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
-        id: auth-store
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: "${{ github.event.client_payload.platform_project_id == 'vertex-platform-dev' && secrets.FIREBASE_SERVICE_ACCOUNT_DEV || secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}"
-
-      - name: Prepare Firebase CLI credentials
-        env:
-          PROJECT_ID: ${{ github.event.client_payload.project_id }}
-        run: |
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=${{ steps.auth-store.outputs.credentials_file_path }}" >> "$GITHUB_ENV"
-          gcloud auth activate-service-account --key-file "${{ steps.auth-store.outputs.credentials_file_path }}"
-          gcloud config set project "$PROJECT_ID"
-          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> "$GITHUB_ENV"
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}'
 
       - name: Deploy to store Firebase project
-        env:
-          SITE_ID: ${{ github.event.client_payload.site_id }}
-          PROJECT_ID: ${{ github.event.client_payload.project_id }}
         run: |
-          ONLY_TARGET="hosting"
-          if [ -n "$SITE_ID" ] && [ "$SITE_ID" != "default" ]; then
-            ONLY_TARGET="hosting:$SITE_ID"
-          fi
-          node scripts/firebase-deploy.js --project "$PROJECT_ID" --only "$ONLY_TARGET" --non-interactive
+          npx --yes firebase-tools deploy \
+            --project '${{ github.event.client_payload.project_id }}' \
+            --only hosting \
+            --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
@@ -434,17 +384,7 @@ jobs:
           if [ -z "$DEPLOY_TOKEN" ]; then
             DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
           fi
-          
-          EVENT_ACTION="${{ github.event.action }}"
-          if [ "$EVENT_ACTION" = "update-store-version" ]; then
-            FUNCTION_NAME="completeVersionUpdate"
-            PAYLOAD="{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\", \"version\": \"${{ github.event.client_payload.version }}\"}}"
-          else
-            FUNCTION_NAME="completeStoreDeployment"
-            PAYLOAD="{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\"}}"
-          fi
-          
           curl -s -X POST \
-            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$FUNCTION_NAME" \
+            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/completeStoreDeployment" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\"}}"
