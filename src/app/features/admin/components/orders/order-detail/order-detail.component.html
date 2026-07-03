@@ -211,3 +211,11 @@
     </div>
   </div>
 </section>
+
+@if (showReceipt && receiptOrder) {
+  <div class="modal-overlay" (click)="closeReceipt()">
+    <div class="modal-wrapper" (click)="$event.stopPropagation()">
+      <app-receipt-modal [order]="receiptOrder" (closeModal)="closeReceipt()"></app-receipt-modal>
+    </div>
+  </div>
+}

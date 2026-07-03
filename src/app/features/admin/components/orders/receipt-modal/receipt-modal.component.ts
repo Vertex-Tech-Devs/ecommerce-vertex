@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { BsModalRef } from 'ngx-bootstrap/modal';
 import type { Order, OrderItem } from '@core/models/order.model';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
@@ -13,10 +12,12 @@ import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
   styleUrls: ['./receipt-modal.component.scss'],
 })
 export class ReceiptModalComponent {
-  bsModalRef = inject(BsModalRef);
   private readonly storeConfig = inject(StoreConfigService);
+
+  @Input() order: Order | undefined;
+  @Output() closeModal = new EventEmitter<void>();
+
   title = 'Recibo de Pedido';
-  order: Order | undefined;
   today = new Date();
   readonly storeName = this.storeConfig.storeName;
   readonly logoUrl = this.storeConfig.logoUrl;
@@ -34,7 +35,7 @@ export class ReceiptModalComponent {
   }
 
   close(): void {
-    this.bsModalRef.hide();
+    this.closeModal.emit();
   }
 
   printReceipt(): void {

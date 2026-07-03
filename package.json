@@ -48,7 +48,6 @@
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
     "firebase": "^11.10.0",
-    "ngx-bootstrap": "^21.2.0",
     "ngx-quill": "^31.0.0",
     "quill": "2.0.2",
     "rxjs": "^7.8.2",

@@ -9,9 +9,6 @@ import { of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
 import { ReceiptModalComponent } from '../receipt-modal/receipt-modal.component';
 
 @Component({
@@ -25,6 +22,7 @@ import { ReceiptModalComponent } from '../receipt-modal/receipt-modal.component'
     DatePipe,
     TitleCasePipe,
     SumItemsPipe,
+    ReceiptModalComponent,
   ],
   templateUrl: './order-detail.component.html',
   styleUrls: ['./order-detail.component.scss'],
@@ -33,9 +31,9 @@ export class OrderDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orderService = inject(OrderService);
-  private modalService = inject(BsModalService);
 
-  bsModalRef?: BsModalRef;
+  showReceipt = false;
+  receiptOrder: Order | undefined;
   order$!: Observable<Order | undefined>;
   orderId: string | null = null;
   pageTitle: string = 'Detalles del Pedido';
@@ -90,15 +88,11 @@ export class OrderDetailComponent implements OnInit {
   }
 
   generateReceipt(order: Order): void {
-    const initialState = {
-      order,
-      title: `Recibo del Pedido`,
-    };
+    this.receiptOrder = order;
+    this.showReceipt = true;
+  }
 
-    this.bsModalRef = this.modalService.show(ReceiptModalComponent, {
-      initialState,
-      class: 'modal-lg modal-dialog-centered modal-receipt-wrapper',
-      backdrop: 'static',
-    });
+  closeReceipt(): void {
+    this.showReceipt = false;
   }
 }

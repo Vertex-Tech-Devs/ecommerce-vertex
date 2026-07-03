@@ -25,9 +25,9 @@
                 id="name"
                 class="form-control glass-input"
                 formControlName="name"
-                [ngClass]="{ 'is-invalid': name.invalid && (name.dirty || name.touched) }"
+                [ngClass]="{ 'is-invalid': name?.invalid && (name?.dirty || name?.touched) }"
               />
-              @if (name.invalid && (name.dirty || name.touched)) {
+              @if (name?.invalid && (name?.dirty || name?.touched)) {
                 <div class="invalid-feedback">
                   <div>El nombre es obligatorio (mín. 3 caracteres).</div>
                 </div>
@@ -43,10 +43,10 @@
                   id="price"
                   class="form-control glass-input"
                   formControlName="price"
-                  [ngClass]="{ 'is-invalid': price.invalid && (price.dirty || price.touched) }"
+                  [ngClass]="{ 'is-invalid': price?.invalid && (price?.dirty || price?.touched) }"
                 />
               </div>
-              @if (price.invalid && (price.dirty || price.touched)) {
+              @if (price?.invalid && (price?.dirty || price?.touched)) {
                 <div class="invalid-feedback d-block mt-1">
                   @if (price.errors?.['required']) {
                     <div>El precio es obligatorio.</div>
@@ -66,7 +66,7 @@
               class="form-select glass-input hardware-accelerated"
               formControlName="categoryId"
               [ngClass]="{
-                'is-invalid': categoryId.invalid && (categoryId.dirty || categoryId.touched),
+                'is-invalid': categoryId?.invalid && (categoryId?.dirty || categoryId?.touched),
               }"
             >
               <option [ngValue]="null" disabled>Selecciona una categoría</option>
@@ -76,7 +76,7 @@
                 }
               }
             </select>
-            @if (categoryId.invalid && (categoryId.dirty || categoryId.touched)) {
+            @if (categoryId?.invalid && (categoryId?.dirty || categoryId?.touched)) {
               <div class="invalid-feedback mt-1">
                 <div>Debes seleccionar una categoría.</div>
               </div>
@@ -107,7 +107,7 @@
               class="form-control glass-file-input"
               (change)="onFileSelected($event)"
               accept="image/*"
-              [ngClass]="{ 'is-invalid': image.invalid && (image.dirty || image.touched) }"
+              [ngClass]="{ 'is-invalid': image?.invalid && (image?.dirty || image?.touched) }"
             />
             @if (uploadProgress !== null) {
               <div class="progress mt-3" style="height: 6px">
@@ -118,12 +118,12 @@
                 ></div>
               </div>
             }
-            @if (image.value) {
+            @if (image?.value) {
               <div class="image-preview-main mt-3">
-                <img [src]="image.value" alt="Vista previa" />
+                <img [src]="image?.value" alt="Vista previa" />
               </div>
             }
-            @if (image.invalid && (image.dirty || image.touched)) {
+            @if (image?.invalid && (image?.dirty || image?.touched)) {
               <div class="invalid-feedback mt-2">
                 <div>La imagen principal es obligatoria.</div>
               </div>
@@ -195,7 +195,7 @@
             class="d-flex flex-row justify-content-between align-items-center mb-3 mb-md-4 gap-2"
           >
             <h4 class="section-subtitle mb-0"><i class="bi bi-tags me-2"></i>Atributos</h4>
-            <button (click)="openAttributeModal()" type="button" class="btn-glass-primary btn-sm">
+            <button (click)="toggleAttributeForm()" type="button" class="btn-glass-primary btn-sm">
               <i class="bi bi-plus-lg" aria-hidden="true"></i>
               <span class="d-none d-sm-inline ms-1">Crear Atributo</span>
             </button>
@@ -230,6 +230,34 @@
               }
             </div>
           </div>
+
+          @if (showAttributeForm) {
+            <div class="glass-panel p-3 p-md-4 mb-4 mb-md-5">
+              <h5 class="section-subtitle mb-3">
+                <i class="bi bi-plus-circle me-2"></i>Nuevo Atributo
+              </h5>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-6">
+                  <label class="form-label text-label">Nombre del atributo</label>
+                  <input
+                    type="text"
+                    class="form-control glass-input"
+                    [(ngModel)]="newAttributeName"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="Ej: Talle, Color, Material"
+                  />
+                </div>
+                <div class="col-md-6 d-flex gap-2">
+                  <button (click)="createAttribute()" type="button" class="btn-glass-primary">
+                    <i class="bi bi-check2 me-1"></i> Guardar
+                  </button>
+                  <button (click)="toggleAttributeForm()" type="button" class="btn-glass-secondary">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
 
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 mb-md-4 gap-3"

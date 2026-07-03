@@ -1,5 +1,5 @@
 import type { ApplicationConfig } from '@angular/core';
-import { ErrorHandler, APP_INITIALIZER, inject, importProvidersFrom } from '@angular/core';
+import { ErrorHandler, APP_INITIALIZER, inject } from '@angular/core';
 import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FirebaseApp } from '@angular/fire/app';
@@ -22,7 +22,6 @@ import { getFunctions, connectFunctionsEmulator } from '@angular/fire/functions'
 import { getStorage, connectStorageEmulator } from '@angular/fire/storage';
 import type { Firestore } from '@angular/fire/firestore';
 
-import { ModalModule, BsModalService } from 'ngx-bootstrap/modal';
 import { normalizeFirebaseOptions } from './core/utils/firebase-config.util';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 import { httpErrorInterceptor } from './core/interceptors/http-error.interceptor';
@@ -99,8 +98,6 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         }
         return storage;
       }),
-      importProvidersFrom(ModalModule),
-      BsModalService,
       {
         provide: APP_INITIALIZER,
         useFactory: (configService: StoreConfigService) => (): Promise<void> =>

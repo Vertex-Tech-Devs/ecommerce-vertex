@@ -1,74 +1,85 @@
-import type { OnInit, OnDestroy } from '@angular/core';
+import type { OnInit } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { Observable, Subscription } from 'rxjs';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
+import { FormsModule } from '@angular/forms';
+import type { Observable } from 'rxjs';
 import type { Attribute } from '@core/models/attribute.model';
 import { AttributeService } from '@core/services/attribute.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
-import { AttributeModalComponent } from '../attribute-modal/attribute-modal.component';
 
 @Component({
   selector: 'app-attributes-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './attributes-list.component.html',
   styleUrls: ['./attributes-list.component.scss'],
 })
-export class AttributesListComponent implements OnInit, OnDestroy {
+export class AttributesListComponent implements OnInit {
   private attributeService = inject(AttributeService);
-  private modalService = inject(BsModalService);
   private sweetAlertService = inject(SweetAlertService);
 
+  showAttributeForm = false;
+  inlineAttribute: { id?: string; name: string; values: string } = { name: '', values: '' };
+
   attributes$!: Observable<Attribute[]>;
-  private bsModalRef?: BsModalRef;
-  private modalSubscription?: Subscription;
 
   ngOnInit(): void {
     this.attributes$ = this.attributeService.getAttributes();
   }
 
-  ngOnDestroy(): void {
-    this.modalSubscription?.unsubscribe();
+  toggleAttributeForm(attribute?: Attribute): void {
+    if (attribute) {
+      this.inlineAttribute = {
+        id: attribute.id,
+        name: attribute.name || '',
+        values: (attribute.values || []).join(', '),
+      };
+    } else {
+      this.inlineAttribute = { name: '', values: '' };
+    }
+    this.showAttributeForm = true;
   }
 
-  openAttributeModal(attribute?: Attribute): void {
-    const initialState = attribute ? { attribute: { ...attribute } } : {};
-    this.bsModalRef = this.modalService.show(AttributeModalComponent, {
-      initialState,
-      class: 'modal-lg modal-dialog-centered',
-    });
+  cancelInlineForm(): void {
+    this.showAttributeForm = false;
+    this.inlineAttribute = { name: '', values: '' };
+  }
 
-    this.modalSubscription = this.bsModalRef.content.onClose.subscribe(
-      (result: Partial<Attribute> | null) => {
-        if (result) {
-          if (attribute?.id) {
-            this.updateAttribute(attribute.id, result);
-          } else {
-            this.addAttribute(result as Attribute);
-          }
-        }
+  async saveInlineAttribute(): Promise<void> {
+    const name = this.inlineAttribute.name.trim();
+    if (!name || name.length < 3) {
+      this.sweetAlertService.warning(
+        'Aviso',
+        'El nombre del atributo debe tener al menos 3 caracteres.'
+      );
+      return;
+    }
+    const values = this.inlineAttribute.values
+      .split(',')
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0);
+    const uniqueValues = [...new Set(values)];
+
+    try {
+      if (this.inlineAttribute.id) {
+        await this.attributeService.updateAttribute(this.inlineAttribute.id, {
+          name,
+          values: uniqueValues,
+        });
+        this.sweetAlertService.success('¡Éxito!', 'Atributo actualizado correctamente.');
+      } else {
+        await this.attributeService.addAttribute({
+          name,
+          values: uniqueValues,
+        } as Attribute);
+        this.sweetAlertService.success('¡Éxito!', 'Atributo creado correctamente.');
       }
-    );
-  }
-
-  private addAttribute(attributeData: Attribute): void {
-    this.attributeService
-      .addAttribute(attributeData)
-      .then(() => this.sweetAlertService.success('¡Éxito!', 'Atributo creado correctamente.'))
-      .catch((_err) =>
-        this.sweetAlertService.error('Error', 'Hubo un problema al crear el atributo.')
-      );
-  }
-
-  private updateAttribute(id: string, attributeData: Partial<Attribute>): void {
-    this.attributeService
-      .updateAttribute(id, attributeData)
-      .then(() => this.sweetAlertService.success('¡Éxito!', 'Atributo actualizado correctamente.'))
-      .catch((_err) =>
-        this.sweetAlertService.error('Error', 'Hubo un problema al actualizar el atributo.')
-      );
+      this.showAttributeForm = false;
+      this.inlineAttribute = { name: '', values: '' };
+      this.attributes$ = this.attributeService.getAttributes();
+    } catch {
+      this.sweetAlertService.error('Error', 'Hubo un problema al guardar el atributo.');
+    }
   }
 
   async onDelete(attribute: Attribute): Promise<void> {

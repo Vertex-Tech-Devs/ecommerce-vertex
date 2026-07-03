@@ -7,10 +7,7 @@ import { ProductService } from '@core/services/product.service';
 import type { Observable } from 'rxjs';
 import { EMPTY, combineLatest } from 'rxjs';
 import { switchMap, catchError, map, tap } from 'rxjs/operators';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
-import { ConfirmDeleteModalComponent } from '@features/admin/components/shared/components/confirm-delete-modal/confirm-delete-modal.component';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { CategoryService } from '@core/services/category.service';
 import type { Category } from '@core/models/category.model';
 import type { Attribute } from '@core/models/attribute.model';
@@ -34,13 +31,12 @@ export class ProductDetailComponent implements OnInit {
   data$!: Observable<ProductDetailData>;
   variantAttributes = signal<{ id: string; name: string }[]>([]);
 
-  private modalService = inject(BsModalService);
+  private sweetAlertService = inject(SweetAlertService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private attributeService = inject(AttributeService);
-  private bsModalRef?: BsModalRef;
   private allAttributes: Attribute[] = [];
 
   ngOnInit(): void {
@@ -102,25 +98,22 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
-  confirmDeleteProduct(product: Product): void {
+  async confirmDeleteProduct(product: Product): Promise<void> {
     if (!product?.id) {
       return;
     }
 
-    this.bsModalRef = this.modalService.show(ConfirmDeleteModalComponent, {
-      initialState: {
-        title: 'Confirmar Eliminación',
-        message: `¿Estás seguro de que deseas eliminar "${product.name}"?`,
-      },
-      class: 'modal-md modal-dialog-centered',
-    });
-
-    this.bsModalRef.content.onClose.subscribe((result: boolean) => {
-      if (result) {
-        void this.productService.deleteProduct(product.id).then(() => {
-          void this.router.navigate(['/admin/products']);
-        });
+    const isConfirmed = await this.sweetAlertService.confirm(
+      'Confirmar Eliminación',
+      `¿Estás seguro de que deseas eliminar "${product.name}"?`
+    );
+    if (isConfirmed) {
+      try {
+        await this.productService.deleteProduct(product.id);
+        await this.router.navigate(['/admin/products']);
+      } catch {
+        this.sweetAlertService.error('Error', 'No se pudo eliminar el producto.');
       }
-    });
+    }
   }
 }
