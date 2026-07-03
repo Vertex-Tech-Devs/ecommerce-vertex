@@ -1,114 +1,85 @@
-import type { OnInit, OnDestroy } from '@angular/core';
+import type { OnInit } from '@angular/core';
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { Observable, Subscription } from 'rxjs';
-import { map } from 'rxjs';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- DI token requires runtime import
-import { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
-
-import type { Category } from '@core/models/category.model';
-import { CategoryService } from '@core/services/category.service';
+import { FormsModule } from '@angular/forms';
+import type { Observable } from 'rxjs';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
-import { CategoryModalComponent } from '../category-modal/category-modal.component';
+import type { Category } from '@core/models/category.model';
 import type { WithFieldValue } from '@angular/fire/firestore';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { AttributeService } from '@core/services/attribute.service';
+import { CategoryService } from '@core/services/category.service';
 
 @Component({
   selector: 'app-categories-list',
   standalone: true,
-  imports: [CommonModule, ModalModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './categories-list.component.html',
   styleUrls: ['./categories-list.component.scss'],
 })
-export class CategoriesListComponent implements OnInit, OnDestroy {
+export class CategoriesListComponent implements OnInit {
   private categoryService = inject(CategoryService);
-  private attributeService = inject(AttributeService);
-  private modalService = inject(BsModalService);
   private sweetAlertService = inject(SweetAlertService);
 
-  categories$!: Observable<Category[]>;
-  private bsModalRef?: BsModalRef;
-  private modalSubscription?: Subscription;
+  showCategoryForm = false;
+  inlineCategory: { id?: string; name: string } = { name: '' };
 
-  attributesMap: Map<string, string> = new Map();
+  categories$!: Observable<Category[]>;
 
   ngOnInit(): void {
-    this.attributeService
-      .getAttributes()
-      .pipe(
-        map((attributes) =>
-          attributes.forEach((attr) => this.attributesMap.set(attr.id!, attr.name))
-        )
-      )
-      .subscribe();
-
     this.categories$ = this.categoryService.getCategories();
   }
 
-  ngOnDestroy(): void {
-    this.modalSubscription?.unsubscribe();
-  }
-
-  getAttributeNames(attributeIds: string[] | undefined): string {
-    if (!attributeIds || attributeIds.length === 0) {
-      return 'Ninguno';
+  toggleCategoryForm(category?: Category): void {
+    if (category) {
+      this.inlineCategory = { id: category.id, name: category.name || '' };
+    } else {
+      this.inlineCategory = { name: '' };
     }
-    return attributeIds.map((id) => this.attributesMap.get(id) ?? 'ID Desconocido').join(', ');
+    this.showCategoryForm = true;
   }
 
-  openCategoryModal(category?: Category): void {
-    const initialState = category ? { category: { ...category } } : {};
-    this.bsModalRef = this.modalService.show(CategoryModalComponent, {
-      initialState,
-      class: 'modal-lg modal-dialog-centered modal-dialog-scrollable',
-    });
+  cancelCategoryForm(): void {
+    this.showCategoryForm = false;
+    this.inlineCategory = { name: '' };
+  }
 
-    this.modalSubscription = this.bsModalRef.content.onClose.subscribe(
-      (
-        result: {
-          name: string;
-          slug: string;
-          parentId: string | null;
-          filterableAttributes: string[];
-        } | null
-      ) => {
-        if (result) {
-          if (category?.id) {
-            this.updateCategory(category.id, result);
-          } else {
-            this.addCategory(result);
-          }
-        }
+  async saveCategory(): Promise<void> {
+    const name = this.inlineCategory.name.trim();
+    if (!name || name.length < 3) {
+      this.sweetAlertService.warning(
+        'Aviso',
+        'El nombre de la categoría debe tener al menos 3 caracteres.'
+      );
+      return;
+    }
+    const slug = name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    try {
+      if (this.inlineCategory.id) {
+        await this.categoryService.updateCategory(this.inlineCategory.id, {
+          name,
+          slug,
+        });
+        this.sweetAlertService.success('¡Éxito!', 'Categoría actualizada correctamente.');
+      } else {
+        await this.categoryService.addCategory({
+          name,
+          slug,
+          parentId: null,
+          filterableAttributes: [],
+        } as unknown as WithFieldValue<Omit<Category, 'id'>>);
+        this.sweetAlertService.success('¡Éxito!', 'Categoría creada correctamente.');
       }
-    );
-  }
-
-  private addCategory(categoryData: {
-    name: string;
-    slug: string;
-    parentId: string | null;
-    filterableAttributes: string[];
-  }): void {
-    const data: WithFieldValue<Omit<Category, 'id'>> = {
-      ...categoryData,
-    };
-    this.categoryService
-      .addCategory(data)
-      .then(() => this.sweetAlertService.success('¡Éxito!', 'Categoría creada correctamente.'))
-      .catch((_err) =>
-        this.sweetAlertService.error('Error', 'Hubo un problema al crear la categoría.')
-      );
-  }
-
-  private updateCategory(id: string, categoryData: Partial<Category>): void {
-    this.categoryService
-      .updateCategory(id, categoryData)
-      .then(() => this.sweetAlertService.success('¡Éxito!', 'Categoría actualizada correctamente.'))
-      .catch((_err) =>
-        this.sweetAlertService.error('Error', 'Hubo un problema al actualizar la categoría.')
-      );
+      this.showCategoryForm = false;
+      this.inlineCategory = { name: '' };
+      this.categories$ = this.categoryService.getCategories();
+    } catch {
+      this.sweetAlertService.error('Error', 'Hubo un problema al guardar la categoría.');
+    }
   }
 
   async onDelete(category: Category): Promise<void> {

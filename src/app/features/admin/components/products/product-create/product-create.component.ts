@@ -18,7 +18,6 @@ import type { Category } from '@core/models/category.model';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AttributeService } from '@core/services/attribute.service';
 import type { Attribute } from '@core/models/attribute.model';
-import { AttributeModalComponent } from '@features/admin/components/attributes/attribute-modal/attribute-modal.component';
 import { ProductVariantFormService } from './product-variant-form.service';
 import type { ProductFormValue } from './product-variant-form.service';
 
