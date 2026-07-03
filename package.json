@@ -1,6 +1,6 @@
 {
   "name": "ecommerce-vertex",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {
     "setup": "tsx scripts/setup.ts",
     "setup:credentials": "tsx scripts/setup-credentials.ts",
