@@ -99,8 +99,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         }
         return storage;
       }),
-      importProvidersFrom(ModalModule),
-      BsModalService,
+      importProvidersFrom(ModalModule.forRoot()),
       {
         provide: APP_INITIALIZER,
         useFactory: (configService: StoreConfigService) => (): Promise<void> =>
