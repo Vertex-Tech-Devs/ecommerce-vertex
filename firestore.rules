@@ -97,41 +97,7 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Legacy flat-path rules — read-only fallback for stores provisioned before
-    // the tenants/{tenantId}/ namespace migration. New writes always go to the
-    // tenant namespace; these rules exist only so the frontend can display
-    // existing store data while a migration is pending.
-    match /products/{docId} {
-      allow read: if true;
-      match /variants/{variantId} {
-        allow read: if true;
-      }
-    }
-    match /categories/{docId} {
-      allow read: if true;
-    }
-    match /attributes/{docId} {
-      allow read: if true;
-    }
-    match /siteContent/{docId} {
-      allow read: if true;
-    }
-    match /pages/{docId} {
-      allow read: if true;
-    }
-    match /configuracion/{docId} {
-      allow read: if true;
-    }
-    match /settings/{docId} {
-      allow read: if isAuthenticated();
-    }
-    match /clients/{docId} {
-      allow read: if isAuthenticated();
-    }
-    match /orders/{orderId} {
-      allow get, create: if true;
-      allow list: if isAuthenticated();
-    }
+
   }
 }
 

@@ -12,12 +12,13 @@ import { CategoryService } from '@core/services/category.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { CategoryModalComponent } from '../category-modal/category-modal.component';
 import type { WithFieldValue } from '@angular/fire/firestore';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { AttributeService } from '@core/services/attribute.service';
 
 @Component({
   selector: 'app-categories-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ModalModule],
   templateUrl: './categories-list.component.html',
   styleUrls: ['./categories-list.component.scss'],
 })

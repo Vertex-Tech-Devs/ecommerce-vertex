@@ -8,12 +8,13 @@ import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
 import type { Category } from '@core/models/category.model';
 import type { Attribute } from '@core/models/attribute.model';
+import { ModalModule } from 'ngx-bootstrap/modal';
 import { AttributeService } from '@core/services/attribute.service';
 
 @Component({
   selector: 'app-category-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ModalModule],
   templateUrl: './category-modal.component.html',
   styleUrls: ['./category-modal.component.scss'],
 })
