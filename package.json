@@ -31,6 +31,9 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
     "build:dev": "ng build --configuration development",
     "build:fn": "npm --prefix functions run build",
+    "release:patch": "npm version patch -m 'chore(release): v%s' && git push && git push --tags",
+    "release:minor": "npm version minor -m 'chore(release): v%s' && git push && git push --tags",
+    "release:major": "npm version major -m 'chore(release): v%s' && git push && git push --tags",
     "postinstall": "([ ! -f src/environments/environment.ts ] && cp src/environments/environment.example.ts src/environments/environment.ts 2>/dev/null || true) && ([ ! -f src/firebase-config.json ] && cp src/firebase-config.example.json src/firebase-config.json 2>/dev/null || true) && ([ -z \"$CI\" ] && [ -d \"functions\" ] && (cd functions && npm install) || true)"
   },
   "dependencies": {
