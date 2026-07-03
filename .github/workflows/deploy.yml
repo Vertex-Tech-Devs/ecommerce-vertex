@@ -434,7 +434,17 @@ jobs:
           if [ -z "$DEPLOY_TOKEN" ]; then
             DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
           fi
+          
+          EVENT_ACTION="${{ github.event.action }}"
+          if [ "$EVENT_ACTION" = "update-store-version" ]; then
+            FUNCTION_NAME="completeVersionUpdate"
+            PAYLOAD="{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\", \"version\": \"${{ github.event.client_payload.version }}\"}}"
+          else
+            FUNCTION_NAME="completeStoreDeployment"
+            PAYLOAD="{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\"}}"
+          fi
+          
           curl -s -X POST \
-            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/completeStoreDeployment" \
+            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$FUNCTION_NAME" \
             -H "Content-Type: application/json" \
-            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\"}}"
+            -d "$PAYLOAD"
