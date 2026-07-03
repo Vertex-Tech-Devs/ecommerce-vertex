@@ -103,50 +103,28 @@ describe('StoreConfigService', () => {
     expect(service.isFirstRun()).toBeTrue();
   });
 
-  it("should load config from legacy flat configuracion/{tenantId} collection when namespaced configuracion/store doesn't exist", async () => {
-    let callCount = 0;
+  it('should return null when configuracion/store does not exist (legacy fallback removed)', async () => {
     const mockSnapEmpty = {
       exists: () => false,
-    } as unknown as DocumentSnapshot;
-    const mockSnapFallback = {
-      exists: () => true,
-      data: () => ({
-        storeName: 'Fallback Store',
-        tagline: 'Fallback Tag',
-        logoUrl: 'https://fallback.logo',
-        faviconUrl: 'https://fallback.favicon',
-        colors: {
-          primary: '#ea580c',
-          accent: '#ef4444',
-          background: '#ffffff',
-        },
-        payments: {
-          mercadoPagoPublicKey: 'TEST-MP',
-        },
-        contact: {
-          phone: '987654',
-          email: 'fallback@store.com',
-          whatsApp: '98765',
-        },
-        seo: {
-          metaDescription: 'Fallback Meta',
-        },
-      }),
     } as unknown as DocumentSnapshot;
 
     const privSvc = service as unknown as StoreConfigServiceWithPrivates;
     spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
-    spyOn(privSvc, 'getDocSnap').and.callFake(() => {
-      callCount++;
-      if (callCount === 1) {
-        return Promise.resolve(mockSnapEmpty);
-      }
-      return Promise.resolve(mockSnapFallback);
-    });
+    spyOn(privSvc, 'getDocSnap').and.returnValue(Promise.resolve(mockSnapEmpty));
 
     await service.loadConfig();
-    expect(service.storeConfig()?.storeName).toBe('Fallback Store');
-    expect(service.storeConfig()?.payments.mercadoPagoPublicKey).toBe('TEST-MP');
+    expect(service.storeConfig()).toBeNull();
+  });
+    const mockSnapEmpty = {
+      exists: () => false,
+    } as unknown as DocumentSnapshot;
+
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+    spyOn(privSvc, 'getDocSnap').and.returnValue(Promise.resolve(mockSnapEmpty));
+
+    await service.loadConfig();
+    expect(service.storeConfig()).toBeNull();
   });
 
   it('should save config successfully', async () => {
