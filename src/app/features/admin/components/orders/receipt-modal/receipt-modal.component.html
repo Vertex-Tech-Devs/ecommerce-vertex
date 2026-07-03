@@ -1,10 +1,10 @@
 @if (order) {
-  <div class="modal-header modal-header-glass">
+  <div class="modal-header">
     <h4 class="modal-title w-100 text-center mb-0">
       <i class="bi bi-receipt me-2 text-primary" aria-hidden="true"></i>
       Recibo #{{ order.id }}
     </h4>
-    <button type="button" class="btn-close-glass" aria-label="Close" (click)="close()">
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()">
       <i class="bi bi-x-lg"></i>
     </button>
   </div>
@@ -183,24 +183,24 @@
     </div>
   </div>
 
-  <div class="modal-footer modal-footer-glass">
+  <div class="modal-footer">
     <button type="button" class="btn-glass-secondary" (click)="close()">Cancelar</button>
     <button type="button" class="btn-glass-primary" (click)="printReceipt()">
       <i class="bi bi-printer me-2" aria-hidden="true"></i>Imprimir Recibo
     </button>
   </div>
 } @else {
-  <div class="modal-header modal-header-glass">
+  <div class="modal-header">
     <h4 class="modal-title w-100 text-center text-danger mb-0">Error</h4>
-    <button type="button" class="btn-close-glass" aria-label="Close" (click)="close()">
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()">
       <i class="bi bi-x-lg"></i>
     </button>
   </div>
-  <div class="modal-body modal-body-glass text-center py-5">
+  <div class="modal-body text-center py-5">
     <i class="bi bi-exclamation-triangle text-danger fs-1 mb-3 d-block" aria-hidden="true"></i>
-    <p class="text-light fs-5">No se pudieron cargar los datos del recibo.</p>
+    <p>No se pudieron cargar los datos del recibo.</p>
   </div>
-  <div class="modal-footer modal-footer-glass">
+  <div class="modal-footer">
     <button type="button" class="btn-glass-secondary w-100" (click)="close()">Cerrar</button>
   </div>
 }

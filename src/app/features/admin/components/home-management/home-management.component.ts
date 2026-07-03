@@ -9,6 +9,7 @@ import type { Observable } from 'rxjs';
 
 import { HomeContentService } from '@core/services/home-content.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { patchAndMarkDirty } from '@core/utils/form.util';
 import { CategoryService } from '@core/services/category.service';
 import { ProductService } from '@core/services/product.service';
 import { HeroLinkModalComponent } from './components/hero-link-modal/hero-link-modal.component';
@@ -196,9 +197,10 @@ export class HomeManagementComponent implements OnInit {
     const selectedId = (event.target as HTMLSelectElement).value;
     const categoryData = this.categoryMap.get(selectedId);
     if (categoryData) {
-      this.featuredCategories
-        .at(index)
-        .patchValue({ name: categoryData.name, slug: categoryData.slug });
+      patchAndMarkDirty(this.featuredCategories.at(index) as FormGroup, {
+        name: categoryData.name,
+        slug: categoryData.slug,
+      });
     }
   }
 

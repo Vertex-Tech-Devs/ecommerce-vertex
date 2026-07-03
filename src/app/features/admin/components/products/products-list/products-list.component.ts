@@ -1,16 +1,14 @@
-import type { OnInit, OnDestroy } from '@angular/core';
+import type { OnInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, TitleCasePipe, ViewportScroller } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
-import type { Observable, Subscription } from 'rxjs';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
+import type { Observable } from 'rxjs';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import type { Product } from '@core/models/product.model';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
-import type { BsModalRef } from 'ngx-bootstrap/modal';
-import { BsModalService } from 'ngx-bootstrap/modal';
-import { ConfirmDeleteModalComponent } from '../../shared/components/confirm-delete-modal/confirm-delete-modal.component';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { CategoryService } from '@core/services/category.service';
 import type { Category } from '@core/models/category.model';
@@ -23,16 +21,13 @@ import type { Category } from '@core/models/category.model';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProductsListComponent implements OnInit, OnDestroy {
+export class ProductsListComponent implements OnInit {
   products$!: Observable<Product[]>;
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
-  private modalService = inject(BsModalService);
+  private sweetAlertService = inject(SweetAlertService);
   private viewportScroller = inject(ViewportScroller);
-
-  bsModalRef?: BsModalRef;
-  private modalSubscription?: Subscription;
 
   searchTermSubject = new BehaviorSubject<string>('');
   filterCategorySubject = new BehaviorSubject<string>('all');
@@ -127,25 +122,19 @@ export class ProductsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.bsModalRef?.hide();
-    this.modalSubscription?.unsubscribe();
-  }
-
-  confirmDelete(product: Product): void {
-    this.bsModalRef = this.modalService.show(ConfirmDeleteModalComponent, {
-      initialState: {
-        title: 'Confirmar Eliminación de Producto',
-        message: `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`,
-      },
-      class: 'modal-md modal-dialog-centered',
-    });
-
-    this.modalSubscription = this.bsModalRef.content.onClose.subscribe((result: boolean) => {
-      if (result) {
-        void this.productService.deleteProduct(product.id);
+  async confirmDelete(product: Product): Promise<void> {
+    const isConfirmed = await this.sweetAlertService.confirm(
+      'Confirmar Eliminación de Producto',
+      `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`
+    );
+    if (isConfirmed && product.id) {
+      try {
+        await this.productService.deleteProduct(product.id);
+        this.sweetAlertService.success('Eliminado', 'El producto ha sido eliminado.');
+      } catch {
+        this.sweetAlertService.error('Error', 'Hubo un problema al eliminar el producto.');
       }
-    });
+    }
   }
 
   newProduct(): void {

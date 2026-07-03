@@ -165,4 +165,33 @@ Este repositorio opera bajo políticas estrictas de flujo de trabajo y protecci�
 
 ---
 
+## 🔢 Versionado del Template
+
+Este repositorio es el **template de tienda** que la plataforma provisiona para cada cliente.
+Las versiones siguen **Semver** (`MAJOR.MINOR.PATCH`).
+
+### Comandos de release
+
+```bash
+npm run release:patch   # Bugfix → 0.1.0 → 0.1.1
+npm run release:minor   # Nueva feature → 0.1.0 → 0.2.0
+npm run release:major   # Breaking change → 0.1.0 → 1.0.0
+```
+
+Cada comando hace automáticamente: bump de `package.json` + commit + tag + push.
+
+### Flujo automático tras el release
+
+1. CI `release.yml` detecta el nuevo tag `v*`
+2. Valida que `package.json` y el tag coincidan
+3. Crea el **GitHub Release** oficial con notas autogeneradas
+4. Notifica a `vertex-platform` vía `repository_dispatch`
+5. La plataforma abre un **PR automático** para actualizar `CURRENT_TEMPLATE_VERSION`
+6. Un admin de plataforma revisa y mergea el PR (paso manual intencional)
+
+### Versión actual: `v0.1.0`
+
+
+---
+
 📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal. Para reglas de agentes de IA y flujos de QA unificados, consulta [agent.md](agent.md).

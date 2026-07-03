@@ -168,6 +168,7 @@ export class StoreConfigComponent implements OnInit {
       const rawValue = this.form.value;
       const validatedData = StoreConfigSchema.parse(rawValue);
       await this.storeConfigService.saveConfig(validatedData as StoreConfig);
+      this.form.markAsPristine();
       this.sweetAlert.success(
         '¡Listo!',
         'La configuración de marca blanca fue guardada con éxito.'
