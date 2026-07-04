@@ -140,14 +140,14 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           this.productForm.setControl('images', this.fb.array(imageControls));
 
           const attributeControls = (product.variantAttributes ?? []).map((attrId) =>
-            this.fb.control(attrId)
+            this.fb.control(attrId),
           );
           this.productForm.setControl('variantAttributes', this.fb.array(attributeControls), {
             emitEvent: false,
           });
 
           const variantControls = variants.map((v) =>
-            this.variantFormService.createVariantGroup(product.variantAttributes ?? [], v)
+            this.variantFormService.createVariantGroup(product.variantAttributes ?? [], v),
           );
           this.productForm.setControl('variants', this.fb.array(variantControls), {
             emitEvent: false,
@@ -262,7 +262,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   async removeVariant(index: number): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
-      '¿Estás seguro de eliminar la variante?'
+      '¿Estás seguro de eliminar la variante?',
     );
     if (isConfirmed) {
       this.variants.removeAt(index);
@@ -313,7 +313,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   async removeImage(index: number): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
-      '¿Estás seguro de eliminar la imagen?'
+      '¿Estás seguro de eliminar la imagen?',
     );
     if (isConfirmed) {
       this.images.removeAt(index);
