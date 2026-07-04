@@ -303,6 +303,7 @@ jobs:
           tenant_id = os.environ.get("TENANT_ID", "").strip() or store_id
           content = """export const environment = {{
             production: true,
+            useEmulators: false,
             tenantId: "{tenantId}",
             firebaseConfig: {{
               apiKey: "{apiKey}",
