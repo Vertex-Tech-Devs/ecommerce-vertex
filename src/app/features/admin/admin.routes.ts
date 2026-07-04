@@ -1,8 +1,6 @@
 import type { Routes } from '@angular/router';
 import { AdminComponent } from './admin.component';
 
-import { OwnerGuard } from '@core/guards/owner.guard';
-
 export const ADMIN_ROUTES: Routes = [
   {
     path: '',
@@ -124,24 +122,12 @@ export const ADMIN_ROUTES: Routes = [
           ),
       },
       {
-        path: 'staff',
-        title: 'Equipo (RBAC)',
-        canActivate: [OwnerGuard],
-        loadComponent: () =>
-          import('./components/staff/staff.component').then((m) => m.StaffComponent),
-      },
-      {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>
           import('./components/store-config/store-config.component').then(
             (m) => m.StoreConfigComponent,
           ),
-      },
-      {
-        path: 'account',
-        loadComponent: () =>
-          import('./components/account/account.component').then((m) => m.AccountComponent),
       },
       {
         path: '',

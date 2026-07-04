@@ -248,6 +248,8 @@ function writeEnvironmentTs(
     resolve(ROOT, 'src/environments/environment.ts'),
     `export const environment = {
   production: ${env.production},
+  useEmulators: ${!env.production},
+  tenantId: '',
   firebaseConfig: {
     apiKey: '${config.apiKey}',
     authDomain: '${config.authDomain}',

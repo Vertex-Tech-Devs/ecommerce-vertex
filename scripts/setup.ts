@@ -158,6 +158,7 @@ async function main() {
   // 2. Modificar src/environments/environment.prod.ts
   const envProdTsContent = `export const environment = {
   production: true,
+  useEmulators: false,
   tenantId: 'store',
   firebaseConfig: {
     apiKey: '${storeSetup.prodApiKey}',

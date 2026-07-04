@@ -62,7 +62,7 @@ export class AboutUsManagementComponent implements OnInit {
       cardsSectionTitle: [d.cardsSectionTitle ?? '', Validators.required],
       featureCards: this.fb.array(
         [],
-        [Validators.required, Validators.minLength(1), Validators.maxLength(2)],
+        [Validators.required, Validators.minLength(2), Validators.maxLength(3)],
       ),
     });
     this.initFeatureCards(data);
@@ -71,7 +71,8 @@ export class AboutUsManagementComponent implements OnInit {
   private initFeatureCards(data: AboutUsData | null): void {
     if (data?.featureCards && data.featureCards.length > 0) {
       data.featureCards.forEach((card) => this.addFeatureCard(card));
-    } else {
+    }
+    while (this.featureCards.length < 2) {
       this.addFeatureCard();
     }
   }
@@ -104,7 +105,7 @@ export class AboutUsManagementComponent implements OnInit {
   }
 
   addFeatureCard(cardData?: AboutUsFeatureCard): void {
-    if (this.featureCards.length >= 2) {
+    if (this.featureCards.length >= 3) {
       return;
     }
     const cardGroup = this.createFeatureCardGroup(cardData ?? null);
@@ -112,11 +113,21 @@ export class AboutUsManagementComponent implements OnInit {
   }
 
   removeFeatureCard(index: number): void {
-    if (this.featureCards.length <= 1) {
+    if (this.featureCards.length <= 2) {
       return;
     }
-    this.featureCards.removeAt(index);
-    this.aboutUsForm.markAsDirty();
+    void this.alertService
+      .confirm(
+        '¿Eliminar tarjeta?',
+        'Esta acción eliminará la tarjeta seleccionada de la lista.',
+        'warning',
+      )
+      .then((confirmed) => {
+        if (confirmed) {
+          this.featureCards.removeAt(index);
+          this.aboutUsForm.markAsDirty();
+        }
+      });
   }
 
   onFileSelected(event: Event, type: 'banner' | 'central'): void {
