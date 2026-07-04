@@ -1,12 +1,12 @@
-import type { OnInit, QueryList, ElementRef } from '@angular/core';
+import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
 import { Component, inject, ViewChildren, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
 import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
@@ -26,7 +26,7 @@ import type { ProductFormValue } from './product-variant-form.service';
   templateUrl: './product-create.component.html',
   styleUrl: './product-create.component.scss',
 })
-export class ProductCreateComponent implements OnInit {
+export class ProductCreateComponent implements OnInit, AfterViewInit {
   private fb = inject(FormBuilder);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
@@ -37,6 +37,8 @@ export class ProductCreateComponent implements OnInit {
   private sweetAlertService = inject(SweetAlertService);
   private storageService = inject(StorageService);
   private variantFormService = inject(ProductVariantFormService);
+  private focusNewImage = false;
+  private focusNewVariant = false;
 
   @ViewChildren('additionalImageInput') additionalImageInputs!: QueryList<
     ElementRef<HTMLInputElement>
@@ -69,6 +71,26 @@ export class ProductCreateComponent implements OnInit {
       .subscribe((attrs) => this.attributesSubject.next(attrs));
     this.initializeForm();
     this.checkEditMode();
+  }
+
+  ngAfterViewInit(): void {
+    this.additionalImageInputs.changes
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
+        if (this.focusNewImage && queryList.last) {
+          queryList.last.nativeElement.focus();
+          this.focusNewImage = false;
+        }
+      });
+
+    this.variantFirstSelects.changes
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((queryList: QueryList<ElementRef<HTMLSelectElement>>) => {
+        if (this.focusNewVariant && queryList.last) {
+          queryList.last.nativeElement.focus();
+          this.focusNewVariant = false;
+        }
+      });
   }
 
   private initializeForm(): void {
@@ -114,15 +136,24 @@ export class ProductCreateComponent implements OnInit {
             categoryId: product.categoryId,
             image: product.image,
           });
-          product.images?.forEach((img) => this.images.push(this.fb.control(img)));
-          product.variantAttributes?.forEach((attrId) =>
-            this.variantAttributes.push(this.fb.control(attrId)),
+          const imageControls = (product.images ?? []).map((img) => this.fb.control(img));
+          this.productForm.setControl('images', this.fb.array(imageControls));
+
+          const attributeControls = (product.variantAttributes ?? []).map((attrId) =>
+            this.fb.control(attrId),
           );
-          variants.forEach((v) =>
-            this.variants.push(
-              this.variantFormService.createVariantGroup(this.variantAttributes.value, v),
-            ),
+          this.productForm.setControl('variantAttributes', this.fb.array(attributeControls), {
+            emitEvent: false,
+          });
+
+          const variantControls = variants.map((v) =>
+            this.variantFormService.createVariantGroup(product.variantAttributes ?? [], v),
           );
+          this.productForm.setControl('variants', this.fb.array(variantControls), {
+            emitEvent: false,
+          });
+
+          this.productForm.updateValueAndValidity();
         },
         error: () => {
           this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
@@ -131,17 +162,17 @@ export class ProductCreateComponent implements OnInit {
       });
   }
 
-  get name(): AbstractControl | null {
-    return this.productForm.get('name');
+  get name(): AbstractControl {
+    return this.productForm.get('name')!;
   }
-  get price(): AbstractControl | null {
-    return this.productForm.get('price');
+  get price(): AbstractControl {
+    return this.productForm.get('price')!;
   }
-  get categoryId(): AbstractControl | null {
-    return this.productForm.get('categoryId');
+  get categoryId(): AbstractControl {
+    return this.productForm.get('categoryId')!;
   }
-  get image(): AbstractControl | null {
-    return this.productForm.get('image');
+  get image(): AbstractControl {
+    return this.productForm.get('image')!;
   }
   get variants(): FormArray {
     return this.productForm.get('variants') as FormArray;
@@ -222,13 +253,20 @@ export class ProductCreateComponent implements OnInit {
   }
 
   addVariant(variant?: ProductVariant): void {
+    this.focusNewVariant = true;
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
     );
   }
 
-  removeVariant(index: number): void {
-    this.variants.removeAt(index);
+  async removeVariant(index: number): Promise<void> {
+    const isConfirmed = await this.sweetAlertService.confirm(
+      '¿Estás seguro?',
+      '¿Estás seguro de eliminar la variante?',
+    );
+    if (isConfirmed) {
+      this.variants.removeAt(index);
+    }
   }
 
   generateVariantCombinations(): void {
@@ -268,11 +306,18 @@ export class ProductCreateComponent implements OnInit {
   }
 
   addImage(imageUrl: string = ''): void {
+    this.focusNewImage = true;
     this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
   }
 
-  removeImage(index: number): void {
-    this.images.removeAt(index);
+  async removeImage(index: number): Promise<void> {
+    const isConfirmed = await this.sweetAlertService.confirm(
+      '¿Estás seguro?',
+      '¿Estás seguro de eliminar la imagen?',
+    );
+    if (isConfirmed) {
+      this.images.removeAt(index);
+    }
   }
 
   onFileSelected(event: Event): void {
