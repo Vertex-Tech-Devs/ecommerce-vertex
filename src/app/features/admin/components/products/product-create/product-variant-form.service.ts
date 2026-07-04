@@ -37,7 +37,7 @@ export class ProductVariantFormService {
     selectedIds.forEach((id) => {
       attributesGroup.addControl(
         id,
-        this.fb.control(variant?.attributes[id] ?? null, Validators.required)
+        this.fb.control(variant?.attributes[id] ?? null, Validators.required),
       );
     });
     return this.fb.group({
@@ -53,6 +53,9 @@ export class ProductVariantFormService {
     }
     let result: Record<string, string>[] = [{}];
     attributes.forEach((attr) => {
+      if (!attr.values || attr.values.length === 0) {
+        return; // Skip attributes with no values instead of destroying all combinations
+      }
       const next: Record<string, string>[] = [];
       result.forEach((existing) => {
         attr.values.forEach((value) => next.push({ ...existing, [attr.id!]: value }));
@@ -64,7 +67,7 @@ export class ProductVariantFormService {
 
   buildEditChanges(
     formVariants: ProductVariantFormValue[],
-    initialVariants: ProductVariant[]
+    initialVariants: ProductVariant[],
   ): EditVariantChanges {
     const toUpdate: (Partial<ProductVariant> & { id: string })[] = [];
     const toAdd: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = [];

@@ -9,7 +9,7 @@ import type { Category } from '@core/models/category.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './featured-categories.component.html',
-  styleUrls: ['./featured-categories.component.scss'],
+  styleUrl: './featured-categories.component.scss',
 })
 export class FeaturedCategoriesComponent {
   @Input({ required: true }) formArray!: FormArray;

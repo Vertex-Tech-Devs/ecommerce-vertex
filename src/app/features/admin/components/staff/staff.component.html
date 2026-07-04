@@ -131,7 +131,7 @@
                               class="form-select form-select-sm glass-input py-1 px-2"
                               style="max-width: 180px; font-size: 0.8rem; height: auto"
                               [value]="member.role"
-                              (change)="changeRole(member.email, $any($event.target).value)"
+                              (change)="onRoleSelect($event, member.email)"
                             >
                               <option value="admin">Administrador</option>
                               <option value="owner">Dueño (Owner)</option>

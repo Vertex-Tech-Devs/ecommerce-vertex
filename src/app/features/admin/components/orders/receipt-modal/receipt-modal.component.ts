@@ -9,7 +9,7 @@ import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
   standalone: true,
   imports: [CommonModule, CurrencyPipe, DatePipe, SumItemsPipe],
   templateUrl: './receipt-modal.component.html',
-  styleUrls: ['./receipt-modal.component.scss'],
+  styleUrl: './receipt-modal.component.scss',
 })
 export class ReceiptModalComponent {
   private readonly storeConfig = inject(StoreConfigService);

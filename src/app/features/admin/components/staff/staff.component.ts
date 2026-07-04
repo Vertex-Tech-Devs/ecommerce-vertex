@@ -23,7 +23,7 @@ export interface AdminRole {
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './staff.component.html',
-  styleUrls: ['./staff.component.scss'],
+  styleUrl: './staff.component.scss',
 })
 export class StaffComponent implements OnInit {
   private functions = inject(Functions);
@@ -34,7 +34,7 @@ export class StaffComponent implements OnInit {
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   readonly currentUserEmail = toSignal(
     this.authService.currentUser$.pipe(map((u) => u?.email?.toLowerCase() ?? '')),
-    { initialValue: '' }
+    { initialValue: '' },
   );
   readonly staffList = signal<AdminRole[]>([]);
   readonly staffForm: FormGroup;
@@ -65,14 +65,14 @@ export class StaffComponent implements OnInit {
     try {
       const getStaff = httpsCallable<Record<string, never>, { staff: AdminRole[] }>(
         this.functions,
-        'getAdminStaff'
+        'getAdminStaff',
       );
       const response = await getStaff({});
       this.staffList.set(response.data.staff ?? []);
     } catch (err) {
       console.error('[Load Staff Error]:', err);
       this.addError.set(
-        'No se pudo cargar el equipo administrativo. Verificá tu sesión y volvé a intentar.'
+        'No se pudo cargar el equipo administrativo. Verificá tu sesión y volvé a intentar.',
       );
     } finally {
       this.isLoading.set(false);
@@ -104,14 +104,14 @@ export class StaffComponent implements OnInit {
 
       this.sweetAlertService.success(
         'Miembro Agregado',
-        `El usuario ${normalizedEmail} fue autorizado con el rol seleccionado.`
+        `El usuario ${normalizedEmail} fue autorizado con el rol seleccionado.`,
       );
       this.staffForm.reset({ email: '', role: 'admin' });
       await this.loadStaff();
     } catch (err: unknown) {
       console.error('[Add Staff Error]:', err);
       this.addError.set(
-        'No se pudieron conceder los permisos. Verificá tu conexión, claims de administrador y volvé a intentar.'
+        'No se pudieron conceder los permisos. Verificá tu conexión, claims de administrador y volvé a intentar.',
       );
       this.sweetAlertService.error('Error', 'Hubo un problema al agregar al miembro del equipo.');
     } finally {
@@ -124,7 +124,7 @@ export class StaffComponent implements OnInit {
     if (currentUser?.email?.toLowerCase() === email.toLowerCase()) {
       this.sweetAlertService.error(
         'Acción no permitida',
-        'No podés revocar tus propios privilegios de administrador.'
+        'No podés revocar tus propios privilegios de administrador.',
       );
       return;
     }
@@ -132,7 +132,7 @@ export class StaffComponent implements OnInit {
     const confirmResult = await this.sweetAlertService.confirm(
       '¿Confirmás la revocación?',
       `El usuario ${email} perderá todo el acceso administrativo a esta tienda de forma inmediata.`,
-      'warning'
+      'warning',
     );
 
     if (!confirmResult) {
@@ -144,13 +144,13 @@ export class StaffComponent implements OnInit {
     try {
       const revokeStaff = httpsCallable<{ email: string }, { success: boolean; email: string }>(
         this.functions,
-        'revokeAdminStaff'
+        'revokeAdminStaff',
       );
       await revokeStaff({ email: email.toLowerCase() });
 
       this.sweetAlertService.success(
         'Acceso Revocado',
-        `Se eliminaron todos los permisos de administrador para ${email}.`
+        `Se eliminaron todos los permisos de administrador para ${email}.`,
       );
       await this.loadStaff();
     } catch (err: unknown) {
@@ -159,6 +159,11 @@ export class StaffComponent implements OnInit {
     } finally {
       this.removingEmail.set(null);
     }
+  }
+
+  /** Type-safe role select handler for templates */
+  onRoleSelect(event: Event, email: string): void {
+    void this.changeRole(email, (event.target as HTMLSelectElement).value as 'admin' | 'owner');
   }
 
   async changeRole(email: string, newRole: 'admin' | 'owner'): Promise<void> {
@@ -170,7 +175,7 @@ export class StaffComponent implements OnInit {
     const confirmResult = await this.sweetAlertService.confirm(
       '¿Confirmás el cambio de rol?',
       `El usuario ${email} pasará a tener el rol de ${newRole === 'owner' ? 'Dueño' : 'Administrador'}.`,
-      'question'
+      'question',
     );
 
     if (!confirmResult) {
@@ -190,7 +195,7 @@ export class StaffComponent implements OnInit {
 
       this.sweetAlertService.success(
         'Rol Actualizado',
-        `El rol de ${email} fue actualizado con éxito.`
+        `El rol de ${email} fue actualizado con éxito.`,
       );
       await this.loadStaff();
     } catch (err: unknown) {

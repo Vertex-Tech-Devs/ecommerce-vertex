@@ -48,7 +48,7 @@ export const SHOP_ROUTES: Routes = [
         title: 'Confirmación de pedido',
         loadComponent: () =>
           import('./components/order-confirmation/order-confirmation.component').then(
-            (m) => m.OrderConfirmationComponent
+            (m) => m.OrderConfirmationComponent,
           ),
       },
     ],

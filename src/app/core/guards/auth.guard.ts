@@ -16,6 +16,6 @@ export const AuthGuard: CanActivateFn = (_route, _state) => {
       } else {
         return router.createUrlTree(['/admin/login']);
       }
-    })
+    }),
   );
 };

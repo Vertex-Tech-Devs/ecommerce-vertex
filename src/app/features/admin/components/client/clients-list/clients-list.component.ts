@@ -23,7 +23,7 @@ import {
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './clients-list.component.html',
-  styleUrls: ['./clients-list.component.scss'],
+  styleUrl: './clients-list.component.scss',
 })
 export class ClientsListComponent implements OnInit {
   searchTermSubject = new BehaviorSubject<string>('');
@@ -47,7 +47,7 @@ export class ClientsListComponent implements OnInit {
         catchError((err) => {
           console.error('Error al cargar la lista de clientes:', err);
           return of([] as Client[]);
-        })
+        }),
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.currentPageSubject,
@@ -60,7 +60,7 @@ export class ClientsListComponent implements OnInit {
           filteredClients = filteredClients.filter(
             (client) =>
               client.fullName.toLowerCase().includes(lowerCaseSearchTerm) ||
-              client.email.toLowerCase().includes(lowerCaseSearchTerm)
+              client.email.toLowerCase().includes(lowerCaseSearchTerm),
           );
         }
 
@@ -76,7 +76,7 @@ export class ClientsListComponent implements OnInit {
 
         const startIndex = (correctedPage - 1) * itemsPerPage;
         return filteredClients.slice(startIndex, startIndex + itemsPerPage);
-      })
+      }),
     );
   }
 

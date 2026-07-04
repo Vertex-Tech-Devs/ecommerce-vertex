@@ -26,7 +26,7 @@ export function passwordsMatchValidator(): ValidatorFn {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './account.component.html',
-  styleUrls: ['./account.component.scss'],
+  styleUrl: './account.component.scss',
 })
 export class AccountComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -49,7 +49,7 @@ export class AccountComponent implements OnInit {
       },
       {
         validators: passwordsMatchValidator(),
-      }
+      },
     );
   }
 

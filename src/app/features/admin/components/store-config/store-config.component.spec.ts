@@ -149,7 +149,7 @@ describe('StoreConfigComponent', () => {
       downloadUrl$: of('http://example.com/new-favicon.png'),
     };
     storageServiceSpy.uploadFile.and.returnValue(
-      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>,
     );
 
     component.onFaviconUpload(event);
@@ -173,7 +173,7 @@ describe('StoreConfigComponent', () => {
       downloadUrl$: throwError(() => new Error('Upload error')),
     };
     storageServiceSpy.uploadFile.and.returnValue(
-      mockUpload as unknown as ReturnType<StorageService['uploadFile']>
+      mockUpload as unknown as ReturnType<StorageService['uploadFile']>,
     );
 
     component.onFaviconUpload(event);
@@ -208,7 +208,7 @@ describe('StoreConfigComponent', () => {
     expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');
     expect(component.form.get('contact.email')?.value).toBe('contacto@mitienda.com');
     expect(component.form.get('seo.metaDescription')?.value).toBe(
-      'Bienvenidos a mi tienda virtual.'
+      'Bienvenidos a mi tienda virtual.',
     );
     expect(component.form.get('setupCompleted')?.value).toBeTrue();
   });
@@ -232,7 +232,7 @@ describe('StoreConfigComponent', () => {
 
     expect(sweetAlertSpy.error).toHaveBeenCalledWith(
       'Error',
-      'No se pudo guardar la configuración de la tienda.'
+      'No se pudo guardar la configuración de la tienda.',
     );
     expect(component.isSubmitting).toBeFalse();
   });

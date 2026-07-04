@@ -16,7 +16,7 @@ import type { Category } from '@core/models/category.model';
 @Component({
   selector: 'app-products-list',
   templateUrl: './products-list.component.html',
-  styleUrls: ['./products-list.component.scss'],
+  styleUrl: './products-list.component.scss',
   imports: [CommonModule, RouterModule, CurrencyPipe, FormsModule, TitleCasePipe, TruncatePipe],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,7 +46,7 @@ export class ProductsListComponent implements OnInit {
         this.categoriesMap.clear();
         categories.forEach((cat) => this.categoriesMap.set(cat.id!, cat.name));
         return categories;
-      })
+      }),
     );
 
     this.products$ = combineLatest([
@@ -65,13 +65,13 @@ export class ProductsListComponent implements OnInit {
           filteredProducts = filteredProducts.filter(
             (product) =>
               product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-              product.description.toLowerCase().includes(lowerCaseSearchTerm)
+              product.description.toLowerCase().includes(lowerCaseSearchTerm),
           );
         }
 
         if (filterCategoryId !== 'all') {
           filteredProducts = filteredProducts.filter(
-            (product) => product.categoryId === filterCategoryId
+            (product) => product.categoryId === filterCategoryId,
           );
         }
 
@@ -89,7 +89,7 @@ export class ProductsListComponent implements OnInit {
 
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
-      })
+      }),
     );
   }
 
@@ -125,7 +125,7 @@ export class ProductsListComponent implements OnInit {
   async confirmDelete(product: Product): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       'Confirmar Eliminación de Producto',
-      `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`
+      `¿Estás seguro de que deseas eliminar el producto "${product.name}"? Esta acción no se puede deshacer.`,
     );
     if (isConfirmed && product.id) {
       try {

@@ -4,26 +4,27 @@ export function tenantPath(collection: string): string {
   return `tenants/${environment.tenantId}/${collection}`;
 }
 
-export function tenantDocPath(collection: string, docId: string): string {
-  return `tenants/${environment.tenantId}/${collection}/${docId}`;
-}
-
 /**
  * Resolves the tenant ID with the following priority:
  * 1. environment.tenantId (baked at build time, or set by provisioning)
  * 2. Hostname parsing: supports {slug}-vtx and vtx-{slug} patterns
  * 3. Query parameter ?tenantId= override (non-production only)
  * 4. Empty string fallback
+ *
+ * @param locationOverride Optional Location-like object for testing (defaults to globalThis.location)
  */
-export function resolveTenantId(): string {
+export function resolveTenantId(locationOverride?: { hostname: string; search: string }): string {
   // Priority 1: explicit tenantId from environment
   if (environment.tenantId && environment.tenantId !== 'store') {
     return environment.tenantId;
   }
 
+  const loc =
+    locationOverride ?? (typeof globalThis !== 'undefined' ? globalThis.location : undefined);
+
   // Priority 2: infer from hostname
-  if (typeof globalThis !== 'undefined' && globalThis.location) {
-    const host = globalThis.location.hostname?.trim().toLowerCase();
+  if (loc) {
+    const host = loc.hostname?.trim().toLowerCase();
     if (host && host !== 'localhost' && host !== '127.0.0.1') {
       const firstLabel = host.split('.')[0] ?? '';
 
@@ -40,7 +41,7 @@ export function resolveTenantId(): string {
 
     // Priority 3: query param override (non-production only)
     if (!environment.production) {
-      const urlParams = new URLSearchParams(globalThis.location.search);
+      const urlParams = new URLSearchParams(loc.search);
       const queryTenantId = urlParams.get('tenantId');
       if (queryTenantId) {
         return queryTenantId.trim();

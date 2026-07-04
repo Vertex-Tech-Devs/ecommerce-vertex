@@ -5,7 +5,7 @@ import { LoadingService } from '@core/services/loading.service';
 @Component({
   selector: 'app-loading',
   templateUrl: './loading.component.html',
-  styleUrls: ['./loading.component.scss'],
+  styleUrl: './loading.component.scss',
   standalone: true,
   imports: [CommonModule],
 })

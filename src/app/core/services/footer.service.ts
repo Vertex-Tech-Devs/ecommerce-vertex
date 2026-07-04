@@ -22,12 +22,12 @@ export class FooterService {
         switchMap((snap) =>
           snap.exists()
             ? (docData(tenantRef) as Observable<FooterData | undefined>)
-            : (docData(legacyRef) as Observable<FooterData | undefined>)
+            : (docData(legacyRef) as Observable<FooterData | undefined>),
         ),
         catchError((err) => {
           console.warn('Unable to load footer data:', err);
           return of(undefined);
-        })
+        }),
       );
     });
   }

@@ -15,7 +15,7 @@ import type { Order } from '../../../../../core/models/order.model';
   standalone: true,
   imports: [CommonModule, RouterModule, DatePipe],
   templateUrl: './client-details.component.html',
-  styleUrls: ['./client-details.component.scss'],
+  styleUrl: './client-details.component.scss',
 })
 export class ClientDetailsComponent implements OnInit, OnDestroy {
   clientEmail: string | null = null;
@@ -28,8 +28,6 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _clientService = inject(ClientService);
-
-  constructor() {}
 
   ngOnInit(): void {
     this.routeSubscription = this._route.paramMap
@@ -44,7 +42,7 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
             void this._router.navigate(['/admin/customers']);
             return new Observable<Order[]>();
           }
-        })
+        }),
       )
       .subscribe(
         (orders) => {
@@ -53,7 +51,7 @@ export class ClientDetailsComponent implements OnInit, OnDestroy {
             observer.complete();
           });
         },
-        (error) => console.error('Error al cargar los pedidos del cliente:', error)
+        (error) => console.error('Error al cargar los pedidos del cliente:', error),
       );
   }
 

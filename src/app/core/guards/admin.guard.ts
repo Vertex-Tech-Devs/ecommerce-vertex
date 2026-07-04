@@ -10,6 +10,6 @@ export const AdminGuard: CanActivateFn = () => {
 
   return authService.isAdmin$.pipe(
     take(1),
-    map((isAdmin) => (isAdmin ? true : router.createUrlTree(['/admin/login'])))
+    map((isAdmin) => (isAdmin ? true : router.createUrlTree(['/admin/login']))),
   );
 };

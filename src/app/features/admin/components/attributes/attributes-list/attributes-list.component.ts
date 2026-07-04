@@ -12,7 +12,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './attributes-list.component.html',
-  styleUrls: ['./attributes-list.component.scss'],
+  styleUrl: './attributes-list.component.scss',
 })
 export class AttributesListComponent implements OnInit {
   private attributeService = inject(AttributeService);
@@ -50,7 +50,7 @@ export class AttributesListComponent implements OnInit {
     if (!name || name.length < 3) {
       this.sweetAlertService.warning(
         'Aviso',
-        'El nombre del atributo debe tener al menos 3 caracteres.'
+        'El nombre del atributo debe tener al menos 3 caracteres.',
       );
       return;
     }
@@ -85,7 +85,7 @@ export class AttributesListComponent implements OnInit {
   async onDelete(attribute: Attribute): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
-      `Esta acción eliminará el atributo "${attribute.name}". Los productos que lo usen ya no podrán filtrarse por él.`
+      `Esta acción eliminará el atributo "${attribute.name}". Los productos que lo usen ya no podrán filtrarse por él.`,
     );
 
     if (isConfirmed && attribute.id) {

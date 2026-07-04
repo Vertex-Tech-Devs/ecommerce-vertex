@@ -64,7 +64,7 @@ describe('LoginComponent', () => {
 
   it('should set authErrorMessage when Google login fails', () => {
     authServiceSpy.loginWithGoogle.and.returnValue(
-      throwError(() => new Error('auth/unauthorized-domain'))
+      throwError(() => new Error('auth/unauthorized-domain')),
     );
 
     component.onGoogleLogin();
@@ -115,7 +115,7 @@ describe('LoginComponent', () => {
 
   it('should set permission-denied error message on unauthorized error', () => {
     authServiceSpy.loginWithGoogle.and.returnValue(
-      throwError(() => new Error('permission-denied'))
+      throwError(() => new Error('permission-denied')),
     );
 
     component.onGoogleLogin();
@@ -126,7 +126,7 @@ describe('LoginComponent', () => {
 
   it('should set popup-blocked error message when popup is blocked', () => {
     authServiceSpy.loginWithGoogle.and.returnValue(
-      throwError(() => new Error('auth/popup-blocked'))
+      throwError(() => new Error('auth/popup-blocked')),
     );
 
     component.onGoogleLogin();
@@ -137,14 +137,33 @@ describe('LoginComponent', () => {
 
   it('should set generic error message for unknown errors', () => {
     authServiceSpy.loginWithGoogle.and.returnValue(
-      throwError(() => new Error('some-unknown-error'))
+      throwError(() => new Error('some-unknown-error')),
     );
 
     component.onGoogleLogin();
 
     expect(component.authErrorMessage).toBe(
-      'No se pudo iniciar sesión con Google. Error: some-unknown-error'
+      'No se pudo iniciar sesión con Google. Error: some-unknown-error',
     );
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set wrong-tenant error message', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(throwError(() => new Error('wrong-tenant')));
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('pertenece a otra tienda');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should handle non-Error error objects', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(throwError(() => 'string-error-message'));
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('No se pudo iniciar sesión');
+    expect(component.authErrorMessage).toContain('string-error-message');
     expect(component.isGoogleSubmitting).toBeFalse();
   });
 

@@ -10,6 +10,6 @@ export const OwnerGuard: CanActivateFn = () => {
 
   return authService.isOwner$.pipe(
     take(1),
-    map((isOwner) => (isOwner ? true : router.createUrlTree(['/admin/dashboard'])))
+    map((isOwner) => (isOwner ? true : router.createUrlTree(['/admin/dashboard']))),
   );
 };

@@ -46,13 +46,13 @@ describe('StorageService', () => {
             _event: string,
             next: (snapshot: UploadTaskSnapshot) => void,
             _error: (err: unknown) => void,
-            complete: () => void
+            complete: () => void,
           ): (() => void) => {
             next({ bytesTransferred: 50, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             next({ bytesTransferred: 100, totalBytes: 100 } as unknown as UploadTaskSnapshot);
             complete();
             return (): void => {};
-          }
+          },
         ),
       then: jasmine
         .createSpy('then')
@@ -60,7 +60,7 @@ describe('StorageService', () => {
           (resolve: (snapshot: { ref: StorageReference }) => Promise<unknown> | void) => {
             void resolve({ ref: mockRef });
             return Promise.resolve({ ref: mockRef } as unknown as UploadTaskSnapshot);
-          }
+          },
         ),
     } as unknown as UploadTask;
 
@@ -96,6 +96,49 @@ describe('StorageService', () => {
     });
   });
 
+  it('should handle file name without extension', (done) => {
+    const mockFile = new File(['foo'], 'foofile', { type: 'text/plain' });
+    const mockRef = {} as unknown as StorageReference;
+    const mockUploadTask = {
+      on: jasmine
+        .createSpy('on')
+        .and.callFake(
+          (
+            _event: string,
+            next: (snapshot: UploadTaskSnapshot) => void,
+            _error: (err: unknown) => void,
+            complete: () => void,
+          ): (() => void) => {
+            next({ bytesTransferred: 100, totalBytes: 100 } as unknown as UploadTaskSnapshot);
+            complete();
+            return (): void => {};
+          },
+        ),
+      then: jasmine
+        .createSpy('then')
+        .and.callFake(
+          (resolve: (snapshot: { ref: StorageReference }) => Promise<unknown> | void) => {
+            void resolve({ ref: mockRef });
+            return Promise.resolve({ ref: mockRef } as unknown as UploadTaskSnapshot);
+          },
+        ),
+    } as unknown as UploadTask;
+
+    const privSvc = service as unknown as StorageServiceWithPrivates;
+    spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
+    spyOn(privSvc, 'uploadBytes').and.returnValue(mockUploadTask);
+    spyOn(privSvc, 'getDownloadUrl').and.returnValue(Promise.resolve('https://mock.url/foofile'));
+
+    const upload = service.uploadFile(mockFile, 'test-path');
+
+    upload.downloadUrl$.subscribe({
+      next: (url) => {
+        expect(url).toBe('https://mock.url/foofile');
+        done();
+      },
+    });
+  });
+
   it('should handle non-firebase URLs in deleteFileByUrl', (done) => {
     service.deleteFileByUrl('https://example.com/foo.png').subscribe(() => {
       expect(true).toBeTrue();
@@ -122,7 +165,7 @@ describe('StorageService', () => {
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
     spyOn(privSvc, 'deleteStorageObject').and.returnValue(
-      Promise.reject({ code: 'storage/object-not-found' })
+      Promise.reject({ code: 'storage/object-not-found' }),
     );
 
     service
@@ -138,7 +181,7 @@ describe('StorageService', () => {
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
     spyOn(privSvc, 'deleteStorageObject').and.returnValue(
-      Promise.reject({ code: 'storage/unknown' })
+      Promise.reject({ code: 'storage/unknown' }),
     );
 
     service

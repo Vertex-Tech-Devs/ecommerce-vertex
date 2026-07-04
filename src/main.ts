@@ -66,7 +66,7 @@ fetch('/firebase-config.json?t=' + new Date().getTime())
   })
   .catch(() => environment.firebaseConfig)
   .then((firebaseConfig) =>
-    bootstrapApplication(AppComponent, createAppConfig(normalizeFirebaseOptions(firebaseConfig)))
+    bootstrapApplication(AppComponent, createAppConfig(normalizeFirebaseOptions(firebaseConfig))),
   )
   .catch((err) => {
     console.error('Failed to load Firebase config:', err);

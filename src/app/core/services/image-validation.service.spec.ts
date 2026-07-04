@@ -20,7 +20,7 @@ function mockImageDimensions(width: number, height: number): void {
     },
   });
   spyOn(window as Window & typeof globalThis, 'Image').and.returnValue(
-    mockImg as unknown as HTMLImageElement
+    mockImg as unknown as HTMLImageElement,
   );
 
   const mockReader = {
@@ -32,7 +32,7 @@ function mockImageDimensions(width: number, height: number): void {
     },
   };
   spyOn(window as Window & typeof globalThis, 'FileReader').and.returnValue(
-    mockReader as unknown as FileReader
+    mockReader as unknown as FileReader,
   );
 }
 
@@ -46,7 +46,7 @@ function mockFileReaderError(): void {
     },
   };
   spyOn(window as Window & typeof globalThis, 'FileReader').and.returnValue(
-    mockReader as unknown as FileReader
+    mockReader as unknown as FileReader,
   );
 }
 
