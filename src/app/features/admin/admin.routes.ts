@@ -130,11 +130,6 @@ export const ADMIN_ROUTES: Routes = [
           ),
       },
       {
-        path: 'account',
-        loadComponent: () =>
-          import('./components/account/account.component').then((m) => m.AccountComponent),
-      },
-      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
