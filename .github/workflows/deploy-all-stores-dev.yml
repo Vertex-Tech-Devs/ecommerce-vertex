@@ -65,6 +65,12 @@ jobs:
         env:
           RESPONSE: ${{ steps.fetch.outputs.response }}
         run: |
+          ERROR=$(echo "$RESPONSE" | jq -r '.error.message // empty')
+          if [ -n "$ERROR" ]; then
+            echo "API Error: $ERROR" >&2
+            exit 1
+          fi
+
           STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]? | select(.autoUpdate == true)]')
           COUNT=$(echo "$STORES" | jq 'length')
 
