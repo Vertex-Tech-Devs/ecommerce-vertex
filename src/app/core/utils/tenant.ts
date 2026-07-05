@@ -1,5 +1,4 @@
 import { environment } from '../../../environments/environment';
-import { resolveTenantId } from './tenant';
 
 export function tenantPath(collection: string): string {
   return `tenants/${resolveTenantId()}/${collection}`;
