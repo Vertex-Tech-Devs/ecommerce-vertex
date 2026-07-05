@@ -15,6 +15,7 @@ jobs:
   build:
     name: Build template
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || vars.AUTO_DEPLOY_ALL == 'true'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
