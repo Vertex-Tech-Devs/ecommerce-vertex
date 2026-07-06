@@ -52,6 +52,7 @@ export class CatalogComponent implements OnInit {
   readonly isLoading = signal<boolean>(true);
 
   // Signals for form values to keep computed pipeline pure
+  searchTerm = signal<string>("");
   readonly minPrice = signal<number | null>(null);
   readonly maxPrice = signal<number | null>(null);
   readonly dynamicAttributesFilter = signal<Record<string, Record<string, boolean>>>({});
@@ -70,6 +71,7 @@ export class CatalogComponent implements OnInit {
     const minPrice = this.minPrice();
     const maxPrice = this.maxPrice();
     const dynamicAttributes = this.dynamicAttributesFilter();
+    const search = this.searchTerm().trim().toLowerCase();
 
     const dynamicFilters: { [key: string]: string[] } = {};
     for (const attrId in dynamicAttributes) {
@@ -90,6 +92,14 @@ export class CatalogComponent implements OnInit {
     return products.filter((product) => {
       if (product.totalStock <= 0) {
         return false;
+      }
+
+      if (search) {
+        const titleVal = (product as unknown as Record<string, unknown>)['title'];
+        const name = product.name ?? (typeof titleVal === 'string' ? titleVal : '');
+        if (!name.toLowerCase().includes(search)) {
+          return false;
+        }
       }
 
       if (hasPriceFilter) {
@@ -282,6 +292,7 @@ export class CatalogComponent implements OnInit {
       minPrice: null,
       maxPrice: null,
     });
+    this.searchTerm.set('');
     this.page.set(1);
   }
 
