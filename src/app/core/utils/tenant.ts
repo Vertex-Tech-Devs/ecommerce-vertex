@@ -33,10 +33,8 @@ export function resolveTenantId(locationOverride?: { hostname: string; search: s
       // Handle {slug}-vtx pattern (e.g., "tienda-a-vtx" → "tienda-a")
       if (firstLabel.endsWith('-vtx') && firstLabel.length > 4) {
         resolvedId = firstLabel.slice(0, -4);
-      }
-
-      // Handle vtx-{slug} pattern (e.g., "vtx-tienda-a" → "tienda-a")
-      else if (firstLabel.startsWith('vtx-') && firstLabel.length > 4) {
+      } else if (firstLabel.startsWith('vtx-') && firstLabel.length > 4) {
+        // Handle vtx-{slug} pattern (e.g., "vtx-tienda-a" → "tienda-a")
         resolvedId = firstLabel.substring(4);
       }
     }
