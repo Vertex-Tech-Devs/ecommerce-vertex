@@ -135,10 +135,8 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
-        env:
-          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
         run: |
@@ -203,10 +201,8 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
-        env:
-          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
 
       - name: Deploy
         run: |
