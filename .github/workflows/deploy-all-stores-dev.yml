@@ -53,11 +53,16 @@ jobs:
         id: fetch
         env:
           PLATFORM_DEPLOY_TOKEN_DEV: ${{ secrets['PLATFORM_DEPLOY_TOKEN_DEV'] }}
+          PLATFORM_DEPLOY_TOKEN: ${{ secrets['PLATFORM_DEPLOY_TOKEN'] }}
         run: |
+          TOKEN="$PLATFORM_DEPLOY_TOKEN_DEV"
+          if [ -z "$TOKEN" ]; then
+            TOKEN="$PLATFORM_DEPLOY_TOKEN"
+          fi
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
-            -d "{\"data\":{\"deployToken\":\"$PLATFORM_DEPLOY_TOKEN_DEV\"}}")
+            -d "{\"data\":{\"deployToken\":\"$TOKEN\"}}")
           echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Parse stores into canary + rest
