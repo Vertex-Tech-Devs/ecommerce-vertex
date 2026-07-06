@@ -18,6 +18,9 @@ describe('resolveTenantId', () => {
   afterEach(() => {
     environment.tenantId = ORIGINAL_TENANT_ID;
     environment.production = ORIGINAL_PRODUCTION;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
   });
 
   it('should return environment.tenantId when set and not "store"', () => {

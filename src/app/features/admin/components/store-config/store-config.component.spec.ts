@@ -234,6 +234,6 @@ describe('StoreConfigComponent', () => {
       'Error',
       'No se pudo guardar la configuración de la tienda.',
     );
-    expect(component.isSubmitting).toBeFalse();
+    expect(component.isSubmitting()).toBeFalse();
   });
 });
