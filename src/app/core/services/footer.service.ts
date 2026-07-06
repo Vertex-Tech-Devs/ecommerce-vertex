@@ -1,9 +1,9 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
-import { Firestore, docData } from '@angular/fire/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
-import { switchMap, catchError } from 'rxjs';
+import { switchMap, catchError, map } from 'rxjs';
 import type { FooterData } from '@core/models/footer.model';
 import { tenantPath } from '@core/utils/tenant';
 
@@ -21,8 +21,10 @@ export class FooterService {
       return from(getDoc(tenantRef)).pipe(
         switchMap((snap) =>
           snap.exists()
-            ? (docData(tenantRef) as Observable<FooterData | undefined>)
-            : (docData(legacyRef) as Observable<FooterData | undefined>),
+            ? of(snap.data() as FooterData)
+            : from(getDoc(legacyRef)).pipe(
+                map((legacySnap) => (legacySnap.exists() ? (legacySnap.data() as FooterData) : undefined)),
+              ),
         ),
         catchError((err) => {
           console.warn('Unable to load footer data:', err);
