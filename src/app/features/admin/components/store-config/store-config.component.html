@@ -341,17 +341,17 @@
         <button
           type="submit"
           class="btn-save-primary ms-auto"
-          [disabled]="isSubmitting || form.invalid"
+          [disabled]="isSubmitting() || form.invalid || form.pristine"
         >
-          @if (isSubmitting) {
+          @if (isSubmitting()) {
             <span
               class="spinner-border spinner-border-sm me-2"
               role="status"
               aria-hidden="true"
             ></span>
           }
-          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
-          {{ isSubmitting ? 'Guardando...' : 'Guardar Marca Blanca' }}
+          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting()"></i>
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar Marca Blanca' }}
         </button>
       </div>
     </form>
