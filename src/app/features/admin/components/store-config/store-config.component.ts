@@ -27,7 +27,7 @@ export class StoreConfigComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
-  isSubmitting = false;
+  isSubmitting = signal(false);
   activeTab = signal<'identity' | 'colors' | 'payments' | 'contact-seo'>('identity');
 
   // File uploading states
@@ -166,12 +166,13 @@ export class StoreConfigComponent implements OnInit {
       );
       return;
     }
-    this.isSubmitting = true;
+    this.isSubmitting.set(true);
     try {
       // Validate form value at runtime using Zod
       const rawValue = this.form.value;
       const validatedData = StoreConfigSchema.parse(rawValue);
       await this.storeConfigService.saveConfig(validatedData as StoreConfig);
+      await this.storeConfigService.loadConfig();
       this.form.markAsPristine();
       this.sweetAlert.success(
         '¡Listo!',
@@ -181,7 +182,7 @@ export class StoreConfigComponent implements OnInit {
       console.error('Error al guardar la configuración:', err);
       this.sweetAlert.error('Error', 'No se pudo guardar la configuración de la tienda.');
     } finally {
-      this.isSubmitting = false;
+      this.isSubmitting.set(false);
     }
   }
 }

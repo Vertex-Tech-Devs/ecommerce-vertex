@@ -145,7 +145,7 @@ export class StoreConfigService {
   }
 
   async loadConfig(): Promise<void> {
-    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
     try {
       const snap = await Promise.race([
         this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')).catch(() => null),
