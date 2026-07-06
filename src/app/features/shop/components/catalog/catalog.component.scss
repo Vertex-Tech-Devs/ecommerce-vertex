@@ -92,12 +92,12 @@
 }
 
 .filter-group {
-  margin-bottom: var(--space-5.5);
-  padding-bottom: var(--space-5.5);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 
   &:last-of-type {
-    margin-bottom: var(--space-5.5);
+    margin-bottom: var(--space-5);
     padding-bottom: 0;
     border-bottom: none;
   }
