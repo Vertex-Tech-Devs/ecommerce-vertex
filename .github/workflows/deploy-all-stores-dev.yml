@@ -15,6 +15,7 @@ jobs:
   build:
     name: Build template (dev)
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') || vars.AUTO_DEPLOY_ALL == 'true'
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -64,6 +65,12 @@ jobs:
         env:
           RESPONSE: ${{ steps.fetch.outputs.response }}
         run: |
+          ERROR=$(echo "$RESPONSE" | jq -r '.error.message // empty')
+          if [ -n "$ERROR" ]; then
+            echo "API Error: $ERROR" >&2
+            exit 1
+          fi
+
           STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]? | select(.autoUpdate == true)]')
           COUNT=$(echo "$STORES" | jq 'length')
 

@@ -22,6 +22,19 @@
         </div>
 
         <div class="filter-group">
+          <h5 class="filter-group__title">Buscar</h5>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Buscar producto..."
+            [value]="searchTerm()"
+            (input)="searchTerm.set(searchInput.value); page.set(1)"
+            #searchInput
+            aria-label="Buscar producto"
+          />
+        </div>
+
+        <div class="filter-group">
           <h5 class="filter-group__title">Categorías</h5>
           @if (categories$ | async; as categories) {
             <div class="filter-check">

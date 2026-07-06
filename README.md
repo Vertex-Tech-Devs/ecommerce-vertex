@@ -195,3 +195,4 @@ Cada comando hace automáticamente: bump de `package.json` + commit + tag + push
 ---
 
 📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal. Para reglas de agentes de IA y flujos de QA unificados, consulta [agent.md](agent.md).
+
