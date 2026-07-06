@@ -30,7 +30,7 @@
     "@types/connect-history-api-fallback": "^1.5.4",
     "@types/cors": "^2.8.19",
     "@types/sockjs": "^0.3.36",
-    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
     "@typescript-eslint/parser": "^8.61.1",
     "eslint": "^10.5.0",
     "eslint-plugin-import": "^2.32.0",
