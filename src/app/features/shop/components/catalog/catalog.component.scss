@@ -61,8 +61,9 @@
 
 .filter-sidebar__header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  position: relative;
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-4);
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
@@ -77,6 +78,11 @@
 
 .filter-sidebar__close {
   display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: calc(100% - var(--space-4));
+  align-items: center;
   background: none;
   border: none;
   font-size: 1.25rem;
@@ -92,12 +98,20 @@
 }
 
 .filter-group {
-  padding-top: var(--space-5);
-  padding-bottom: var(--space-5);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
   border-top: 1px solid rgba(0, 0, 0, 0.04);
 
   &:last-of-type {
     padding-bottom: 0;
+  }
+
+  .form-control,
+  .filter-check {
+    &:last-child,
+    &:last-of-type {
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -554,7 +568,7 @@
   }
 
   .filter-sidebar__close {
-    display: block;
+    display: flex;
   }
 
   .filter-sidebar__content {
