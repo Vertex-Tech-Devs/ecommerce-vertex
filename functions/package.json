@@ -32,7 +32,7 @@
     "@types/sockjs": "^0.3.36",
     "@typescript-eslint/eslint-plugin": "^8.61.1",
     "@typescript-eslint/parser": "^8.61.1",
-    "eslint": "^10.5.0",
+    "eslint": "^10.6.0",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"
