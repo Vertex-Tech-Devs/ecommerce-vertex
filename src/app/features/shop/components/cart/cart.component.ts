@@ -46,4 +46,16 @@ export class CartComponent {
   onRemoveItem(itemId: string): void {
     this.cartService.removeItem(itemId);
   }
+
+  onButtonMouseMove(event: MouseEvent): void {
+    const button = event.currentTarget as HTMLElement;
+    if (!button) {
+      return;
+    }
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    button.style.setProperty('--x', `${x}px`);
+    button.style.setProperty('--y', `${y}px`);
+  }
 }
