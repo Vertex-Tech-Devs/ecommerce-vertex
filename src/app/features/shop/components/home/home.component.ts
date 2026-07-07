@@ -63,6 +63,9 @@ export class HomeComponent implements OnInit {
     return banner?.heroImages?.[0]?.imageUrl ?? banner?.imageUrl ?? undefined;
   }
 
+  /**
+   * Manejador del evento mousemove para aplicar el efecto de spotlight hover.
+   */
   onButtonMouseMove(event: MouseEvent): void {
     const button = event.currentTarget as HTMLElement;
     if (!button) {
