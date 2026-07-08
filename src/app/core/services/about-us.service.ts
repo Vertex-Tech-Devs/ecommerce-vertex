@@ -4,7 +4,7 @@ import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
-import { firstValueFrom, switchMap, catchError } from 'rxjs';
+import { firstValueFrom, switchMap, catchError, timeout } from 'rxjs';
 import { map } from 'rxjs/operators';
 import type { AboutUsData } from '@core/models/about-us.model';
 import { StorageService } from './storage.service';
@@ -28,6 +28,7 @@ export class AboutUsService {
       const tenantRef = this.docRef;
       const legacyRef = doc(this.firestore, 'pages', 'aboutUs');
       return from(getDoc(tenantRef)).pipe(
+        timeout(8000),
         switchMap((snap) =>
           snap.exists()
             ? (docData(tenantRef) as Observable<AboutUsData | undefined>)
