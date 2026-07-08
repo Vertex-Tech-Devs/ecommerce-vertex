@@ -96,7 +96,7 @@ export class AboutUsManagementComponent implements OnInit {
         console.error('Error loading About Us data:', err);
         this.buildForm(); // Initialize with empty values on error
         this.isLoading = false;
-      }
+      },
     });
   }
 

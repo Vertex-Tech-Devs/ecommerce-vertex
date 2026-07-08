@@ -166,7 +166,7 @@ export class EmailManagementComponent implements OnInit {
           console.error('Error loading Email settings:', err);
           void this.restoreDefaults(false); // Fallback to defaults
           this.isLoading = false;
-        }
+        },
       });
   }
 

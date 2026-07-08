@@ -52,7 +52,7 @@ export class CatalogComponent implements OnInit {
   readonly isLoading = signal<boolean>(true);
 
   // Signals for form values to keep computed pipeline pure
-  searchTerm = signal<string>("");
+  searchTerm = signal<string>('');
   readonly minPrice = signal<number | null>(null);
   readonly maxPrice = signal<number | null>(null);
   readonly dynamicAttributesFilter = signal<Record<string, Record<string, boolean>>>({});

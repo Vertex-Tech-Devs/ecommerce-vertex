@@ -23,7 +23,9 @@ export class FooterService {
           snap.exists()
             ? of(snap.data() as FooterData)
             : from(getDoc(legacyRef)).pipe(
-                map((legacySnap) => (legacySnap.exists() ? (legacySnap.data() as FooterData) : undefined)),
+                map((legacySnap) =>
+                  legacySnap.exists() ? (legacySnap.data() as FooterData) : undefined,
+                ),
               ),
         ),
         catchError((err) => {

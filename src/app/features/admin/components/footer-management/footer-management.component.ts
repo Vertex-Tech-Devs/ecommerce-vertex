@@ -67,7 +67,7 @@ export class FooterManagementComponent implements OnInit {
         console.error('Error loading Footer data:', err);
         this.buildForm(); // Initialize with empty values on error
         this.isLoading = false;
-      }
+      },
     });
   }
 
