@@ -79,17 +79,24 @@ export class AboutUsManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
-      if (data) {
-        this.buildForm(data);
-      } else {
-        this.buildForm();
+    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        if (data) {
+          this.buildForm(data);
+        } else {
+          this.buildForm();
+        }
+        this.bannerPreviewUrl = null;
+        this.centralPreviewUrl = null;
+        this.selectedBannerFile = null;
+        this.selectedCentralFile = null;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading About Us data:', err);
+        this.buildForm(); // Initialize with empty values on error
+        this.isLoading = false;
       }
-      this.bannerPreviewUrl = null;
-      this.centralPreviewUrl = null;
-      this.selectedBannerFile = null;
-      this.selectedCentralFile = null;
-      this.isLoading = false;
     });
   }
 

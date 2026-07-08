@@ -123,9 +123,14 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
 
   const accessToken = String(request.data?.accessToken || '').trim();
   const webhook = String(request.data?.webhookUrl || '').trim();
+  const tenantId = String(request.data?.tenantId || '').trim();
 
   if (!accessToken) {
     throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
+  }
+
+  if (!tenantId) {
+    throw new HttpsError('invalid-argument', 'El tenantId es obligatorio.');
   }
 
   if (webhook && !/^https:\/\//i.test(webhook)) {
@@ -149,6 +154,26 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
     const user = await res.json() as { id?: number | string; email?: string };
     const secretName = 'mp-access-token';
     await upsertSecret(secretName, accessToken);
+
+    // Persist the secret reference in the store's Firestore config so getMercadoPagoRuntimeConfig can find it
+    const configRef = db.doc(tenantCollection(tenantId, 'configuracion') + '/store');
+    await configRef.set(
+      {
+        payments: {
+          mercadoPago: {
+            accessTokenSecret: secretName,
+            accessTokenMasked: maskToken(accessToken),
+            accountEmail: user.email || '',
+            accountUserId: user.id ? String(user.id) : '',
+            validationStatus: 'valid',
+            validationMessage: 'Validado correctamente',
+            validatedAt: new Date().toISOString(),
+          },
+        },
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
 
     return {
       valid: true,
@@ -307,7 +332,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
         });
       }
 
-      const mpPreference = await createPreference(paymentData);
+      const mpPreference = await createPreference(paymentData, tenantId);
       logger.info(`Preferencia ${mpPreference.id} creada para el pedido ${orderId}.`);
 
       transaction.update(orderRef, {

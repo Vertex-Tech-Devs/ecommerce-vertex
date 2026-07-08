@@ -12,6 +12,13 @@ export interface StoreConfig {
   };
   payments: {
     mercadoPagoPublicKey: string;
+    mercadoPago?: {
+      publicKey?: string;
+      accessTokenSecret?: string;
+      accessTokenMasked?: string;
+      accountEmail?: string;
+      validationStatus?: string;
+    };
   };
   contact: {
     phone: string;

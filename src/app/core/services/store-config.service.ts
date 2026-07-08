@@ -36,6 +36,15 @@ export const StoreConfigSchema = z.object({
   payments: z
     .object({
       mercadoPagoPublicKey: z.string().default('').catch(''),
+      mercadoPago: z
+        .object({
+          publicKey: z.string().optional(),
+          accessTokenSecret: z.string().optional(),
+          accessTokenMasked: z.string().optional(),
+          accountEmail: z.string().optional(),
+          validationStatus: z.string().optional(),
+        })
+        .optional(),
     })
     .default({
       mercadoPagoPublicKey: '',

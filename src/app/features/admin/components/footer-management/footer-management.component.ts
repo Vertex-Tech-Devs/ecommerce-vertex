@@ -54,12 +54,20 @@ export class FooterManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
-    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
-      if (data) {
-        this.buildForm(data);
-      } else {
+    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        if (data) {
+          this.buildForm(data);
+        } else {
+          this.buildForm();
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading Footer data:', err);
+        this.buildForm(); // Initialize with empty values on error
+        this.isLoading = false;
       }
-      this.isLoading = false;
     });
   }
 
