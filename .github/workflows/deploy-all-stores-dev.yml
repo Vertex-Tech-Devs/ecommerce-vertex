@@ -29,10 +29,10 @@ jobs:
       - name: Lint & type check
         run: npm run lint && npm run typecheck
 
-      - name: Build (development)
+      - name: Build (development — template mode)
         run: |
           echo '{}' > src/firebase-config.json
-          npm run build:dev
+          npm run build:dev-template
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

@@ -83,6 +83,18 @@
               "extractLicenses": false,
               "sourceMap": true,
               "outputHashing": "none"
+            },
+            "dev-template": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev-template.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -95,6 +107,9 @@
             },
             "development": {
               "buildTarget": "ecommerce-vertex:build:development"
+            },
+            "dev-template": {
+              "buildTarget": "ecommerce-vertex:build:dev-template"
             }
           },
           "defaultConfiguration": "development"
