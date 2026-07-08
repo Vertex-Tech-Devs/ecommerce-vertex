@@ -38,7 +38,14 @@ export class AuthService {
     }),
     map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
-        return tokenResult.claims['admin'] === true;
+        const email = (tokenResult.claims['email'] as string || '').toLowerCase();
+        const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+        return (
+          tokenResult.claims['admin'] === true ||
+          tokenResult.claims['superAdmin'] === true ||
+          tokenResult.claims['platformAdmin'] === true ||
+          superEmails.includes(email)
+        );
       }
       return false;
     }),
@@ -73,8 +80,11 @@ export class AuthService {
           // Force refresh the token to grab custom claims.
           let tokenResult = await result.user.getIdTokenResult(true);
           let claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+          const email = (tokenResult.claims['email'] as string || '').toLowerCase();
+          const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+          const isSuper = tokenResult.claims['superAdmin'] === true || tokenResult.claims['platformAdmin'] === true || superEmails.includes(email);
 
-          if (!tokenResult.claims['admin'] || claimedTenantId !== environment.tenantId) {
+          if (!isSuper && (!tokenResult.claims['admin'] || claimedTenantId !== environment.tenantId)) {
             // Attempt to sync the claim synchronously via callable.
             // This handles the race where onRoleChange fired before the user existed in Auth,
             // or if the user is logging into a new tenant.
@@ -94,12 +104,12 @@ export class AuthService {
             }
           }
 
-          if (!tokenResult.claims['admin']) {
+          if (!isSuper && !tokenResult.claims['admin']) {
             await signOut(this.auth);
             throw new Error('permission-denied');
           }
 
-          if (claimedTenantId && claimedTenantId !== environment.tenantId) {
+          if (!isSuper && claimedTenantId && claimedTenantId !== environment.tenantId) {
             await signOut(this.auth);
             throw new Error('wrong-tenant');
           }
