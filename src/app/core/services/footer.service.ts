@@ -3,7 +3,7 @@ import { Firestore } from '@angular/fire/firestore';
 import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs';
+import { switchMap, catchError, map, timeout } from 'rxjs';
 import type { FooterData } from '@core/models/footer.model';
 import { tenantPath } from '@core/utils/tenant';
 
@@ -19,6 +19,7 @@ export class FooterService {
       const tenantRef = doc(this.firestore, tenantPath('configuracion'), 'footer');
       const legacyRef = doc(this.firestore, 'configuracion', 'footer');
       return from(getDoc(tenantRef)).pipe(
+        timeout(8000),
         switchMap((snap) =>
           snap.exists()
             ? of(snap.data() as FooterData)
