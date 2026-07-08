@@ -6,7 +6,7 @@ export const DevGuard: CanActivateFn = () => {
   const router = inject(Router);
   const isEnabled = environment.features?.seedDataEnabled ?? false;
   if (!isEnabled) {
-    router.navigate(['/admin/dashboard']);
+    void router.navigate(['/admin/dashboard']);
     return false;
   }
   return true;
