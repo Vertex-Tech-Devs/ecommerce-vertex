@@ -7,16 +7,29 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.get('superAdmin', false) == true ||
+        request.auth.token.get('platformAdmin', false) == true ||
+        request.auth.token.get('email', '') == 'juan.l.espeche@gmail.com' ||
+        request.auth.token.get('email', '') == 'leivalihue@gmail.com' ||
+        request.auth.token.get('email', '') == 'vertex.tech.dev@gmail.com'
+      );
+    }
+
     function isTenantAdmin(tenantId) {
       return isAuthenticated() && (
+        isSuperAdmin() ||
         // Custom claim check (fast path — set by cloud function after provisioning)
         (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == tenantId) ||
         // Root-level composite key fallback (covers latency between admin_roles creation and claim propagation)
-        (exists(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)) &&
+        (request.auth.token.get('email', '') != '' &&
+         exists(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)) &&
          (get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'owner' ||
           get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'admin'))
       );
     }
+
 
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;

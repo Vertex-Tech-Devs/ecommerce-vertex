@@ -16,7 +16,7 @@ import { switchMap, map } from 'rxjs/operators';
 import { user } from '@angular/fire/auth';
 import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SweetAlertService } from './sweet-alert.service';
-import { environment } from '../../../environments/environment';
+import { resolveTenantId } from '@core/utils/tenant';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -38,7 +38,14 @@ export class AuthService {
     }),
     map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
-        return tokenResult.claims['admin'] === true;
+        const email = (tokenResult.claims['email'] as string || '').toLowerCase();
+        const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+        return (
+          tokenResult.claims['admin'] === true ||
+          tokenResult.claims['superAdmin'] === true ||
+          tokenResult.claims['platformAdmin'] === true ||
+          superEmails.includes(email)
+        );
       }
       return false;
     }),
@@ -73,13 +80,18 @@ export class AuthService {
           // Force refresh the token to grab custom claims.
           let tokenResult = await result.user.getIdTokenResult(true);
           let claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+          const email = (tokenResult.claims['email'] as string || '').toLowerCase();
+          const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+          const isSuper = tokenResult.claims['superAdmin'] === true || tokenResult.claims['platformAdmin'] === true || superEmails.includes(email);
 
-          if (!tokenResult.claims['admin'] || claimedTenantId !== environment.tenantId) {
+          const currentTenant = resolveTenantId();
+
+          if (!isSuper && (!tokenResult.claims['admin'] || claimedTenantId !== currentTenant)) {
             // Attempt to sync the claim synchronously via callable.
             // This handles the race where onRoleChange fired before the user existed in Auth,
             // or if the user is logging into a new tenant.
             try {
-              await this.refreshMyAdminClaim({ tenantId: environment.tenantId });
+              await this.refreshMyAdminClaim({ tenantId: currentTenant });
             } catch {
               // If callable fails, fall back to waiting for the background trigger.
             }
@@ -88,18 +100,18 @@ export class AuthService {
               await new Promise((resolve) => setTimeout(resolve, 3000));
               tokenResult = await result.user.getIdTokenResult(true);
               claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
-              if (tokenResult.claims['admin'] && claimedTenantId === environment.tenantId) {
+              if (tokenResult.claims['admin'] && claimedTenantId === currentTenant) {
                 break;
               }
             }
           }
 
-          if (!tokenResult.claims['admin']) {
+          if (!isSuper && !tokenResult.claims['admin']) {
             await signOut(this.auth);
             throw new Error('permission-denied');
           }
 
-          if (claimedTenantId && claimedTenantId !== environment.tenantId) {
+          if (!isSuper && claimedTenantId && claimedTenantId !== currentTenant) {
             await signOut(this.auth);
             throw new Error('wrong-tenant');
           }

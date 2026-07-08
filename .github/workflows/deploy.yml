@@ -105,8 +105,8 @@ jobs:
           }
           EOF
 
-      - name: Build development
-        run: npm run build:dev
+      - name: Build development (template mode — tenantId resolved at runtime)
+        run: npm run build:dev-template
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -220,7 +220,7 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy to Firebase Development
-        run: npx --yes firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions --force
+        run: npx --yes firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions,firestore --force
 
   deploy-prod:
     name: '→ Production'
@@ -265,7 +265,7 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Deploy to Firebase Production
-        run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions --force
+        run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions,firestore --force
 
       - name: Create GitHub Release
         env:
