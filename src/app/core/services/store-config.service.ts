@@ -11,9 +11,8 @@ import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
-import { environment } from '../../../environments/environment';
 import { z } from 'zod';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, resolveTenantId } from '@core/utils/tenant';
 
 export const StoreConfigSchema = z.object({
   tenantId: z.string().default('').catch(''),
@@ -169,7 +168,7 @@ export class StoreConfigService {
 
       // Legacy flat path: configuracion/{tenantId} (provisioned before tenant namespace)
       const legacySnap = await Promise.race([
-        this.getDocSnap(this.getDocRef('configuracion', environment.tenantId)).catch(() => null),
+        this.getDocSnap(this.getDocRef('configuracion', resolveTenantId())).catch(() => null),
         timeout,
       ]);
       if (legacySnap?.exists()) {
@@ -190,7 +189,7 @@ export class StoreConfigService {
   private parseLegacyConfigRaw(raw: Record<string, unknown>): Record<string, unknown> {
     const payments = raw['payments'] as Record<string, string> | undefined;
     return {
-      tenantId: environment.tenantId,
+      tenantId: resolveTenantId(),
       storeId: (raw['storeId'] as string) ?? 'white-label-store',
       storeName: (raw['storeName'] as string) ?? 'Mi Tienda',
       tagline: (raw['tagline'] as string) ?? '',
