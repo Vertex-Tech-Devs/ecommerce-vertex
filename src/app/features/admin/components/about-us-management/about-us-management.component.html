@@ -274,12 +274,20 @@
 
             <!-- Alertas de límites de tarjetas -->
             @if (featureCards.length >= 3) {
-              <div class="alert alert-warning py-2 px-3 mb-3 small d-flex align-items-center gap-2 border-0 bg-warning-subtle text-warning-emphasis" style="border-radius: 12px;" role="alert">
+              <div
+                class="alert alert-warning py-2 px-3 mb-3 small d-flex align-items-center gap-2 border-0 bg-warning-subtle text-warning-emphasis"
+                style="border-radius: 12px"
+                role="alert"
+              >
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <span>Se ha alcanzado el límite máximo de 3 tarjetas.</span>
               </div>
             } @else if (featureCards.length <= 2) {
-              <div class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-center gap-2 border-0 bg-info-subtle text-info-emphasis" style="border-radius: 12px;" role="alert">
+              <div
+                class="alert alert-info py-2 px-3 mb-3 small d-flex align-items-center gap-2 border-0 bg-info-subtle text-info-emphasis"
+                style="border-radius: 12px"
+                role="alert"
+              >
                 <i class="bi bi-info-circle-fill"></i>
                 <span>Se debe mantener un mínimo de 2 tarjetas.</span>
               </div>

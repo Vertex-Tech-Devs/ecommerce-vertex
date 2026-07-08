@@ -29,11 +29,35 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
   return cachedAccessToken;
 }
 
-async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; webhook: string }> {
+async function getMercadoPagoRuntimeConfig(tenantId?: string): Promise<{ accessToken: string; webhook: string }> {
   const db = getFirestore();
-  const configSnap = await db.collection("settings").doc("storeConfig").get();
-  const data = configSnap.exists ? configSnap.data() as Record<string, any> : null;
-  const mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+
+  // Multi-tenant path: tenants/{tenantId}/configuracion/store
+  // Legacy/fallback path: settings/storeConfig
+  let mpConfig: Record<string, any> | undefined;
+
+  if (tenantId) {
+    const tenantConfigSnap = await db
+      .collection("tenants")
+      .doc(tenantId)
+      .collection("configuracion")
+      .doc("store")
+      .get();
+    const tenantData = tenantConfigSnap.exists ? (tenantConfigSnap.data() as Record<string, any>) : null;
+    mpConfig = tenantData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+
+    if (!mpConfig) {
+      // Fallback: try legacy configuracion/store (for dedicated-project stores)
+      const legacySnap = await db.collection("configuracion").doc("store").get();
+      const legacyData = legacySnap.exists ? (legacySnap.data() as Record<string, any>) : null;
+      mpConfig = legacyData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+    }
+  } else {
+    // Legacy fallback for backwards compatibility
+    const configSnap = await db.collection("settings").doc("storeConfig").get();
+    const data = configSnap.exists ? configSnap.data() as Record<string, any> : null;
+    mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+  }
 
   const secretName = String(mpConfig?.["accessTokenSecret"] || "").trim();
   const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : "";
@@ -47,7 +71,7 @@ async function getMercadoPagoRuntimeConfig(): Promise<{ accessToken: string; web
   return { accessToken, webhook };
 }
 
-export async function createPreference(data: PaymentRequestData) {
+export async function createPreference(data: PaymentRequestData, tenantId?: string) {
   const { items, external_reference } = data;
 
   if (process.env.FUNCTIONS_EMULATOR === "true") {
@@ -60,7 +84,7 @@ export async function createPreference(data: PaymentRequestData) {
     };
   }
 
-  const runtime = await getMercadoPagoRuntimeConfig();
+  const runtime = await getMercadoPagoRuntimeConfig(tenantId);
 
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
   const preferenceClient = new Preference(mpClient);
@@ -92,7 +116,7 @@ export async function createPreference(data: PaymentRequestData) {
   };
 }
 
-export async function getPaymentDetails(paymentId: string) {
+export async function getPaymentDetails(paymentId: string, tenantId?: string) {
   logger.info(`Obteniendo detalles del pago: ${paymentId}`);
 
   if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-")) {
@@ -105,7 +129,7 @@ export async function getPaymentDetails(paymentId: string) {
     };
   }
 
-  const runtime = await getMercadoPagoRuntimeConfig();
+  const runtime = await getMercadoPagoRuntimeConfig(tenantId);
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
   const paymentClient = new Payment(mpClient);
 

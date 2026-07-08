@@ -53,6 +53,7 @@
   &:first-child {
     padding-top: 0;
   }
+
   &:last-child {
     border-bottom: none;
     padding-bottom: 0;
@@ -161,6 +162,7 @@
   dt {
     font-weight: 400;
   }
+
   dd {
     margin: 0;
     font-weight: 500;
@@ -233,20 +235,50 @@
 .cart__empty-cta {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-3) var(--space-8);
-  font-size: 0.9rem;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.7rem 2rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #fff;
-  background: var(--text-primary);
+  color: #ffffff;
+  background-color: #000000;
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   text-decoration: none;
-  transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    background: radial-gradient(
+      circle 100px at var(--x, 0px) var(--y, 0px),
+      rgba(138, 180, 248, 0.35) 0%,
+      rgba(197, 137, 243, 0.2) 45%,
+      rgba(255, 255, 255, 0.03) 70%,
+      transparent 100%
+    );
+    z-index: 1;
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 

@@ -53,11 +53,16 @@ jobs:
         id: fetch
         env:
           PLATFORM_DEPLOY_TOKEN_DEV: ${{ secrets['PLATFORM_DEPLOY_TOKEN_DEV'] }}
+          PLATFORM_DEPLOY_TOKEN: ${{ secrets['PLATFORM_DEPLOY_TOKEN'] }}
         run: |
+          TOKEN="$PLATFORM_DEPLOY_TOKEN_DEV"
+          if [ -z "$TOKEN" ]; then
+            TOKEN="$PLATFORM_DEPLOY_TOKEN"
+          fi
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
-            -d "{\"data\":{\"deployToken\":\"$PLATFORM_DEPLOY_TOKEN_DEV\"}}")
+            -d "{\"data\":{\"deployToken\":\"$TOKEN\"}}")
           echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Parse stores into canary + rest
@@ -92,6 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, get-stores]
     if: needs.get-stores.outputs.has_stores == 'true'
+    environment: development
     strategy:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.canary) }}
@@ -130,10 +136,8 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
-        env:
-          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy
         run: |
@@ -159,6 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build, get-stores, deploy-canary]
     if: needs.get-stores.outputs.rest != '[]' && needs.get-stores.outputs.rest != ''
+    environment: development
     strategy:
       fail-fast: false
       matrix:
@@ -198,10 +203,8 @@ jobs:
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
-        env:
-          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
         with:
-          credentials_json: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy
         run: |

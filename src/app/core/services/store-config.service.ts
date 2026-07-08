@@ -36,6 +36,15 @@ export const StoreConfigSchema = z.object({
   payments: z
     .object({
       mercadoPagoPublicKey: z.string().default('').catch(''),
+      mercadoPago: z
+        .object({
+          publicKey: z.string().optional(),
+          accessTokenSecret: z.string().optional(),
+          accessTokenMasked: z.string().optional(),
+          accountEmail: z.string().optional(),
+          validationStatus: z.string().optional(),
+        })
+        .optional(),
     })
     .default({
       mercadoPagoPublicKey: '',
@@ -145,7 +154,7 @@ export class StoreConfigService {
   }
 
   async loadConfig(): Promise<void> {
-    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500));
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
     try {
       const snap = await Promise.race([
         this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')).catch(() => null),

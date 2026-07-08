@@ -11,9 +11,10 @@ service cloud.firestore {
       return isAuthenticated() && (
         // Custom claim check (fast path — set by cloud function after provisioning)
         (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == tenantId) ||
-        // Subcollection fallback (covers latency between admin_roles creation and claim propagation)
-        (exists(/databases/$(database)/documents/tenants/$(tenantId)/admin_roles/$(request.auth.token.email)) &&
-         get(/databases/$(database)/documents/tenants/$(tenantId)/admin_roles/$(request.auth.token.email)).data.role == 'admin')
+        // Root-level composite key fallback (covers latency between admin_roles creation and claim propagation)
+        (exists(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)) &&
+         (get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'owner' ||
+          get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'admin'))
       );
     }
 
@@ -112,6 +113,14 @@ service cloud.firestore {
         && request.auth.token.get('admin', false) == true
         && compositeId.matches(request.auth.token.get('tenantId', '') + '_.*');
       allow write: if false;
+    }
+
+    // Allow public read on legacy root documents to support storefront fallbacks on newly provisioned stores
+    match /configuracion/footer {
+      allow read: if true;
+    }
+    match /pages/aboutUs {
+      allow read: if true;
     }
 
     // Default fallback: any unmatched path is platform-admin-only

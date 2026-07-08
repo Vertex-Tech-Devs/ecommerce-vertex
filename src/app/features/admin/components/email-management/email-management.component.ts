@@ -152,14 +152,21 @@ export class EmailManagementComponent implements OnInit {
     this.emailSettingsService
       .getEmailSettings()
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe((settings) => {
-        if (settings?.storeOwnerEmail) {
-          this.emailForm.patchValue(settings);
-          this.emailForm.markAsPristine();
-        } else {
-          void this.restoreDefaults(false);
-        }
-        this.isLoading = false;
+      .subscribe({
+        next: (settings) => {
+          if (settings?.storeOwnerEmail) {
+            this.emailForm.patchValue(settings);
+            this.emailForm.markAsPristine();
+          } else {
+            void this.restoreDefaults(false);
+          }
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading Email settings:', err);
+          void this.restoreDefaults(false); // Fallback to defaults
+          this.isLoading = false;
+        },
       });
   }
 
