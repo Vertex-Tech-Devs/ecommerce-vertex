@@ -3,8 +3,7 @@ import { Firestore, collection, addDoc, setDoc, doc } from '@angular/fire/firest
 import type { StoreConfig } from '@core/models/store-config.model';
 import { DEFAULT_STORE_CONFIG } from '@core/models/store-config.model';
 import { StoreConfigService } from './store-config.service';
-import { environment } from '../../../environments/environment';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, resolveTenantId } from '@core/utils/tenant';
 
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
@@ -184,8 +183,8 @@ export class SeedContentService {
     const email = 'contacto@mitiendaonline.com';
     const payload: StoreConfig = {
       ...DEFAULT_STORE_CONFIG,
-      tenantId: environment.tenantId,
-      storeId: environment.tenantId,
+      tenantId: resolveTenantId(),
+      storeId: resolveTenantId(),
       storeName,
       tagline: 'Tu tienda de moda de marca blanca',
       colors: {

@@ -20,4 +20,6 @@
       <router-outlet></router-outlet>
     </main>
   </div>
+
+  <app-first-run-wizard *ngIf="isFirstRun()"></app-first-run-wizard>
 </div>

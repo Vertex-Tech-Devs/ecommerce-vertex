@@ -1,5 +1,6 @@
 import type { Routes } from '@angular/router';
 import { AdminComponent } from './admin.component';
+import { DevGuard } from '@core/guards/dev.guard';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -127,6 +128,15 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () =>
           import('./components/store-config/store-config.component').then(
             (m) => m.StoreConfigComponent,
+          ),
+      },
+      {
+        path: '_dev',
+        title: 'Desarrollo',
+        canActivate: [DevGuard],
+        loadComponent: () =>
+          import('./components/dev-panel/dev-panel.component').then(
+            (m) => m.DevPanelComponent,
           ),
       },
       {
