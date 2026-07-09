@@ -19,7 +19,6 @@ export class FooterService {
       const tenantRef = doc(this.firestore, tenantPath('configuracion'), 'footer');
       const legacyRef = doc(this.firestore, 'configuracion', 'footer');
       return from(getDoc(tenantRef)).pipe(
-        timeout(8000),
         switchMap((snap) =>
           snap.exists()
             ? of(snap.data() as FooterData)
@@ -29,6 +28,7 @@ export class FooterService {
                 ),
               ),
         ),
+        timeout(8000),
         catchError((err) => {
           console.warn('Unable to load footer data:', err);
           return of(undefined);

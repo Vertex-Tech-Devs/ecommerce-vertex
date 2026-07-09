@@ -31,8 +31,12 @@ export class AboutUsService {
         timeout(8000),
         switchMap((snap) =>
           snap.exists()
-            ? (docData(tenantRef) as Observable<AboutUsData | undefined>)
-            : (docData(legacyRef) as Observable<AboutUsData | undefined>),
+            ? of(snap.data() as AboutUsData)
+            : from(getDoc(legacyRef)).pipe(
+                map((legacySnap) =>
+                  legacySnap.exists() ? (legacySnap.data() as AboutUsData) : undefined,
+                ),
+              ),
         ),
         map((data) => convertTimestampsToDates(data) as AboutUsData | undefined),
         catchError((err) => {
