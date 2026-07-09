@@ -36,22 +36,28 @@ export class FirstRunWizardComponent {
       this.form.get('storeName')?.markAsTouched();
       return;
     }
-    if (this.currentStep() === 2 && (this.form.get('primaryColor')?.invalid || this.form.get('accentColor')?.invalid)) {
+    if (
+      this.currentStep() === 2 &&
+      (this.form.get('primaryColor')?.invalid || this.form.get('accentColor')?.invalid)
+    ) {
       this.form.get('primaryColor')?.markAsTouched();
       this.form.get('accentColor')?.markAsTouched();
       return;
     }
-    this.currentStep.update(s => s + 1);
+    this.currentStep.update((s) => s + 1);
   }
 
   prevStep(): void {
-    this.currentStep.update(s => s - 1);
+    this.currentStep.update((s) => s - 1);
   }
 
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.sweetAlert.error('Formulario incompleto', 'Completá todos los campos obligatorios antes de continuar.');
+      this.sweetAlert.error(
+        'Formulario incompleto',
+        'Completá todos los campos obligatorios antes de continuar.',
+      );
       return;
     }
 
@@ -84,7 +90,10 @@ export class FirstRunWizardComponent {
 
       await this.storeConfigService.saveConfig(payload);
       await this.storeConfigService.loadConfig();
-      this.sweetAlert.success('¡Felicitaciones!', 'Tu tienda ha sido configurada e inicializada con éxito.');
+      this.sweetAlert.success(
+        '¡Felicitaciones!',
+        'Tu tienda ha sido configurada e inicializada con éxito.',
+      );
     } catch (err) {
       console.error('Error al guardar la configuración inicial:', err);
       this.sweetAlert.error('Error', 'No se pudo guardar la configuración de la tienda.');

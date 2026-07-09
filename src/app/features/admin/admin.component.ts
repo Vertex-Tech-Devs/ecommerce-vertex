@@ -9,13 +9,7 @@ import { StoreConfigService } from '@core/services/store-config.service';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    HeaderComponent,
-    SidebarComponent,
-    FirstRunWizardComponent,
-  ],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent, FirstRunWizardComponent],
   templateUrl: './admin.component.html',
   styleUrl: './admin.component.scss',
 })

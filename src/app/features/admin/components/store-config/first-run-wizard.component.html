@@ -1,4 +1,9 @@
-<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" role="dialog">
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)"
+  role="dialog"
+>
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content shadow-lg border-0">
       <div class="modal-header bg-dark text-white border-0 py-3">
@@ -7,15 +12,37 @@
       <div class="modal-body p-4">
         <!-- Progress Steps -->
         <div class="d-flex justify-content-between mb-4 position-relative">
-          <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-light" style="height: 2px; z-index: 1;"></div>
-          <div class="position-absolute top-50 start-0 bg-primary" [style.width.%]="(currentStep() - 1) * 50" style="height: 2px; z-index: 1; transition: width 0.3s ease;"></div>
-          
-          <div class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold" 
-               [ngClass]="currentStep() >= 1 ? 'bg-primary' : 'bg-secondary'" style="width: 32px; height: 32px; z-index: 2;">1</div>
-          <div class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold" 
-               [ngClass]="currentStep() >= 2 ? 'bg-primary' : 'bg-secondary'" style="width: 32px; height: 32px; z-index: 2;">2</div>
-          <div class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold" 
-               [ngClass]="currentStep() >= 3 ? 'bg-primary' : 'bg-secondary'" style="width: 32px; height: 32px; z-index: 2;">3</div>
+          <div
+            class="position-absolute top-50 start-0 end-0 translate-middle-y bg-light"
+            style="height: 2px; z-index: 1"
+          ></div>
+          <div
+            class="position-absolute top-50 start-0 bg-primary"
+            [style.width.%]="(currentStep() - 1) * 50"
+            style="height: 2px; z-index: 1; transition: width 0.3s ease"
+          ></div>
+
+          <div
+            class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold"
+            [ngClass]="currentStep() >= 1 ? 'bg-primary' : 'bg-secondary'"
+            style="width: 32px; height: 32px; z-index: 2"
+          >
+            1
+          </div>
+          <div
+            class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold"
+            [ngClass]="currentStep() >= 2 ? 'bg-primary' : 'bg-secondary'"
+            style="width: 32px; height: 32px; z-index: 2"
+          >
+            2
+          </div>
+          <div
+            class="rounded-circle d-flex align-items-center justify-content-center text-white font-weight-bold"
+            [ngClass]="currentStep() >= 3 ? 'bg-primary' : 'bg-secondary'"
+            style="width: 32px; height: 32px; z-index: 2"
+          >
+            3
+          </div>
         </div>
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -23,15 +50,30 @@
           <div *ngIf="currentStep() === 1">
             <h6 class="fw-bold mb-3">Identidad de la Tienda</h6>
             <div class="mb-3">
-              <label class="form-label text-secondary fw-semibold small">Nombre de la Tienda *</label>
-              <input type="text" formControlName="storeName" class="form-control" placeholder="Ej. Mi Tienda de Ropa">
-              <div *ngIf="form.get('storeName')?.touched && form.get('storeName')?.invalid" class="text-danger small mt-1">
+              <label class="form-label text-secondary fw-semibold small"
+                >Nombre de la Tienda *</label
+              >
+              <input
+                type="text"
+                formControlName="storeName"
+                class="form-control"
+                placeholder="Ej. Mi Tienda de Ropa"
+              />
+              <div
+                *ngIf="form.get('storeName')?.touched && form.get('storeName')?.invalid"
+                class="text-danger small mt-1"
+              >
                 El nombre de la tienda es obligatorio.
               </div>
             </div>
             <div class="mb-3">
               <label class="form-label text-secondary fw-semibold small">Eslogan o Subtítulo</label>
-              <input type="text" formControlName="tagline" class="form-control" placeholder="Ej. La mejor moda urbana">
+              <input
+                type="text"
+                formControlName="tagline"
+                class="form-control"
+                placeholder="Ej. La mejor moda urbana"
+              />
             </div>
           </div>
 
@@ -41,15 +83,35 @@
             <div class="mb-3">
               <label class="form-label text-secondary fw-semibold small">Color Primario *</label>
               <div class="d-flex align-items-center gap-2">
-                <input type="color" formControlName="primaryColor" class="form-control form-control-color" style="width: 60px;">
-                <input type="text" [value]="form.get('primaryColor')?.value" class="form-control" readonly>
+                <input
+                  type="color"
+                  formControlName="primaryColor"
+                  class="form-control form-control-color"
+                  style="width: 60px"
+                />
+                <input
+                  type="text"
+                  [value]="form.get('primaryColor')?.value"
+                  class="form-control"
+                  readonly
+                />
               </div>
             </div>
             <div class="mb-3">
               <label class="form-label text-secondary fw-semibold small">Color Acento *</label>
               <div class="d-flex align-items-center gap-2">
-                <input type="color" formControlName="accentColor" class="form-control form-control-color" style="width: 60px;">
-                <input type="text" [value]="form.get('accentColor')?.value" class="form-control" readonly>
+                <input
+                  type="color"
+                  formControlName="accentColor"
+                  class="form-control form-control-color"
+                  style="width: 60px"
+                />
+                <input
+                  type="text"
+                  [value]="form.get('accentColor')?.value"
+                  class="form-control"
+                  readonly
+                />
               </div>
             </div>
           </div>
@@ -58,16 +120,34 @@
           <div *ngIf="currentStep() === 3">
             <h6 class="fw-bold mb-3">Contacto de Soporte</h6>
             <div class="mb-3">
-              <label class="form-label text-secondary fw-semibold small">Teléfono de Contacto *</label>
-              <input type="text" formControlName="phone" class="form-control" placeholder="Ej. +54 11 1234-5678">
-              <div *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid" class="text-danger small mt-1">
+              <label class="form-label text-secondary fw-semibold small"
+                >Teléfono de Contacto *</label
+              >
+              <input
+                type="text"
+                formControlName="phone"
+                class="form-control"
+                placeholder="Ej. +54 11 1234-5678"
+              />
+              <div
+                *ngIf="form.get('phone')?.touched && form.get('phone')?.invalid"
+                class="text-danger small mt-1"
+              >
                 El teléfono es obligatorio.
               </div>
             </div>
             <div class="mb-3">
               <label class="form-label text-secondary fw-semibold small">Email de Contacto *</label>
-              <input type="email" formControlName="email" class="form-control" placeholder="Ej. contacto@mitienda.com">
-              <div *ngIf="form.get('email')?.touched && form.get('email')?.invalid" class="text-danger small mt-1">
+              <input
+                type="email"
+                formControlName="email"
+                class="form-control"
+                placeholder="Ej. contacto@mitienda.com"
+              />
+              <div
+                *ngIf="form.get('email')?.touched && form.get('email')?.invalid"
+                class="text-danger small mt-1"
+              >
                 Ingresá un email válido de contacto.
               </div>
             </div>
@@ -76,15 +156,33 @@
       </div>
 
       <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-between">
-        <button type="button" class="btn btn-outline-secondary" (click)="prevStep()" *ngIf="currentStep() > 1" [disabled]="isSubmitting()">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="prevStep()"
+          *ngIf="currentStep() > 1"
+          [disabled]="isSubmitting()"
+        >
           Atrás
         </button>
-        <div *ngIf="currentStep() === 1"></div> <!-- Placeholder to keep Next right-aligned -->
-        
-        <button type="button" class="btn btn-primary" (click)="nextStep()" *ngIf="currentStep() < 3">
+        <div *ngIf="currentStep() === 1"></div>
+        <!-- Placeholder to keep Next right-aligned -->
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="nextStep()"
+          *ngIf="currentStep() < 3"
+        >
           Siguiente
         </button>
-        <button type="button" class="btn btn-success" (click)="onSubmit()" *ngIf="currentStep() === 3" [disabled]="form.invalid || isSubmitting()">
+        <button
+          type="button"
+          class="btn btn-success"
+          (click)="onSubmit()"
+          *ngIf="currentStep() === 3"
+          [disabled]="form.invalid || isSubmitting()"
+        >
           {{ isSubmitting() ? 'Guardando...' : 'Finalizar y Crear' }}
         </button>
       </div>
