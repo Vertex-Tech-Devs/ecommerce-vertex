@@ -13,6 +13,6 @@ import { CommonModule } from '@angular/common';
         <span class="badge bg-success p-2 align-self-start">Entorno de Desarrollo Activo</span>
       </div>
     </div>
-  `
+  `,
 })
 export class DevPanelComponent {}

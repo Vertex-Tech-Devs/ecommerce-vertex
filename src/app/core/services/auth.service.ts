@@ -38,8 +38,12 @@ export class AuthService {
     }),
     map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
-        const email = (tokenResult.claims['email'] as string || '').toLowerCase();
-        const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+        const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
+        const superEmails = [
+          'juan.l.espeche@gmail.com',
+          'leivalihue@gmail.com',
+          'vertex.tech.dev@gmail.com',
+        ];
         return (
           tokenResult.claims['admin'] === true ||
           tokenResult.claims['superAdmin'] === true ||
@@ -80,9 +84,16 @@ export class AuthService {
           // Force refresh the token to grab custom claims.
           let tokenResult = await result.user.getIdTokenResult(true);
           let claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
-          const email = (tokenResult.claims['email'] as string || '').toLowerCase();
-          const superEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
-          const isSuper = tokenResult.claims['superAdmin'] === true || tokenResult.claims['platformAdmin'] === true || superEmails.includes(email);
+          const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
+          const superEmails = [
+            'juan.l.espeche@gmail.com',
+            'leivalihue@gmail.com',
+            'vertex.tech.dev@gmail.com',
+          ];
+          const isSuper =
+            tokenResult.claims['superAdmin'] === true ||
+            tokenResult.claims['platformAdmin'] === true ||
+            superEmails.includes(email);
 
           const currentTenant = resolveTenantId();
 
