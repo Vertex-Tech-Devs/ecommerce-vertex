@@ -7,7 +7,7 @@ import type { Functions as FirebaseFunctions } from 'firebase/functions';
 import { httpsCallable } from 'firebase/functions';
 import type { Observable } from 'rxjs';
 import { of, from } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { catchError, timeout, map } from 'rxjs/operators';
 import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
 import { tenantPath } from '@core/utils/tenant';
 
