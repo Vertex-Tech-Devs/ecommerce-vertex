@@ -1,5 +1,5 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
-import { Firestore, docData } from '@angular/fire/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import { Functions } from '@angular/fire/functions';
@@ -39,7 +39,9 @@ export class EmailSettingsService {
   }
 
   protected getDocData(ref: DocumentReference): Observable<unknown> {
-    return docData(ref);
+    return from(getDoc(ref)).pipe(
+      map((snap) => (snap.exists() ? snap.data() : undefined))
+    );
   }
 
   protected setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
@@ -53,9 +55,8 @@ export class EmailSettingsService {
 
   getEmailSettings(): Observable<EmailSettings | undefined> {
     return runInInjectionContext(this.injector, () => {
-      return from(getDoc(this.docRef)).pipe(
+      return (this.getDocData(this.docRef) as Observable<EmailSettings | undefined>).pipe(
         timeout(8000),
-        map((snap) => (snap.exists() ? (snap.data() as EmailSettings) : undefined)),
         catchError((err) => {
           console.warn('Unable to load email settings:', err);
           return of(undefined);
