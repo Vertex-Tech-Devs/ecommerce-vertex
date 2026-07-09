@@ -133,6 +133,10 @@
   }
 }
 
+.product-card {
+  cursor: pointer;
+}
+
 .glass-card {
   position: relative;
   overflow: hidden;
@@ -438,6 +442,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 
     &:hover {
       background: rgba(168, 85, 247, 0.1);
@@ -457,6 +462,7 @@
     background-color: transparent;
     border-color: transparent;
     color: rgba(255, 255, 255, 0.15);
+    cursor: not-allowed;
 
     &:hover {
       transform: none;
