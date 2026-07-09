@@ -163,11 +163,13 @@ export class EmailManagementComponent implements OnInit {
             void this.restoreDefaults(false);
           }
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('[DEBUG] EmailManagementComponent: error emitted:', err);
           void this.restoreDefaults(false); // Fallback to defaults
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         complete: () => {
           console.log('[DEBUG] EmailManagementComponent: getEmailSettings() observable completed');

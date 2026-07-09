@@ -1,5 +1,5 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, DestroyRef } from '@angular/core';
+import { Component, inject, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -22,6 +22,7 @@ export class AboutUsManagementComponent implements OnInit {
   private aboutUsService = inject(AboutUsService);
   private alertService = inject(SweetAlertService);
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   aboutUsForm!: FormGroup;
   data$: Observable<AboutUsData | undefined>;
@@ -93,11 +94,13 @@ export class AboutUsManagementComponent implements OnInit {
         this.selectedBannerFile = null;
         this.selectedCentralFile = null;
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('[DEBUG] AboutUsManagementComponent: error emitted:', err);
         this.buildForm(); // Initialize with empty values on error
         this.isLoading = false;
+        this.cdr.detectChanges();
       },
       complete: () => {
         console.log('[DEBUG] AboutUsManagementComponent: data$ observable completed');
