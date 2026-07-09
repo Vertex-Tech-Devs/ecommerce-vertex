@@ -1,0 +1,53 @@
+<div class="glass-card">
+  <div class="modal-header-custom p-3 p-md-4 pb-0">
+    <h5 class="section-subtitle mb-0">
+      <i class="bi bi-plus-circle me-2" aria-hidden="true"></i>
+      {{ inlineAttribute.id ? 'Editar Atributo' : 'Nuevo Atributo' }}
+    </h5>
+    <button type="button" class="btn-close-custom" aria-label="Cerrar" (click)="close()">
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="modal-body-custom p-3 p-md-4">
+    <form (ngSubmit)="saveAttribute()">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-label" for="attributeName">
+            Nombre del atributo <span class="text-danger">*</span>
+          </label>
+          <input
+            id="attributeName"
+            type="text"
+            class="form-control glass-input"
+            [(ngModel)]="inlineAttribute.name"
+            name="name"
+            placeholder="Ej: Color, Talle, Material"
+            required
+            minlength="3"
+          />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-label" for="attributeValues">Valores (separados por coma)</label>
+          <input
+            id="attributeValues"
+            type="text"
+            class="form-control glass-input"
+            [(ngModel)]="inlineAttribute.values"
+            name="values"
+            placeholder="Ej: Rojo, Azul, Verde"
+          />
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 mt-4 justify-content-end">
+        <button type="submit" class="btn-glass-primary-action">
+          <i class="bi bi-check2 me-1" aria-hidden="true"></i> Guardar
+        </button>
+        <button (click)="close()" type="button" class="btn-glass-secondary-action">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

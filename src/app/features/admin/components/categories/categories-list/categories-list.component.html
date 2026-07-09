@@ -6,38 +6,17 @@
 
     <hr class="glass-divider mb-4 d-none d-md-block" />
 
-    @if (showCategoryForm) {
-      <div class="glass-card mb-4 mb-md-4">
-        <div class="card-body p-3 p-md-4">
-          <h5 class="section-subtitle mb-3">
-            <i class="bi bi-plus-circle me-2"></i
-            >{{ inlineCategory.id ? 'Editar Categoría' : 'Nueva Categoría' }}
-          </h5>
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label text-label"
-                >Nombre de la categoría <span class="text-danger">*</span></label
-              >
-              <input
-                type="text"
-                class="form-control glass-input"
-                [(ngModel)]="inlineCategory.name"
-                [ngModelOptions]="{ standalone: true }"
-                placeholder="Ej: Ropa, Electrónica, Hogar"
-              />
-            </div>
-          </div>
-          <div class="d-flex gap-2 mt-3">
-            <button (click)="saveCategory()" type="button" class="btn-glass-primary">
-              <i class="bi bi-check2 me-1"></i> Guardar
-            </button>
-            <button (click)="cancelCategoryForm()" type="button" class="btn-glass-secondary">
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-    }
+@if (showCategoryModal) {
+  <div class="modal-overlay" (click)="closeCategoryModal()">
+    <div class="modal-wrapper" (click)="$event.stopPropagation()">
+      <app-category-form-modal
+        [category]="selectedCategory"
+        (closeModal)="closeCategoryModal()"
+        (saveSuccess)="onSaveSuccess()"
+      ></app-category-form-modal>
+    </div>
+  </div>
+}
 
     <div class="glass-card mb-4 mb-md-5">
       <div class="card-body p-3 p-md-4">
