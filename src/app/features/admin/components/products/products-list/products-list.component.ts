@@ -140,4 +140,10 @@ export class ProductsListComponent implements OnInit {
   newProduct(): void {
     void this.router.navigate(['/admin/products/create']);
   }
+
+  goToDetail(productId: string | undefined): void {
+    if (productId) {
+      void this.router.navigate(['/admin/products', productId]);
+    }
+  }
 }
