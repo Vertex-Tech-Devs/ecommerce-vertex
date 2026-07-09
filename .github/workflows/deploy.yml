@@ -227,6 +227,11 @@ jobs:
             --member="serviceAccount:$SA_EMAIL" \
             --role="roles/firebaserules.admin" \
             --quiet
+          gcloud projects add-iam-policy-binding ecommerce-vertex-dev \
+            --member="serviceAccount:$SA_EMAIL" \
+            --role="roles/firebaserules.admin" \
+            --condition=None \
+            --quiet 2>&1 || echo "Role already exists or not needed"
 
       - name: Deploy to Firebase Development
         run: npx --yes firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions,firestore --force
@@ -281,6 +286,11 @@ jobs:
             --member="serviceAccount:$SA_EMAIL" \
             --role="roles/firebaserules.admin" \
             --quiet
+          gcloud projects add-iam-policy-binding ecommerce-vertex \
+            --member="serviceAccount:$SA_EMAIL" \
+            --role="roles/firebaserules.admin" \
+            --condition=None \
+            --quiet 2>&1 || echo "Role already exists or not needed"
 
       - name: Deploy to Firebase Production
         run: npx --yes firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions,firestore --force
