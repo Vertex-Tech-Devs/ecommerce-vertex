@@ -39,9 +39,7 @@ export class EmailSettingsService {
   }
 
   protected getDocData(ref: DocumentReference): Observable<unknown> {
-    return from(getDoc(ref)).pipe(
-      map((snap) => (snap.exists() ? snap.data() : undefined))
-    );
+    return from(getDoc(ref)).pipe(map((snap) => (snap.exists() ? snap.data() : undefined)));
   }
 
   protected setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
