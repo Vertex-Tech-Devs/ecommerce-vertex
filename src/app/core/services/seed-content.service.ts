@@ -179,7 +179,7 @@ export class SeedContentService {
   }
 
   async seedFooter(): Promise<void> {
-    const storeName = 'Mi Tienda Online';
+    const storeName = this.storeConfigService.storeName() || 'Mi Tienda';
     const email = 'contacto@mitiendaonline.com';
     const payload: StoreConfig = {
       ...DEFAULT_STORE_CONFIG,
