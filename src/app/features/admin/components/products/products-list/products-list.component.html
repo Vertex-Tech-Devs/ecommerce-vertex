@@ -47,7 +47,7 @@
       } @else {
         <div class="products__grid">
           @for (product of products; track product.id) {
-            <div class="glass-card product-card">
+            <div class="glass-card product-card" (click)="goToDetail(product.id)">
               <div class="product-card__image-wrapper">
                 @if (product.images && product.images.length > 0) {
                   <img
@@ -95,21 +95,15 @@
 
               <div class="card-footer-action">
                 <a
-                  [routerLink]="['/admin/products', product.id]"
-                  class="btn-action btn-outline-info"
-                  title="Ver Detalles"
-                >
-                  <i class="bi bi-eye"></i>
-                </a>
-                <a
                   [routerLink]="['/admin/products/edit', product.id]"
+                  (click)="$event.stopPropagation()"
                   class="btn-action btn-outline-primary"
                   title="Editar"
                 >
                   <i class="bi bi-pencil-square"></i>
                 </a>
                 <button
-                  (click)="confirmDelete(product)"
+                  (click)="confirmDelete(product); $event.stopPropagation()"
                   class="btn-action btn-outline-danger"
                   title="Eliminar"
                 >
