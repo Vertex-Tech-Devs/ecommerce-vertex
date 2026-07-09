@@ -1,13 +1,13 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
-import { Firestore, docData } from '@angular/fire/firestore';
-import { doc, setDoc } from '@angular/fire/firestore';
+import { Firestore } from '@angular/fire/firestore';
+import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import { Functions } from '@angular/fire/functions';
 import type { Functions as FirebaseFunctions } from 'firebase/functions';
 import { httpsCallable } from 'firebase/functions';
 import type { Observable } from 'rxjs';
-import { of } from 'rxjs';
-import { catchError, timeout } from 'rxjs/operators';
+import { of, from } from 'rxjs';
+import { catchError, timeout, map } from 'rxjs/operators';
 import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
 import { tenantPath } from '@core/utils/tenant';
 
@@ -39,7 +39,9 @@ export class EmailSettingsService {
   }
 
   protected getDocData(ref: DocumentReference): Observable<unknown> {
-    return docData(ref);
+    return from(getDoc(ref)).pipe(
+      map((snap) => (snap.exists() ? snap.data() : undefined))
+    );
   }
 
   protected setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
