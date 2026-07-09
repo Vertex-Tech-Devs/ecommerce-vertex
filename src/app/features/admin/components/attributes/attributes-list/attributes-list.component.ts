@@ -59,4 +59,3 @@ export class AttributesListComponent implements OnInit {
     }
   }
 }
-
