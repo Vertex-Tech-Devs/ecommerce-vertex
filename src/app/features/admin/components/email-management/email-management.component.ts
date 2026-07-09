@@ -149,11 +149,13 @@ export class EmailManagementComponent implements OnInit {
 
   private loadEmailSettings(): void {
     this.isLoading = true;
+    console.log('[DEBUG] EmailManagementComponent: subscribing to getEmailSettings()');
     this.emailSettingsService
       .getEmailSettings()
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (settings) => {
+          console.log('[DEBUG] EmailManagementComponent: next emitted settings:', settings);
           if (settings?.storeOwnerEmail) {
             this.emailForm.patchValue(settings);
             this.emailForm.markAsPristine();
@@ -163,10 +165,13 @@ export class EmailManagementComponent implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Error loading Email settings:', err);
+          console.error('[DEBUG] EmailManagementComponent: error emitted:', err);
           void this.restoreDefaults(false); // Fallback to defaults
           this.isLoading = false;
         },
+        complete: () => {
+          console.log('[DEBUG] EmailManagementComponent: getEmailSettings() observable completed');
+        }
       });
   }
 

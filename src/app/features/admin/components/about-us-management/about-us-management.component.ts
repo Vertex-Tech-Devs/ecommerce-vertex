@@ -79,8 +79,10 @@ export class AboutUsManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
+    console.log('[DEBUG] AboutUsManagementComponent: subscribing to data$');
     this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
+        console.log('[DEBUG] AboutUsManagementComponent: next emitted data:', data);
         if (data) {
           this.buildForm(data);
         } else {
@@ -93,10 +95,13 @@ export class AboutUsManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading About Us data:', err);
+        console.error('[DEBUG] AboutUsManagementComponent: error emitted:', err);
         this.buildForm(); // Initialize with empty values on error
         this.isLoading = false;
       },
+      complete: () => {
+        console.log('[DEBUG] AboutUsManagementComponent: data$ observable completed');
+      }
     });
   }
 

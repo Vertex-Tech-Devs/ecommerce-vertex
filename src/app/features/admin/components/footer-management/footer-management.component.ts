@@ -54,8 +54,10 @@ export class FooterManagementComponent implements OnInit {
 
   private loadDataIntoForm(): void {
     this.isLoading = true;
+    console.log('[DEBUG] FooterManagementComponent: subscribing to data$');
     this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
+        console.log('[DEBUG] FooterManagementComponent: next emitted data:', data);
         if (data) {
           this.buildForm(data);
         } else {
@@ -64,10 +66,13 @@ export class FooterManagementComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Error loading Footer data:', err);
+        console.error('[DEBUG] FooterManagementComponent: error emitted:', err);
         this.buildForm(); // Initialize with empty values on error
         this.isLoading = false;
       },
+      complete: () => {
+        console.log('[DEBUG] FooterManagementComponent: data$ observable completed');
+      }
     });
   }
 
