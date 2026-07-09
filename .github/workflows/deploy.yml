@@ -222,6 +222,7 @@ jobs:
       - name: Grant Firestore Rules Admin role to SA
         run: |
           SA_EMAIL=$(gcloud auth list --filter=status:ACTIVE --format='value(account)')
+          echo "SA_EMAIL=$SA_EMAIL"
           gcloud projects add-iam-policy-binding ecommerce-vertex-dev \
             --member="serviceAccount:$SA_EMAIL" \
             --role="roles/firebaserules.admin" \
@@ -276,6 +277,7 @@ jobs:
       - name: Grant Firestore Rules Admin role to SA
         run: |
           SA_EMAIL=$(gcloud auth list --filter=status:ACTIVE --format='value(account)')
+          echo "SA_EMAIL=$SA_EMAIL"
           gcloud projects add-iam-policy-binding ecommerce-vertex \
             --member="serviceAccount:$SA_EMAIL" \
             --role="roles/firebaserules.admin" \
