@@ -293,8 +293,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           );
           return;
         }
+        const limitedCombos = combos.slice(0, 20);
         this.variants.clear();
-        combos.forEach((combo) => {
+        limitedCombos.forEach((combo) => {
           this.variants.push(
             this.fb.group({
               id: [null],
@@ -303,7 +304,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
             }),
           );
         });
-        this.sweetAlertService.success('¡Éxito!', `Se generaron ${combos.length} variantes.`);
+        this.sweetAlertService.success('¡Éxito!', `Se generaron ${limitedCombos.length} variantes.`);
       });
   }
 
