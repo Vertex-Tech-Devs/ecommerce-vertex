@@ -28,14 +28,11 @@ export class StoreConfigComponent implements OnInit {
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   isSubmitting = signal(false);
-  activeTab = signal<'identity' | 'colors' | 'payments' | 'contact-seo'>('identity');
+  activeTab = signal<'identity'>('identity');
 
   // File uploading states
   faviconProgress = signal<number>(0);
   faviconUploading = signal<boolean>(false);
-
-  // Visibility toggle for keys
-  showMpKey = signal<boolean>(false);
 
   form: FormGroup = this.fb.group({
     tenantId: [''],
@@ -53,14 +50,14 @@ export class StoreConfigComponent implements OnInit {
       mercadoPagoPublicKey: [''],
     }),
     contact: this.fb.group({
-      phone: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      phone: [''],
+      email: [''],
       whatsApp: [''],
       instagram: [''],
       facebook: [''],
     }),
     seo: this.fb.group({
-      metaDescription: ['', Validators.required],
+      metaDescription: [''],
     }),
     setupCompleted: [true],
   });
@@ -119,7 +116,7 @@ export class StoreConfigComponent implements OnInit {
     }
   }
 
-  setTab(tab: 'identity' | 'colors' | 'payments' | 'contact-seo'): void {
+  setTab(tab: 'identity'): void {
     this.activeTab.set(tab);
   }
 
@@ -151,10 +148,6 @@ export class StoreConfigComponent implements OnInit {
         this.sweetAlert.error('Error de subida', 'No se pudo cargar el favicon corporativo.');
       },
     });
-  }
-
-  toggleMpKeyVisibility(): void {
-    this.showMpKey.update((val) => !val);
   }
 
   async onSubmit(): Promise<void> {
