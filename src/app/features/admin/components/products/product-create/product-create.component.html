@@ -133,7 +133,12 @@
           <div formArrayName="images" class="glass-upload-box mb-4">
             <div class="d-flex flex-row justify-content-between align-items-center mb-3 gap-2">
               <label class="form-label mb-0">Imágenes Adicionales</label>
-              <button (click)="addImage()" type="button" class="btn-glass-success btn-sm">
+              <button
+                (click)="addImage()"
+                type="button"
+                class="btn-glass-success btn-sm"
+                [disabled]="images.length > 0 && !images.at(images.length - 1).value"
+              >
                 <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline ms-1">Añadir imagen</span>
               </button>
