@@ -136,7 +136,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
             categoryId: product.categoryId,
             image: product.image,
           });
-          const imageControls = (product.images ?? []).map((img) => this.fb.control(img));
+          const imageControls = (product.images ?? []).map((img) =>
+            this.fb.control(img, [Validators.required, Validators.pattern('https?://.+')]),
+          );
           this.productForm.setControl('images', this.fb.array(imageControls));
 
           const attributeControls = (product.variantAttributes ?? []).map((attrId) =>
@@ -306,8 +308,20 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   addImage(imageUrl: string = ''): void {
+    if (this.images.length > 0) {
+      const lastControl = this.images.at(this.images.length - 1);
+      if (!lastControl.value) {
+        this.sweetAlertService.warning(
+          'Advertencia',
+          'Debes cargar la imagen actual antes de solicitar otra.',
+        );
+        return;
+      }
+    }
     this.focusNewImage = true;
-    this.images.push(this.fb.control(imageUrl, [Validators.pattern('https?://.+')]));
+    this.images.push(
+      this.fb.control(imageUrl, [Validators.required, Validators.pattern('https?://.+')]),
+    );
   }
 
   async removeImage(index: number): Promise<void> {
