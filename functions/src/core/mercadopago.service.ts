@@ -22,11 +22,16 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
     throw new Error("No se pudo resolver el proyecto para leer Secret Manager.");
   }
 
-  const [version] = await secretsClient.accessSecretVersion({
-    name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
-  });
-  cachedAccessToken = version.payload?.data?.toString().trim() || "";
-  return cachedAccessToken;
+  try {
+    const [version] = await secretsClient.accessSecretVersion({
+      name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
+    });
+    cachedAccessToken = version.payload?.data?.toString().trim() || "";
+    return cachedAccessToken;
+  } catch (error) {
+    logger.warn(`No se pudo leer el secreto ${secretName} de Secret Manager. Se intentará usar fallback:`, error);
+    return "";
+  }
 }
 
 async function getMercadoPagoRuntimeConfig(tenantId?: string): Promise<{ accessToken: string; webhook: string }> {
