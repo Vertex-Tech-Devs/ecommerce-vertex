@@ -73,7 +73,7 @@
     "@types/jasmine": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^8.61.1",
     "@typescript-eslint/parser": "^8.61.1",
-    "cypress": "^15.17.0",
+    "cypress": "^15.18.1",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
     "http-proxy-agent": "^9.1.0",
