@@ -30,6 +30,8 @@ interface ProductDetailData {
 export class ProductDetailComponent implements OnInit {
   data$!: Observable<ProductDetailData>;
   variantAttributes = signal<{ id: string; name: string }[]>([]);
+  currentPage = signal<number>(1);
+  pageSize = 10;
 
   private sweetAlertService = inject(SweetAlertService);
   private route = inject(ActivatedRoute);
@@ -40,6 +42,7 @@ export class ProductDetailComponent implements OnInit {
   private allAttributes: Attribute[] = [];
 
   ngOnInit(): void {
+    this.currentPage.set(1);
     this.data$ = this.route.paramMap.pipe(
       switchMap((params) => {
         const productId = params.get('id');
@@ -86,6 +89,28 @@ export class ProductDetailComponent implements OnInit {
 
   getVariantAttributeValue(variant: ProductVariant, attributeId: string): string {
     return variant.attributes[attributeId] ?? 'N/A';
+  }
+
+  getPaginatedVariants(variants: ProductVariant[]): ProductVariant[] {
+    const page = this.currentPage();
+    const start = (page - 1) * this.pageSize;
+    return variants.slice(start, start + this.pageSize);
+  }
+
+  getTotalPages(variants: ProductVariant[]): number {
+    return Math.ceil(variants.length / this.pageSize) || 1;
+  }
+
+  getPagesArray(variants: ProductVariant[]): number[] {
+    const total = this.getTotalPages(variants);
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  goToPage(page: number, variants: ProductVariant[]): void {
+    const maxPage = this.getTotalPages(variants);
+    if (page >= 1 && page <= maxPage) {
+      this.currentPage.set(page);
+    }
   }
 
   goBack(): void {

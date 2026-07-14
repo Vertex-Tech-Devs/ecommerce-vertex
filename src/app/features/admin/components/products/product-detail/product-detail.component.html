@@ -119,7 +119,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (variant of data.variants; track variant.id) {
+                  @for (variant of getPaginatedVariants(data.variants); track variant.id) {
                     <tr>
                       @for (attr of variantAttributes(); track attr.id) {
                         <td>{{ getVariantAttributeValue(variant, attr.id) }}</td>
@@ -130,6 +130,46 @@
                 </tbody>
               </table>
             </div>
+
+            @if (getTotalPages(data.variants) > 1) {
+              <nav aria-label="Navegación de variantes" class="custom-glass-pagination">
+                <ul class="pagination justify-content-center mb-0">
+                  <li class="page-item" [class.disabled]="currentPage() === 1">
+                    <button
+                      type="button"
+                      class="page-link"
+                      (click)="goToPage(currentPage() - 1, data.variants)"
+                      [disabled]="currentPage() === 1"
+                      aria-label="Anterior"
+                    >
+                      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                  </li>
+                  @for (page of getPagesArray(data.variants); track page) {
+                    <li class="page-item" [class.active]="currentPage() === page">
+                      <button
+                        type="button"
+                        class="page-link"
+                        (click)="goToPage(page, data.variants)"
+                      >
+                        {{ page }}
+                      </button>
+                    </li>
+                  }
+                  <li class="page-item" [class.disabled]="currentPage() === getTotalPages(data.variants)">
+                    <button
+                      type="button"
+                      class="page-link"
+                      (click)="goToPage(currentPage() + 1, data.variants)"
+                      [disabled]="currentPage() === getTotalPages(data.variants)"
+                      aria-label="Siguiente"
+                    >
+                      <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            }
           } @else {
             <div class="empty-state">
               <i class="bi bi-dash-circle empty-icon"></i>

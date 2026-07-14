@@ -61,6 +61,26 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   galleryUploadProgress: Record<number, number | null> = {};
   private initialVariants: ProductVariant[] = [];
 
+  currentPage = 1;
+  pageSize = 5;
+
+  get totalPages(): number {
+    return Math.ceil(this.variants.length / this.pageSize) || 1;
+  }
+
+  get pages(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get paginatedVariantsControls(): AbstractControl[] {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.variants.controls.slice(start, start + this.pageSize);
+  }
+
+  getVariantRealIndex(control: AbstractControl): number {
+    return this.variants.controls.indexOf(control);
+  }
+
   ngOnInit(): void {
     this.categories$ = this.categoryService.getCategories();
     this.attributeService
@@ -288,6 +308,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
     );
+    this.currentPage = this.totalPages;
     this.cdr.markForCheck();
   }
 
@@ -298,6 +319,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     );
     if (isConfirmed) {
       this.variants.removeAt(index);
+      const maxPage = this.totalPages;
+      if (this.currentPage > maxPage) {
+        this.currentPage = maxPage;
+      }
       this.cdr.markForCheck();
     }
   }
@@ -326,6 +351,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         }
         const limitedCombos = combos.slice(0, 20);
         this.variants.clear();
+        this.currentPage = 1;
         limitedCombos.forEach((combo) => {
           this.variants.push(
             this.fb.group({
