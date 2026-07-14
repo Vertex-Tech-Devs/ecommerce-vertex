@@ -1,5 +1,5 @@
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef } from '@angular/core';
+import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
@@ -37,15 +37,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   private sweetAlertService = inject(SweetAlertService);
   private storageService = inject(StorageService);
   private variantFormService = inject(ProductVariantFormService);
+  private cdr = inject(ChangeDetectorRef);
   private focusNewImage = false;
   private focusNewVariant = false;
 
-  @ViewChildren('additionalImageInput') additionalImageInputs!: QueryList<
-    ElementRef<HTMLInputElement>
-  >;
-  @ViewChildren('variantFirstSelect') variantFirstSelects!: QueryList<
-    ElementRef<HTMLSelectElement>
-  >;
+  @ViewChildren('galleryInput') galleryInputs!: QueryList<ElementRef<HTMLInputElement>>;
+  @ViewChildren('variantSelect') variantSelects!: QueryList<ElementRef<HTMLSelectElement>>;
+  @ViewChildren('variantStock') variantStocks!: QueryList<ElementRef<HTMLInputElement>>;
 
   productForm!: FormGroup;
   categories$!: Observable<Category[]>;
@@ -68,27 +66,53 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.attributeService
       .getAttributes()
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe((attrs) => this.attributesSubject.next(attrs));
+      .subscribe((attrs) => {
+        this.attributesSubject.next(attrs);
+        this.cdr.markForCheck();
+      });
     this.initializeForm();
     this.checkEditMode();
   }
 
   ngAfterViewInit(): void {
-    this.additionalImageInputs.changes
+    this.galleryInputs.changes
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
         if (this.focusNewImage && queryList.last) {
           queryList.last.nativeElement.focus();
           this.focusNewImage = false;
+          this.cdr.markForCheck();
         }
       });
 
-    this.variantFirstSelects.changes
+    this.variantSelects.changes
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryList: QueryList<ElementRef<HTMLSelectElement>>) => {
-        if (this.focusNewVariant && queryList.last) {
-          queryList.last.nativeElement.focus();
-          this.focusNewVariant = false;
+        if (this.focusNewVariant) {
+          const attrCount = this.variantAttributes.length;
+          const arr = queryList.toArray();
+          const targetIdx = arr.length - attrCount;
+          if (targetIdx >= 0 && arr[targetIdx]) {
+            arr[targetIdx].nativeElement.focus();
+            this.focusNewVariant = false;
+            this.cdr.markForCheck();
+          } else if (this.variantStocks.last) {
+            this.variantStocks.last.nativeElement.focus();
+            this.focusNewVariant = false;
+            this.cdr.markForCheck();
+          }
+        }
+      });
+
+    this.variantStocks.changes
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
+        if (this.focusNewVariant) {
+          if (this.variantSelects.length === 0 && queryList.last) {
+            queryList.last.nativeElement.focus();
+            this.focusNewVariant = false;
+            this.cdr.markForCheck();
+          }
         }
       });
   }
@@ -156,6 +180,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           });
 
           this.productForm.updateValueAndValidity();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
@@ -205,6 +230,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
               attributesGroup.addControl(id, this.fb.control(null, Validators.required));
             });
         });
+        this.cdr.markForCheck();
       });
   }
 
@@ -242,7 +268,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.attributeService
         .getAttributes()
         .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-        .subscribe((a) => this.attributesSubject.next(a));
+        .subscribe((a) => {
+          this.attributesSubject.next(a);
+          this.cdr.markForCheck();
+        });
     } catch {
       this.sweetAlertService.error('Error', 'No se pudo crear el atributo.');
     }
@@ -259,6 +288,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.variants.push(
       this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
     );
+    this.cdr.markForCheck();
   }
 
   async removeVariant(index: number): Promise<void> {
@@ -268,6 +298,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     );
     if (isConfirmed) {
       this.variants.removeAt(index);
+      this.cdr.markForCheck();
     }
   }
 
@@ -305,6 +336,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           );
         });
         this.sweetAlertService.success('¡Éxito!', `Se generaron ${limitedCombos.length} variantes.`);
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          const firstSelect = this.variantSelects.first;
+          if (firstSelect) {
+            firstSelect.nativeElement.focus();
+          }
+        });
       });
   }
 
@@ -323,6 +361,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.images.push(
       this.fb.control(imageUrl, [Validators.required, Validators.pattern('https?://.+')]),
     );
+    this.cdr.markForCheck();
   }
 
   async removeImage(index: number): Promise<void> {
@@ -332,6 +371,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     );
     if (isConfirmed) {
       this.images.removeAt(index);
+      this.cdr.markForCheck();
     }
   }
 
@@ -341,14 +381,24 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       return;
     }
     this.uploadProgress = 0;
+    this.cdr.markForCheck();
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
-    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => (this.uploadProgress = p));
+    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
+      this.uploadProgress = p;
+      this.cdr.markForCheck();
+    });
     downloadUrl$
       .pipe(
-        finalize(() => (this.uploadProgress = null)),
+        finalize(() => {
+          this.uploadProgress = null;
+          this.cdr.markForCheck();
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((url) => this.productForm.get('image')?.setValue(url));
+      .subscribe((url) => {
+        this.productForm.get('image')?.setValue(url);
+        this.cdr.markForCheck();
+      });
   }
 
   onGalleryFileSelected(event: Event, index: number): void {
@@ -358,13 +408,25 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       return;
     }
     this.galleryUploadProgress[index] = 0;
+    this.cdr.markForCheck();
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
     progress$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((p) => (this.galleryUploadProgress[index] = p));
+      .subscribe((p) => {
+        this.galleryUploadProgress[index] = p;
+        this.cdr.markForCheck();
+      });
     downloadUrl$
-      .pipe(finalize(() => (this.galleryUploadProgress[index] = null)))
-      .subscribe((url) => control.setValue(url));
+      .pipe(
+        finalize(() => {
+          this.galleryUploadProgress[index] = null;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe((url) => {
+        control.setValue(url);
+        this.cdr.markForCheck();
+      });
   }
 
   async onSubmit(): Promise<void> {
@@ -416,6 +478,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.sweetAlertService.error('Error', 'No se pudo guardar el producto.');
     } finally {
       this.isSubmitting = false;
+      this.cdr.markForCheck();
     }
   }
 
