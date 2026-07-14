@@ -287,7 +287,7 @@ export class HomeManagementComponent implements OnInit {
 
   updateLinkType(type: 'product' | 'category' | 'none'): void {
     this.heroImages[this.activeHeroIndex].linkType = type;
-    this.heroImages[this.activeHeroIndex].linkId = undefined;
+    delete this.heroImages[this.activeHeroIndex].linkId;
     if (type === 'product') {
       this.productSearchTerm$.next('');
     }

@@ -55,6 +55,7 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
       }
       const firestoreSettings: FirestoreSettings = {
         experimentalAutoDetectLongPolling: true,
+        ignoreUndefinedProperties: true,
       };
       return initializeFirestore(app, firestoreSettings);
     } catch {
