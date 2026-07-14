@@ -110,7 +110,11 @@
               [ngClass]="{ 'is-invalid': image.invalid && (image.dirty || image.touched) }"
             />
             @if (uploadProgress !== null) {
-              <div class="progress mt-3" style="height: 6px">
+              <div class="d-flex align-items-center gap-2 mt-3 text-info">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span class="small font-monospace">Subiendo ({{ uploadProgress }}%)...</span>
+              </div>
+              <div class="progress mt-2" style="height: 6px">
                 <div
                   class="progress-bar custom-progress"
                   role="progressbar"
@@ -158,7 +162,7 @@
                   </div>
                   <div class="gallery-input">
                     <input
-                      #additionalImageInput
+                      #galleryInput
                       type="file"
                       class="form-control glass-file-input"
                       (change)="onGalleryFileSelected($event, i)"
@@ -170,6 +174,10 @@
                     @if (
                       galleryUploadProgress[i] !== null && galleryUploadProgress[i] !== undefined
                     ) {
+                      <div class="d-flex align-items-center gap-2 mt-2 text-info">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span class="small font-monospace">Subiendo ({{ galleryUploadProgress[i] }}%)...</span>
+                      </div>
                       <div class="progress mt-2" style="height: 6px">
                         <div
                           class="progress-bar custom-progress"
@@ -312,7 +320,7 @@
                           <label class="form-label">{{ attr.name }}</label>
                           @if (attr.id === getFirstActiveAttributeId(attributes)) {
                             <select
-                              #variantFirstSelect
+                              #variantSelect
                               class="form-select glass-input hardware-accelerated"
                               [formControlName]="attr.id"
                               [ngClass]="{
@@ -328,6 +336,7 @@
                             </select>
                           } @else {
                             <select
+                              #variantSelect
                               class="form-select glass-input hardware-accelerated"
                               [formControlName]="attr.id"
                               [ngClass]="{
@@ -351,6 +360,7 @@
                 <div class="variant-stock-item">
                   <label class="form-label">Stock</label>
                   <input
+                    #variantStock
                     type="number"
                     class="form-control glass-input"
                     formControlName="stock"
