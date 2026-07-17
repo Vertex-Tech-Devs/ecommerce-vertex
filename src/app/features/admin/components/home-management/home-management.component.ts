@@ -65,23 +65,9 @@ export class HomeManagementComponent implements OnInit {
   categoryPreviewUrls: (string | null)[] = [];
 
   heroUploadProgress = new Map<string, number>();
-  categoryUploadProgress: (number | null)[] = [null, null, null];
 
   get isAnyHeroUploading(): boolean {
     return this.heroUploadProgress.size > 0;
-  }
-
-  get isAnyCategoryUploading(): boolean {
-    return this.categoryUploadProgress.some((p) => p !== null);
-  }
-
-  getCategoriesUploadingProgress(): number {
-    const active = this.categoryUploadProgress.filter((p) => p !== null) as number[];
-    if (active.length === 0) {
-      return 0;
-    }
-    const sum = active.reduce((a, b) => a + b, 0);
-    return Math.round(sum / active.length);
   }
 
   isLinkModalVisible = false;
@@ -317,56 +303,7 @@ export class HomeManagementComponent implements OnInit {
     this.bannerForm.markAsDirty();
   }
 
-  onFileSelected(event: Event, index: number): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      this.sweetAlertService.error(
-        'Archivo no válido',
-        'Por favor, selecciona un archivo de imagen.',
-      );
-      input.value = '';
-      return;
-    }
 
-    this.categoryUploadProgress[index] = 0;
-    this.cdr.markForCheck();
-
-    const oldUrl = this.featuredCategories.at(index).get('imageUrl')?.value;
-    if (oldUrl && !oldUrl.startsWith('file-')) {
-      this.storageService.deleteFileByUrl(oldUrl).pipe(take(1)).subscribe();
-    }
-
-    const categoryImagePath = `site-images/featured-category-${index}`;
-    const upload = this.storageService.uploadFile(file, categoryImagePath);
-
-    upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (progress) => {
-        this.categoryUploadProgress[index] = Math.round(progress);
-        this.cdr.markForCheck();
-      },
-    });
-
-    upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (url) => {
-        this.categoryUploadProgress[index] = null;
-        this.categoryPreviewUrls[index] = url;
-        this.featuredCategories.at(index).get('imageUrl')?.setValue(url);
-        this.bannerForm.markAsDirty();
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Error uploading category image:', err);
-        this.categoryUploadProgress[index] = null;
-        this.cdr.markForCheck();
-      },
-    });
-
-    input.value = '';
-  }
 
   openLinkModal(index: number): void {
     this.activeHeroIndex = index;
