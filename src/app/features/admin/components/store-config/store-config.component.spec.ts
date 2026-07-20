@@ -148,6 +148,8 @@ describe('StoreConfigComponent', () => {
 
     expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
     expect(component.form.get('faviconUrl')?.value).toBe('http://example.com/new-favicon.png');
+    expect(component.form.get('faviconUrl')?.dirty).toBeTrue();
+    expect(component.form.dirty).toBeTrue();
     expect(component.faviconUploading()).toBeFalse();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
   });

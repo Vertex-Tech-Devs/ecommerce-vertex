@@ -136,6 +136,11 @@ export class StoreConfigComponent implements OnInit {
     upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (url) => {
         this.form.patchValue({ faviconUrl: url });
+        const faviconCtrl = this.form.get('faviconUrl');
+        if (faviconCtrl) {
+          faviconCtrl.markAsDirty();
+          faviconCtrl.updateValueAndValidity();
+        }
         this.faviconUploading.set(false);
         this.sweetAlert.success(
           'Favicon subido',
