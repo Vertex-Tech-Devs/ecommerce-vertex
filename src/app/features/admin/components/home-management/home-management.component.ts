@@ -303,8 +303,6 @@ export class HomeManagementComponent implements OnInit {
     this.bannerForm.markAsDirty();
   }
 
-
-
   openLinkModal(index: number): void {
     this.activeHeroIndex = index;
     this.productSearchTerm$.next('');

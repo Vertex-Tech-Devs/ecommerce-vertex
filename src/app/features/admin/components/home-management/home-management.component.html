@@ -33,7 +33,11 @@
             @if (isAnyHeroUploading) {
               <div class="d-flex flex-column align-items-center justify-content-center h-100 py-2">
                 <div class="drop-zone-icon-wrap mb-2">
-                  <span class="spinner-border text-accent" style="width: 2rem; height: 2rem;" role="status"></span>
+                  <span
+                    class="spinner-border text-accent"
+                    style="width: 2rem; height: 2rem"
+                    role="status"
+                  ></span>
                 </div>
                 <p class="drop-title m-0">Subiendo imágenes al carrusel...</p>
                 <p class="drop-subtitle m-0 mt-1">Por favor, espera.</p>
@@ -61,14 +65,27 @@
               @for (preview of heroImagePreviews; track $index; let i = $index) {
                 <div class="hero-slot hero-slot--filled">
                   <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image" />
-                  
+
                   @if (heroUploadProgress.get(heroImages[i].imageUrl) !== undefined) {
-                    <div class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 10;">
-                      <span class="spinner-border text-light mb-2" role="status" style="width: 1.5rem; height: 1.5rem;"></span>
-                      <span class="text-white fs-7 font-monospace">{{ heroUploadProgress.get(heroImages[i].imageUrl) }}%</span>
+                    <div
+                      class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                      style="
+                        background: rgba(15, 23, 42, 0.85);
+                        backdrop-filter: blur(4px);
+                        z-index: 10;
+                      "
+                    >
+                      <span
+                        class="spinner-border text-light mb-2"
+                        role="status"
+                        style="width: 1.5rem; height: 1.5rem"
+                      ></span>
+                      <span class="text-white fs-7 font-monospace"
+                        >{{ heroUploadProgress.get(heroImages[i].imageUrl) }}%</span
+                      >
                     </div>
                   }
-                  
+
                   <div class="slot-overlay">
                     <button
                       type="button"

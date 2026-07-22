@@ -111,7 +111,11 @@
             />
             @if (uploadProgress !== null) {
               <div class="d-flex align-items-center gap-2 mt-3 text-info">
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
                 <span class="small font-monospace">Subiendo ({{ uploadProgress }}%)...</span>
               </div>
               <div class="progress mt-2" style="height: 6px">
@@ -175,8 +179,14 @@
                       galleryUploadProgress[i] !== null && galleryUploadProgress[i] !== undefined
                     ) {
                       <div class="d-flex align-items-center gap-2 mt-2 text-info">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        <span class="small font-monospace">Subiendo ({{ galleryUploadProgress[i] }}%)...</span>
+                        <span
+                          class="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="small font-monospace"
+                          >Subiendo ({{ galleryUploadProgress[i] }}%)...</span
+                        >
                       </div>
                       <div class="progress mt-2" style="height: 6px">
                         <div
@@ -306,7 +316,10 @@
           }
 
           <div formArrayName="variants" class="variants-container">
-            @for (variantGroup of paginatedVariantsControls; track getVariantRealIndex(variantGroup)) {
+            @for (
+              variantGroup of paginatedVariantsControls;
+              track getVariantRealIndex(variantGroup)
+            ) {
               <div
                 [formGroupName]="getVariantRealIndex(variantGroup)"
                 class="variant-row glass-panel mb-3"
@@ -402,11 +415,7 @@
                 </li>
                 @for (page of pages; track page) {
                   <li class="page-item" [class.active]="currentPage === page">
-                    <button
-                      type="button"
-                      class="page-link"
-                      (click)="currentPage = page"
-                    >
+                    <button type="button" class="page-link" (click)="currentPage = page">
                       {{ page }}
                     </button>
                   </li>

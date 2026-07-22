@@ -361,7 +361,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
             }),
           );
         });
-        this.sweetAlertService.success('¡Éxito!', `Se generaron ${limitedCombos.length} variantes.`);
+        this.sweetAlertService.success(
+          '¡Éxito!',
+          `Se generaron ${limitedCombos.length} variantes.`,
+        );
         this.cdr.markForCheck();
         setTimeout(() => {
           const firstSelect = this.variantSelects.first;
@@ -436,12 +439,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.galleryUploadProgress[index] = 0;
     this.cdr.markForCheck();
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
-    progress$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((p) => {
-        this.galleryUploadProgress[index] = p;
-        this.cdr.markForCheck();
-      });
+    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
+      this.galleryUploadProgress[index] = p;
+      this.cdr.markForCheck();
+    });
     downloadUrl$
       .pipe(
         finalize(() => {

@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, Output, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  inject,
+  ChangeDetectorRef,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import type { FormGroup, FormArray } from '@angular/forms';
@@ -88,4 +96,3 @@ export class FeaturedCategoriesComponent {
     input.value = '';
   }
 }
-
