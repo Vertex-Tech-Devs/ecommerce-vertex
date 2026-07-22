@@ -124,6 +124,9 @@ jobs:
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
+            },
+            "storage": {
+              "rules": "storage.rules"
             }
           }
           if site_id and site_id != "default":
@@ -143,7 +146,7 @@ jobs:
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore \
+            --only hosting,firestore,storage \
             --non-interactive
 
       - name: Health check (30s)
@@ -191,6 +194,9 @@ jobs:
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
+            },
+            "storage": {
+              "rules": "storage.rules"
             }
           }
           if site_id and site_id != "default":
@@ -210,5 +216,5 @@ jobs:
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore \
+            --only hosting,firestore,storage \
             --non-interactive
