@@ -113,4 +113,34 @@ describe('CartComponent', () => {
     expect(cartServiceSpy.updateQuantity).toHaveBeenCalledWith('var-1', 1);
     expect(inputEl.value).toBe('1');
   });
+
+  it('onButtonMouseMove() should set CSS custom properties --x and --y', () => {
+    const fakeButton = document.createElement('button');
+    spyOn(fakeButton, 'getBoundingClientRect').and.returnValue({
+      left: 10,
+      top: 20,
+      width: 100,
+      height: 50,
+      x: 10,
+      y: 20,
+      bottom: 70,
+      right: 110,
+      toJSON: () => {},
+    });
+    const fakeEvent = {
+      currentTarget: fakeButton,
+      clientX: 25,
+      clientY: 35,
+    } as unknown as MouseEvent;
+
+    component.onButtonMouseMove(fakeEvent);
+
+    expect(fakeButton.style.getPropertyValue('--x')).toBe('15px');
+    expect(fakeButton.style.getPropertyValue('--y')).toBe('15px');
+  });
+
+  it('onButtonMouseMove() should return early if currentTarget is null', () => {
+    const fakeEvent = { currentTarget: null } as unknown as MouseEvent;
+    expect(() => component.onButtonMouseMove(fakeEvent)).not.toThrow();
+  });
 });

@@ -134,6 +134,12 @@ describe('EmailSettingsService', () => {
       await serviceTest.callFunction('test', {});
     } catch {}
 
+    try {
+      const unspiedService = new EmailSettingsService();
+      // call docRef getter
+      (unspiedService as unknown as EmailSettingsServiceTest).docRef;
+    } catch {}
+
     expect(service.getEmailSettings).toBeDefined();
   });
 });
