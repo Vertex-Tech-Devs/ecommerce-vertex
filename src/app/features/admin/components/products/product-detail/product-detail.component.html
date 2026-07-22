@@ -156,7 +156,10 @@
                       </button>
                     </li>
                   }
-                  <li class="page-item" [class.disabled]="currentPage() === getTotalPages(data.variants)">
+                  <li
+                    class="page-item"
+                    [class.disabled]="currentPage() === getTotalPages(data.variants)"
+                  >
                     <button
                       type="button"
                       class="page-link"
