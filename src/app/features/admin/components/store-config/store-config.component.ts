@@ -9,7 +9,7 @@ import { StoreConfigService, StoreConfigSchema } from '@core/services/store-conf
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
-import type { StoreConfig } from '@vertex/contracts';
+import type { StoreConfig } from '@core/models/store-config.model';
 
 @Component({
   selector: 'app-store-config',
@@ -169,7 +169,7 @@ export class StoreConfigComponent implements OnInit {
       // Validate form value at runtime using Zod
       const rawValue = this.form.value;
       const validatedData = StoreConfigSchema.parse(rawValue);
-      await this.storeConfigService.saveConfig(validatedData as StoreConfig);
+      await this.storeConfigService.saveConfig(validatedData as unknown as StoreConfig);
       await this.storeConfigService.loadConfig();
       this.form.markAsPristine();
       this.sweetAlert.success(
