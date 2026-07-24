@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
 import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
