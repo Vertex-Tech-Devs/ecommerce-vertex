@@ -9,7 +9,7 @@ import { StoreConfigService, StoreConfigSchema } from '@core/services/store-conf
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
-import type { StoreConfig } from '@core/models/store-config.model';
+import type { StoreConfig } from '@vertex/contracts';
 
 @Component({
   selector: 'app-store-config',

@@ -10,7 +10,7 @@ import {
 import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
-import type { StoreConfig } from '@core/models/store-config.model';
+import type { StoreConfig } from '@vertex/contracts';
 import { tenantPath, resolveTenantId } from '@core/utils/tenant';
 import { StoreConfigSchema } from '@vertex/contracts';
 

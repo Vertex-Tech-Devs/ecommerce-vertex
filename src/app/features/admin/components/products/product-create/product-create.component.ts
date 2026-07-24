@@ -1,4 +1,3 @@
-/* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
 import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -7,11 +6,10 @@ import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angu
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
-import { startWith, take, finalize, BehaviorSubject } from 'rxjs';
+import { startWith, take, BehaviorSubject } from 'rxjs';
 
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
-import { StorageService } from '@core/services/storage.service';
 import type { ProductVariant } from '@core/models/product.model';
 import type { Category } from '@core/models/category.model';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -19,6 +17,7 @@ import { AttributeService } from '@core/services/attribute.service';
 import type { Attribute } from '@core/models/attribute.model';
 import { ProductVariantFormService } from './product-variant-form.service';
 import type { ProductFormValue } from './product-variant-form.service';
+import { ProductMediaService } from './product-media.service';
 
 @Component({
   selector: 'app-product-create',
@@ -36,7 +35,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
   private sweetAlertService = inject(SweetAlertService);
-  private storageService = inject(StorageService);
+  private mediaService = inject(ProductMediaService);
   private variantFormService = inject(ProductVariantFormService);
   private cdr = inject(ChangeDetectorRef);
   private focusNewImage = false;
@@ -66,12 +65,11 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   pageSize = 5;
 
   get totalPages(): number {
-    return Math.ceil(this.variants.length / this.pageSize) || 1;
-  }
-
+ return Math.ceil(this.variants.length / this.pageSize) || 1; 
+}
   get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
+ return Array.from({ length: this.totalPages }, (_, i) => i + 1); 
+}
 
   get paginatedVariantsControls(): AbstractControl[] {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -109,31 +107,28 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.variantSelects.changes
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryList: QueryList<ElementRef<HTMLSelectElement>>) => {
-        if (this.focusNewVariant) {
-          const attrCount = this.variantAttributes.length;
-          const arr = queryList.toArray();
-          const targetIdx = arr.length - attrCount;
-          if (targetIdx >= 0 && arr[targetIdx]) {
-            arr[targetIdx].nativeElement.focus();
-            this.focusNewVariant = false;
-            this.cdr.markForCheck();
-          } else if (this.variantStocks.last) {
-            this.variantStocks.last.nativeElement.focus();
-            this.focusNewVariant = false;
-            this.cdr.markForCheck();
-          }
+        if (!this.focusNewVariant) {
+return;
+}
+        const attrCount = this.variantAttributes.length;
+        const arr = queryList.toArray();
+        const targetIdx = arr.length - attrCount;
+        if (targetIdx >= 0 && arr[targetIdx]) {
+          arr[targetIdx].nativeElement.focus();
+        } else if (this.variantStocks.last) {
+          this.variantStocks.last.nativeElement.focus();
         }
+        this.focusNewVariant = false;
+        this.cdr.markForCheck();
       });
 
     this.variantStocks.changes
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
-        if (this.focusNewVariant) {
-          if (this.variantSelects.length === 0 && queryList.last) {
-            queryList.last.nativeElement.focus();
-            this.focusNewVariant = false;
-            this.cdr.markForCheck();
-          }
+        if (this.focusNewVariant && this.variantSelects.length === 0 && queryList.last) {
+          queryList.last.nativeElement.focus();
+          this.focusNewVariant = false;
+          this.cdr.markForCheck();
         }
       });
   }
@@ -259,12 +254,12 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     const isChecked = (event.target as HTMLInputElement).checked;
     if (isChecked) {
       this.variantAttributes.push(this.fb.control(attrId));
-    } else {
-      const index = (this.variantAttributes.value as string[]).indexOf(attrId);
-      if (index > -1) {
-        this.variantAttributes.removeAt(index);
-      }
+      return;
     }
+    const index = (this.variantAttributes.value as string[]).indexOf(attrId);
+    if (index > -1) {
+this.variantAttributes.removeAt(index);
+}
   }
 
   toggleAttributeForm(): void {
@@ -318,14 +313,14 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
     );
-    if (isConfirmed) {
-      this.variants.removeAt(index);
-      const maxPage = this.totalPages;
-      if (this.currentPage > maxPage) {
-        this.currentPage = maxPage;
-      }
-      this.cdr.markForCheck();
-    }
+    if (!isConfirmed) {
+return;
+}
+    this.variants.removeAt(index);
+    if (this.currentPage > this.totalPages) {
+this.currentPage = this.totalPages;
+}
+    this.cdr.markForCheck();
   }
 
   generateVariantCombinations(): void {
@@ -388,19 +383,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       }
     }
     this.focusNewImage = true;
-    this.images.push(
-      this.fb.control(imageUrl, [Validators.required, Validators.pattern('https?://.+')]),
-    );
+    this.images.push(this.mediaService.createImageControl(this.fb, imageUrl));
     this.cdr.markForCheck();
   }
 
   async removeImage(index: number): Promise<void> {
-    const isConfirmed = await this.sweetAlertService.confirm(
-      '¿Estás seguro?',
-      '¿Estás seguro de eliminar la imagen?',
-    );
-    if (isConfirmed) {
-      this.images.removeAt(index);
+    const removed = await this.mediaService.confirmRemoveImage(this.images, index);
+    if (removed) {
       this.cdr.markForCheck();
     }
   }
@@ -408,53 +397,51 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
-      return;
-    }
+return;
+}
     this.uploadProgress = 0;
     this.cdr.markForCheck();
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
-    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
-      this.uploadProgress = p;
-      this.cdr.markForCheck();
-    });
-    downloadUrl$
-      .pipe(
-        finalize(() => {
+    this.mediaService
+      .uploadMainImage(
+        file,
+        (p) => {
+          this.uploadProgress = p;
+          this.cdr.markForCheck();
+        },
+        (url) => {
+          this.productForm.get('image')?.setValue(url);
           this.uploadProgress = null;
           this.cdr.markForCheck();
-        }),
-        takeUntilDestroyed(this.destroyRef),
+        },
       )
-      .subscribe((url) => {
-        this.productForm.get('image')?.setValue(url);
-        this.cdr.markForCheck();
-      });
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   onGalleryFileSelected(event: Event, index: number): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
     if (!file || !control) {
-      return;
-    }
+return;
+}
     this.galleryUploadProgress[index] = 0;
     this.cdr.markForCheck();
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
-    progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => {
-      this.galleryUploadProgress[index] = p;
-      this.cdr.markForCheck();
-    });
-    downloadUrl$
-      .pipe(
-        finalize(() => {
+    this.mediaService
+      .uploadGalleryImage(
+        file,
+        index,
+        (idx, p) => {
+          this.galleryUploadProgress[idx] = p;
+          this.cdr.markForCheck();
+        },
+        (url) => {
+          control.setValue(url);
           this.galleryUploadProgress[index] = null;
           this.cdr.markForCheck();
-        }),
+        },
       )
-      .subscribe((url) => {
-        control.setValue(url);
-        this.cdr.markForCheck();
-      });
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
   }
 
   async onSubmit(): Promise<void> {
@@ -471,17 +458,11 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           formValue.variants,
           this.initialVariants,
         );
+        const { name, description, price, categoryId, image, images, variantAttributes } =
+          formValue;
         await this.productService.updateProductWithVariants(
           this.productId,
-          {
-            name: formValue.name,
-            description: formValue.description,
-            price: formValue.price,
-            categoryId: formValue.categoryId,
-            image: formValue.image,
-            images: formValue.images,
-            variantAttributes: formValue.variantAttributes,
-          },
+          { name, description, price, categoryId, image, images, variantAttributes },
           toUpdate,
           toAdd,
           toDelete,
