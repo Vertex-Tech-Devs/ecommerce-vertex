@@ -369,7 +369,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}'
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy to store Firebase project
         run: |
