@@ -377,7 +377,7 @@ jobs:
           PROJECT_ID="${{ github.event.client_payload.project_id }}"
           if [ -n "$SITE_ID" ] && [ "$SITE_ID" != "default" ]; then
             echo "Ensuring site $SITE_ID exists on project $PROJECT_ID..."
-            npx --yes firebase-tools hosting:sites:create "$SITE_ID" --project "$PROJECT_ID" --non-interactive || true
+            npx --yes firebase-tools hosting:sites:create "$SITE_ID" --project "$PROJECT_ID" --non-interactive || echo "Warning: hosting:sites:create returned non-zero status"
           fi
           npx --yes firebase-tools deploy \
             --project "$PROJECT_ID" \
