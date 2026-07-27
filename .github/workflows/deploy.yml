@@ -371,6 +371,10 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Log Service Account Identity
+        run: |
+          python3 -c 'import json, os; p=os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"); print("Active Deploy Service Account:", json.load(open(p)).get("client_email")) if p and os.path.exists(p) else print("No GAC file found")'
+
       - name: Deploy to store Firebase project
         run: |
           SITE_ID="${{ github.event.client_payload.site_id }}"
