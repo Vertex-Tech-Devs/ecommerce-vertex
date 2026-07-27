@@ -30,19 +30,33 @@
             (drop)="onDrop($event)"
             (click)="heroImages.length < 5 && heroImagesInput.click()"
           >
-            <div class="drop-zone-icon-wrap">
-              <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
-            </div>
-            <p class="drop-title">
-              @if (heroImages.length < 5) {
-                Arrastra imágenes aquí&ensp;·&ensp;<span class="text-accent">haz clic</span>
-              } @else {
-                <span class="text-soft">Límite alcanzado</span>
+            @if (isAnyHeroUploading) {
+              <div class="d-flex flex-column align-items-center justify-content-center h-100 py-2">
+                <div class="drop-zone-icon-wrap mb-2">
+                  <span
+                    class="spinner-border text-accent"
+                    style="width: 2rem; height: 2rem"
+                    role="status"
+                  ></span>
+                </div>
+                <p class="drop-title m-0">Subiendo imágenes al carrusel...</p>
+                <p class="drop-subtitle m-0 mt-1">Por favor, espera.</p>
+              </div>
+            } @else {
+              <div class="drop-zone-icon-wrap">
+                <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
+              </div>
+              <p class="drop-title">
+                @if (heroImages.length < 5) {
+                  Arrastra imágenes aquí&ensp;·&ensp;<span class="text-accent">haz clic</span>
+                } @else {
+                  <span class="text-soft">Límite alcanzado</span>
+                }
+              </p>
+              <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB</p>
+              @if (heroImages.length > 0) {
+                <span class="drop-badge">{{ heroImages.length }}/5</span>
               }
-            </p>
-            <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB</p>
-            @if (heroImages.length > 0) {
-              <span class="drop-badge">{{ heroImages.length }}/5</span>
             }
           </div>
 
@@ -51,6 +65,27 @@
               @for (preview of heroImagePreviews; track $index; let i = $index) {
                 <div class="hero-slot hero-slot--filled">
                   <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image" />
+
+                  @if (heroUploadProgress.get(heroImages[i].imageUrl) !== undefined) {
+                    <div
+                      class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                      style="
+                        background: rgba(15, 23, 42, 0.85);
+                        backdrop-filter: blur(4px);
+                        z-index: 10;
+                      "
+                    >
+                      <span
+                        class="spinner-border text-light mb-2"
+                        role="status"
+                        style="width: 1.5rem; height: 1.5rem"
+                      ></span>
+                      <span class="text-white fs-7 font-monospace"
+                        >{{ heroUploadProgress.get(heroImages[i].imageUrl) }}%</span
+                      >
+                    </div>
+                  }
+
                   <div class="slot-overlay">
                     <button
                       type="button"
@@ -139,15 +174,16 @@
         </div>
       </div>
 
-      <app-featured-categories
-        [formArray]="featuredCategories"
-        [categories]="(categories$ | async) ?? []"
-        [previewUrls]="categoryPreviewUrls"
-        (add)="addFeaturedCategory()"
-        (remove)="removeFeaturedCategory($event)"
-        (categoryChange)="onCategorySelectionChange($event.index, $event.event)"
-        (fileChange)="onFileSelected($event.event, $event.index)"
-      ></app-featured-categories>
+      <div class="position-relative">
+        <app-featured-categories
+          [formArray]="featuredCategories"
+          [categories]="(categories$ | async) ?? []"
+          [previewUrls]="categoryPreviewUrls"
+          (add)="addFeaturedCategory()"
+          (remove)="removeFeaturedCategory($event)"
+          (categoryChange)="onCategorySelectionChange($event.index, $event.event)"
+        ></app-featured-categories>
+      </div>
 
       <div class="d-flex justify-content-center justify-content-md-end mb-5 pb-4">
         <button

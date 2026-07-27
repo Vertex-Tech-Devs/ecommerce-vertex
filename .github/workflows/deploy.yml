@@ -34,7 +34,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -54,13 +54,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Run frontend tests
         run: npm run test:ci
 
       - name: Install backend dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Run backend tests
@@ -81,7 +81,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate Firebase config
         env:
@@ -128,7 +128,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate Firebase config
         env:
@@ -171,7 +171,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - run: npm run build
@@ -193,9 +193,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Download frontend build
@@ -238,9 +238,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Download frontend build
@@ -288,7 +288,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate store environment file
         env:
@@ -369,14 +369,33 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM }}'
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
       - name: Deploy to store Firebase project
         run: |
-          npx --yes firebase-tools deploy \
-            --project '${{ github.event.client_payload.project_id }}' \
-            --only hosting \
-            --non-interactive
+          SITE_ID="${{ github.event.client_payload.site_id }}"
+          PROJECT_ID="${{ github.event.client_payload.project_id }}"
+          if [ -n "$SITE_ID" ] && [ "$SITE_ID" != "default" ]; then
+            echo "Ensuring site $SITE_ID exists on project $PROJECT_ID..."
+            npx --yes firebase-tools hosting:sites:create "$SITE_ID" --project "$PROJECT_ID" --non-interactive || echo "Warning: hosting:sites:create returned non-zero status"
+          fi
+
+          echo "Deploying hosting to Firebase project $PROJECT_ID..."
+          for attempt in 1 2 3; do
+            echo "Deployment attempt $attempt of 3..."
+            if npx --yes firebase-tools deploy --project "$PROJECT_ID" --only hosting --non-interactive; then
+              echo "Deployment successful on attempt $attempt"
+              break
+            else
+              if [ $attempt -lt 3 ]; then
+                echo "Deploy attempt $attempt failed. Waiting 10 seconds for GCP IAM/API propagation..."
+                sleep 10
+              else
+                echo "Error: Firebase deploy failed after 3 attempts."
+                exit 1
+              fi
+            fi
+          done
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''

@@ -1,11 +1,14 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormArray, FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { map, take } from 'rxjs/operators';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import type { Observable } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { StorageService } from '@core/services/storage.service';
 
 import { HomeContentService } from '@core/services/home-content.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -40,6 +43,9 @@ export class HomeManagementComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private productService = inject(ProductService);
   private heroUploader = inject(HeroImageUploaderService);
+  private cdr = inject(ChangeDetectorRef);
+  private storageService = inject(StorageService);
+  private destroyRef = inject(DestroyRef);
 
   bannerForm!: FormGroup;
   isSubmitting = false;
@@ -57,6 +63,12 @@ export class HomeManagementComponent implements OnInit {
 
   selectedCategoryFiles: (File | null)[] = [];
   categoryPreviewUrls: (string | null)[] = [];
+
+  heroUploadProgress = new Map<string, number>();
+
+  get isAnyHeroUploading(): boolean {
+    return this.heroUploadProgress.size > 0;
+  }
 
   isLinkModalVisible = false;
   activeHeroIndex = -1;
@@ -129,6 +141,7 @@ export class HomeManagementComponent implements OnInit {
         this.selectedCategoryFiles = [];
         this.categoryPreviewUrls = [];
         content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
+        this.cdr.markForCheck();
       });
   }
 
@@ -209,15 +222,56 @@ export class HomeManagementComponent implements OnInit {
     if (!batch) {
       return;
     }
-    batch.ids.forEach((id, i) => {
-      this.heroImages.push({ imageUrl: id, linkType: 'none' });
-      this.heroImagePreviews.push(batch.previews[i]);
-      this.selectedHeroFiles.push(batch.files[i]);
+    batch.files.forEach((file, i) => {
+      const tempId = batch.ids[i];
+      const preview = batch.previews[i];
+
+      // Add local preview immediately so the slot shows up
+      this.heroImages.push({ imageUrl: tempId, linkType: 'none' });
+      this.heroImagePreviews.push(preview);
+      this.heroUploadProgress.set(tempId, 0);
+      this.cdr.markForCheck();
+
+      const heroImagePath = `site-images/hero-carousel-${Date.now()}-${i}`;
+      const upload = this.storageService.uploadFile(file, heroImagePath);
+
+      upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (progress) => {
+          this.heroUploadProgress.set(tempId, Math.round(progress));
+          this.cdr.markForCheck();
+        },
+      });
+
+      upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        next: (url) => {
+          const idx = this.heroImages.findIndex((img) => img.imageUrl === tempId);
+          if (idx !== -1) {
+            this.heroImages[idx] = { imageUrl: url, linkType: 'none' };
+            this.heroImagePreviews[idx] = url;
+            this.cdr.markForCheck();
+          }
+          this.heroUploadProgress.delete(tempId);
+          this.bannerForm.markAsDirty();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error uploading hero image:', err);
+          const idx = this.heroImages.findIndex((img) => img.imageUrl === tempId);
+          if (idx !== -1) {
+            this.removeHeroImage(idx);
+          }
+          this.heroUploadProgress.delete(tempId);
+          this.cdr.markForCheck();
+        },
+      });
     });
-    this.bannerForm.markAsDirty();
   }
 
   removeHeroImage(index: number): void {
+    const img = this.heroImages[index];
+    if (img?.imageUrl) {
+      this.heroUploadProgress.delete(img.imageUrl);
+    }
     this.heroImages.splice(index, 1);
     this.heroImagePreviews.splice(index, 1);
     this.selectedHeroFiles.splice(index, 1);
@@ -249,31 +303,6 @@ export class HomeManagementComponent implements OnInit {
     this.bannerForm.markAsDirty();
   }
 
-  onFileSelected(event: Event, index: number): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) {
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      this.sweetAlertService.error(
-        'Archivo no válido',
-        'Por favor, selecciona un archivo de imagen.',
-      );
-      input.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (): void => {
-      this.selectedCategoryFiles[index] = file;
-      this.categoryPreviewUrls[index] = reader.result as string;
-      this.featuredCategories.at(index).get('imageUrl')?.setValue('');
-      this.bannerForm.markAsDirty();
-    };
-    reader.readAsDataURL(file);
-    input.value = '';
-  }
-
   openLinkModal(index: number): void {
     this.activeHeroIndex = index;
     this.productSearchTerm$.next('');
@@ -287,7 +316,7 @@ export class HomeManagementComponent implements OnInit {
 
   updateLinkType(type: 'product' | 'category' | 'none'): void {
     this.heroImages[this.activeHeroIndex].linkType = type;
-    this.heroImages[this.activeHeroIndex].linkId = undefined;
+    delete this.heroImages[this.activeHeroIndex].linkId;
     if (type === 'product') {
       this.productSearchTerm$.next('');
     }

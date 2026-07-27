@@ -42,7 +42,26 @@
               </div>
               <div class="col-12">
                 <label class="form-label text-label d-block">Portada</label>
-                <div class="category-preview-wrapper mb-3">
+                <div class="category-preview-wrapper position-relative mb-3">
+                  @if (categoryUploadProgress[i] !== null) {
+                    <div
+                      class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                      style="
+                        background: rgba(15, 23, 42, 0.85);
+                        backdrop-filter: blur(4px);
+                        z-index: 10;
+                      "
+                    >
+                      <span
+                        class="spinner-border text-light mb-2"
+                        role="status"
+                        style="width: 1.5rem; height: 1.5rem"
+                      ></span>
+                      <span class="text-white fs-7 font-monospace"
+                        >{{ categoryUploadProgress[i] }}%</span
+                      >
+                    </div>
+                  }
                   @if (previewUrls[i] || categoryControl.get('imageUrl')?.value) {
                     <img
                       [src]="previewUrls[i] || categoryControl.get('imageUrl')?.value"
@@ -65,7 +84,7 @@
                   type="file"
                   [id]="'categoryImageFile' + i"
                   class="d-none"
-                  (change)="fileChange.emit({ index: i, event: $event })"
+                  (change)="onFileSelected($event, i)"
                   accept="image/png, image/jpeg, image/webp"
                 />
               </div>

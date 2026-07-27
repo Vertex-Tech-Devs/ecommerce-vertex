@@ -111,6 +111,17 @@ export class HomeContentService {
     }
 
     dataToSave.lastUpdated = new Date();
+
+    if (dataToSave.heroImages) {
+      dataToSave.heroImages = dataToSave.heroImages.map((img) => {
+        const sanitized = { ...img };
+        if (sanitized.linkId === undefined) {
+          delete sanitized.linkId;
+        }
+        return sanitized;
+      });
+    }
+
     return setDoc(docRef, dataToSave, { merge: true });
   }
 }

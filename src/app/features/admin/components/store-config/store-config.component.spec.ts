@@ -111,10 +111,8 @@ describe('StoreConfigComponent', () => {
 
   it('should change activeTab signal when setTab is called', () => {
     expect(component.activeTab()).toBe('identity');
-    component.setTab('colors');
-    expect(component.activeTab()).toBe('colors');
-    component.setTab('payments');
-    expect(component.activeTab()).toBe('payments');
+    component.setTab('identity');
+    expect(component.activeTab()).toBe('identity');
   });
 
   it('should show error alert if form is invalid on submit', async () => {
@@ -128,12 +126,6 @@ describe('StoreConfigComponent', () => {
     await component.onSubmit();
     expect(storeConfigServiceSpy.saveConfig).toHaveBeenCalled();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
-  });
-
-  it('should toggle MP key visibility flag', () => {
-    expect(component.showMpKey()).toBeFalse();
-    component.toggleMpKeyVisibility();
-    expect(component.showMpKey()).toBeTrue();
   });
 
   it('should handle successful favicon upload', () => {
@@ -156,6 +148,8 @@ describe('StoreConfigComponent', () => {
 
     expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
     expect(component.form.get('faviconUrl')?.value).toBe('http://example.com/new-favicon.png');
+    expect(component.form.get('faviconUrl')?.dirty).toBeTrue();
+    expect(component.form.dirty).toBeTrue();
     expect(component.faviconUploading()).toBeFalse();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
   });

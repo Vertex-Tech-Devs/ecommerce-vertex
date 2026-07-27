@@ -286,9 +286,9 @@ export class CatalogComponent implements OnInit {
 
   clearFilters(): void {
     const dynamicGroup = this.filterForm.get('dynamicAttributes') as FormGroup;
-    dynamicGroup.reset();
+    dynamicGroup.reset({ emitEvent: false });
     this.filterForm.patchValue({
-      category: this.filterForm.get('category')?.value,
+      category: 'all',
       minPrice: null,
       maxPrice: null,
     });

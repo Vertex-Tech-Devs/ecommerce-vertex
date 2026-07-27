@@ -110,7 +110,15 @@
               [ngClass]="{ 'is-invalid': image.invalid && (image.dirty || image.touched) }"
             />
             @if (uploadProgress !== null) {
-              <div class="progress mt-3" style="height: 6px">
+              <div class="d-flex align-items-center gap-2 mt-3 text-info">
+                <span
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                <span class="small font-monospace">Subiendo ({{ uploadProgress }}%)...</span>
+              </div>
+              <div class="progress mt-2" style="height: 6px">
                 <div
                   class="progress-bar custom-progress"
                   role="progressbar"
@@ -133,7 +141,12 @@
           <div formArrayName="images" class="glass-upload-box mb-4">
             <div class="d-flex flex-row justify-content-between align-items-center mb-3 gap-2">
               <label class="form-label mb-0">Imágenes Adicionales</label>
-              <button (click)="addImage()" type="button" class="btn-glass-success btn-sm">
+              <button
+                (click)="addImage()"
+                type="button"
+                class="btn-glass-success btn-sm"
+                [disabled]="images.length > 0 && !images.at(images.length - 1).value"
+              >
                 <i class="bi bi-plus-lg" aria-hidden="true"></i>
                 <span class="d-none d-sm-inline ms-1">Añadir imagen</span>
               </button>
@@ -153,7 +166,7 @@
                   </div>
                   <div class="gallery-input">
                     <input
-                      #additionalImageInput
+                      #galleryInput
                       type="file"
                       class="form-control glass-file-input"
                       (change)="onGalleryFileSelected($event, i)"
@@ -165,6 +178,16 @@
                     @if (
                       galleryUploadProgress[i] !== null && galleryUploadProgress[i] !== undefined
                     ) {
+                      <div class="d-flex align-items-center gap-2 mt-2 text-info">
+                        <span
+                          class="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                        <span class="small font-monospace"
+                          >Subiendo ({{ galleryUploadProgress[i] }}%)...</span
+                        >
+                      </div>
                       <div class="progress mt-2" style="height: 6px">
                         <div
                           class="progress-bar custom-progress"
@@ -293,9 +316,12 @@
           }
 
           <div formArrayName="variants" class="variants-container">
-            @for (variantGroup of variants.controls; track $index; let i = $index) {
+            @for (
+              variantGroup of paginatedVariantsControls;
+              track getVariantRealIndex(variantGroup)
+            ) {
               <div
-                [formGroupName]="i"
+                [formGroupName]="getVariantRealIndex(variantGroup)"
                 class="variant-row glass-panel mb-3"
                 [class.variant-invalid]="variantGroup.invalid && variantGroup.touched"
               >
@@ -307,7 +333,7 @@
                           <label class="form-label">{{ attr.name }}</label>
                           @if (attr.id === getFirstActiveAttributeId(attributes)) {
                             <select
-                              #variantFirstSelect
+                              #variantSelect
                               class="form-select glass-input hardware-accelerated"
                               [formControlName]="attr.id"
                               [ngClass]="{
@@ -323,6 +349,7 @@
                             </select>
                           } @else {
                             <select
+                              #variantSelect
                               class="form-select glass-input hardware-accelerated"
                               [formControlName]="attr.id"
                               [ngClass]="{
@@ -346,6 +373,7 @@
                 <div class="variant-stock-item">
                   <label class="form-label">Stock</label>
                   <input
+                    #variantStock
                     type="number"
                     class="form-control glass-input"
                     formControlName="stock"
@@ -359,7 +387,7 @@
 
                 <div class="variant-action-item">
                   <button
-                    (click)="removeVariant(i)"
+                    (click)="removeVariant(getVariantRealIndex(variantGroup))"
                     type="button"
                     class="btn-glass-danger btn-sm"
                     aria-label="Eliminar"
@@ -370,6 +398,42 @@
               </div>
             }
           </div>
+
+          @if (totalPages > 1) {
+            <nav aria-label="Navegación de páginas de variantes" class="mt-3">
+              <ul class="pagination justify-content-center glass-pagination">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button
+                    type="button"
+                    class="page-link"
+                    (click)="currentPage = currentPage - 1"
+                    [disabled]="currentPage === 1"
+                    aria-label="Anterior"
+                  >
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                  </button>
+                </li>
+                @for (page of pages; track page) {
+                  <li class="page-item" [class.active]="currentPage === page">
+                    <button type="button" class="page-link" (click)="currentPage = page">
+                      {{ page }}
+                    </button>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button
+                    type="button"
+                    class="page-link"
+                    (click)="currentPage = currentPage + 1"
+                    [disabled]="currentPage === totalPages"
+                    aria-label="Siguiente"
+                  >
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          }
 
           <div
             class="form-actions border-top-glass pt-3 mt-3 pt-md-4 mt-md-4 d-flex justify-content-end gap-2 gap-md-3"

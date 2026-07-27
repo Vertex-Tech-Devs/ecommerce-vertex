@@ -11,73 +11,10 @@ import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
-import { z } from 'zod';
 import { tenantPath, resolveTenantId } from '@core/utils/tenant';
+import { StoreConfigSchema } from '@vertex/contracts';
 
-export const StoreConfigSchema = z.object({
-  tenantId: z.string().default('').catch(''),
-  storeId: z.string().default('white-label-store').catch('white-label-store'),
-  storeName: z.string().default('Mi Tienda').catch('Mi Tienda'),
-  tagline: z.string().default('').catch(''),
-  logoUrl: z.string().default('').catch(''),
-  faviconUrl: z.string().default('').catch(''),
-  colors: z
-    .object({
-      primary: z.string().default('#ea580c').catch('#ea580c'),
-      accent: z.string().default('#ef4444').catch('#ef4444'),
-      background: z.string().default('#ffffff').catch('#ffffff'),
-    })
-    .default({
-      primary: '#ea580c',
-      accent: '#ef4444',
-      background: '#ffffff',
-    }),
-  payments: z
-    .object({
-      mercadoPagoPublicKey: z.string().default('').catch(''),
-      mercadoPago: z
-        .object({
-          publicKey: z.string().optional(),
-          accessTokenSecret: z.string().optional(),
-          accessTokenMasked: z.string().optional(),
-          accountEmail: z.string().optional(),
-          validationStatus: z.string().optional(),
-        })
-        .optional(),
-    })
-    .default({
-      mercadoPagoPublicKey: '',
-    }),
-  contact: z
-    .object({
-      phone: z.string().default('').catch(''),
-      email: z.string().default('').catch(''),
-      whatsApp: z.string().default('').catch(''),
-      instagram: z.string().default('').catch(''),
-      facebook: z.string().default('').catch(''),
-    })
-    .default({
-      phone: '',
-      email: '',
-      whatsApp: '',
-      instagram: '',
-      facebook: '',
-    }),
-  seo: z
-    .object({
-      metaDescription: z.string().default('').catch(''),
-    })
-    .default({
-      metaDescription: '',
-    }),
-  setupCompleted: z.boolean().default(true).catch(true),
-  contactPhone: z.string().optional(),
-  contactEmail: z.string().optional(),
-  socialInstagramUrl: z.string().optional(),
-  socialFacebookUrl: z.string().optional(),
-  socialWhatsAppUrl: z.string().optional(),
-  copyrightText: z.string().optional(),
-});
+export { StoreConfigSchema };
 
 @Injectable({ providedIn: 'root' })
 export class StoreConfigService {
@@ -161,8 +98,8 @@ export class StoreConfigService {
       ]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
-        this._storeConfig.set(validatedData as StoreConfig);
-        this.applyConfigToDom(validatedData as StoreConfig);
+        this._storeConfig.set(validatedData as unknown as StoreConfig);
+        this.applyConfigToDom(validatedData as unknown as StoreConfig);
         return;
       }
 
@@ -175,8 +112,8 @@ export class StoreConfigService {
         const validatedData = StoreConfigSchema.parse(
           this.parseLegacyConfigRaw(legacySnap.data() as Record<string, unknown>),
         );
-        this._storeConfig.set(validatedData as StoreConfig);
-        this.applyConfigToDom(validatedData as StoreConfig);
+        this._storeConfig.set(validatedData as unknown as StoreConfig);
+        this.applyConfigToDom(validatedData as unknown as StoreConfig);
       } else {
         this._storeConfig.set(null);
       }
@@ -216,12 +153,30 @@ export class StoreConfigService {
     };
   }
 
+  private stripUndefined(obj: unknown): unknown {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.stripUndefined(item));
+    }
+    const cleanObj: Record<string, unknown> = {};
+    const record = obj as Record<string, unknown>;
+    for (const key of Object.keys(record)) {
+      if (record[key] !== undefined) {
+        cleanObj[key] = this.stripUndefined(record[key]);
+      }
+    }
+    return cleanObj;
+  }
+
   async saveConfig(data: StoreConfig): Promise<void> {
     const docRef = this.getDocRef(tenantPath('configuracion'), 'store');
-    await this.setDocData(docRef, {
+    const cleanedPayload = this.stripUndefined({
       ...(data as unknown as Record<string, unknown>),
       updatedAt: new Date().toISOString(),
     });
+    await this.setDocData(docRef, cleanedPayload as Record<string, unknown>);
     this._storeConfig.set(data);
   }
 

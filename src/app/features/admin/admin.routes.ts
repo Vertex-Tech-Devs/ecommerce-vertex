@@ -135,9 +135,7 @@ export const ADMIN_ROUTES: Routes = [
         title: 'Desarrollo',
         canActivate: [DevGuard],
         loadComponent: () =>
-          import('./components/dev-panel/dev-panel.component').then(
-            (m) => m.DevPanelComponent,
-          ),
+          import('./components/dev-panel/dev-panel.component').then((m) => m.DevPanelComponent),
       },
       {
         path: '',
