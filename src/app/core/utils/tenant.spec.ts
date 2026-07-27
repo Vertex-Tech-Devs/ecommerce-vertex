@@ -46,11 +46,12 @@ describe('resolveTenantId', () => {
     );
   });
 
-  it('should parse vtx-{slug} pattern from hostname', () => {
+  it('should return full first label for vtx-{slug} hostname (preserves shard IDs)', () => {
     environment.tenantId = 'store';
+    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
+    // This is required for shard project IDs like vtx-sd-XXXXXXXX
     expect(resolveTenantId({ hostname: 'vtx-mi-tienda.example.com', search: '' })).toBe(
-      'mi-tienda',
-      'mi-tienda',
+      'vtx-mi-tienda',
     );
   });
 
@@ -77,9 +78,10 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'ab-vtx.example.com', search: '' })).toBe('ab');
   });
 
-  it('should handle firstLabel shorter than 4 in vtx- pattern', () => {
+  it('should return full first label for short vtx- hostname', () => {
     environment.tenantId = 'store';
-    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('ab');
+    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
+    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('vtx-ab');
   });
 
   it('should return fallback when no hostname pattern matches and no query param', () => {
