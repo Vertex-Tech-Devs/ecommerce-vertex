@@ -34,7 +34,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -54,13 +54,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Run frontend tests
         run: npm run test:ci
 
       - name: Install backend dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Run backend tests
@@ -81,7 +81,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate Firebase config
         env:
@@ -128,7 +128,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate Firebase config
         env:
@@ -171,7 +171,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - run: npm run build
@@ -193,9 +193,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Download frontend build
@@ -238,9 +238,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
       - name: Download frontend build
@@ -288,7 +288,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate store environment file
         env:
