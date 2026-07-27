@@ -536,6 +536,29 @@ select.glass-input {
   }
 }
 
+.btn-glass-secondary,
+.btn-glass-primary,
+.btn-glass-danger,
+.btn-glass-success {
+  padding: 0.6rem 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @media (min-width: 768px) {
+    padding: 0.75rem 1.5rem;
+  }
+
+  &.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+
+    @media (min-width: 768px) {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+    }
+  }
+}
+
 .btn-glass-back {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
@@ -565,23 +588,6 @@ select.glass-input {
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
-  padding: 0.6rem 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  @media (min-width: 768px) {
-    padding: 0.75rem 1.5rem;
-  }
-
-  &.btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-
-    @media (min-width: 768px) {
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-    }
-  }
 
   &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.1);
@@ -594,23 +600,6 @@ select.glass-input {
   background: rgba(129, 140, 248, 0.15);
   border-color: rgba(129, 140, 248, 0.4);
   color: #c7d2fe;
-  padding: 0.6rem 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  @media (min-width: 768px) {
-    padding: 0.75rem 1.5rem;
-  }
-
-  &.btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-
-    @media (min-width: 768px) {
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-    }
-  }
 
   &:hover:not(:disabled) {
     background: rgba(129, 140, 248, 0.25);
@@ -627,23 +616,6 @@ select.glass-input {
   background: rgba(52, 211, 153, 0.15);
   border-color: rgba(52, 211, 153, 0.4);
   color: #a7f3d0;
-  padding: 0.6rem 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  @media (min-width: 768px) {
-    padding: 0.75rem 1.5rem;
-  }
-
-  &.btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-
-    @media (min-width: 768px) {
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-    }
-  }
 
   &:hover:not(:disabled) {
     background: rgba(52, 211, 153, 0.25);
@@ -660,23 +632,6 @@ select.glass-input {
   background: rgba(248, 113, 113, 0.15);
   border-color: rgba(248, 113, 113, 0.4);
   color: #fca5a5;
-  padding: 0.6rem 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  @media (min-width: 768px) {
-    padding: 0.75rem 1.5rem;
-  }
-
-  &.btn-sm {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-
-    @media (min-width: 768px) {
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-    }
-  }
 
   &:hover:not(:disabled) {
     background: rgba(248, 113, 113, 0.25);
