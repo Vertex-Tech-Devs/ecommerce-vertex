@@ -281,7 +281,7 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          ref: ${{ github.event_name == 'repository_dispatch' && (github.event.client_payload.ref || 'main') || github.ref }}
+          ref: ${{ github.event_name == 'repository_dispatch' && (github.event.client_payload.ref || (github.event.client_payload.environment == 'development' && 'develop' || 'main')) || github.ref }}
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -370,6 +370,10 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PLATFORM || secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+
+      - name: Log Service Account Identity
+        run: |
+          python3 -c 'import json, os; p=os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"); print("Active Deploy Service Account:", json.load(open(p)).get("client_email")) if p and os.path.exists(p) else print("No GAC file found")'
 
       - name: Deploy to store Firebase project
         run: |
