@@ -42,12 +42,13 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
     autoWatch: true,
     browsers: ['ChromeHeadlessCI'],
-    singleRun: false,
-    restartOnFileChange: true,
+    browserNoActivityTimeout: 60000,
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 3,
     customLaunchers: {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--headless=new'],
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
       },
     },
   });
