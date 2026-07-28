@@ -76,7 +76,6 @@ describe('EmailSettingsService', () => {
     spyOn(serviceTest, 'getDocData').and.returnValue(
       throwError(() => new Error('Firestore read error')),
     );
-    spyOn(console, 'warn');
 
     service.getEmailSettings().subscribe((settings) => {
       expect(settings).toBeUndefined();

@@ -86,7 +86,7 @@ describe('resolveTenantId', () => {
 
   it('should return fallback when no hostname pattern matches and no query param', () => {
     environment.tenantId = 'store';
-    expect(resolveTenantId({ hostname: 'some-other-host.com', search: '' })).toBe('store');
+    expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('store');
   });
 
   it('should handle hostname being localhost by skipping hostname parsing', () => {
