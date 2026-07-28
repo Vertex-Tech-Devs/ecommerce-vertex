@@ -11,6 +11,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import type { Subscription } from 'rxjs';
+import { interval } from 'rxjs';
 import type { HeroImage } from '@core/models/home-content.model';
 
 @Component({
@@ -56,7 +58,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   currentIndex: number = 0;
   isAutoplayActive: boolean = true;
   private cdr = inject(ChangeDetectorRef);
-  private autoplayInterval: ReturnType<typeof setInterval> | null = null;
+  private autoplaySub: Subscription | null = null;
   private touchStartX: number = 0;
   private touchEndX: number = 0;
 
@@ -71,19 +73,17 @@ export class CarouselComponent implements OnInit, OnDestroy {
   }
 
   private startAutoplay(): void {
-    if (this.autoplayInterval) {
-      clearInterval(this.autoplayInterval);
-    }
+    this.stopAutoplay();
     this.isAutoplayActive = true;
-    this.autoplayInterval = setInterval(() => {
+    this.autoplaySub = interval(this.interval).subscribe(() => {
       this.nextSlide();
-    }, this.interval);
+    });
   }
 
   private stopAutoplay(): void {
-    if (this.autoplayInterval) {
-      clearInterval(this.autoplayInterval);
-      this.autoplayInterval = null;
+    if (this.autoplaySub) {
+      this.autoplaySub.unsubscribe();
+      this.autoplaySub = null;
     }
     this.isAutoplayActive = false;
   }
