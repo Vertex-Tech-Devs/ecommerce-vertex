@@ -39,6 +39,8 @@ describe('EmailSettingsService', () => {
   const dummyRef = {} as DocumentReference;
 
   beforeEach(() => {
+    spyOn(console, 'error');
+    spyOn(console, 'warn');
     firestoreSpy = jasmine.createSpyObj('Firestore', ['type']);
     functionsSpy = jasmine.createSpyObj('Functions', ['type']);
 

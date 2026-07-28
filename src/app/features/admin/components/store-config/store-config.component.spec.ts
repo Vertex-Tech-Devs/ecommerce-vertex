@@ -47,6 +47,8 @@ describe('StoreConfigComponent', () => {
   };
 
   beforeEach(async () => {
+    spyOn(console, 'error');
+    spyOn(console, 'warn');
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [
       'loadConfig',
       'saveConfig',
