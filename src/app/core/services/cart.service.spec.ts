@@ -301,7 +301,9 @@ describe('CartService', () => {
 
   describe('localStorage error handling', () => {
     it('should not throw when localStorage.setItem fails', () => {
-      spyOn(localStorage, 'setItem').and.throwError('QuotaExceededError');
+      spyOn(localStorage, 'setItem').and.callFake(() => {
+        throw new Error('QuotaExceededError');
+      });
 
       expect(() => {
         service.clearCart();
@@ -313,21 +315,16 @@ describe('CartService', () => {
   describe('localStorage error handling extra', () => {
     it('should handle error when localStorage.getItem throws', () => {
       spyOn(console, 'error');
-      spyOn(localStorage, 'getItem').and.throwError('SecurityError');
+      spyOn(localStorage, 'getItem').and.callFake(() => {
+        throw new Error('SecurityError');
+      });
       const spyRemove = spyOn(localStorage, 'removeItem');
 
-      TestBed.resetTestingModule();
-      TestBed.configureTestingModule({
-        providers: [
-          CartService,
-          { provide: SweetAlertService, useValue: sweetAlertSpy },
-          { provide: AttributeService, useValue: attributeServiceSpy },
-        ],
+      TestBed.runInInjectionContext(() => {
+        const newService = new CartService();
+        expect(newService.cart().items).toEqual([]);
+        expect(spyRemove).toHaveBeenCalledWith(`cart_${environment.tenantId}`);
       });
-      const newService = TestBed.inject(CartService);
-
-      expect(newService.cart().items).toEqual([]);
-      expect(spyRemove).toHaveBeenCalledWith(`cart_${environment.tenantId}`);
     });
   });
 
