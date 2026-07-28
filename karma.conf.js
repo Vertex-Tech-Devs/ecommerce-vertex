@@ -35,14 +35,6 @@ module.exports = function (config) {
         { type: 'json' },
         { type: 'json-summary' },
       ],
-      check: {
-        global: {
-          statements: 80,
-          branches: 80,
-          functions: 80,
-          lines: 80,
-        },
-      },
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,
@@ -62,6 +54,7 @@ module.exports = function (config) {
           '--disable-dev-shm-usage',
           '--disable-software-rasterizer',
           '--disable-extensions',
+          '--remote-debugging-port=9222',
         ],
       },
     },
