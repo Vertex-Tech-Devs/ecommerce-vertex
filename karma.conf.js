@@ -48,12 +48,11 @@ module.exports = function (config) {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: [
+          '--headless',
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-gpu',
           '--disable-dev-shm-usage',
-          '--disable-software-rasterizer',
-          '--disable-extensions',
           '--remote-debugging-port=9222',
         ],
       },
