@@ -35,20 +35,26 @@ export class EmailSettingsService {
   private injector = inject(Injector);
 
   protected get docRef(): DocumentReference<DocumentData> {
-    return doc(this.firestore, tenantPath('settings'), 'emailTemplates');
+    return runInInjectionContext(this.injector, () =>
+      doc(this.firestore, tenantPath('settings'), 'emailTemplates'),
+    );
   }
 
   protected getDocData(ref: DocumentReference): Observable<unknown> {
-    return from(getDoc(ref)).pipe(map((snap) => (snap.exists() ? snap.data() : undefined)));
+    return runInInjectionContext(this.injector, () =>
+      from(getDoc(ref)).pipe(map((snap) => (snap.exists() ? snap.data() : undefined))),
+    );
   }
 
   protected setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
-    return setDoc(ref, data, { merge: true });
+    return runInInjectionContext(this.injector, () => setDoc(ref, data, { merge: true }));
   }
 
   protected callFunction(name: string, payload: Record<string, unknown>): Promise<unknown> {
-    const fn = httpsCallable(this.functions, name);
-    return fn(payload);
+    return runInInjectionContext(this.injector, () => {
+      const fn = httpsCallable(this.functions, name);
+      return fn(payload);
+    });
   }
 
   getEmailSettings(): Observable<EmailSettings | undefined> {
