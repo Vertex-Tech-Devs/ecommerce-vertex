@@ -301,7 +301,7 @@ describe('CartService', () => {
 
   describe('localStorage error handling', () => {
     it('should not throw when localStorage.setItem fails', () => {
-      spyOn(Storage.prototype, 'setItem').and.throwError('QuotaExceededError');
+      spyOn(localStorage, 'setItem').and.throwError(new Error('QuotaExceededError'));
 
       expect(() => {
         service.clearCart();
@@ -312,8 +312,9 @@ describe('CartService', () => {
 
   describe('localStorage error handling extra', () => {
     it('should handle error when localStorage.getItem throws', () => {
-      spyOn(Storage.prototype, 'getItem').and.throwError('SecurityError');
-      const spyRemove = spyOn(Storage.prototype, 'removeItem');
+      spyOn(console, 'error');
+      spyOn(localStorage, 'getItem').and.throwError(new Error('SecurityError'));
+      const spyRemove = spyOn(localStorage, 'removeItem');
 
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
