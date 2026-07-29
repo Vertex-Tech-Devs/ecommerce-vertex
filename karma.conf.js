@@ -14,15 +14,12 @@ module.exports = function (config) {
     ],
     client: {
       jasmine: {
-        // you can add configuration options for Jasmine here
-        // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
-        // for example, you can disable the random execution with `random: false`
-        // or set a specific seed with `seed: 4321`
+        // configuration options for Jasmine
       },
       clearContext: false, // leave Jasmine Spec Runner output visible in browser
     },
     jasmineHtmlReporter: {
-      suppressAll: true, // removes the duplicated traces
+      suppressAll: true,
     },
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/ecommerce-vertex'),
@@ -41,21 +38,13 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['ChromeHeadlessCI'],
-    browserNoActivityTimeout: 60000,
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 3,
+    browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
-      ChromeHeadlessCI: {
+      ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
-        flags: [
-          '--headless=new',
-          '--no-sandbox',
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--remote-debugging-port=9222',
-        ],
+        flags: ['--no-sandbox', '--disable-gpu'],
       },
     },
+    restartOnFileChange: true,
   });
 };

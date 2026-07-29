@@ -17,7 +17,7 @@
     "e2e:ci": "cypress run --e2e --browser chrome",
     "test:integration": "playwright test --config integration-tests/playwright.config.ts",
     "test:integration:ui": "playwright test --ui --config integration-tests/playwright.config.ts",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI --code-coverage",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage",
     "deploy:dev": "npm run clean && npm run build:dev-template && npm run build:fn && firebase deploy --project development --only hosting:ecommerce-vertex,functions",
     "deploy:prod": "npm run clean && npm run build && npm run build:fn && firebase deploy --project production --only hosting:ecommerce-vertex,functions",
     "clean": "rm -rf dist functions/lib coverage",
