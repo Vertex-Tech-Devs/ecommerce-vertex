@@ -6,12 +6,21 @@ import type { FirebaseOptions } from 'firebase/app';
  * breaks uploads because the bucket hostname may not exist or lack CORS.
  */
 export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptions {
-  const projectId = config.projectId?.trim();
+  let projectId = config.projectId?.trim();
+  if (!projectId) {
+    const authProject = config.authDomain?.trim().split('.')[0];
+    const storageProject = config.storageBucket?.trim().split('.')[0];
+    projectId = authProject ?? storageProject;
+    if (projectId) {
+      config.projectId = projectId;
+    }
+  }
+
   if (!projectId) {
     return config;
   }
 
-  const normalized: FirebaseOptions = { ...config };
+  const normalized: FirebaseOptions = { ...config, projectId };
 
   // 1. Ensure storageBucket matches the Firebase project
   const storageBucket = config.storageBucket?.trim() ?? '';
