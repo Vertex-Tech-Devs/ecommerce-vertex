@@ -43,4 +43,24 @@ describe('normalizeFirebaseOptions', () => {
 
     expect(config.storageBucket).toBe('some-bucket.appspot.com');
   });
+
+  it('normalizes a mismatched authDomain to the shard project authDomain', () => {
+    const config = normalizeFirebaseOptions({
+      ...baseConfig,
+      projectId: 'vtx-sd-3bf1de61',
+      authDomain: 'ecommerce-vertex-dev.firebaseapp.com',
+    });
+
+    expect(config.authDomain).toBe('vtx-sd-3bf1de61.firebaseapp.com');
+  });
+
+  it('keeps matching authDomain intact', () => {
+    const config = normalizeFirebaseOptions({
+      ...baseConfig,
+      projectId: 'vtx-sd-3bf1de61',
+      authDomain: 'vtx-sd-3bf1de61.firebaseapp.com',
+    });
+
+    expect(config.authDomain).toBe('vtx-sd-3bf1de61.firebaseapp.com');
+  });
 });
