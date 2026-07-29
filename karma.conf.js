@@ -24,14 +24,7 @@ module.exports = function (config) {
     coverageReporter: {
       dir: require('path').join(__dirname, './coverage/ecommerce-vertex'),
       subdir: '.',
-      reporters: [
-        { type: 'html' },
-        { type: 'text-summary' },
-        { type: 'lcovonly' },
-        { type: 'text', file: 'coverage-summary.txt' },
-        { type: 'json' },
-        { type: 'json-summary' },
-      ],
+      reporters: [{ type: 'html' }, { type: 'text-summary' }, { type: 'lcov' }],
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,
