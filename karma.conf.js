@@ -36,11 +36,12 @@ module.exports = function (config) {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
         flags: [
+          '--headless=new',
           '--no-sandbox',
           '--disable-gpu',
           '--disable-dev-shm-usage',
           '--disable-software-rasterizer',
-          '--user-data-dir=/tmp/chrome-test-profile',
+          '--remote-debugging-port=9222',
         ],
       },
     },
