@@ -49,7 +49,7 @@ module.exports = function (config) {
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: [
-          '--headless',
+          '--headless=new',
           '--no-sandbox',
           '--disable-gpu',
           '--disable-dev-shm-usage',
