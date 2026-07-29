@@ -31,16 +31,15 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['ChromeHeadlessNoSandbox'],
+    browsers: ['ChromeHeadlessCI'],
     customLaunchers: {
-      ChromeHeadlessNoSandbox: {
+      ChromeHeadlessCI: {
         base: 'ChromeHeadless',
         flags: [
-          '--headless=new',
           '--no-sandbox',
           '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-software-rasterizer',
+          '--disable-translate',
+          '--disable-extensions',
           '--remote-debugging-port=9222',
         ],
       },
