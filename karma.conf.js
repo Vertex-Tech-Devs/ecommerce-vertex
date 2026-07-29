@@ -35,7 +35,13 @@ module.exports = function (config) {
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu'],
+        flags: [
+          '--no-sandbox',
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-software-rasterizer',
+          '--user-data-dir=/tmp/chrome-test-profile',
+        ],
       },
     },
     restartOnFileChange: true,
