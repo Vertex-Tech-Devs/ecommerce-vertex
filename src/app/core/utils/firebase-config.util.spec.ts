@@ -34,14 +34,15 @@ describe('normalizeFirebaseOptions', () => {
     expect(config.storageBucket).toBe('ecommerce-vertex-dev.appspot.com');
   });
 
-  it('returns config unchanged when projectId is missing', () => {
+  it('infers projectId from authDomain when projectId is missing', () => {
     const config = normalizeFirebaseOptions({
       apiKey: 'test-key',
       authDomain: 'example.firebaseapp.com',
       storageBucket: 'some-bucket.appspot.com',
     } as FirebaseOptions);
 
-    expect(config.storageBucket).toBe('some-bucket.appspot.com');
+    expect(config.projectId).toBe('example');
+    expect(config.storageBucket).toBe('example.appspot.com');
   });
 
   it('normalizes a mismatched authDomain to the shard project authDomain', () => {

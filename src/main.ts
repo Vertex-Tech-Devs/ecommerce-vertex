@@ -61,6 +61,14 @@ if (bootTitle) {
 fetch('/firebase-config.json?t=' + new Date().getTime())
   .then((r) => (r.ok ? (r.json() as Promise<FirebaseOptions>) : Promise.reject(r.status)))
   .then((config) => {
+    if (config && !config.projectId) {
+      const inferredProject =
+        config.authDomain?.trim().split('.')[0] ??
+        config.storageBucket?.trim().split('.')[0];
+      if (inferredProject) {
+        config.projectId = inferredProject;
+      }
+    }
     if (!config?.apiKey || !config.projectId) {
       throw new Error('Invalid or incomplete firebase-config.json');
     }
