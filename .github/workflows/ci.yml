@@ -78,8 +78,6 @@ jobs:
 
       - name: Run tests
         run: npm run test:ci
-        env:
-          CHROME_BIN: /usr/bin/google-chrome
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
