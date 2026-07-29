@@ -21,8 +21,8 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
   }
 
   // 2. Ensure authDomain matches the shard project ID to prevent auth/invalid-continue-uri
-  const authDomain = config.authDomain?.trim() ?? '';
-  if (!authDomain || !authDomain.startsWith(projectId)) {
+  const authDomain = config.authDomain?.trim();
+  if (!authDomain?.startsWith(projectId)) {
     normalized.authDomain = `${projectId}.firebaseapp.com`;
   }
 
