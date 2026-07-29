@@ -11,6 +11,20 @@ const auth = getAuth();
 const db = getFirestore();
 const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
 
+const DEFAULT_DEV_EMAILS = [
+  'juan.l.espeche@gmail.com',
+  'leivalihue@gmail.com',
+  'vertex.tech.dev@gmail.com',
+];
+
+function getSuperAdminEmails(): string[] {
+  const envSuperAdmins = process.env.PROTECTED_SUPER_ADMINS;
+  if (envSuperAdmins) {
+    return envSuperAdmins.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+  }
+  return DEFAULT_DEV_EMAILS;
+}
+
 function resolveTenantId(request: any): string {
   if (request.data && typeof request.data === 'object' && request.data.tenantId) {
     return String(request.data.tenantId);
@@ -117,7 +131,7 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
 
   let doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
 
-  const devEmails = ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'];
+  const devEmails = getSuperAdminEmails();
   if (!doc.exists && devEmails.includes(emailLower)) {
     logger.info(`refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`);
     await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).set({

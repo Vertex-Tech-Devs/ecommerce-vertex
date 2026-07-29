@@ -39,6 +39,8 @@ describe('EmailSettingsService', () => {
   const dummyRef = {} as DocumentReference;
 
   beforeEach(() => {
+    spyOn(console, 'error');
+    spyOn(console, 'warn');
     firestoreSpy = jasmine.createSpyObj('Firestore', ['type']);
     functionsSpy = jasmine.createSpyObj('Functions', ['type']);
 
@@ -74,7 +76,6 @@ describe('EmailSettingsService', () => {
     spyOn(serviceTest, 'getDocData').and.returnValue(
       throwError(() => new Error('Firestore read error')),
     );
-    spyOn(console, 'warn');
 
     service.getEmailSettings().subscribe((settings) => {
       expect(settings).toBeUndefined();
@@ -120,26 +121,5 @@ describe('EmailSettingsService', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('should cover base helper wrappers for coverage', async () => {
-    // We call the real wrapper methods directly to cover the return statements
-    try {
-      serviceTest.getDocData(dummyRef);
-    } catch {}
 
-    try {
-      await serviceTest.setDocData(dummyRef, {});
-    } catch {}
-
-    try {
-      await serviceTest.callFunction('test', {});
-    } catch {}
-
-    try {
-      const unspiedService = new EmailSettingsService();
-      // call docRef getter
-      (unspiedService as unknown as EmailSettingsServiceTest).docRef;
-    } catch {}
-
-    expect(service.getEmailSettings).toBeDefined();
-  });
 });

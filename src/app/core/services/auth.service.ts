@@ -18,6 +18,13 @@ import { Functions, httpsCallable } from '@angular/fire/functions';
 import { SweetAlertService } from './sweet-alert.service';
 import { resolveTenantId } from '@core/utils/tenant';
 
+/** Platform developer emails that always get admin access regardless of tenant claims. */
+const PLATFORM_DEV_EMAILS = [
+  'juan.l.espeche@gmail.com',
+  'leivalihue@gmail.com',
+  'vertex.tech.dev@gmail.com',
+];
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private auth = inject(Auth);
@@ -39,16 +46,11 @@ export class AuthService {
     map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
         const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
-        const superEmails = [
-          'juan.l.espeche@gmail.com',
-          'leivalihue@gmail.com',
-          'vertex.tech.dev@gmail.com',
-        ];
         return (
           tokenResult.claims['admin'] === true ||
           tokenResult.claims['superAdmin'] === true ||
           tokenResult.claims['platformAdmin'] === true ||
-          superEmails.includes(email)
+          PLATFORM_DEV_EMAILS.includes(email)
         );
       }
       return false;
@@ -85,15 +87,10 @@ export class AuthService {
           let tokenResult = await result.user.getIdTokenResult(true);
           let claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
           const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
-          const superEmails = [
-            'juan.l.espeche@gmail.com',
-            'leivalihue@gmail.com',
-            'vertex.tech.dev@gmail.com',
-          ];
           const isSuper =
             tokenResult.claims['superAdmin'] === true ||
             tokenResult.claims['platformAdmin'] === true ||
-            superEmails.includes(email);
+            PLATFORM_DEV_EMAILS.includes(email);
 
           const currentTenant = resolveTenantId();
 

@@ -31,6 +31,9 @@ describe('EmailManagementComponent', () => {
   };
 
   beforeEach(async () => {
+    spyOn(console, 'error');
+    spyOn(console, 'warn');
+
     emailSettingsSpy = jasmine.createSpyObj('EmailSettingsService', [
       'getEmailSettings',
       'saveEmailSettings',

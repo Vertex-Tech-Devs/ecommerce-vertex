@@ -8,6 +8,7 @@ describe('PaymentService', () => {
 
   beforeEach(() => {
     functionsSpy = jasmine.createSpyObj('Functions', ['type']);
+    spyOn(console, 'warn');
 
     TestBed.configureTestingModule({
       providers: [PaymentService, { provide: Functions, useValue: functionsSpy }],
@@ -47,7 +48,6 @@ describe('PaymentService', () => {
       retryWithBackoff<T>(fn: () => Promise<T>, retries?: number, delay?: number): Promise<T>;
     };
 
-    // Use a very small delay (1ms) for test execution speed
     const result = await privateService.retryWithBackoff(mockFn, 3, 1);
 
     expect(result).toBe('Success after retry');
@@ -63,12 +63,7 @@ describe('PaymentService', () => {
       retryWithBackoff<T>(fn: () => Promise<T>, retries?: number, delay?: number): Promise<T>;
     };
 
-    try {
-      await privateService.retryWithBackoff(mockFn, 2, 1);
-      fail('Should have thrown an error');
-    } catch (error) {
-      expect((error as Error).message).toBe('Persistent Error');
-      expect(mockFn).toHaveBeenCalledTimes(3); // Initial + 2 retries
-    }
+    await expectAsync(privateService.retryWithBackoff(mockFn, 2, 1)).toBeRejectedWithError('Persistent Error');
+    expect(mockFn).toHaveBeenCalledTimes(3); // Initial + 2 retries
   });
 });

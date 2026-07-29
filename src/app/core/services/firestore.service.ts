@@ -95,17 +95,23 @@ export class FirestoreService<T extends BaseEntity> {
     collectionName: string,
     data: WithFieldValue<Omit<T, 'id'>>,
   ): Promise<DocumentReference<T>> {
-    const collectionRef = collection(this.firestore, tenantPath(collectionName));
-    return addDoc(collectionRef, data) as Promise<DocumentReference<T>>;
+    return runInInjectionContext(this.injector, () => {
+      const collectionRef = collection(this.firestore, tenantPath(collectionName));
+      return addDoc(collectionRef, data) as Promise<DocumentReference<T>>;
+    });
   }
 
   update(collectionName: string, id: string, data: Partial<T>): Promise<void> {
-    const documentRef = doc(this.firestore, tenantPath(collectionName), id);
-    return updateDoc(documentRef, data as UpdateData<T>);
+    return runInInjectionContext(this.injector, () => {
+      const documentRef = doc(this.firestore, tenantPath(collectionName), id);
+      return updateDoc(documentRef, data as UpdateData<T>);
+    });
   }
 
   delete(collectionName: string, id: string): Promise<void> {
-    const documentRef = doc(this.firestore, tenantPath(collectionName), id);
-    return deleteDoc(documentRef);
+    return runInInjectionContext(this.injector, () => {
+      const documentRef = doc(this.firestore, tenantPath(collectionName), id);
+      return deleteDoc(documentRef);
+    });
   }
 }

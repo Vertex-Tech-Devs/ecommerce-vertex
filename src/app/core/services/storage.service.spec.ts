@@ -161,6 +161,7 @@ describe('StorageService', () => {
   });
 
   it('should handle not found error gracefully on deleteFileByUrl', (done) => {
+    spyOn(console, 'warn');
     const mockRef = {} as unknown as StorageReference;
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);
@@ -177,6 +178,7 @@ describe('StorageService', () => {
   });
 
   it('should handle delete error and trigger sweet alert error', (done) => {
+    spyOn(console, 'error');
     const mockRef = {} as unknown as StorageReference;
     const privSvc = service as unknown as StorageServiceWithPrivates;
     spyOn(privSvc, 'getStorageRef').and.returnValue(mockRef);

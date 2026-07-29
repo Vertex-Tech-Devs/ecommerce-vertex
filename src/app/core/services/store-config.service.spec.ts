@@ -43,6 +43,8 @@ describe('StoreConfigService', () => {
   };
 
   beforeEach(() => {
+    spyOn(console, 'error');
+    spyOn(console, 'warn');
     firestoreSpy = jasmine.createSpyObj('Firestore', ['type']);
 
     TestBed.configureTestingModule({

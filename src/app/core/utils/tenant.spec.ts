@@ -15,6 +15,14 @@ describe('resolveTenantId', () => {
   const ORIGINAL_TENANT_ID = environment.tenantId;
   const ORIGINAL_PRODUCTION = environment.production;
 
+  beforeEach(() => {
+    environment.tenantId = ORIGINAL_TENANT_ID;
+    environment.production = ORIGINAL_PRODUCTION;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.clear();
+    }
+  });
+
   afterEach(() => {
     environment.tenantId = ORIGINAL_TENANT_ID;
     environment.production = ORIGINAL_PRODUCTION;
@@ -46,11 +54,12 @@ describe('resolveTenantId', () => {
     );
   });
 
-  it('should parse vtx-{slug} pattern from hostname', () => {
+  it('should return full first label for vtx-{slug} hostname (preserves shard IDs)', () => {
     environment.tenantId = 'store';
+    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
+    // This is required for shard project IDs like vtx-sd-XXXXXXXX
     expect(resolveTenantId({ hostname: 'vtx-mi-tienda.example.com', search: '' })).toBe(
-      'mi-tienda',
-      'mi-tienda',
+      'vtx-mi-tienda',
     );
   });
 
@@ -77,14 +86,15 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'ab-vtx.example.com', search: '' })).toBe('ab');
   });
 
-  it('should handle firstLabel shorter than 4 in vtx- pattern', () => {
+  it('should return full first label for short vtx- hostname', () => {
     environment.tenantId = 'store';
-    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('ab');
+    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
+    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('vtx-ab');
   });
 
   it('should return fallback when no hostname pattern matches and no query param', () => {
     environment.tenantId = 'store';
-    expect(resolveTenantId({ hostname: 'some-other-host.com', search: '' })).toBe('store');
+    expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('store');
   });
 
   it('should handle hostname being localhost by skipping hostname parsing', () => {
@@ -99,7 +109,9 @@ describe('resolveTenantId', () => {
 
   it('should return environment.tenantId || "" as final fallback', () => {
     environment.tenantId = '';
-    expect(resolveTenantId({ hostname: 'example.com', search: '' })).toBe('');
+    // 'ecommerce-vertex' is in the excluded list, so hostname parsing returns ''
+    // and with no tenantId set, the function falls back to '' as expected.
+    expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('');
   });
 
   it('should call tenantPath with resolved tenant', () => {

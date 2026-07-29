@@ -10,11 +10,13 @@ import { STORE_CONFIG } from './environments/store.config';
 if (globalThis.location) {
   const host = (globalThis.location.hostname ?? '').trim().toLowerCase();
   if (host && host !== 'localhost' && host !== '127.0.0.1') {
-    let firstLabel = host.split('.')[0] ?? '';
-    if (firstLabel.startsWith('vtx-')) {
-      firstLabel = firstLabel.substring(4);
-    }
-    if (firstLabel && (!environment.tenantId || environment.tenantId === 'store')) {
+    const firstLabel = host.split('.')[0] ?? '';
+    if (
+      firstLabel &&
+      firstLabel !== 'ecommerce-vertex' &&
+      firstLabel !== 'ecommerce-vertex-dev' &&
+      (!environment.tenantId || environment.tenantId === 'store')
+    ) {
       environment.tenantId = firstLabel;
     }
   }
