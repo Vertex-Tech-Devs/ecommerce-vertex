@@ -11,15 +11,21 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     return config;
   }
 
+  const normalized: FirebaseOptions = { ...config };
+
+  // 1. Ensure storageBucket matches the Firebase project
   const storageBucket = config.storageBucket?.trim() ?? '';
   const bucketProject = storageBucket.split('.')[0] ?? '';
-
   if (!storageBucket || bucketProject !== projectId) {
-    return {
-      ...config,
-      storageBucket: `${projectId}.appspot.com`,
-    };
+    normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  return config;
+  // 2. Ensure authDomain matches the shard project ID to prevent Google OAuth redirect_uri_mismatch
+  const authDomain = config.authDomain?.trim() ?? '';
+  const authProject = authDomain.split('.')[0] ?? '';
+  if (!authDomain || (authProject !== projectId && authDomain !== `${projectId}.firebaseapp.com`)) {
+    normalized.authDomain = `${projectId}.firebaseapp.com`;
+  }
+
+  return normalized;
 }
