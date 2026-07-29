@@ -121,26 +121,5 @@ describe('EmailSettingsService', () => {
     expect(result).toEqual({ success: true });
   });
 
-  it('should cover base helper wrappers for coverage', async () => {
-    // We call the real wrapper methods directly to cover the return statements
-    try {
-      serviceTest.getDocData(dummyRef);
-    } catch {}
 
-    try {
-      await serviceTest.setDocData(dummyRef, {});
-    } catch {}
-
-    try {
-      await serviceTest.callFunction('test', {});
-    } catch {}
-
-    try {
-      const unspiedService = new EmailSettingsService();
-      // call docRef getter
-      (unspiedService as unknown as EmailSettingsServiceTest).docRef;
-    } catch {}
-
-    expect(service.getEmailSettings).toBeDefined();
-  });
 });
