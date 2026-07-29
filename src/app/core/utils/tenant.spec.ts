@@ -109,7 +109,9 @@ describe('resolveTenantId', () => {
 
   it('should return environment.tenantId || "" as final fallback', () => {
     environment.tenantId = '';
-    expect(resolveTenantId({ hostname: 'example.com', search: '' })).toBe('');
+    // 'ecommerce-vertex' is in the excluded list, so hostname parsing returns ''
+    // and with no tenantId set, the function falls back to '' as expected.
+    expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('');
   });
 
   it('should call tenantPath with resolved tenant', () => {
