@@ -24,9 +24,9 @@ service cloud.firestore {
         (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == tenantId) ||
         // Root-level composite key fallback (covers latency between admin_roles creation and claim propagation)
         (request.auth.token.get('email', '') != '' &&
-         exists(/databases/$(database)/documents/admin_roles/$(tenantId + '_' + request.auth.token.email)) &&
-         (get(/databases/$(database)/documents/admin_roles/$(tenantId + '_' + request.auth.token.email)).data.role == 'owner' ||
-          get(/databases/$(database)/documents/admin_roles/$(tenantId + '_' + request.auth.token.email)).data.role == 'admin'))
+         exists(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)) &&
+         (get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'owner' ||
+          get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'admin'))
       );
     }
 
