@@ -239,6 +239,7 @@ describe('CartService', () => {
     });
 
     it('should return empty cart when stored JSON is malformed', () => {
+      spyOn(console, 'error');
       localStorage.setItem(CART_KEY, 'not-valid-json');
 
       TestBed.resetTestingModule();
