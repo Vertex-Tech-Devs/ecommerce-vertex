@@ -45,11 +45,11 @@ describe('normalizeFirebaseOptions', () => {
     expect(config.storageBucket).toBe('example.appspot.com');
   });
 
-  it('preserves provided master authDomain for shard projects', () => {
+  it('routes authDomain to master authDomain even if shard authDomain was provided', () => {
     const config = normalizeFirebaseOptions({
       ...baseConfig,
       projectId: 'vtx-sd-3bf1de61',
-      authDomain: 'ecommerce-vertex-dev.firebaseapp.com',
+      authDomain: 'vtx-sd-3bf1de61.firebaseapp.com',
     });
 
     expect(config.authDomain).toBe('ecommerce-vertex-dev.firebaseapp.com');

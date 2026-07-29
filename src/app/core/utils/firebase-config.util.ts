@@ -29,11 +29,9 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  // 2. Ensure authDomain is set, defaulting to platform master authDomain
-  const authDomain = config.authDomain?.trim();
-  if (!authDomain) {
-    normalized.authDomain = 'ecommerce-vertex-dev.firebaseapp.com';
-  }
+  // 2. Always route authDomain through platform master authDomain so Google OAuth
+  // popup handler matches the Authorized Redirect URIs registered in GCP Console
+  normalized.authDomain = 'ecommerce-vertex-dev.firebaseapp.com';
 
   return normalized;
 }
