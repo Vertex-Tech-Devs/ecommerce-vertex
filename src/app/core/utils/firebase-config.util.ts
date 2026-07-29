@@ -29,10 +29,10 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  // 2. Ensure authDomain matches the shard project ID to prevent auth/invalid-continue-uri
+  // 2. Ensure authDomain is set, defaulting to platform master authDomain
   const authDomain = config.authDomain?.trim();
-  if (!authDomain?.startsWith(projectId)) {
-    normalized.authDomain = `${projectId}.firebaseapp.com`;
+  if (!authDomain) {
+    normalized.authDomain = 'ecommerce-vertex-dev.firebaseapp.com';
   }
 
   return normalized;
