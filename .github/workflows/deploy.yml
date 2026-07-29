@@ -384,10 +384,10 @@ jobs:
             npx --yes firebase-tools hosting:sites:create "$SITE_ID" --project "$PROJECT_ID" --non-interactive || echo "Warning: hosting:sites:create returned non-zero status"
           fi
 
-          echo "Deploying hosting and firestore rules to Firebase project $PROJECT_ID..."
+          echo "Deploying hosting to Firebase project $PROJECT_ID..."
           for attempt in 1 2 3; do
             echo "Deployment attempt $attempt of 3..."
-            if npx --yes firebase-tools deploy --project "$PROJECT_ID" --only hosting,firestore:rules --non-interactive; then
+            if npx --yes firebase-tools deploy --project "$PROJECT_ID" --only hosting --non-interactive; then
               echo "Deployment successful on attempt $attempt"
               break
             else

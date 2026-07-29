@@ -58,7 +58,13 @@ export const StoreConfigSchema = z.object({
       metaDescription: '',
     }),
   setupCompleted: z.boolean().default(true).catch(true),
-  updatedAt: z.string().optional(),
+  updatedAt: z.any().optional().nullable(),
+  createdAt: z.any().optional().nullable(),
+  features: z.any().optional(),
+  strapline: z.string().optional().nullable(),
+  currency: z.string().optional().nullable(),
+  currencySymbol: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
 
   // Legacy compatibility fields
   contactPhone: z.string().optional(),
@@ -67,5 +73,5 @@ export const StoreConfigSchema = z.object({
   socialFacebookUrl: z.string().optional(),
   socialWhatsAppUrl: z.string().optional(),
   copyrightText: z.string().optional(),
-}).strict();
+}).passthrough();
 
