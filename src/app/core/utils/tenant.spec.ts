@@ -54,12 +54,12 @@ describe('resolveTenantId', () => {
     );
   });
 
-  it('should return full first label for vtx-{slug} hostname (preserves shard IDs)', () => {
+  it('should strip vtx- prefix from vtx-{slug} hostname to get the real tenantId (slug)', () => {
     environment.tenantId = 'store';
-    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
-    // This is required for shard project IDs like vtx-sd-XXXXXXXX
+    // Firebase Hosting siteIds for stores are "vtx-{slug}" but tenantId is "{slug}".
+    // This mirrors the server-side strip in role.functions.ts resolveTenantId().
     expect(resolveTenantId({ hostname: 'vtx-mi-tienda.example.com', search: '' })).toBe(
-      'vtx-mi-tienda',
+      'mi-tienda',
     );
   });
 
@@ -86,10 +86,10 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'ab-vtx.example.com', search: '' })).toBe('ab');
   });
 
-  it('should return full first label for short vtx- hostname', () => {
+  it('should strip vtx- prefix for short vtx-{slug} hostname', () => {
     environment.tenantId = 'store';
-    // vtx- prefix is NOT stripped: full firstLabel returned as tenantId
-    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('vtx-ab');
+    // vtx- prefix IS stripped: siteId "vtx-ab" → tenantId "ab"
+    expect(resolveTenantId({ hostname: 'vtx-ab.example.com', search: '' })).toBe('ab');
   });
 
   it('should return fallback when no hostname pattern matches and no query param', () => {
