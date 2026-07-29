@@ -20,11 +20,11 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  // 2. Set authDomain to masterAuthDomain so Google OAuth uses the master authorized redirect_uri
-  const isProd = projectId === 'ecommerce-vertex' || projectId === 'vertex-platform-app';
-  normalized.authDomain = isProd
-    ? 'ecommerce-vertex.firebaseapp.com'
-    : 'ecommerce-vertex-dev.firebaseapp.com';
+  // 2. Ensure authDomain matches the shard project ID to prevent auth/invalid-continue-uri
+  const authDomain = config.authDomain?.trim() ?? '';
+  if (!authDomain || !authDomain.startsWith(projectId)) {
+    normalized.authDomain = `${projectId}.firebaseapp.com`;
+  }
 
   return normalized;
 }
