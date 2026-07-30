@@ -38,7 +38,10 @@ export function resolveTenantId(locationOverride?: { hostname: string; search: s
         firstLabel !== 'ecommerce-vertex' &&
         firstLabel !== 'ecommerce-vertex-dev'
       ) {
-        resolvedId = firstLabel;
+        // Strip vtx- prefix: Firebase Hosting siteIds for stores use the pattern
+        // "vtx-{slug}" but the actual tenantId in Firestore/admin_roles is "{slug}".
+        // This mirrors the server-side strip in role.functions.ts resolveTenantId().
+        resolvedId = firstLabel.startsWith('vtx-') ? firstLabel.substring(4) : firstLabel;
       }
     }
 

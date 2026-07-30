@@ -65,11 +65,11 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   pageSize = 5;
 
   get totalPages(): number {
- return Math.ceil(this.variants.length / this.pageSize) || 1; 
-}
+    return Math.ceil(this.variants.length / this.pageSize) || 1;
+  }
   get pages(): number[] {
- return Array.from({ length: this.totalPages }, (_, i) => i + 1); 
-}
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
 
   get paginatedVariantsControls(): AbstractControl[] {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -108,8 +108,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryList: QueryList<ElementRef<HTMLSelectElement>>) => {
         if (!this.focusNewVariant) {
-return;
-}
+          return;
+        }
         const attrCount = this.variantAttributes.length;
         const arr = queryList.toArray();
         const targetIdx = arr.length - attrCount;
@@ -258,8 +258,8 @@ return;
     }
     const index = (this.variantAttributes.value as string[]).indexOf(attrId);
     if (index > -1) {
-this.variantAttributes.removeAt(index);
-}
+      this.variantAttributes.removeAt(index);
+    }
   }
 
   toggleAttributeForm(): void {
@@ -314,12 +314,12 @@ this.variantAttributes.removeAt(index);
       '¿Estás seguro de eliminar la variante?',
     );
     if (!isConfirmed) {
-return;
-}
+      return;
+    }
     this.variants.removeAt(index);
     if (this.currentPage > this.totalPages) {
-this.currentPage = this.totalPages;
-}
+      this.currentPage = this.totalPages;
+    }
     this.cdr.markForCheck();
   }
 
@@ -397,8 +397,8 @@ this.currentPage = this.totalPages;
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
-return;
-}
+      return;
+    }
     this.uploadProgress = 0;
     this.cdr.markForCheck();
     this.mediaService
@@ -422,8 +422,8 @@ return;
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
     if (!file || !control) {
-return;
-}
+      return;
+    }
     this.galleryUploadProgress[index] = 0;
     this.cdr.markForCheck();
     this.mediaService

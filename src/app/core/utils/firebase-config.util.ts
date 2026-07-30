@@ -1,5 +1,18 @@
 import type { FirebaseOptions } from 'firebase/app';
 
+const MASTER_AUTH_DOMAINS = new Set([
+  'ecommerce-vertex-dev.firebaseapp.com',
+  'ecommerce-vertex.firebaseapp.com',
+]);
+
+function resolveAuthDomain(authDomain: string | undefined): string {
+  const normalized = authDomain?.trim().toLowerCase();
+  if (normalized && MASTER_AUTH_DOMAINS.has(normalized)) {
+    return normalized;
+  }
+  return 'ecommerce-vertex-dev.firebaseapp.com';
+}
+
 /**
  * Ensures storageBucket matches the Firebase project.
  * Provisioning occasionally persisted a platform bucket on shard stores, which
@@ -29,9 +42,7 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  // 2. Always route authDomain through platform master authDomain so Google OAuth
-  // popup handler matches the Authorized Redirect URIs registered in GCP Console
-  normalized.authDomain = 'ecommerce-vertex-dev.firebaseapp.com';
+  normalized.authDomain = resolveAuthDomain(config.authDomain);
 
   return normalized;
 }

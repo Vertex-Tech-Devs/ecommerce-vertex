@@ -63,7 +63,9 @@ describe('PaymentService', () => {
       retryWithBackoff<T>(fn: () => Promise<T>, retries?: number, delay?: number): Promise<T>;
     };
 
-    await expectAsync(privateService.retryWithBackoff(mockFn, 2, 1)).toBeRejectedWithError('Persistent Error');
+    await expectAsync(privateService.retryWithBackoff(mockFn, 2, 1)).toBeRejectedWithError(
+      'Persistent Error',
+    );
     expect(mockFn).toHaveBeenCalledTimes(3); // Initial + 2 retries
   });
 });
