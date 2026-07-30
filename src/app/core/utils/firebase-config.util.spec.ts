@@ -55,6 +55,16 @@ describe('normalizeFirebaseOptions', () => {
     expect(config.authDomain).toBe('ecommerce-vertex-dev.firebaseapp.com');
   });
 
+  it('preserves the production master authDomain from runtime config', () => {
+    const config = normalizeFirebaseOptions({
+      ...baseConfig,
+      projectId: 'vtx-prod-shard',
+      authDomain: 'ecommerce-vertex.firebaseapp.com',
+    });
+
+    expect(config.authDomain).toBe('ecommerce-vertex.firebaseapp.com');
+  });
+
   it('defaults missing authDomain to master authDomain', () => {
     const config = normalizeFirebaseOptions({
       apiKey: 'test-key',
