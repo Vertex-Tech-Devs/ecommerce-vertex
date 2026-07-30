@@ -132,8 +132,10 @@ export class AuthService {
               : '';
           if (
             code === 'auth/popup-blocked' ||
+            code === 'auth/popup-closed-by-user' ||
             code === 'auth/unauthorized-domain' ||
-            code === 'auth/invalid-continue-uri'
+            code === 'auth/invalid-continue-uri' ||
+            code === 'auth/redirect-uri-mismatch'
           ) {
             throw new Error(code);
           }
