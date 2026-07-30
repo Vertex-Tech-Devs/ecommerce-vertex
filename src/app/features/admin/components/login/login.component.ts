@@ -59,6 +59,9 @@ export class LoginComponent implements OnInit {
           } else if (msg.includes('auth/unauthorized-domain')) {
             this.authErrorMessage =
               'Este dominio no está autorizado para Google OAuth en Firebase Auth de esta tienda. Agregalo en Authentication > Settings > Authorized domains e intentá de nuevo.';
+          } else if (msg.includes('auth/invalid-continue-uri')) {
+            this.authErrorMessage =
+              'La URL de continuación no es válida para esta tienda. Verifica la configuración de Firebase Auth.';
           } else if (msg.includes('auth/popup-blocked')) {
             this.authErrorMessage =
               'El navegador bloqueó la ventana emergente de Google. Permitila e intentá de nuevo.';

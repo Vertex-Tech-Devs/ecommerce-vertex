@@ -130,7 +130,11 @@ export class AuthService {
             err && typeof err === 'object' && 'code' in err
               ? String((err as { code?: string }).code)
               : '';
-          if (code === 'auth/popup-blocked' || code === 'auth/unauthorized-domain') {
+          if (
+            code === 'auth/popup-blocked' ||
+            code === 'auth/unauthorized-domain' ||
+            code === 'auth/invalid-continue-uri'
+          ) {
             throw new Error(code);
           }
           throw err;
