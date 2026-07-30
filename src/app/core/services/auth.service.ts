@@ -126,16 +126,20 @@ export class AuthService {
 
           return result;
         } catch (err: unknown) {
-          const code =
+          const rawCode =
             err && typeof err === 'object' && 'code' in err
               ? String((err as { code?: string }).code)
               : '';
+          const msg = err instanceof Error ? err.message : String(err);
+          const code = rawCode || msg;
+
           if (
-            code === 'auth/popup-blocked' ||
-            code === 'auth/popup-closed-by-user' ||
-            code === 'auth/unauthorized-domain' ||
-            code === 'auth/invalid-continue-uri' ||
-            code === 'auth/redirect-uri-mismatch'
+            code.includes('auth/popup-blocked') ||
+            code.includes('auth/popup-closed-by-user') ||
+            code.includes('auth/unauthorized-domain') ||
+            code.includes('auth/invalid-continue-uri') ||
+            code.includes('auth/redirect-uri-mismatch') ||
+            code.includes('redirect_uri_mismatch')
           ) {
             throw new Error(code);
           }
