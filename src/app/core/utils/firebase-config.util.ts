@@ -1,22 +1,8 @@
 import type { FirebaseOptions } from 'firebase/app';
 
-const MASTER_AUTH_DOMAINS = new Set([
-  'ecommerce-vertex-dev.firebaseapp.com',
-  'ecommerce-vertex.firebaseapp.com',
-]);
-
-function resolveAuthDomain(authDomain: string | undefined): string {
-  const normalized = authDomain?.trim().toLowerCase();
-  if (normalized && MASTER_AUTH_DOMAINS.has(normalized)) {
-    return normalized;
-  }
-  return 'ecommerce-vertex-dev.firebaseapp.com';
-}
-
 /**
- * Ensures storageBucket matches the Firebase project.
- * Provisioning occasionally persisted a platform bucket on shard stores, which
- * breaks uploads because the bucket hostname may not exist or lack CORS.
+ * Ensures storageBucket matches the Firebase project, and preserves or defaults
+ * authDomain to match the project ID to avoid auth/invalid-continue-uri errors.
  */
 export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptions {
   let projectId = config.projectId?.trim();
@@ -42,7 +28,14 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  normalized.authDomain = resolveAuthDomain(config.authDomain);
+  // 2. Preserve explicit authDomain, or default to `${projectId}.firebaseapp.com`
+  // Mismatched authDomain vs apiKey/projectId triggers auth/invalid-continue-uri in Firebase Auth.
+  const authDomain = config.authDomain?.trim();
+  if (!authDomain) {
+    normalized.authDomain = `${projectId}.firebaseapp.com`;
+  } else {
+    normalized.authDomain = authDomain;
+  }
 
   return normalized;
 }
