@@ -65,8 +65,7 @@ fetch('/firebase-config.json?t=' + new Date().getTime())
   .then((config) => {
     if (config && !config.projectId) {
       const inferredProject =
-        config.authDomain?.trim().split('.')[0] ??
-        config.storageBucket?.trim().split('.')[0];
+        config.authDomain?.trim().split('.')[0] ?? config.storageBucket?.trim().split('.')[0];
       if (inferredProject) {
         config.projectId = inferredProject;
       }

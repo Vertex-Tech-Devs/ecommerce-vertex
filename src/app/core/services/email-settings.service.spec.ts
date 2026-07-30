@@ -120,6 +120,4 @@ describe('EmailSettingsService', () => {
     );
     expect(result).toEqual({ success: true });
   });
-
-
 });
