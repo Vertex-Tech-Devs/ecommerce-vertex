@@ -295,9 +295,9 @@ jobs:
 
       - name: Generate store environment file
         env:
-          FIREBASE_CONFIG: ${{ github.event.client_payload.firebase_config }}
-          STORE_ID: ${{ github.event.client_payload.store_id }}
-          TENANT_ID: ${{ github.event.client_payload.tenant_id }}
+          FIREBASE_CONFIG: '${{ github.event.client_payload.firebase_config }}'
+          STORE_ID: '${{ github.event.client_payload.store_id }}'
+          TENANT_ID: '${{ github.event.client_payload.tenant_id }}'
         run: |
           python3 << 'PYEOF'
           import os, json
