@@ -44,6 +44,9 @@ jobs:
   get-stores:
     name: Get active stores
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC para autenticación automática con la plataforma
+      contents: read
     outputs:
       canary: ${{ steps.parse.outputs.canary }}
       rest: ${{ steps.parse.outputs.rest }}
@@ -52,10 +55,15 @@ jobs:
       - name: Fetch from platform API
         id: fetch
         run: |
+          # AUTOMATIZADO: id_token OIDC de GitHub Actions (validado por la plataforma)
+          ID_TOKEN=""
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            ID_TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=vertex-platform" | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
+          fi
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
-            -d "{\"data\":{\"deployToken\":\"${{ secrets.PLATFORM_DEPLOY_TOKEN }}\"}}")
+            -d "{\"data\":{\"idToken\":\"$ID_TOKEN\"}}")
           echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Parse stores into canary + rest

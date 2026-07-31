@@ -44,6 +44,9 @@ jobs:
   get-stores:
     name: Get active dev stores
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC para autenticación automática con vertex-platform (sin secrets manuales)
+      contents: read
     outputs:
       canary: ${{ steps.parse.outputs.canary }}
       rest: ${{ steps.parse.outputs.rest }}
@@ -51,18 +54,16 @@ jobs:
     steps:
       - name: Fetch from platform dev API
         id: fetch
-        env:
-          PLATFORM_DEPLOY_TOKEN_DEV: ${{ secrets['PLATFORM_DEPLOY_TOKEN_DEV'] }}
-          PLATFORM_DEPLOY_TOKEN: ${{ secrets['PLATFORM_DEPLOY_TOKEN'] }}
         run: |
-          TOKEN="$PLATFORM_DEPLOY_TOKEN_DEV"
-          if [ -z "$TOKEN" ]; then
-            TOKEN="$PLATFORM_DEPLOY_TOKEN"
+          # AUTOMATIZADO: id_token OIDC de GitHub Actions (validado por el platform).
+          ID_TOKEN=""
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            ID_TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=vertex-platform" | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
           fi
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
-            -d "{\"data\":{\"deployToken\":\"$TOKEN\"}}")
+            -d "{\"data\":{\"idToken\":\"$ID_TOKEN\"}}")
           echo "response=$RESPONSE" >> "$GITHUB_OUTPUT"
 
       - name: Parse stores into canary + rest
