@@ -54,7 +54,7 @@ jobs:
     steps:
       - name: Fetch OIDC token
         id: oidc
-        uses: actions/github-script@60a0d83039c74a4aee543508d2cccb5c1f9d9b3d # v7
+        uses: actions/github-script@v7
         with:
           script: |
             const token = await core.getIDToken('vertex-platform');
