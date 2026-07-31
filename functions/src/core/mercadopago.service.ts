@@ -81,8 +81,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   if (process.env.FUNCTIONS_EMULATOR === "true") {
     logger.info(`[Emulator] Simulating Mercado Pago preference creation for ${external_reference}`);
     const host = siteUrl.value() || "http://localhost:4201";
+    // El id mock incluye el external_reference para que el webhook emulado pueda
+    // resolver la orden (el parseo por timestamp no era reversible).
     return {
-      id: `mp-mock-pref-${Date.now()}`,
+      id: `mp-mock-pref-${Buffer.from(external_reference).toString('base64url')}`,
       init_point: `${host}/shop/order-confirmation/${external_reference}?status=approved`,
       date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
     };
@@ -126,9 +128,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
 export async function getPaymentDetails(paymentId: string, tenantId?: string) {
   logger.info(`Obteniendo detalles del pago: ${paymentId}`);
 
-  if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-")) {
+  if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-pref-")) {
     logger.info(`[Emulator] Simulating getPaymentDetails for ${paymentId}`);
-    const orderId = paymentId.split("-").pop() || "";
+    // Decodifica el external_reference (orderId) embebido en el id mock
+    const orderId = Buffer.from(paymentId.replace(/^mp-mock-pref-/, ""), 'base64url').toString("utf8");
     return {
       id: paymentId,
       status: "approved",

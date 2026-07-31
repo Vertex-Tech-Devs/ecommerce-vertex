@@ -277,6 +277,9 @@ jobs:
   provision-store:
     name: '→ Provision Store (${{ github.event.client_payload.project_id }}) [${{ github.event.client_payload.site_id || github.event.client_payload.store_id }}]'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC para autenticación automática con vertex-platform (sin secrets manuales)
+      contents: read
     if: github.event_name == 'repository_dispatch' && (github.event.action == 'provision-store' || github.event.action == 'update-store-version')
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -404,11 +407,12 @@ jobs:
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
         run: |
-          # SECURITY: el deploy token se lee ÚNICAMENTE del secret del repositorio
-          # (nunca del client_payload, que queda expuesto en logs y es visible en el repo).
-          # Requiere configurar el secret PLATFORM_DEPLOY_TOKEN con el mismo valor que
-          # 'deploy-token' en Secret Manager del platform.
-          DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
+          # AUTOMATIZADO: autenticación OIDC de GitHub Actions (sin secrets manuales).
+          # El platform valida el id_token (issuer, audience 'vertex-platform', repository, firma).
+          ID_TOKEN=""
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            ID_TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=vertex-platform" | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
+          fi
           COMMIT_SHA="${{ github.sha }}"
           COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d '\n' | tr -d '\r' | cut -c1-100)
           REF_NAME="${{ github.event.client_payload.ref || github.ref_name }}"
@@ -421,4 +425,4 @@ jobs:
           curl -s -X POST \
             "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$ENDPOINT" \
             -H "Content-Type: application/json" \
-            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\", \"commitSha\": \"$COMMIT_SHA\", \"commitMessage\": \"$COMMIT_MSG\", \"ref\": \"$REF_NAME\", \"version\": \"$VERSION\"}}"
+            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"idToken\": \"$ID_TOKEN\", \"commitSha\": \"$COMMIT_SHA\", \"commitMessage\": \"$COMMIT_MSG\", \"ref\": \"$REF_NAME\", \"version\": \"$VERSION\"}}"
