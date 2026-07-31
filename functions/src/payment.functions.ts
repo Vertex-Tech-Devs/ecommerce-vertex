@@ -4,7 +4,7 @@ import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
-import { COLLECTIONS, collectionPath, singletonDoc } from "./core/config";
+import { COLLECTIONS, collectionPath } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
 import * as crypto from "crypto";
 
@@ -74,8 +74,8 @@ async function resolveSecret(secretId: string): Promise<string> {
 }
 
 export const validateMercadoPagoCredentials = onCall({ cors: true, invoker: 'public' }, async (request) => {
-  if (!request.auth?.token?.['admin']) {
-    throw new HttpsError('permission-denied', 'Solo admins pueden validar credenciales de Mercado Pago.');
+  if (!request.auth?.token?.['admin'] || !request.auth.token['tenantId']) {
+    throw new HttpsError('permission-denied', 'Solo admins de tienda pueden validar credenciales de Mercado Pago.');
   }
 
   const accessToken = String(request.data?.accessToken || '').trim();
@@ -117,13 +117,18 @@ export const validateMercadoPagoCredentials = onCall({ cors: true, invoker: 'pub
 });
 
 export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'public' }, async (request) => {
-  if (!request.auth?.token?.['admin']) {
-    throw new HttpsError('permission-denied', 'Solo admins pueden actualizar credenciales de Mercado Pago.');
+  if (!request.auth?.token?.['admin'] || !request.auth.token['tenantId']) {
+    throw new HttpsError('permission-denied', 'Solo admins de tienda pueden actualizar credenciales de Mercado Pago.');
   }
 
   const accessToken = String(request.data?.accessToken || '').trim();
   const webhook = String(request.data?.webhookUrl || '').trim();
   const tenantId = String(request.data?.tenantId || '').trim();
+
+  // Scoping estricto: un admin SOLO puede configurar las credenciales de SU propia tienda.
+  if (request.auth.token['tenantId'] !== tenantId) {
+    throw new HttpsError('permission-denied', 'No tenés permisos para configurar las credenciales de esta tienda.');
+  }
 
   if (!accessToken) {
     throw new HttpsError('invalid-argument', 'El access token de Mercado Pago es obligatorio.');
@@ -152,11 +157,14 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
     }
 
     const user = await res.json() as { id?: number | string; email?: string };
-    const secretName = 'mp-access-token';
+    // Secreto por tienda: evita token-confusion entre tenants en el caché compartido.
+    const secretName = `mp-access-token-${tenantId}`;
     await upsertSecret(secretName, accessToken);
 
     // Persist the secret reference in the store's Firestore config so getMercadoPagoRuntimeConfig can find it
-    const configRef = db.doc(singletonDoc(tenantId, 'configuracion', 'store'));
+    // Los datos de pago se guardan en un documento PRIVADO (store_payments/{storeId}),
+    // nunca en el doc público de configuración de la tienda.
+    const configRef = db.collection('store_payments').doc(tenantId);
     await configRef.set(
       {
         payments: {
@@ -251,7 +259,6 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
   if (!validationResult.success) {
     logger.warn("Solicitud de pago con datos inválidos.", {
       errors: validationResult.error.flatten(),
-      rawData: request.data,
     });
     throw new HttpsError("invalid-argument", "Los datos proporcionados para el pago no son válidos.");
   }
@@ -280,25 +287,42 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
         throw new HttpsError("failed-precondition", "Este pedido ya fue procesado.");
       }
 
-      for (const item of paymentData.items) {
-        const variantRef = db
-          .collection(collectionPath(COLLECTIONS.PRODUCTS))
-          .doc(item.productId)
-          .collection("variants")
-          .doc(item.variantId);
-        
-        const variantDoc = await transaction.get(variantRef);
+      // Precios SIEMPRE desde el catálogo del servidor — nunca del payload del cliente.
+      const serverItems: typeof paymentData.items = [];
 
-        if (!variantDoc.exists) {
+      for (const item of paymentData.items) {
+        const productRef = db.collection(collectionPath(COLLECTIONS.PRODUCTS)).doc(item.productId);
+        const variantRef = productRef.collection("variants").doc(item.variantId);
+
+        const [productDoc, variantDoc] = await Promise.all([
+          transaction.get(productRef),
+          transaction.get(variantRef),
+        ]);
+
+        if (!variantDoc.exists || !productDoc.exists) {
           logger.error(`Variante ${item.variantId} no encontrada para producto ${item.productId}.`);
           throw new HttpsError("not-found", `Producto ${item.title} no disponible.`);
         }
-        
+
         const variantData = variantDoc.data();
         if (!variantData || variantData.stock < item.quantity) {
           logger.warn(`Stock insuficiente para ${item.title}. Solicitado: ${item.quantity}, Disponible: ${variantData?.stock || 0}`);
           throw new HttpsError("resource-exhausted", `Stock insuficiente para ${item.title}. Solo quedan ${variantData?.stock || 0}.`);
         }
+
+        // Precio oficial del servidor (finalPrice del producto en Firestore)
+        const productData = productDoc.data() ?? {};
+        const serverPrice =
+          (productData['finalPrice'] as number | undefined) ??
+          (productData['price'] as number | undefined) ??
+          0;
+        serverItems.push({
+          productId: item.productId,
+          variantId: item.variantId,
+          title: item.title,
+          quantity: item.quantity,
+          unit_price: serverPrice,
+        });
       }
 
       for (const item of paymentData.items) {
@@ -314,7 +338,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
       }
 
       const storeId = (orderData as Record<string, unknown>)['storeId'] as string | undefined;
-      const mpPreference = await createPreference(paymentData, storeId);
+      const mpPreference = await createPreference({ ...paymentData, items: serverItems }, storeId);
       logger.info(`Preferencia ${mpPreference.id} creada para el pedido ${orderId}.`);
 
       transaction.update(orderRef, {
@@ -347,15 +371,22 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
 });
 
 export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (request, response) => {
-  logger.info("Mercado Pago Webhook recibido:", { body: request.body, query: request.query });
+  const incomingAction = String(request.body?.action ?? request.query.topic ?? '');
+  const incomingPaymentId = String(request.body?.data?.id ?? request.query.id ?? '');
+  logger.info(`Mercado Pago Webhook recibido: action=${incomingAction} paymentId=${incomingPaymentId}`);
 
-  // 1. Validar firma del webhook si el secret está configurado en Secret Manager
+  // 1. Validar firma del webhook (fail-closed: sin secreto configurado NO se procesa)
   const webhookSecret = await resolveSecret("mp-webhook-secret");
-  if (webhookSecret) {
-    const signature = request.headers["x-signature"] as string | undefined;
-    const requestId = request.headers["x-request-id"] as string | undefined;
+  if (!webhookSecret) {
+    logger.warn("'mp-webhook-secret' no está configurado en Secret Manager. Rechazando webhook (fail-closed).");
+    response.status(503).send("Webhook secret not configured.");
+    return;
+  }
 
-    if (!signature || !requestId) {
+  const signature = request.headers["x-signature"] as string | undefined;
+  const requestId = request.headers["x-request-id"] as string | undefined;
+
+  if (!signature || !requestId) {
       logger.error("Firma de webhook faltante. x-signature o x-request-id no proporcionado.");
       response.status(401).send("No autorizado: Firma no válida.");
       return;
@@ -419,14 +450,13 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
       response.status(500).send("Error de firma interno.");
       return;
     }
-  } else {
-    logger.warn("Se omitió la validación de firma porque 'mp-webhook-secret' no está configurado en Secret Manager.");
-  }
 
-  const topic = request.query.topic as string;
-  const paymentId = request.query.id as string;
+  // Mercado Pago envía notificaciones POST ({"action":"payment.created","data":{"id":"..."}})
+  // y también GET legacy (?topic=payment&id=...). Se prioriza el body y se respalda con query.
+  const topic = String(request.body?.type ?? request.query.topic ?? '');
+  const paymentId = String(incomingPaymentId || request.query.id || '');
 
-  if (topic !== "payment" || !paymentId) {
+  if ((topic !== "payment" && topic !== "payment.created") || !paymentId) {
     logger.warn("Webhook ignorado. No es un 'payment' o no tiene 'id'.", { topic });
     response.status(200).send("Webhook ignorado.");
     return;

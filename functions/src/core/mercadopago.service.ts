@@ -14,10 +14,10 @@ function resolveProjectId(): string {
   return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
 }
 
-let cachedAccessToken: string | null = null;
+let cachedAccessTokens = new Map<string, string>();
 
 async function resolveAccessTokenFromSecret(secretName: string): Promise<string> {
-  if (cachedAccessToken) return cachedAccessToken;
+  if (cachedAccessTokens.has(secretName)) return cachedAccessTokens.get(secretName)!;
   const projectId = resolveProjectId();
   if (!projectId) {
     throw new Error("No se pudo resolver el proyecto para leer Secret Manager.");
@@ -27,8 +27,10 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
     const [version] = await secretsClient.accessSecretVersion({
       name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
     });
-    cachedAccessToken = version.payload?.data?.toString().trim() || "";
-    return cachedAccessToken;
+    const token = version.payload?.data?.toString().trim() || "";
+    // Caché keyed por secretName (aislamiento por tienda)
+    cachedAccessTokens.set(secretName, token);
+    return token;
   } catch (error) {
     logger.warn(`No se pudo leer el secreto ${secretName} de Secret Manager. Se intentará usar fallback:`, error);
     return "";
@@ -42,9 +44,17 @@ async function getMercadoPagoRuntimeConfig(storeId?: string): Promise<{ accessTo
   let mpConfig: Record<string, any> | undefined;
 
   if (storeId) {
-    const configSnap = await db.doc(singletonDoc(storeId, "configuracion", "store")).get();
-    const data = configSnap.exists ? (configSnap.data() as Record<string, any>) : null;
-    mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+    // Flat model: payments privados en store_payments/{storeId} (nuevo esquema),
+    // con fallback legacy al doc público configuracion/store_{storeId}.
+    const paymentsSnap = await db.collection("store_payments").doc(storeId).get();
+    const paymentsData = paymentsSnap.exists ? (paymentsSnap.data() as Record<string, any>) : null;
+    mpConfig = paymentsData?.["mercadoPago"] as Record<string, any> | undefined;
+
+    if (!mpConfig) {
+      const legacySnap = await db.doc(singletonDoc(storeId, "configuracion", "store")).get();
+      const legacyData = legacySnap.exists ? (legacySnap.data() as Record<string, any>) : null;
+      mpConfig = legacyData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+    }
   } else {
     // Legacy fallback for backwards compatibility
     const configSnap = await db.collection("configuracion").doc("store").get();
@@ -54,7 +64,8 @@ async function getMercadoPagoRuntimeConfig(storeId?: string): Promise<{ accessTo
 
   const secretName = String(mpConfig?.["accessTokenSecret"] || "").trim();
   const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : "";
-  const accessToken = (tokenFromSecret || mpConfig?.["accessToken"] || "").trim();
+  // NUNCA se usa el accessToken en claro guardado en el documento público de configuración.
+  const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.["webhookUrl"] || webhookUrl.value() || "").trim();
 
   if (!accessToken) {
@@ -70,8 +81,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   if (process.env.FUNCTIONS_EMULATOR === "true") {
     logger.info(`[Emulator] Simulating Mercado Pago preference creation for ${external_reference}`);
     const host = siteUrl.value() || "http://localhost:4201";
+    // El id mock incluye el external_reference para que el webhook emulado pueda
+    // resolver la orden (el parseo por timestamp no era reversible).
     return {
-      id: `mp-mock-pref-${Date.now()}`,
+      id: `mp-mock-pref-${Buffer.from(external_reference).toString('base64url')}`,
       init_point: `${host}/shop/order-confirmation/${external_reference}?status=approved`,
       date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
     };
@@ -98,6 +111,9 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     },
     auto_return: "approved" as const,
     notification_url: runtime.webhook,
+    // Expiración explícita (+1 día) para que cleanupExpiredOrders pueda revertir stock
+    // de órdenes abandonadas de forma fiable.
+    date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 
   const preference = await preferenceClient.create({ body: preferenceBody });
@@ -112,9 +128,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
 export async function getPaymentDetails(paymentId: string, tenantId?: string) {
   logger.info(`Obteniendo detalles del pago: ${paymentId}`);
 
-  if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-")) {
+  if (process.env.FUNCTIONS_EMULATOR === "true" && paymentId.startsWith("mp-mock-pref-")) {
     logger.info(`[Emulator] Simulating getPaymentDetails for ${paymentId}`);
-    const orderId = paymentId.split("-").pop() || "";
+    // Decodifica el external_reference (orderId) embebido en el id mock
+    const orderId = Buffer.from(paymentId.replace(/^mp-mock-pref-/, ""), 'base64url').toString("utf8");
     return {
       id: paymentId,
       status: "approved",

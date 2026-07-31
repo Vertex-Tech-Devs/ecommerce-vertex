@@ -5,6 +5,7 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebas
 import { Observable, from, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SweetAlertService } from './sweet-alert.service';
+import { resolveTenantId } from '@core/utils/tenant';
 
 export interface Upload {
   progress$: Observable<number>;
@@ -35,7 +36,9 @@ export class StorageService {
   }
 
   uploadFile(file: File, path: string): Upload {
-    const filePath = `${path}/${Date.now()}_${this.sanitizeFileName(file.name)}`;
+    // Namespace multi-tenant: stores/{storeId}/... (validado en storage.rules)
+    const storeId = resolveTenantId() || 'store';
+    const filePath = `stores/${storeId}/${path}/${Date.now()}_${this.sanitizeFileName(file.name)}`;
 
     const storageRef = this.getStorageRef(filePath);
     const uploadTask = this.uploadBytes(storageRef, file);

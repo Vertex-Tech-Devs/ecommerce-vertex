@@ -10,7 +10,7 @@ export const PaymentRequestSchema = z.object({
       quantity: z.number().positive(),
       unit_price: z.number().positive(),
     })
-  ).min(1, "La solicitud debe incluir al menos un producto."),
+  ).min(1, "La solicitud debe incluir al menos un producto.").max(100, "Máximo 100 ítems por pedido."),
 });
 
 export type PaymentRequestData = z.infer<typeof PaymentRequestSchema>;

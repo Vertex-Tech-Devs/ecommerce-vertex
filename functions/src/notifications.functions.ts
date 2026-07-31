@@ -49,6 +49,16 @@ function getVariantDescription(
     .join(' / ');
 }
 
+// Escapa valores interpolados en plantillas HTML para prevenir inyección de HTML/links maliciosos
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildEmailHtml(
   template: string,
   order: Order,
@@ -59,15 +69,15 @@ function buildEmailHtml(
     const itemsHtml = order.items
         .map(item => {
           const description = getVariantDescription(item.attributes, attributeMap);
-          return `<li>${item.productName} (${description}) (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</li>`
+          return `<li>${escapeHtml(item.productName)} (${escapeHtml(description)}) (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</li>`
         })
         .join('');
 
     let emailBody = template
-        .replace(/{orderId}/g, orderId)
-        .replace(/{clientName}/g, order.clientName)
-        .replace(/{clientEmail}/g, order.clientEmail || 'N/A')
-        .replace(/{clientPhone}/g, order.clientPhone || 'N/A')
+        .replace(/{orderId}/g, escapeHtml(orderId))
+        .replace(/{clientName}/g, escapeHtml(order.clientName))
+        .replace(/{clientEmail}/g, escapeHtml(order.clientEmail || 'N/A'))
+        .replace(/{clientPhone}/g, escapeHtml(order.clientPhone || 'N/A'))
         .replace(/{itemsList}/g, `<ul>${itemsHtml}</ul>`)
         .replace(/{totalAmount}/g, order.total.toFixed(2));
 

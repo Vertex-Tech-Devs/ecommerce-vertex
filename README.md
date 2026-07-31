@@ -70,9 +70,9 @@ Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 ## 🛠️ Tecnologías Principales
 
-* **Frontend**: Angular 20+, señales (Signals), componentes independientes (Standalone) y SCSS.
+* **Frontend**: Angular 22, señales (Signals), componentes independientes (Standalone) y SCSS.
 * **Backend**: Firebase Cloud Functions v2 (TypeScript).
-* **Base de datos e Integraciones**: Cloud Firestore y Firebase Authentication.
+* **Base de datos e Integraciones**: Cloud Firestore, Firebase Authentication y Firebase Storage.
 * **Pruebas y QA**: Vitest (pruebas unitarias), Cypress y Playwright (pruebas de integración).
 * **CI/CD**: GitHub Actions.
 
@@ -99,16 +99,20 @@ Desde mayo de 2026, el panel administrativo de tienda (`/admin/login`) acepta ex
 
 Reglas operativas:
 
-1. El correo debe estar preautorizado en Firestore (`admin_roles/{email}`).
-2. El único rol operativo admitido para acceso al panel es `admin`.
-3. Los custom claims se sincronizan automáticamente mediante Cloud Functions en alta de usuario y cambios de rol.
+1. El correo debe estar preautorizado en Firestore (`admin_roles/{storeId}_{email}` — clave compuesta `{tienda}_{email}`).
+2. El único rol operativo admitido para acceso al panel es `admin` (o `owner`).
+3. Los custom claims se sincronizan automáticamente mediante Cloud Functions en alta de usuario y cambios de rol (`role.functions.ts`).
 4. La vista Staff usa funciones callable (`getAdminStaff`, `upsertAdminStaff`, `revokeAdminStaff`) para evitar fallas de permisos por reglas cliente.
+5. El aislamiento multi-tenant se basa en el claim `tenantId` (== `storeId`) que debe coincidir con el campo `storeId` de los documentos consultados.
 
-Errores comunes:
+Errores comunes (capturados en `auth.service.ts` / `login.component.ts`):
 
 - `permission-denied`: el correo no está autorizado.
 - `auth/unauthorized-domain`: el dominio usado para login no está en Firebase Auth > Authorized domains.
 - `auth/popup-blocked`: el navegador bloqueó la ventana emergente de Google.
+- `auth/popup-closed-by-user`: la ventana de Google se cerró antes de completar el acceso.
+- `auth/invalid-continue-uri`: la URL de continuación no es válida para esta tienda.
+- `redirect_uri_mismatch` / `auth/redirect-uri-mismatch`: la URI de redirección OAuth no está autorizada en Google Cloud.
 
 ---
 
@@ -189,7 +193,37 @@ Cada comando hace automáticamente: bump de `package.json` + commit + tag + push
 5. La plataforma abre un **PR automático** para actualizar `CURRENT_TEMPLATE_VERSION`
 6. Un admin de plataforma revisa y mergea el PR (paso manual intencional)
 
-### Versión actual: `v0.1.0`
+### Versión actual: `v0.1.0` → **V1.0 (lanzamiento oficial)**
+
+---
+
+## 🧩 Modelo de Datos Flat y Tenant Filtering (V1.0)
+
+Desde V1.0 el storefront opera sobre **colecciones planas etiquetadas con `storeId`** (sin namespaces `tenants/{tenantId}/...`):
+
+```
+products, categories, attributes, configuracion, banners, pages,
+orders, clients, settings, mail   →  { storeId, ... }
+```
+
+- **Tenant filtering**: todos los servicios de consulta (`product`, `category`, `attribute`, `footer`, `home-content`, `store-config`, `about-us`, `order`, `client`, `email-settings`) aplican `storeIdFilter()` = `where('storeId', '==', resolveTenantId())`.
+- **Docs singleton por tienda**: `configuracion/store_{storeId}`, `footer_{storeId}`, `hero_{storeId}`, `banners/home_{storeId}`, `pages/aboutUs_{storeId}`, `settings/emailTemplates_{storeId}`.
+- **Clientes**: doc ID compuesto `{storeId}_{email}`.
+
+## 🗄️ Firebase Storage (hardening)
+
+`storage.rules` (ver [`docs/security.md`](docs/security.md)):
+- Lectura pública de imágenes de catálogo.
+- Escritura solo administradores autenticados, MIME `image/(jpeg|png|webp)` y **≤5MB** (validado además en `image-validation.service.ts`).
+- El borrado de productos (`ProductService.deleteProduct`) elimina las imágenes asociadas de Storage (`deleteFileByUrl`) antes de borrar el documento, evitando archivos huérfanos.
+
+## 🧪 Sembrado de Datos de Prueba (Seed)
+
+Los datos de demostración están desacoplados en constantes dedicadas (< 300 líneas por servicio):
+- `src/app/core/constants/seed-orders.constants.ts` (`CLIENT_DATA`, `CLIENT_DAYS_LIST`, `CLIENT_ORDER_COUNTS`, `ORDER_DATA`)
+- `src/app/core/constants/seed-products.constants.ts` (`PRODUCT_CATALOGUE`)
+
+Servicios: `seed-data.service.ts`, `seed-content.service.ts`, `seed-products.service.ts`, `seed-orders.service.ts` (todos escriben con `storeId`).
 
 
 ---
