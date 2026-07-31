@@ -206,29 +206,18 @@ describe('StoreConfigService', () => {
     expect(service.storeConfig()).toBeTruthy();
   });
 
-  it('should load config from legacy path when new path does not exist', async () => {
-    // First snap (configuracion/store) does not exist
+  it('should read only from the flat storeId-keyed path (configuracion/store_{storeId}); null when missing', async () => {
     const emptySnap = { exists: () => false } as unknown as DocumentSnapshot;
-    // Second snap (configuracion/{tenantId}) exists with legacy data
-    const legacyRaw = {
-      storeName: 'Legacy Store',
-      storeId: 'legacy-store',
-    };
-    const legacySnap = {
-      exists: () => true,
-      data: () => legacyRaw,
-    } as unknown as DocumentSnapshot;
 
     const privSvc = service as unknown as StoreConfigServiceWithPrivates;
-    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
-
-    // Return empty snap first, then legacy snap
-    const getDocSnapSpy = spyOn(privSvc, 'getDocSnap');
-    getDocSnapSpy.and.returnValues(Promise.resolve(emptySnap), Promise.resolve(legacySnap));
+    const getDocRefSpy = spyOn(privSvc, 'getDocRef').and.returnValue(
+      {} as unknown as DocumentReference,
+    );
+    spyOn(privSvc, 'getDocSnap').and.returnValue(Promise.resolve(emptySnap));
 
     await service.loadConfig();
 
-    expect(service.storeConfig()).not.toBeNull();
-    expect(service.storeName()).toBe('Legacy Store');
+    expect(getDocRefSpy).toHaveBeenCalledWith('configuracion', jasmine.stringMatching(/^store_/));
+    expect(service.storeConfig()).toBeNull();
   });
 });

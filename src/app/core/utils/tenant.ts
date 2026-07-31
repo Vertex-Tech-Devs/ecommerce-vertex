@@ -1,7 +1,30 @@
 import { environment } from '../../../environments/environment';
+import { where, type QueryConstraint } from '@angular/fire/firestore';
 
+/**
+ * Returns the flat root-level collection name for the storefront's Firestore.
+ * Multi-tenant isolation is enforced via the `storeId` field on every document
+ * (see storeIdFilter()), not via namespaced `tenants/{tenantId}/...` paths.
+ */
 export function tenantPath(collection: string): string {
-  return `tenants/${resolveTenantId()}/${collection}`;
+  return collection;
+}
+
+/**
+ * Builds the deterministic storeId-keyed document id for singleton content docs
+ * (e.g. `footer_<storeId>`, `hero_<storeId>`, `store_<storeId>`, `home_<storeId>`, `aboutUs_<storeId>`).
+ */
+export function storeDocId(base: string): string {
+  return `${base}_${resolveTenantId()}`;
+}
+
+/**
+ * Query constraint that filters a flat collection to the active store's documents.
+ * Apply this to every Firestore query in catalog services:
+ * `query(collection(this.firestore, 'products'), storeIdFilter())`.
+ */
+export function storeIdFilter(): QueryConstraint {
+  return where('storeId', '==', resolveTenantId());
 }
 
 /**

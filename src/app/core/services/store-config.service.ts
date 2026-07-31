@@ -11,7 +11,7 @@ import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
 import type { StoreConfig } from '@core/models/store-config.model';
-import { tenantPath, resolveTenantId } from '@core/utils/tenant';
+import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 import { StoreConfigSchema } from '@vertex/contracts';
 
 export { StoreConfigSchema };
@@ -93,25 +93,13 @@ export class StoreConfigService {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
     try {
       const snap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), 'store')).catch(() => null),
+        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), storeDocId('store'))).catch(
+          () => null,
+        ),
         timeout,
       ]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
-        this._storeConfig.set(validatedData as unknown as StoreConfig);
-        this.applyConfigToDom(validatedData as unknown as StoreConfig);
-        return;
-      }
-
-      // Legacy flat path: configuracion/{tenantId} (provisioned before tenant namespace)
-      const legacySnap = await Promise.race([
-        this.getDocSnap(this.getDocRef('configuracion', resolveTenantId())).catch(() => null),
-        timeout,
-      ]);
-      if (legacySnap?.exists()) {
-        const validatedData = StoreConfigSchema.parse(
-          this.parseLegacyConfigRaw(legacySnap.data() as Record<string, unknown>),
-        );
         this._storeConfig.set(validatedData as unknown as StoreConfig);
         this.applyConfigToDom(validatedData as unknown as StoreConfig);
       } else {
@@ -171,7 +159,7 @@ export class StoreConfigService {
   }
 
   async saveConfig(data: StoreConfig): Promise<void> {
-    const docRef = this.getDocRef(tenantPath('configuracion'), 'store');
+    const docRef = this.getDocRef(tenantPath('configuracion'), storeDocId('store'));
     const cleanedPayload = this.stripUndefined({
       ...(data as unknown as Record<string, unknown>),
       updatedAt: new Date().toISOString(),

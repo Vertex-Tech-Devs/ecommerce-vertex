@@ -7,7 +7,7 @@ import {
   CLIENT_ORDER_COUNTS,
   ORDER_DATA,
 } from '../constants/seed-orders.constants';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, resolveTenantId } from '@core/utils/tenant';
 
 export interface SeedClient {
   id: string;
@@ -36,6 +36,7 @@ export class SeedOrdersService {
       const ref = await this.run(() =>
         addDoc(collection(this.firestore, tenantPath('clients')), {
           ...d,
+          storeId: resolveTenantId(),
           firstOrderDate: new Date(Date.now() - days * 86_400_000),
           lastOrderDate: new Date(Date.now() - Math.max(1, Math.floor(days / 4)) * 86_400_000),
           numberOfOrders: CLIENT_ORDER_COUNTS[i] ?? 1,
@@ -75,6 +76,7 @@ export class SeedOrdersService {
 
       await this.run(() =>
         addDoc(collection(this.firestore, tenantPath('orders')), {
+          storeId: resolveTenantId(),
           userId: `user-${cl.id}`,
           clientName: cl.fullName,
           clientEmail: cl.email,

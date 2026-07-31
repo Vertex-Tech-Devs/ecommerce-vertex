@@ -2,25 +2,24 @@ import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import { getFirestore } from "firebase-admin/firestore";
 import { ProductVariantSchema } from "./core/product.model";
-import { COLLECTIONS, tenantCollection } from "./core/config";
+import { COLLECTIONS } from "./core/config";
 
 const db = getFirestore();
 
 export const onVariantStockChange = onDocumentWritten(
-  "tenants/{tenantId}/products/{productId}/variants/{variantId}",
+  "products/{productId}/variants/{variantId}",
   async (event) => {
     const productId = event.params.productId;
-    const tenantId = event.params.tenantId;
     if (!productId) {
       logger.error("No se encontró productId en los parámetros.");
       return;
     }
 
-    const productRef = db.collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS)).doc(productId);
+    const productRef = db.collection(COLLECTIONS.PRODUCTS).doc(productId);
 
     try {
       const variantsSnapshot = await db
-        .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
+        .collection(COLLECTIONS.PRODUCTS)
         .doc(productId)
         .collection("variants")
         .get();

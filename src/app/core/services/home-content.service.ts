@@ -3,11 +3,11 @@ import { docData, Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
-import { from, of } from 'rxjs';
-import { firstValueFrom, switchMap, catchError } from 'rxjs';
+import { of } from 'rxjs';
+import { firstValueFrom, catchError, map } from 'rxjs';
 import type { HeroBanner } from '../models/home-content.model';
 import { StorageService } from './storage.service';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -18,19 +18,13 @@ export class HomeContentService {
   private injector = inject(Injector);
 
   private get docRef(): DocumentReference<DocumentData> {
-    return doc(this.firestore, tenantPath('siteContent'), 'homePage');
+    return doc(this.firestore, tenantPath('banners'), storeDocId('home'));
   }
 
   getHeroBanner(): Observable<HeroBanner | null> {
     return runInInjectionContext(this.injector, () => {
-      const tenantRef = this.docRef;
-      const legacyRef = doc(this.firestore, 'siteContent', 'homePage');
-      return from(getDoc(tenantRef)).pipe(
-        switchMap((snap) =>
-          snap.exists()
-            ? (docData(tenantRef) as Observable<HeroBanner | null>)
-            : (docData(legacyRef) as Observable<HeroBanner | null>),
-        ),
+      return (docData(this.docRef) as Observable<HeroBanner | null>).pipe(
+        map((data) => (data ? (data as HeroBanner) : null)),
         catchError((err) => {
           console.warn('Unable to load hero banner data:', err);
           return of(null);
@@ -46,7 +40,7 @@ export class HomeContentService {
     newHeroFiles: File[] = [],
   ): Promise<void> {
     const docRef = this.docRef;
-    const dataToSave = { ...contentData };
+    const dataToSave = { ...contentData, storeId: resolveTenantId() };
 
     const currentDocSnap = await getDoc(docRef);
     const currentData = currentDocSnap.data() as HeroBanner | undefined;

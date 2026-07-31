@@ -1,7 +1,7 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { from } from 'rxjs';
-import { map, switchMap, of, catchError } from 'rxjs';
+import { of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { Firestore, collectionData } from '@angular/fire/firestore';
 import type {
   DocumentReference,
@@ -9,11 +9,11 @@ import type {
   CollectionReference,
   DocumentData,
 } from '@angular/fire/firestore';
-import { collection, query, where, orderBy, limit, getDocs } from '@angular/fire/firestore';
+import { collection, query, where, orderBy, limit } from '@angular/fire/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeIdFilter } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -26,20 +26,6 @@ export class OrderService {
 
   private get collectionRef(): CollectionReference<DocumentData> {
     return collection(this.firestore, tenantPath(this.collectionName));
-  }
-
-  private get legacyCollectionRef(): CollectionReference<DocumentData> {
-    return collection(this.firestore, this.collectionName);
-  }
-
-  private tenantOrLegacyRef(): Observable<CollectionReference<DocumentData>> {
-    return from(getDocs(this.collectionRef)).pipe(
-      map((snap) => (snap.empty ? this.legacyCollectionRef : this.collectionRef)),
-      catchError((err) => {
-        console.warn('Unable to resolve tenant orders collection, falling back to legacy:', err);
-        return of(this.legacyCollectionRef);
-      }),
-    );
   }
 
   getOrders(): Observable<Order[]> {
@@ -66,13 +52,8 @@ export class OrderService {
 
   getGlobalSalesAndOrders(): Observable<{ totalSales: number; totalOrders: number }> {
     return runInInjectionContext(this.injector, () => {
-      return this.tenantOrLegacyRef().pipe(
-        switchMap((ref) => {
-          return runInInjectionContext(this.injector, () => {
-            const q = query(ref, where('status', '==', 'delivered'));
-            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
-          });
-        }),
+      const q = query(this.collectionRef, storeIdFilter(), where('status', '==', 'delivered'));
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((orders) => {
           const totalSales = orders.reduce((sum, order) => sum + order.total, 0);
           return { totalSales, totalOrders: orders.length };
@@ -92,14 +73,8 @@ export class OrderService {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     return runInInjectionContext(this.injector, () => {
-      return this.tenantOrLegacyRef().pipe(
-        switchMap((ref) => {
-          return runInInjectionContext(this.injector, () => {
-            const q = query(ref, where('orderDate', '>=', startOfMonth));
-            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
-          });
-        }),
-
+      const q = query(this.collectionRef, storeIdFilter(), where('orderDate', '>=', startOfMonth));
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((ordersInCurrentMonth) => {
           const monthlyOrdersCount = ordersInCurrentMonth.length;
@@ -120,13 +95,12 @@ export class OrderService {
 
   getPendingOrProcessingOrders(): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
-      return this.tenantOrLegacyRef().pipe(
-        switchMap((ref) => {
-          return runInInjectionContext(this.injector, () => {
-            const q = query(ref, where('status', 'in', ['pending', 'processing']));
-            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
-          });
-        }),
+      const q = query(
+        this.collectionRef,
+        storeIdFilter(),
+        where('status', 'in', ['pending', 'processing']),
+      );
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((orders) =>
           orders.sort((a, b) => {
@@ -145,13 +119,13 @@ export class OrderService {
 
   getLatestOrders(count: number = 10): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
-      return this.tenantOrLegacyRef().pipe(
-        switchMap((ref) => {
-          return runInInjectionContext(this.injector, () => {
-            const q = query(ref, orderBy('orderDate', 'desc'), limit(count));
-            return collectionData(q, { idField: 'id' }) as Observable<Order[]>;
-          });
-        }),
+      const q = query(
+        this.collectionRef,
+        storeIdFilter(),
+        orderBy('orderDate', 'desc'),
+        limit(count),
+      );
+      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         catchError((err) => {
           console.warn('Unable to load latest orders:', err);

@@ -68,7 +68,10 @@ export class LoginComponent implements OnInit {
           } else if (msg.includes('auth/popup-closed-by-user')) {
             this.authErrorMessage =
               'La ventana de inicio de sesión de Google se cerró antes de completar el acceso. Si ocurrió un error 400 (redirect_uri_mismatch), verifica las URIs de redirección OAuth autorizadas.';
-          } else if (msg.includes('auth/redirect-uri-mismatch') || msg.includes('redirect_uri_mismatch')) {
+          } else if (
+            msg.includes('auth/redirect-uri-mismatch') ||
+            msg.includes('redirect_uri_mismatch')
+          ) {
             this.authErrorMessage =
               'Error 400: redirect_uri_mismatch. La URI de redirección de esta tienda no está autorizada en Google Cloud OAuth.';
           } else if (msg.includes('wrong-tenant')) {

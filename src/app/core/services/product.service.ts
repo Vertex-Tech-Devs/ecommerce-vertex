@@ -1,7 +1,6 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { from } from 'rxjs';
-import { map, combineLatest, switchMap, of, catchError } from 'rxjs';
+import { map, combineLatest, of, catchError } from 'rxjs';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
 import type {
   WithFieldValue,
@@ -19,12 +18,11 @@ import {
   where,
   orderBy,
   limit,
-  getDocs,
 } from '@angular/fire/firestore';
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
-import { tenantPath } from '@core/utils/tenant';
-import { shareReplay, take } from 'rxjs/operators';
+import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
+import { shareReplay } from 'rxjs/operators';
 
 export interface ProductFilters {
   categoryId?: string | null;
@@ -42,65 +40,33 @@ export class ProductService {
   private injector = inject(Injector);
   private readonly collectionName = 'products';
 
-  private isTenantEmpty?: boolean;
-
-  private async checkTenantEmpty(): Promise<boolean> {
-    if (this.isTenantEmpty !== undefined) {
-      return this.isTenantEmpty;
-    }
-    const snap = await getDocs(this.collectionRef);
-    this.isTenantEmpty = snap.empty;
-    return this.isTenantEmpty;
-  }
-
   private get collectionRef(): CollectionReference<DocumentData> {
     return collection(this.firestore, tenantPath(this.collectionName));
   }
 
-  private get legacyCollectionRef(): CollectionReference<DocumentData> {
-    return collection(this.firestore, this.collectionName);
-  }
-
   getProducts(): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      const tenantData$ = (
-        collectionData(this.collectionRef, { idField: 'id' }) as Observable<Product[]>
-      ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
-      const legacyData$ = collectionData(this.legacyCollectionRef, { idField: 'id' }) as Observable<
-        Product[]
-      >;
-
-      return tenantData$.pipe(
-        take(1),
-        switchMap((items) => {
-          if (items.length === 0) {
-            return legacyData$;
-          }
-          return tenantData$;
-        }),
+      const q = query(this.collectionRef, storeIdFilter());
+      const data$ = (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
+        shareReplay({ bufferSize: 1, refCount: true }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
           console.warn('Unable to load products:', err);
           return of([]);
         }),
       );
+      return data$;
     });
   }
 
   getProductsByQuery(categoryId: string | null): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      const constraints: QueryConstraint[] = [];
+      const constraints: QueryConstraint[] = [storeIdFilter()];
       if (categoryId && categoryId !== 'all') {
         constraints.push(where('categoryId', '==', categoryId));
       }
-      return from(this.checkTenantEmpty()).pipe(
-        switchMap((isEmpty) => {
-          return runInInjectionContext(this.injector, () => {
-            const ref = isEmpty ? this.legacyCollectionRef : this.collectionRef;
-            const q = query(ref, ...constraints);
-            return collectionData(q, { idField: 'id' }) as Observable<Product[]>;
-          });
-        }),
+      const q = query(this.collectionRef, ...constraints);
+      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {
           console.warn(`Unable to load products with query category ${categoryId}:`, err);
@@ -112,32 +78,12 @@ export class ProductService {
 
   getProductById(id: string): Observable<Product | undefined> {
     return runInInjectionContext(this.injector, () => {
-      const tenantDocRef: DocumentReference<DocumentData> = doc(
+      const docRef: DocumentReference<DocumentData> = doc(
         this.firestore,
         tenantPath(this.collectionName),
         id,
       );
-      const legacyDocRef: DocumentReference<DocumentData> = doc(
-        this.firestore,
-        this.collectionName,
-        id,
-      );
-
-      const tenantData$ = (
-        docData(tenantDocRef, { idField: 'id' }) as Observable<Product | undefined>
-      ).pipe(shareReplay({ bufferSize: 1, refCount: true }));
-      const legacyData$ = docData(legacyDocRef, { idField: 'id' }) as Observable<
-        Product | undefined
-      >;
-
-      return tenantData$.pipe(
-        take(1),
-        switchMap((item) => {
-          if (!item) {
-            return legacyData$;
-          }
-          return tenantData$;
-        }),
+      return (docData(docRef, { idField: 'id' }) as Observable<Product | undefined>).pipe(
         map((item) => (item ? (convertTimestampsToDates(item) as Product) : undefined)),
         catchError((err) => {
           console.warn(`Unable to load product ${id}:`, err);
@@ -188,14 +134,18 @@ export class ProductService {
     const batch = writeBatch(this.firestore);
     const newProductRef = doc(this.collectionRef);
 
-    batch.set(newProductRef, product);
+    batch.set(newProductRef, {
+      ...(product as Record<string, unknown>),
+      storeId: resolveTenantId(),
+    } as unknown as WithFieldValue<Omit<Product, 'id'>>);
 
     variants.forEach((variantData) => {
       const newVariantRef = doc(collection(newProductRef, 'variants'));
-      const variantWithId: WithFieldValue<Omit<ProductVariant, 'id'>> = {
+      const variantWithId = {
         ...variantData,
         productId: newProductRef.id,
-      };
+        storeId: resolveTenantId(),
+      } as unknown as WithFieldValue<Omit<ProductVariant, 'id'>>;
       batch.set(newVariantRef, variantWithId);
     });
 
@@ -224,10 +174,11 @@ export class ProductService {
 
     variantsToAdd.forEach((variantData) => {
       const newVariantRef = doc(variantsCollectionRef);
-      const variantWithId: WithFieldValue<Omit<ProductVariant, 'id'>> = {
+      const variantWithId = {
         ...variantData,
         productId,
-      };
+        storeId: resolveTenantId(),
+      } as unknown as WithFieldValue<Omit<ProductVariant, 'id'>>;
       batch.set(newVariantRef, variantWithId);
     });
 
@@ -248,6 +199,7 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       const q = query(
         this.collectionRef,
+        storeIdFilter(),
         where('totalStock', '>', 0),
         where('totalStock', '<=', threshold),
         orderBy('totalStock', 'asc'),
@@ -264,7 +216,12 @@ export class ProductService {
 
   getLatestProducts(count: number = 10): Observable<Product[]> {
     return runInInjectionContext(this.injector, () => {
-      const q = query(this.collectionRef, orderBy('createdAt', 'desc'), limit(count));
+      const q = query(
+        this.collectionRef,
+        storeIdFilter(),
+        orderBy('createdAt', 'desc'),
+        limit(count),
+      );
       return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         catchError((err) => {

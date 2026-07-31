@@ -4,6 +4,7 @@ import type { PaymentRequestData } from "./payment.model";
 import { logger } from "firebase-functions";
 import { getFirestore } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import { singletonDoc } from "./config";
 
 const siteUrl = defineString("SITE_URL");
 const webhookUrl = defineString("MERCADOPAGO_WEBHOOK_URL");
@@ -34,32 +35,19 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
   }
 }
 
-async function getMercadoPagoRuntimeConfig(tenantId?: string): Promise<{ accessToken: string; webhook: string }> {
+async function getMercadoPagoRuntimeConfig(storeId?: string): Promise<{ accessToken: string; webhook: string }> {
   const db = getFirestore();
 
-  // Multi-tenant path: tenants/{tenantId}/configuracion/store
-  // Legacy/fallback path: settings/storeConfig
+  // Flat multi-tenant path: configuracion/store_{storeId}
   let mpConfig: Record<string, any> | undefined;
 
-  if (tenantId) {
-    const tenantConfigSnap = await db
-      .collection("tenants")
-      .doc(tenantId)
-      .collection("configuracion")
-      .doc("store")
-      .get();
-    const tenantData = tenantConfigSnap.exists ? (tenantConfigSnap.data() as Record<string, any>) : null;
-    mpConfig = tenantData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
-
-    if (!mpConfig) {
-      // Fallback: try legacy configuracion/store (for dedicated-project stores)
-      const legacySnap = await db.collection("configuracion").doc("store").get();
-      const legacyData = legacySnap.exists ? (legacySnap.data() as Record<string, any>) : null;
-      mpConfig = legacyData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
-    }
+  if (storeId) {
+    const configSnap = await db.doc(singletonDoc(storeId, "configuracion", "store")).get();
+    const data = configSnap.exists ? (configSnap.data() as Record<string, any>) : null;
+    mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
   } else {
     // Legacy fallback for backwards compatibility
-    const configSnap = await db.collection("settings").doc("storeConfig").get();
+    const configSnap = await db.collection("configuracion").doc("store").get();
     const data = configSnap.exists ? configSnap.data() as Record<string, any> : null;
     mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
   }

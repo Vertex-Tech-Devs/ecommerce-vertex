@@ -1,13 +1,32 @@
 import { environment } from '../../../environments/environment';
-import { tenantPath, resolveTenantId } from './tenant';
+import { tenantPath, storeDocId, resolveTenantId } from './tenant';
 
 describe('tenantPath', () => {
-  it('should return the path with tenant id and collection', () => {
-    expect(tenantPath('configuracion')).toBe(`tenants/${environment.tenantId}/configuracion`);
+  it('should return the flat root-level collection name (no tenant namespace)', () => {
+    expect(tenantPath('configuracion')).toBe('configuracion');
   });
 
   it('should handle different collection names', () => {
-    expect(tenantPath('productos')).toBe(`tenants/${environment.tenantId}/productos`);
+    expect(tenantPath('productos')).toBe('productos');
+  });
+});
+
+describe('storeDocId', () => {
+  const ORIGINAL_TENANT_ID = environment.tenantId;
+
+  beforeEach(() => {
+    environment.tenantId = ORIGINAL_TENANT_ID;
+  });
+
+  afterEach(() => {
+    environment.tenantId = ORIGINAL_TENANT_ID;
+  });
+
+  it('should build a storeId-keyed doc id for singleton content docs', () => {
+    environment.tenantId = 'mi-tienda';
+    expect(storeDocId('footer')).toBe('footer_mi-tienda');
+    expect(storeDocId('hero')).toBe('hero_mi-tienda');
+    expect(storeDocId('home')).toBe('home_mi-tienda');
   });
 });
 
@@ -114,8 +133,8 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('');
   });
 
-  it('should call tenantPath with resolved tenant', () => {
+  it('should call tenantPath with resolved tenant (flat collection)', () => {
     environment.tenantId = 'test-tenant';
-    expect(tenantPath('productos')).toBe('tenants/test-tenant/productos');
+    expect(tenantPath('productos')).toBe('productos');
   });
 });

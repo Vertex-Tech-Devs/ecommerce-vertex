@@ -8,7 +8,7 @@ import { FirestoreService } from './firestore.service';
 import { collection, query, where, orderBy, limit } from '@angular/fire/firestore';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -25,13 +25,15 @@ export class ClientService {
   }
 
   getClientByEmail(email: string): Observable<Client | undefined> {
-    return this.firestoreService.get(this.clientsCollectionName, email);
+    // Client docs are keyed {storeId}_{email} to avoid collisions across stores on shared shards.
+    return this.firestoreService.get(this.clientsCollectionName, `${resolveTenantId()}_${email}`);
   }
 
   getOrdersByClientEmail(email: string): Observable<Order[]> {
     return runInInjectionContext(this.injector, () => {
       const q = query(
         collection(this.firestore, tenantPath(this.ordersCollectionName)),
+        storeIdFilter(),
         where('clientEmail', '==', email),
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
@@ -55,6 +57,7 @@ export class ClientService {
 
       const q = query(
         collection(this.firestore, tenantPath(this.clientsCollectionName)),
+        storeIdFilter(),
         where('firstOrderDate', '>=', startOfMonth),
       );
 
@@ -71,7 +74,12 @@ export class ClientService {
   getLatestClients(count: number = 10): Observable<Client[]> {
     return runInInjectionContext(this.injector, () => {
       const collectionRef = collection(this.firestore, tenantPath(this.clientsCollectionName));
-      const q = query(collectionRef, orderBy('lastOrderDate', 'desc'), limit(count));
+      const q = query(
+        collectionRef,
+        storeIdFilter(),
+        orderBy('lastOrderDate', 'desc'),
+        limit(count),
+      );
       return (collectionData(q, { idField: 'id' }) as Observable<Client[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Client)),
         catchError((err) => {

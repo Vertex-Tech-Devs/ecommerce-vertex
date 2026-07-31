@@ -3,13 +3,12 @@ import { getFirestore } from "firebase-admin/firestore";
 import * as logger from "firebase-functions/logger";
 import { FieldValue } from "firebase-admin/firestore";
 import { OrderSchema } from "./core/order.model";
-import { COLLECTIONS, tenantCollection } from "./core/config";
+import { COLLECTIONS } from "./core/config";
 
 const db = getFirestore();
 
-export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
+export const onOrderCreateUpdateClients = onDocumentCreated(`${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
   const snap = event.data;
-  const tenantId = event.params.tenantId;
   if (!snap) {
     logger.warn(`Evento de creación de orden sin datos. ID: ${event.params.orderId}`);
     return;
@@ -25,13 +24,20 @@ export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/
   
   const order = validationResult.data;
   const clientEmail = order.clientEmail;
+  const storeId = (snap.data() as Record<string, unknown>)['storeId'] as string | undefined;
 
   if (!clientEmail) {
     logger.warn(`La orden ${event.params.orderId} no tiene un email de cliente, no se puede actualizar la colección de clientes.`);
     return;
   }
 
-  const clientRef = db.collection(tenantCollection(tenantId, COLLECTIONS.CLIENTS)).doc(clientEmail);
+  if (!storeId) {
+    logger.warn(`La orden ${event.params.orderId} no tiene storeId, no se puede aislar el cliente por tienda.`);
+    return;
+  }
+
+  // Flat multi-tenant model: client doc id is a composite {storeId}_{email} to avoid collisions on shared shards.
+  const clientRef = db.collection(COLLECTIONS.CLIENTS).doc(`${storeId}_${clientEmail}`);
 
   try {
     await db.runTransaction(async (transaction) => {
@@ -39,6 +45,7 @@ export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/
 
       if (!clientDoc.exists) {
         transaction.set(clientRef, {
+          storeId,
           email: clientEmail,
           fullName: order.clientName,
           phone: order.clientPhone,
@@ -47,7 +54,7 @@ export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/
           numberOfOrders: 1,
           totalSpent: order.total,
         });
-        logger.info(`Nuevo cliente creado: ${clientEmail}`);
+        logger.info(`Nuevo cliente creado: ${clientEmail} (store: ${storeId})`);
       } else {
         transaction.update(clientRef, {
           fullName: order.clientName,
@@ -56,7 +63,7 @@ export const onOrderCreateUpdateClients = onDocumentCreated(`tenants/{tenantId}/
           numberOfOrders: FieldValue.increment(1),
           totalSpent: FieldValue.increment(order.total),
         });
-        logger.info(`Cliente actualizado: ${clientEmail}`);
+        logger.info(`Cliente actualizado: ${clientEmail} (store: ${storeId})`);
       }
     });
   } catch (error) {
