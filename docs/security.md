@@ -17,10 +17,13 @@
 match /products/{productId}      { allow read: if true; ... }   // + subcolección variants
 match /categories/{categoryId}   { allow read: if true; ... }
 match /attributes/{attributeId}  { allow read: if true; ... }
-match /configuracion/{docId}     { allow read: if true; ... }
+match /configuracion/{docId}     { allow read: if true; ... }   // store_/footer_/hero_ (branding público)
+match /store_payments/{storeId}  { allow read: if isStoreAdmin(storeId); ... }  // PRIVADO
 match /banners/{docId}           { allow read: if true; ... }
 match /pages/{docId}             { allow read: if true; ... }
 ```
+
+> **Nota**: los datos de pago (`payments.mercadoPago`) viven en el doc **privado** `store_payments/{storeId}` (solo admin), nunca en el doc público `configuracion/store_{storeId}`.
 
 ### Escritura de administradores (aislada por tienda)
 
@@ -41,7 +44,7 @@ allow write: if isStoreAdmin(request.resource.data.storeId);
 
 | Colección | Regla |
 |---|---|
-| `orders` | público `get`/`create` (guest checkout); `list` requiere `request.query.get('storeId') == token.tenantId`; `update`/`delete` admin |
+| `orders` | público `get` (guest checkout); `create` público **solo con forma válida** (`status == 'pending'`, `items ≤ 100`, `stockDecremented == false`); `list` requiere `admin` + `request.query.get('storeId') == token.tenantId`; `update`/`delete` admin |
 | `clients` | `get`/`list` solo admin (filtro `storeId`); `write: false` |
 | `reviews` | `read` público; `create` con `userId == auth.uid`; update/delete autor o admin |
 | `settings`, `mail` | solo admin (filtro `storeId` en list) |
