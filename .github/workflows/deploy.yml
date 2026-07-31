@@ -294,16 +294,15 @@ jobs:
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
       - name: Generate store environment file
-        env:
-          FIREBASE_CONFIG: '${{ github.event.client_payload.firebase_config }}'
-          STORE_ID: '${{ github.event.client_payload.store_id }}'
-          TENANT_ID: '${{ github.event.client_payload.tenant_id }}'
         run: |
           python3 << 'PYEOF'
           import os, json
-          config = json.loads(os.environ["FIREBASE_CONFIG"])
-          store_id = os.environ.get("STORE_ID", "store")
-          tenant_id = os.environ.get("TENANT_ID", "").strip() or store_id
+          import json as _json
+          _event = _json.load(open(os.environ["GITHUB_EVENT_PATH"]))
+          _payload = _event["client_payload"]
+          config = _json.loads(_payload["firebase_config"])
+          store_id = _payload.get("store_id", "store")
+          tenant_id = (_payload.get("tenant_id", "") or "").strip() or store_id
           content = """export const environment = {{
             production: true,
             useEmulators: false,
