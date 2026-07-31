@@ -26,19 +26,17 @@ function getSuperAdminEmails(): string[] {
 }
 
 function resolveTenantId(request: any): string {
+  // Prioridad SIEMPRE al claim del token (fijado por el servidor). El payload del
+  // cliente solo se usa como fallback para flujos legacy sin claim; el header Origin
+  // nunca se usa (es controlable por un cliente HTTP arbitrario).
+  const tokenTenantId = request.auth?.token?.["tenantId"];
+  if (tokenTenantId) {
+    return String(tokenTenantId);
+  }
   if (request.data && typeof request.data === 'object' && request.data.tenantId) {
     return String(request.data.tenantId);
   }
-  if (request.auth?.token?.["tenantId"]) {
-    return String(request.auth.token["tenantId"]);
-  }
-  const origin = request.rawRequest?.headers?.origin || "";
-  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
-  let firstLabel = host.split(".")[0];
-  if (firstLabel && firstLabel.startsWith("vtx-")) {
-    firstLabel = firstLabel.substring(4);
-  }
-  return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
+  return "";
 }
 
 /**

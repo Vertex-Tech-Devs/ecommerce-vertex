@@ -29,7 +29,14 @@ export const cleanupExpiredOrders = onSchedule("every 60 minutes", async (event)
   for (const doc of snapshot.docs) {
     const orderData = doc.data();
     const orderId = doc.id;
-    
+
+    // NUNCA cancelar/revertir órdenes ya pagadas (presencia de paymentId = pago aprobado).
+    const paymentDetails = orderData.paymentDetails as Record<string, unknown> | undefined;
+    if (paymentDetails?.['paymentId']) {
+      logger.info(`Orden ${orderId} ya tiene pago aprobado (paymentId). Omitiendo cancelación por expiración.`);
+      continue;
+    }
+
     logger.warn(`Procesando orden expirada: ${orderId}. El pago fue abandonado. Devolviendo stock.`);
 
     for (const item of orderData.items) {

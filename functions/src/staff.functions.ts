@@ -35,6 +35,16 @@ function roleLabel(role: StaffRole): string {
   return role === "admin" ? "Store Admin" : role;
 }
 
+// Escapa valores interpolados en plantillas HTML para prevenir inyección de HTML
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function buildInvitationEmailHtml(params: {
   storeName: string;
   role: StaffRole;
@@ -42,7 +52,8 @@ function buildInvitationEmailHtml(params: {
   invitedByEmail?: string;
 }): string {
   const { storeName, role, loginUrl, invitedByEmail } = params;
-  const inviter = invitedByEmail ? `<p style="margin:0 0 18px;color:#334155;font-size:14px;">Invited by: <strong>${invitedByEmail}</strong></p>` : "";
+  const safeStoreName = escapeHtml(storeName);
+  const safeInviter = invitedByEmail ? `<p style="margin:0 0 18px;color:#334155;font-size:14px;">Invited by: <strong>${escapeHtml(invitedByEmail)}</strong></p>` : "";
 
   return `
     <div style="background:#f1f5f9;padding:28px 16px;font-family:Arial,sans-serif;color:#0f172a;">
@@ -53,10 +64,10 @@ function buildInvitationEmailHtml(params: {
         </div>
         <div style="padding:24px;">
           <p style="margin:0 0 14px;color:#0f172a;font-size:15px;line-height:1.55;">
-            You were granted access to manage <strong>${storeName}</strong> in Vertex.
+            You were granted access to manage <strong>${safeStoreName}</strong> in Vertex.
           </p>
           <p style="margin:0 0 18px;color:#334155;font-size:14px;">Assigned role: <strong>${roleLabel(role)}</strong></p>
-          ${inviter}
+          ${safeInviter}
           <p style="margin:0 0 14px;color:#334155;font-size:14px;line-height:1.5;">
             Sign in using Google OAuth with this same email address.
           </p>
@@ -74,13 +85,9 @@ function buildInvitationEmailHtml(params: {
 }
 
 function resolveTenantId(request: any): string {
-  const origin = request.rawRequest?.headers?.origin || "";
-  const host = origin.replace(/^https?:\/\//, "").split(":")[0];
-  let firstLabel = host.split(".")[0];
-  if (firstLabel && firstLabel.startsWith("vtx-")) {
-    firstLabel = firstLabel.substring(4);
-  }
-  return firstLabel && firstLabel !== "localhost" ? firstLabel : "store";
+  // SIEMPRE desde el token de autenticación — nunca del header Origin/body,
+  // que son controlables por un cliente HTTP arbitrario (evita escalada cross-tenant).
+  return String(request.auth?.token?.['tenantId'] ?? '');
 }
 
 export const getAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {

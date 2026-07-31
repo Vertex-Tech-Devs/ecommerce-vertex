@@ -113,7 +113,7 @@ describe('refreshMyAdminClaim', () => {
     mockSetCustomUserClaims.mockResolvedValueOnce(undefined);
 
     const result = await callable()({
-      auth: { uid: 'uid-1', token: { email: 'admin@example.com' } },
+      auth: { uid: 'uid-1', token: { email: 'admin@example.com', tenantId: 'store' } },
     });
 
     expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-1', { admin: true, role: 'admin', tenantId: 'store' });
@@ -124,7 +124,7 @@ describe('refreshMyAdminClaim', () => {
     mockDocGet.mockResolvedValueOnce({ exists: false, data: () => null });
 
     const result = await callable()({
-      auth: { uid: 'uid-2', token: { email: 'stranger@example.com' } },
+      auth: { uid: 'uid-2', token: { email: 'stranger@example.com', tenantId: 'store' } },
     });
 
     expect(mockSetCustomUserClaims).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ describe('refreshMyAdminClaim', () => {
     });
 
     const result = await callable()({
-      auth: { uid: 'uid-3', token: { email: 'editor@example.com' } },
+      auth: { uid: 'uid-3', token: { email: 'editor@example.com', tenantId: 'store' } },
     });
 
     expect(mockSetCustomUserClaims).not.toHaveBeenCalled();
@@ -149,7 +149,7 @@ describe('refreshMyAdminClaim', () => {
     mockDocGet.mockResolvedValueOnce({ exists: false, data: () => null });
 
     await callable()({
-      auth: { uid: 'uid-4', token: { email: '  ADMIN@Example.COM  ' } },
+      auth: { uid: 'uid-4', token: { email: '  ADMIN@Example.COM  ', tenantId: 'store' } },
     });
 
     expect(mockCollectionDoc).toHaveBeenCalledWith('store_admin@example.com');
@@ -162,7 +162,7 @@ describe('refreshMyAdminClaim', () => {
     mockSetCustomUserClaims.mockResolvedValueOnce(undefined);
 
     const result = await callable()({
-      auth: { uid: 'uid-dev', token: { email: 'juan.l.espeche@gmail.com' } },
+      auth: { uid: 'uid-dev', token: { email: 'juan.l.espeche@gmail.com', tenantId: 'store' } },
     });
 
     expect(mockDocSet).toHaveBeenCalled();

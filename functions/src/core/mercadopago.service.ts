@@ -14,10 +14,10 @@ function resolveProjectId(): string {
   return process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"] || "";
 }
 
-let cachedAccessToken: string | null = null;
+let cachedAccessTokens = new Map<string, string>();
 
 async function resolveAccessTokenFromSecret(secretName: string): Promise<string> {
-  if (cachedAccessToken) return cachedAccessToken;
+  if (cachedAccessTokens.has(secretName)) return cachedAccessTokens.get(secretName)!;
   const projectId = resolveProjectId();
   if (!projectId) {
     throw new Error("No se pudo resolver el proyecto para leer Secret Manager.");
@@ -27,8 +27,10 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
     const [version] = await secretsClient.accessSecretVersion({
       name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
     });
-    cachedAccessToken = version.payload?.data?.toString().trim() || "";
-    return cachedAccessToken;
+    const token = version.payload?.data?.toString().trim() || "";
+    // Caché keyed por secretName (aislamiento por tienda)
+    cachedAccessTokens.set(secretName, token);
+    return token;
   } catch (error) {
     logger.warn(`No se pudo leer el secreto ${secretName} de Secret Manager. Se intentará usar fallback:`, error);
     return "";
@@ -54,7 +56,8 @@ async function getMercadoPagoRuntimeConfig(storeId?: string): Promise<{ accessTo
 
   const secretName = String(mpConfig?.["accessTokenSecret"] || "").trim();
   const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : "";
-  const accessToken = (tokenFromSecret || mpConfig?.["accessToken"] || "").trim();
+  // NUNCA se usa el accessToken en claro guardado en el documento público de configuración.
+  const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.["webhookUrl"] || webhookUrl.value() || "").trim();
 
   if (!accessToken) {
