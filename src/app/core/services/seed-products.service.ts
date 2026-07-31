@@ -1,8 +1,8 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
-import { Firestore, collection, addDoc, getDocs, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, getDocs, updateDoc, query } from '@angular/fire/firestore';
 import type { Attribute } from '@core/models/attribute.model';
 import { PRODUCT_CATALOGUE } from '../constants/seed-products.constants';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
 
 /** Unsplash CDN – specific fashion photo by ID */
 function u(id: string, w: number, h: number): string {
@@ -56,7 +56,7 @@ export class SeedProductsService {
     const seeded: SeedProduct[] = [];
 
     const attrsSnap = await this.run(() =>
-      getDocs(collection(this.firestore, tenantPath('attributes'))),
+      getDocs(query(collection(this.firestore, tenantPath('attributes')), storeIdFilter())),
     );
     const allAttrs = attrsSnap.docs.map((d) => {
       const data = d.data();
@@ -108,6 +108,7 @@ export class SeedProductsService {
             variantAttributes: cat.variants.map((v) => attrNameToId[v]).filter(Boolean),
             featured: item.featured,
             active: true,
+            storeId: resolveTenantId(),
             createdAt: new Date(),
           }),
         );
@@ -137,6 +138,7 @@ export class SeedProductsService {
                 attributes: combo,
                 stock,
                 productId: productRef.id,
+                storeId: resolveTenantId(),
               }),
             );
           }

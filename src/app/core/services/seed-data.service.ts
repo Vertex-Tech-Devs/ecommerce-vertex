@@ -1,10 +1,10 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
-import { Firestore, collection, getDocs, deleteDoc, doc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, deleteDoc, doc, query } from '@angular/fire/firestore';
 import { SweetAlertService } from './sweet-alert.service';
 import { SeedContentService } from './seed-content.service';
 import { SeedProductsService } from './seed-products.service';
 import { SeedOrdersService } from './seed-orders.service';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeIdFilter, storeDocId } from '@core/utils/tenant';
 
 @Injectable({ providedIn: 'root' })
 export class SeedDataService {
@@ -44,14 +44,18 @@ export class SeedDataService {
   private async clearAll(): Promise<void> {
     const cols = ['products', 'categories', 'clients', 'orders', 'attributes'];
     for (const col of cols) {
-      const snap = await this.run(() => getDocs(collection(this.firestore, tenantPath(col))));
+      const q = query(collection(this.firestore, tenantPath(col)), storeIdFilter());
+      const snap = await this.run(() => getDocs(q));
       for (const d of snap.docs) {
         await this.run(() => deleteDoc(d.ref));
       }
     }
     for (const [c, d] of [
-      ['siteContent', 'homePage'],
-      ['pages', 'aboutUs'],
+      ['banners', storeDocId('home')],
+      ['pages', storeDocId('aboutUs')],
+      ['configuracion', storeDocId('store')],
+      ['configuracion', storeDocId('footer')],
+      ['configuracion', storeDocId('hero')],
     ] as const) {
       await this.run(() => deleteDoc(doc(this.firestore, tenantPath(c), d)));
     }

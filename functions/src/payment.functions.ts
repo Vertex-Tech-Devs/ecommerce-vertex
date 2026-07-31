@@ -4,7 +4,7 @@ import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
-import { COLLECTIONS, tenantCollection } from "./core/config";
+import { COLLECTIONS, collectionPath, singletonDoc } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
 import * as crypto from "crypto";
 
@@ -156,7 +156,7 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
     await upsertSecret(secretName, accessToken);
 
     // Persist the secret reference in the store's Firestore config so getMercadoPagoRuntimeConfig can find it
-    const configRef = db.doc(tenantCollection(tenantId, 'configuracion') + '/store');
+    const configRef = db.doc(singletonDoc(tenantId, 'configuracion', 'store'));
     await configRef.set(
       {
         payments: {
@@ -192,19 +192,7 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
 async function revertStockOnFailure(orderId: string) {
   logger.info(`Iniciando reversón de stock para pedido cancelado/fallido: ${orderId}`);
 
-  // Resolve the order document via collectionGroup query to support multi-tenant
-  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS)
-    .where('__name__', '>=', `tenants/`)
-    .get();
-  const orderDoc = orderSnaps.docs.find(d => d.id === orderId);
-  if (!orderDoc) {
-    logger.error(`Pedido ${orderId} no existe. No se puede revertir stock.`);
-    return;
-  }
-
-  const pathSegments = orderDoc.ref.path.split('/');
-  const tenantId = pathSegments[1] ?? '';
-  const orderRef = orderDoc.ref;
+  const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
   try {
     await db.runTransaction(async (transaction) => {
@@ -235,7 +223,7 @@ async function revertStockOnFailure(orderId: string) {
         const validItem = itemValidation.data;
         
         const variantRef = db
-          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
+          .collection(collectionPath(COLLECTIONS.PRODUCTS))
           .doc(validItem.productId)
           .collection("variants")
           .doc(validItem.variantId);
@@ -273,15 +261,8 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
   
   logger.info(`Iniciando creación de preferencia para el pedido: ${orderId}`);
 
-  // Resolve order document across tenant namespaces
-  const orderSnaps = await db.collectionGroup(COLLECTIONS.ORDERS).get();
-  const orderDocSnap = orderSnaps.docs.find(d => d.id === orderId);
-  if (!orderDocSnap) {
-    throw new HttpsError("not-found", `La orden con ID ${orderId} no fue encontrada.`);
-  }
-  const orderRef = orderDocSnap.ref;
-  const pathSegments = orderDocSnap.ref.path.split('/');
-  const tenantId = pathSegments[1] ?? '';
+  // Resolve order document in the flat orders collection
+  const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
   try {
     const preference = await db.runTransaction(async (transaction) => {
@@ -301,7 +282,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
 
       for (const item of paymentData.items) {
         const variantRef = db
-          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
+          .collection(collectionPath(COLLECTIONS.PRODUCTS))
           .doc(item.productId)
           .collection("variants")
           .doc(item.variantId);
@@ -322,7 +303,7 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
 
       for (const item of paymentData.items) {
         const variantRef = db
-          .collection(tenantCollection(tenantId, COLLECTIONS.PRODUCTS))
+          .collection(collectionPath(COLLECTIONS.PRODUCTS))
           .doc(item.productId)
           .collection("variants")
           .doc(item.variantId);
@@ -332,7 +313,8 @@ export const createPaymentPreference = onCall({ cors: true, invoker: 'public' },
         });
       }
 
-      const mpPreference = await createPreference(paymentData, tenantId);
+      const storeId = (orderData as Record<string, unknown>)['storeId'] as string | undefined;
+      const mpPreference = await createPreference(paymentData, storeId);
       logger.info(`Preferencia ${mpPreference.id} creada para el pedido ${orderId}.`);
 
       transaction.update(orderRef, {
@@ -465,16 +447,13 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
       return;
     }
 
-    // Resolve order via collectionGroup to support multi-tenant paths
-    const orderQuery = await db.collectionGroup(COLLECTIONS.ORDERS).get();
-    const foundOrderDoc = orderQuery.docs.find(d => d.id === orderId);
-    const resolvedOrderRef = foundOrderDoc?.ref ?? db.collection(`tenants/_/orders`).doc(orderId);
-    const tenantIdForWebhook = foundOrderDoc?.ref.path.split('/')[1] ?? '';
+    // Resolve order in the flat orders collection
+    const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
     if (paymentStatus === "approved") {
       logger.info(`Pago ${paymentId} (pedido ${orderId}) aprobado. Stock ya fue descontado.`);
       
-      const orderDoc = await resolvedOrderRef.get();
+      const orderDoc = await orderRef.get();
       if (orderDoc.exists && !orderDoc.data()?.stockDecremented) {
          logger.warn(`El pago ${paymentId} fue aprobado, pero el stock no estaba marcado como descontado. Re-ejecutando lógica de descuento.`);
          
@@ -488,7 +467,7 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
              const validItem = itemValidation.data;
 
              const variantRef = db
-               .collection(tenantCollection(tenantIdForWebhook, COLLECTIONS.PRODUCTS))
+               .collection(collectionPath(COLLECTIONS.PRODUCTS))
                .doc(validItem.productId)
                .collection("variants")
                .doc(validItem.variantId);
@@ -498,14 +477,14 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
              });
            }
            
-           transaction.update(resolvedOrderRef, { 
+           transaction.update(orderRef, { 
              "paymentDetails.paymentId": paymentId,
              status: "processing",
              stockDecremented: true
            });
          });
       } else {
-         await resolvedOrderRef.update({ 
+         await orderRef.update({ 
            "paymentDetails.paymentId": paymentId,
            status: "processing"
          });

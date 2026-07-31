@@ -4,24 +4,27 @@ import { getFirestore } from "firebase-admin/firestore";
 import { defineString } from "firebase-functions/params";
 import { OrderSchema } from "./core/order.model";
 import type { Order } from "./core/order.model";
-import { COLLECTIONS, DOCS, tenantCollection, tenantDoc } from "./core/config";
+import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from "./core/config";
 
 const db = getFirestore();
 const siteUrl = defineString("SITE_URL");
 
-async function getEmailConfig(tenantId: string) {
-  const configDoc = await db.doc(tenantDoc(tenantId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES)).get();
+async function getEmailConfig(storeId: string) {
+  const configDoc = await db.doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES)).get();
   if (!configDoc.exists) {
-    logger.error(`Email config doc not found for tenant ${tenantId}.`);
+    logger.error(`Email config doc not found for store ${storeId}.`);
     return null;
   }
   return configDoc.data();
 }
 
-async function getAttributeMap(tenantId: string): Promise<Map<string, string>> {
+async function getAttributeMap(storeId: string): Promise<Map<string, string>> {
   const attributeMap = new Map<string, string>();
   try {
-    const attributesSnapshot = await db.collection(tenantCollection(tenantId, COLLECTIONS.ATTRIBUTES)).get();
+    const attributesSnapshot = await db
+      .collection(collectionPath(COLLECTIONS.ATTRIBUTES))
+      .where("storeId", "==", storeId)
+      .get();
     attributesSnapshot.forEach(doc => {
       const data = doc.data();
       if (data.name) {
@@ -82,10 +85,9 @@ function buildEmailHtml(
     return emailBody + buttonsHtml;
 }
 
-export const onOrderCreatedSendNotifications = onDocumentCreated(`tenants/{tenantId}/${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
+export const onOrderCreatedSendNotifications = onDocumentCreated(`${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
     const snap = event.data;
     const orderId = event.params.orderId;
-    const tenantId = event.params.tenantId;
     if (!snap) {
         logger.warn(`Evento sin datos para el pedido ${orderId}.`);
         return;
@@ -97,15 +99,20 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`tenants/{tenan
         return;
     }
     const orderData = validationResult.data;
-    logger.info(`Pedido ${orderId} válido. Obteniendo plantillas de email...`);
+    const storeId = (snap.data() as Record<string, unknown>)['storeId'] as string | undefined;
+    if (!storeId) {
+        logger.warn(`Pedido ${orderId} sin storeId. No se enviarán notificaciones.`);
+        return;
+    }
+    logger.info(`Pedido ${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`);
 
-    const config = await getEmailConfig(tenantId);
+    const config = await getEmailConfig(storeId);
     if (!config) {
         logger.error(`No se enviarán correos para el pedido ${orderId} por falta de configuración.`);
         return;
     }
 
-    const attributeMap = await getAttributeMap(tenantId);
+    const attributeMap = await getAttributeMap(storeId);
     const mailCreationPromises = [];
     
     const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -125,7 +132,8 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`tenants/{tenan
 
         const adminHtml = buildEmailHtml(adminConfig.template, orderData, orderId, attributeMap, { manageButtonUrl, whatsappUrl });
         
-        mailCreationPromises.push(db.collection(tenantCollection(tenantId, COLLECTIONS.MAIL)).add({
+        mailCreationPromises.push(db.collection(collectionPath(COLLECTIONS.MAIL)).add({
+            storeId,
             to: [config.storeOwnerEmail],
             from: fromAddress,
             message: {
@@ -142,7 +150,8 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(`tenants/{tenan
 
         const customerHtml = buildEmailHtml(customerConfig.template, orderData, orderId, attributeMap, { whatsappUrl });
 
-        mailCreationPromises.push(db.collection(tenantCollection(tenantId, COLLECTIONS.MAIL)).add({
+        mailCreationPromises.push(db.collection(collectionPath(COLLECTIONS.MAIL)).add({
+            storeId,
             to: [orderData.clientEmail],
             from: fromAddress,
             message: {

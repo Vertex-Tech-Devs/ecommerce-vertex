@@ -67,14 +67,14 @@ describe('ImageValidationService', () => {
       const recs = service.getQualityRecommendations();
       expect(recs.idealResolution).toBe('1600x900px');
       expect(recs.minResolution).toBe('1200x675px');
-      expect(recs.maxFileSize).toBe('2MB');
+      expect(recs.maxFileSize).toBe('5MB');
       expect(recs.aspectRatio).toBe('16:9');
       expect(recs.formats).toContain('WebP');
     });
   });
 
   describe('validateHeroImage()', () => {
-    it('should return valid for a correct 1600x900 image under 2MB', async () => {
+    it('should return valid for a correct 1600x900 image under 5MB', async () => {
       mockImageDimensions(1600, 900);
       const file = makeFile(500 * 1024); // 500KB
 
@@ -87,14 +87,14 @@ describe('ImageValidationService', () => {
       expect(result.fileSize).toBe(500 * 1024);
     });
 
-    it('should add error when file is larger than 2MB', async () => {
+    it('should add error when file is larger than 5MB', async () => {
       mockImageDimensions(1600, 900);
-      const file = makeFile(3 * 1024 * 1024); // 3MB
+      const file = makeFile(6 * 1024 * 1024); // 6MB
 
       const result = await service.validateHeroImage(file);
 
       expect(result.valid).toBeFalse();
-      expect(result.errors.some((e) => e.includes('3.00MB'))).toBeTrue();
+      expect(result.errors.some((e) => e.includes('6.00MB'))).toBeTrue();
     });
 
     it('should add error when dimensions are below minimum (1200x675)', async () => {

@@ -3,7 +3,7 @@ import { Firestore, collection, addDoc, setDoc, doc } from '@angular/fire/firest
 import type { StoreConfig } from '@core/models/store-config.model';
 import { DEFAULT_STORE_CONFIG } from '@core/models/store-config.model';
 import { StoreConfigService } from './store-config.service';
-import { tenantPath, resolveTenantId } from '@core/utils/tenant';
+import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 
 // ─── Image helpers ────────────────────────────────────────────────────────────
 
@@ -74,7 +74,12 @@ export class SeedContentService {
       { name: 'Material', values: ['Algodón', 'Poliéster', 'Lino', 'Cuero', 'Denim', 'Lana'] },
     ];
     for (const a of list) {
-      await this.run(() => addDoc(collection(this.firestore, tenantPath('attributes')), a));
+      await this.run(() =>
+        addDoc(collection(this.firestore, tenantPath('attributes')), {
+          ...a,
+          storeId: resolveTenantId(),
+        }),
+      );
     }
   }
 
@@ -95,6 +100,7 @@ export class SeedContentService {
           parentId: null,
           filterableAttributes: d.attrs,
           imageUrl: u(CAT[d.slug], 400, 400),
+          storeId: resolveTenantId(),
           createdAt: new Date(),
         }),
       );
@@ -105,7 +111,8 @@ export class SeedContentService {
 
   async seedHeroBanner(cats: Record<string, { id: string; name: string }>): Promise<void> {
     await this.run(() =>
-      setDoc(doc(this.firestore, tenantPath('siteContent'), 'homePage'), {
+      setDoc(doc(this.firestore, tenantPath('banners'), storeDocId('home')), {
+        storeId: resolveTenantId(),
         heroImages: HERO.map((id) => ({ imageUrl: u(id, 1920, 700) })),
         carouselSettings: { interval: 4500, showIndicators: true },
         title: 'Nueva Colección 2026',
@@ -139,7 +146,8 @@ export class SeedContentService {
   async seedAboutUs(): Promise<void> {
     const storeName = this.storeConfigService.storeName() || 'Nuestra Tienda';
     await this.run(() =>
-      setDoc(doc(this.firestore, tenantPath('pages'), 'aboutUs'), {
+      setDoc(doc(this.firestore, tenantPath('pages'), storeDocId('aboutUs')), {
+        storeId: resolveTenantId(),
         bannerTitle: 'Quiénes Somos',
         bannerSubtitle: 'Moda argentina con identidad propia y alcance nacional.',
         bannerImageUrl: u('1558769132-cb1aea458c5e', 1920, 600),
@@ -216,7 +224,7 @@ export class SeedContentService {
       copyrightText: `© 2026 ${storeName}. Todos los derechos reservados.`,
     };
     await this.run(() =>
-      setDoc(doc(this.firestore, tenantPath('configuracion'), 'store'), payload),
+      setDoc(doc(this.firestore, tenantPath('configuracion'), storeDocId('store')), payload),
     );
   }
 }

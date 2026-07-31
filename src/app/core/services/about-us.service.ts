@@ -4,12 +4,12 @@ import { doc, setDoc, getDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentData } from '@angular/fire/firestore';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
-import { firstValueFrom, switchMap, catchError, timeout } from 'rxjs';
+import { firstValueFrom, catchError, timeout } from 'rxjs';
 import { map } from 'rxjs/operators';
 import type { AboutUsData } from '@core/models/about-us.model';
 import { StorageService } from './storage.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 
 @Injectable({
   providedIn: 'root',
@@ -20,25 +20,16 @@ export class AboutUsService {
   private injector = inject(Injector);
 
   private get docRef(): DocumentReference<DocumentData> {
-    return doc(this.firestore, tenantPath('pages'), 'aboutUs');
+    return doc(this.firestore, tenantPath('pages'), storeDocId('aboutUs'));
   }
 
   getAboutUsData(): Observable<AboutUsData | undefined> {
     return runInInjectionContext(this.injector, () => {
-      const tenantRef = this.docRef;
-      const legacyRef = doc(this.firestore, 'pages', 'aboutUs');
-      return from(getDoc(tenantRef)).pipe(
+      return from(getDoc(this.docRef)).pipe(
         timeout(8000),
-        switchMap((snap) =>
-          snap.exists()
-            ? of(snap.data() as AboutUsData)
-            : from(getDoc(legacyRef)).pipe(
-                map((legacySnap) =>
-                  legacySnap.exists() ? (legacySnap.data() as AboutUsData) : undefined,
-                ),
-              ),
+        map((snap) =>
+          snap.exists() ? (convertTimestampsToDates(snap.data()) as AboutUsData) : undefined,
         ),
-        map((data) => convertTimestampsToDates(data) as AboutUsData | undefined),
         catchError((err) => {
           console.warn('Unable to load about us data:', err);
           return of(undefined);
@@ -52,7 +43,7 @@ export class AboutUsService {
     bannerFile: File | null,
     centralFile: File | null,
   ): Promise<void> {
-    const dataToSave = { ...data };
+    const dataToSave = { ...data, storeId: resolveTenantId() };
 
     if (bannerFile) {
       const path = `pages/about-us/banner_${Date.now()}_${bannerFile.name}`;

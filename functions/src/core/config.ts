@@ -13,13 +13,19 @@ export const DOCS = {
 };
 
 /**
- * Returns the tenant-namespaced Firestore path for a collection.
- * admin_roles is intentionally excluded — it lives at root with composite key {tenantId}_{email}.
+ * Flat root-level collection path for the storefront's Firestore.
+ * Multi-tenant isolation is enforced via the `storeId` field on every document,
+ * not via namespaced `tenants/{tenantId}/...` paths.
  */
-export function tenantCollection(tenantId: string, collection: string): string {
-  return `tenants/${tenantId}/${collection}`;
+export function collectionPath(collection: string): string {
+  return collection;
 }
 
-export function tenantDoc(tenantId: string, collection: string, docId: string): string {
-  return `tenants/${tenantId}/${collection}/${docId}`;
+/**
+ * StoreId-keyed singleton doc path: `{collection}/{docId}_{storeId}`.
+ * Used for per-store singletons such as settings/emailTemplates_{storeId}
+ * and configuracion/store_{storeId}.
+ */
+export function singletonDoc(storeId: string, collection: string, docId: string): string {
+  return `${collection}/${docId}_${storeId}`;
 }

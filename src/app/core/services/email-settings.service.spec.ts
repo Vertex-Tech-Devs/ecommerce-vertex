@@ -91,7 +91,10 @@ describe('EmailSettingsService', () => {
 
     expect(setDocSpy).toHaveBeenCalledWith(
       jasmine.any(Object),
-      mockEmailSettings as unknown as Record<string, unknown>,
+      jasmine.objectContaining({
+        ...(mockEmailSettings as unknown as Record<string, unknown>),
+        storeId: jasmine.any(String),
+      }),
     );
   });
 

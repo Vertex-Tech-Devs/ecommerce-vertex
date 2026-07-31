@@ -17,108 +17,99 @@ service cloud.firestore {
       );
     }
 
-    function isTenantAdmin(tenantId) {
+    // Admin of a given store: custom claim (fast path — set by role.functions.ts after provisioning)
+    // or root-level admin_roles composite key {storeId}_{email} fallback.
+    function isStoreAdmin(storeId) {
       return isAuthenticated() && (
         isSuperAdmin() ||
-        // Custom claim check (fast path — set by cloud function after provisioning)
-        (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == tenantId) ||
-        // Root-level composite key fallback (covers latency between admin_roles creation and claim propagation)
+        (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == storeId) ||
         (request.auth.token.get('email', '') != '' &&
-         exists(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)) &&
-         (get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'owner' ||
-          get(/databases/$(database)/documents/admin_roles/$(tenantId)_$(request.auth.token.email)).data.role == 'admin'))
+         exists(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)) &&
+         (get(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)).data.role == 'owner' ||
+          get(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)).data.role == 'admin'))
       );
     }
 
+    // ── Public catalog collections (flat root-level, storeId-tagged) ────────────
+    // Reads are public for storefront visitors; writes require an authenticated
+    // admin whose tenantId claim matches the document's storeId field.
 
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
 
-    match /tenants/{tenantId} {
-
-      match /products/{productId} {
+      match /{allChildren=**} {
         allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-
-        match /{allChildren=**} {
-          allow read: if true;
-          allow write: if isTenantAdmin(tenantId);
-        }
-      }
-
-      match /categories/{categoryId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /siteContent/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /footerContent/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /aboutUs/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /pages/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /configuracion/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /settings/{docId} {
-        allow read, write: if isTenantAdmin(tenantId);
-      }
-
-      match /attributes/{docId} {
-        allow read: if true;
-        allow write: if isTenantAdmin(tenantId);
-      }
-
-      match /users/{userId} {
-        allow read: if isOwner(userId) || isTenantAdmin(tenantId);
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId) || isTenantAdmin(tenantId);
-        allow delete: if isTenantAdmin(tenantId);
-      }
-
-      match /clients/{clientId} {
-        allow read: if isTenantAdmin(tenantId);
-        allow write: if false;
-      }
-
-      match /orders/{orderId} {
-        // Public create/get for guest checkout flow
-        // Users return from Mercado Pago redirect and read their order by ID without auth
-        allow get: if true;
-        allow create: if true;
-        allow list, update, delete: if isTenantAdmin(tenantId);
-      }
-
-      match /reviews/{reviewId} {
-        allow read: if true;
-        allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if isAuthenticated()
-          && (resource.data.userId == request.auth.uid || isTenantAdmin(tenantId));
-      }
-
-      match /mail/{docId} {
-        allow read, write: if isTenantAdmin(tenantId);
+        allow write: if isStoreAdmin(request.resource.data.storeId);
       }
     }
 
-    // admin_roles is at the root level with composite key {tenantId}_{email}.
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    match /attributes/{attributeId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    match /configuracion/{docId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    match /banners/{docId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    match /pages/{docId} {
+      allow read: if true;
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    // ── Transactional / admin collections ────────────────────────────────────────
+
+    match /orders/{orderId} {
+      // Public get/create for guest checkout; users return from Mercado Pago redirect
+      // and read their order by ID without auth.
+      allow get: if true;
+      allow create: if true;
+      allow list: if isAuthenticated()
+        && request.query.get('storeId') == request.auth.token.get('tenantId', '');
+      allow update: if isStoreAdmin(request.resource.data.storeId);
+      allow delete: if isStoreAdmin(resource.data.storeId);
+    }
+
+    match /clients/{clientId} {
+      allow get: if isAuthenticated() && isStoreAdmin(resource.data.storeId);
+      allow list: if isAuthenticated()
+        && request.query.get('storeId') == request.auth.token.get('tenantId', '');
+      allow write: if false;
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated()
+        && (resource.data.userId == request.auth.uid || isStoreAdmin(resource.data.storeId));
+    }
+
+    match /settings/{docId} {
+      allow get: if isAuthenticated() && isStoreAdmin(resource.data.storeId);
+      allow list: if isAuthenticated()
+        && request.query.get('storeId') == request.auth.token.get('tenantId', '');
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    match /mail/{docId} {
+      allow list: if isAuthenticated()
+        && request.query.get('storeId') == request.auth.token.get('tenantId', '');
+      allow write: if isStoreAdmin(request.resource.data.storeId);
+    }
+
+    // admin_roles is at the root level with composite key {storeId}_{email}.
     // The onRoleChange trigger in functions/role.functions.ts reads this collection
     // and sets custom auth claims. Written exclusively by the platform via Admin SDK.
     match /admin_roles/{compositeId} {
@@ -128,20 +119,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Allow public read on legacy root documents to support storefront fallbacks on newly provisioned stores
-    match /configuracion/footer {
-      allow read: if true;
-    }
-    match /pages/aboutUs {
-      allow read: if true;
-    }
-
-    // Default fallback: any unmatched path is platform-admin-only
+    // Default fallback: any unmatched path is denied
     match /{document=**} {
       allow read, write: if false;
     }
-
-
   }
 }
-

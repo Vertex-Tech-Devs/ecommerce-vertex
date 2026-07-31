@@ -9,7 +9,7 @@ import type { Observable } from 'rxjs';
 import { of, from } from 'rxjs';
 import { catchError, timeout, map } from 'rxjs/operators';
 import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
-import { tenantPath } from '@core/utils/tenant';
+import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 
 export interface AdvancedTestEmailPayload {
   recipientEmail: string;
@@ -36,7 +36,7 @@ export class EmailSettingsService {
 
   protected get docRef(): DocumentReference<DocumentData> {
     return runInInjectionContext(this.injector, () =>
-      doc(this.firestore, tenantPath('settings'), 'emailTemplates'),
+      doc(this.firestore, tenantPath('settings'), storeDocId('emailTemplates')),
     );
   }
 
@@ -70,7 +70,10 @@ export class EmailSettingsService {
   }
 
   saveEmailSettings(settings: EmailSettings): Promise<void> {
-    return this.setDocData(this.docRef, settings as unknown as Record<string, unknown>);
+    return this.setDocData(this.docRef, {
+      ...(settings as unknown as Record<string, unknown>),
+      storeId: resolveTenantId(),
+    });
   }
 
   sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
