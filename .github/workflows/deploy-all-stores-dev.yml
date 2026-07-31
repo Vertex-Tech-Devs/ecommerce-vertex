@@ -52,14 +52,19 @@ jobs:
       rest: ${{ steps.parse.outputs.rest }}
       has_stores: ${{ steps.parse.outputs.has_stores }}
     steps:
+      - name: Fetch OIDC token
+        id: oidc
+        uses: actions/github-script@60a0d83039c74a4aee543508d2cccb5c1f9d9b3d # v7
+        with:
+          script: |
+            const token = await core.getIDToken('vertex-platform');
+            core.setOutput('id_token', token);
+
       - name: Fetch from platform dev API
         id: fetch
         run: |
           # AUTOMATIZADO: id_token OIDC de GitHub Actions (validado por el platform).
-          ID_TOKEN=""
-          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
-            ID_TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=vertex-platform" | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
-          fi
+          ID_TOKEN="${{ steps.oidc.outputs.id_token }}"
           RESPONSE=$(curl -s -X POST \
             "${{ env.PLATFORM_FUNCTIONS_URL }}/getActiveStores" \
             -H "Content-Type: application/json" \
