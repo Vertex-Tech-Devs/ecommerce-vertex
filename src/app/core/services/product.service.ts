@@ -1,6 +1,6 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import type { Observable } from 'rxjs';
-import { map, combineLatest, of, catchError } from 'rxjs';
+import { map, combineLatest, of, catchError, firstValueFrom } from 'rxjs';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
 import type {
   WithFieldValue,
@@ -13,6 +13,7 @@ import {
   doc,
   collection,
   deleteDoc,
+  getDoc,
   writeBatch,
   query,
   where,
@@ -22,6 +23,7 @@ import {
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
+import { StorageService } from './storage.service';
 import { shareReplay } from 'rxjs/operators';
 
 export interface ProductFilters {
@@ -38,6 +40,7 @@ export interface ProductFilters {
 export class ProductService {
   private firestore: Firestore = inject(Firestore);
   private injector = inject(Injector);
+  private storageService = inject(StorageService);
   private readonly collectionName = 'products';
 
   private get collectionRef(): CollectionReference<DocumentData> {
@@ -190,7 +193,33 @@ export class ProductService {
     return batch.commit();
   }
 
-  deleteProduct(id: string): Promise<void> {
+  async deleteProduct(id: string): Promise<void> {
+    // Elimina primero las imágenes asociadas de Firebase Storage para evitar archivos huérfanos
+    try {
+      const productSnap = await getDoc(doc(this.firestore, tenantPath(this.collectionName), id));
+      if (productSnap.exists()) {
+        const data = productSnap.data();
+        const imageUrls = new Set<string>();
+        if (typeof data['image'] === 'string' && data['image']) {
+          imageUrls.add(data['image']);
+        }
+        (Array.isArray(data['images']) ? data['images'] : []).forEach((u: unknown) => {
+          if (typeof u === 'string' && u) {
+            imageUrls.add(u);
+          }
+        });
+        for (const url of imageUrls) {
+          try {
+            await firstValueFrom(this.storageService.deleteFileByUrl(url));
+          } catch (err) {
+            console.warn(`Unable to delete product image from storage: ${url}`, err);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Unable to load product ${id} for image cleanup:`, err);
+    }
+
     const docRef = doc(this.firestore, tenantPath(this.collectionName), id);
     return deleteDoc(docRef);
   }

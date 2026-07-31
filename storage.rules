@@ -1,8 +1,24 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // Administrador autenticado (plataforma o tienda) mediante claims de Firebase Auth
+    function isStoreAdmin() {
+      return request.auth != null && (
+        request.auth.token.get('superAdmin', false) == true ||
+        request.auth.token.get('platformAdmin', false) == true ||
+        request.auth.token.get('admin', false) == true
+      );
+    }
+
+    // Catálogo público: lectura libre; escritura únicamente administradores autenticados
+    // con tipos MIME restringidos (image/jpeg, image/png, image/webp) y tamaño máximo 5MB.
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create, update: if isStoreAdmin()
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+      allow delete: if isStoreAdmin();
     }
   }
 }

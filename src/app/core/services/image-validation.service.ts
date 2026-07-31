@@ -18,7 +18,8 @@ export class ImageValidationService {
   private readonly MIN_HEIGHT = 675;
   private readonly IDEAL_WIDTH = 1600;
   private readonly IDEAL_HEIGHT = 900;
-  private readonly MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  private readonly ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   private readonly IDEAL_ASPECT_RATIO = 16 / 9;
   private readonly ASPECT_RATIO_TOLERANCE = 0.05; // 5% tolerance
 
@@ -33,10 +34,15 @@ export class ImageValidationService {
     let height: number | undefined;
     let aspectRatio: number | undefined;
 
+    // Validar tipo MIME (imagen JPEG/PNG/WebP)
+    if (!this.ALLOWED_MIME_TYPES.includes(file.type)) {
+      errors.push(`Formato no permitido: ${file.type || 'desconocido'}. Usá JPG, PNG o WebP.`);
+    }
+
     // Validar tamaño de archivo
     if (file.size > this.MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      errors.push(`El archivo es muy grande (${sizeMB}MB). Máximo permitido: 2MB.`);
+      errors.push(`El archivo es muy grande (${sizeMB}MB). Máximo permitido: 5MB.`);
     }
 
     // Validar dimensiones de la imagen
@@ -114,7 +120,7 @@ export class ImageValidationService {
     return {
       idealResolution: `${this.IDEAL_WIDTH}x${this.IDEAL_HEIGHT}px`,
       minResolution: `${this.MIN_WIDTH}x${this.MIN_HEIGHT}px`,
-      maxFileSize: '2MB',
+      maxFileSize: '5MB',
       aspectRatio: '16:9',
       formats: 'WebP, JPG, PNG',
     };
