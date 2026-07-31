@@ -404,15 +404,21 @@ jobs:
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
         run: |
-          DEPLOY_TOKEN="${{ github.event.client_payload.deploy_token }}"
-          if [ -z "$DEPLOY_TOKEN" ]; then
-            DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
-          fi
+          # SECURITY: el deploy token se lee ÚNICAMENTE del secret del repositorio
+          # (nunca del client_payload, que queda expuesto en logs y es visible en el repo).
+          # Requiere configurar el secret PLATFORM_DEPLOY_TOKEN con el mismo valor que
+          # 'deploy-token' en Secret Manager del platform.
+          DEPLOY_TOKEN="${{ secrets.PLATFORM_DEPLOY_TOKEN }}"
           COMMIT_SHA="${{ github.sha }}"
           COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d '\n' | tr -d '\r' | cut -c1-100)
           REF_NAME="${{ github.event.client_payload.ref || github.ref_name }}"
           VERSION="${{ github.event.client_payload.version || '0.1.0' }}"
+          # update-store-version finaliza vía completeVersionUpdate (no completeStoreDeployment)
+          ENDPOINT="completeStoreDeployment"
+          if [ "${{ github.event.action }}" == "update-store-version" ]; then
+            ENDPOINT="completeVersionUpdate"
+          fi
           curl -s -X POST \
-            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/completeStoreDeployment" \
+            "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$ENDPOINT" \
             -H "Content-Type: application/json" \
             -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"deployToken\": \"$DEPLOY_TOKEN\", \"commitSha\": \"$COMMIT_SHA\", \"commitMessage\": \"$COMMIT_MSG\", \"ref\": \"$REF_NAME\", \"version\": \"$VERSION\"}}"

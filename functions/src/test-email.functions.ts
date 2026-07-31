@@ -2,7 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { getFirestore } from "firebase-admin/firestore";
 import { z } from "zod";
-import { COLLECTIONS, DOCS } from "./core/config";
+import { COLLECTIONS, DOCS, singletonDoc } from "./core/config";
 import { defineString } from "firebase-functions/params";
 
 const db = getFirestore();
@@ -78,10 +78,14 @@ export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, a
   }
 
   const { recipientEmail, testData, templates } = validationResult.data;
+  const storeTenantId = String(request.auth?.token?.['tenantId'] ?? '');
   const mailCreationPromises = [];
 
   try {
-    const configDoc = await db.collection(COLLECTIONS.SETTINGS).doc(DOCS.EMAIL_TEMPLATES).get();
+    // Modelo flat: settings/emailTemplates_{storeId}
+    const configDoc = storeTenantId
+      ? await db.doc(singletonDoc(storeTenantId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES)).get()
+      : await db.collection(COLLECTIONS.SETTINGS).doc(DOCS.EMAIL_TEMPLATES).get();
     const emailConfig = configDoc.data();
 
     // Build standard FROM address matching the platform's verified SMTP domain
@@ -99,6 +103,7 @@ export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, a
       const adminHtml = buildTestEmailHtml(adminConfig.template, testData, { manageButtonUrl, whatsappUrl });
 
       mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
+        storeId: storeTenantId || undefined,
         to: [recipientEmail],
         from: fromAddress,
         message: {
@@ -114,6 +119,7 @@ export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, a
       const customerHtml = buildTestEmailHtml(customerConfig.template, testData, { whatsappUrl });
 
       mailCreationPromises.push(db.collection(COLLECTIONS.MAIL).add({
+        storeId: storeTenantId || undefined,
         to: [recipientEmail],
         from: fromAddress,
         message: {

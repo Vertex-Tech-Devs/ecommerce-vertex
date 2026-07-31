@@ -7,13 +7,13 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Super-admin SOLO por custom claims (platformAdmin/superAdmin), fijados por el
+    // servidor. Los emails dev no se hardcodean en las reglas: se auto-provisionan
+    // claims vía role.functions.ts (refreshMyAdminClaim) al iniciar sesión.
     function isSuperAdmin() {
       return isAuthenticated() && (
         request.auth.token.get('superAdmin', false) == true ||
-        request.auth.token.get('platformAdmin', false) == true ||
-        request.auth.token.get('email', '') == 'juan.l.espeche@gmail.com' ||
-        request.auth.token.get('email', '') == 'leivalihue@gmail.com' ||
-        request.auth.token.get('email', '') == 'vertex.tech.dev@gmail.com'
+        request.auth.token.get('platformAdmin', false) == true
       );
     }
 
@@ -80,6 +80,15 @@ service cloud.firestore {
 
     match /configuracion/{docId} {
       allow read: if true;
+      allow create: if canCreateForStore();
+      allow update: if canUpdateStoreDoc();
+      allow delete: if canDeleteStoreDoc();
+    }
+
+    // Configuración de pagos PRIVADA (store_payments/{storeId}):
+    // solo administradores de la tienda (nunca lectura pública).
+    match /store_payments/{storeId} {
+      allow read: if isStoreAdmin(storeId);
       allow create: if canCreateForStore();
       allow update: if canUpdateStoreDoc();
       allow delete: if canDeleteStoreDoc();

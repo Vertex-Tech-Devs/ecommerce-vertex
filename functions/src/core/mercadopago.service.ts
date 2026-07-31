@@ -44,9 +44,17 @@ async function getMercadoPagoRuntimeConfig(storeId?: string): Promise<{ accessTo
   let mpConfig: Record<string, any> | undefined;
 
   if (storeId) {
-    const configSnap = await db.doc(singletonDoc(storeId, "configuracion", "store")).get();
-    const data = configSnap.exists ? (configSnap.data() as Record<string, any>) : null;
-    mpConfig = data?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+    // Flat model: payments privados en store_payments/{storeId} (nuevo esquema),
+    // con fallback legacy al doc público configuracion/store_{storeId}.
+    const paymentsSnap = await db.collection("store_payments").doc(storeId).get();
+    const paymentsData = paymentsSnap.exists ? (paymentsSnap.data() as Record<string, any>) : null;
+    mpConfig = paymentsData?.["mercadoPago"] as Record<string, any> | undefined;
+
+    if (!mpConfig) {
+      const legacySnap = await db.doc(singletonDoc(storeId, "configuracion", "store")).get();
+      const legacyData = legacySnap.exists ? (legacySnap.data() as Record<string, any>) : null;
+      mpConfig = legacyData?.["payments"]?.["mercadoPago"] as Record<string, any> | undefined;
+    }
   } else {
     // Legacy fallback for backwards compatibility
     const configSnap = await db.collection("configuracion").doc("store").get();
@@ -101,6 +109,9 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     },
     auto_return: "approved" as const,
     notification_url: runtime.webhook,
+    // Expiración explícita (+1 día) para que cleanupExpiredOrders pueda revertir stock
+    // de órdenes abandonadas de forma fiable.
+    date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
 
   const preference = await preferenceClient.create({ body: preferenceBody });

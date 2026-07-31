@@ -4,7 +4,7 @@ import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 import { PaymentRequestSchema } from "./core/payment.model";
 import { createPreference, getPaymentDetails } from "./core/mercadopago.service";
-import { COLLECTIONS, collectionPath, singletonDoc } from "./core/config";
+import { COLLECTIONS, collectionPath } from "./core/config";
 import { OrderItemSchema } from "./core/order.model";
 import * as crypto from "crypto";
 
@@ -162,7 +162,9 @@ export const upsertMercadoPagoCredentials = onCall({ cors: true, invoker: 'publi
     await upsertSecret(secretName, accessToken);
 
     // Persist the secret reference in the store's Firestore config so getMercadoPagoRuntimeConfig can find it
-    const configRef = db.doc(singletonDoc(tenantId, 'configuracion', 'store'));
+    // Los datos de pago se guardan en un documento PRIVADO (store_payments/{storeId}),
+    // nunca en el doc público de configuración de la tienda.
+    const configRef = db.collection('store_payments').doc(tenantId);
     await configRef.set(
       {
         payments: {
@@ -449,10 +451,12 @@ export const mercadoPagoWebhookHandler = onRequest({ maxInstances: 5 }, async (r
       return;
     }
 
-  const topic = request.query.topic as string;
-  const paymentId = request.query.id as string;
+  // Mercado Pago envía notificaciones POST ({"action":"payment.created","data":{"id":"..."}})
+  // y también GET legacy (?topic=payment&id=...). Se prioriza el body y se respalda con query.
+  const topic = String(request.body?.type ?? request.query.topic ?? '');
+  const paymentId = String(incomingPaymentId || request.query.id || '');
 
-  if (topic !== "payment" || !paymentId) {
+  if ((topic !== "payment" && topic !== "payment.created") || !paymentId) {
     logger.warn("Webhook ignorado. No es un 'payment' o no tiene 'id'.", { topic });
     response.status(200).send("Webhook ignorado.");
     return;
