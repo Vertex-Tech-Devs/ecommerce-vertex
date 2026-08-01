@@ -414,7 +414,8 @@ jobs:
           fi
           COMMIT_SHA="${{ github.sha }}"
           COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d '\n' | tr -d '\r' | cut -c1-100)
-          REF_NAME="${{ github.event.client_payload.ref || github.ref }}"
+          # El ref del token OIDC es el del workflow (main), no el del template (client_payload.ref).
+          REF_NAME="${{ github.ref }}"
           VERSION="${{ github.event.client_payload.version || '0.1.0' }}"
           # update-store-version finaliza vía completeVersionUpdate (no completeStoreDeployment)
           ENDPOINT="completeStoreDeployment"
