@@ -51,16 +51,16 @@ storefront/
 
 ## Servicios Clave (`core/services`)
 
-| Servicio | Responsabilidad | Tenant |
-|---|---|---|
-| `FirestoreService<T>` | CRUD genérico flat con `storeIdFilter()` en lecturas y `storeId` en creates | ✅ |
-| `ProductService` | Productos + variantes (batch), stock, y **limpieza de imágenes en Storage al borrar** | ✅ |
-| `OrderService` / `ClientService` | Órdenes y clientes (cliente keyed `{storeId}_{email}`) | ✅ |
-| `StoreConfigService` | `configuracion/store_{storeId}` vía `APP_INITIALIZER`; inyecta colores/tema en CSS `:root` | ✅ |
-| `FooterService` / `HomeContentService` / `AboutUsService` | `footer_{storeId}`, `banners/home_{storeId}`, `pages/aboutUs_{storeId}` | ✅ |
-| `StorageService` | Upload con progreso y `deleteFileByUrl` (borrado de objetos) | — |
-| `ImageValidationService` | Validación de imágenes: MIME `jpeg/png/webp`, ≤5MB, 16:9, resolución mínima | — |
-| `AuthService` | Google OAuth, claims `tenantId`/`admin`, errores tipados OAuth | ✅ |
+| Servicio                                                  | Responsabilidad                                                                            | Tenant |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ------ |
+| `FirestoreService<T>`                                     | CRUD genérico flat con `storeIdFilter()` en lecturas y `storeId` en creates                | ✅     |
+| `ProductService`                                          | Productos + variantes (batch), stock, y **limpieza de imágenes en Storage al borrar**      | ✅     |
+| `OrderService` / `ClientService`                          | Órdenes y clientes (cliente keyed `{storeId}_{email}`)                                     | ✅     |
+| `StoreConfigService`                                      | `configuracion/store_{storeId}` vía `APP_INITIALIZER`; inyecta colores/tema en CSS `:root` | ✅     |
+| `FooterService` / `HomeContentService` / `AboutUsService` | `footer_{storeId}`, `banners/home_{storeId}`, `pages/aboutUs_{storeId}`                    | ✅     |
+| `StorageService`                                          | Upload con progreso y `deleteFileByUrl` (borrado de objetos)                               | —      |
+| `ImageValidationService`                                  | Validación de imágenes: MIME `jpeg/png/webp`, ≤5MB, 16:9, resolución mínima                | —      |
+| `AuthService`                                             | Google OAuth, claims `tenantId`/`admin`, errores tipados OAuth                             | ✅     |
 
 ## Cloud Functions (flat)
 

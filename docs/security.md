@@ -42,13 +42,13 @@ allow write: if isStoreAdmin(request.resource.data.storeId);
 
 ### Colecciones transaccionales
 
-| Colección | Regla |
-|---|---|
-| `orders` | público `get` (guest checkout); `create` público **solo con forma válida** (`status == 'pending'`, `items ≤ 100`, `stockDecremented == false`); `list` requiere `admin` + `request.query.get('storeId') == token.tenantId`; `update`/`delete` admin |
-| `clients` | `get`/`list` solo admin (filtro `storeId`); `write: false` |
-| `reviews` | `read` público; `create` con `userId == auth.uid`; update/delete autor o admin |
-| `settings`, `mail` | solo admin (filtro `storeId` en list) |
-| `admin_roles` | lectura solo si el `compositeId` pertenece al `tenantId` del token; escritura `false` (solo Admin SDK) |
+| Colección          | Regla                                                                                                                                                                                                                                               |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `orders`           | público `get` (guest checkout); `create` público **solo con forma válida** (`status == 'pending'`, `items ≤ 100`, `stockDecremented == false`); `list` requiere `admin` + `request.query.get('storeId') == token.tenantId`; `update`/`delete` admin |
+| `clients`          | `get`/`list` solo admin (filtro `storeId`); `write: false`                                                                                                                                                                                          |
+| `reviews`          | `read` público; `create` con `userId == auth.uid`; update/delete autor o admin                                                                                                                                                                      |
+| `settings`, `mail` | solo admin (filtro `storeId` en list)                                                                                                                                                                                                               |
+| `admin_roles`      | lectura solo si el `compositeId` pertenece al `tenantId` del token; escritura `false` (solo Admin SDK)                                                                                                                                              |
 
 **Catch-all**: `allow read, write: if false;` — cualquier ruta no declarada queda denegada.
 

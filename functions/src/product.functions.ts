@@ -1,17 +1,17 @@
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
-import * as logger from "firebase-functions/logger";
-import { getFirestore } from "firebase-admin/firestore";
-import { ProductVariantSchema } from "./core/product.model";
-import { COLLECTIONS } from "./core/config";
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import * as logger from 'firebase-functions/logger';
+import { getFirestore } from 'firebase-admin/firestore';
+import { ProductVariantSchema } from './core/product.model';
+import { COLLECTIONS } from './core/config';
 
 const db = getFirestore();
 
 export const onVariantStockChange = onDocumentWritten(
-  "products/{productId}/variants/{variantId}",
+  'products/{productId}/variants/{variantId}',
   async (event) => {
     const productId = event.params.productId;
     if (!productId) {
-      logger.error("No se encontró productId en los parámetros.");
+      logger.error('No se encontró productId en los parámetros.');
       return;
     }
 
@@ -21,7 +21,7 @@ export const onVariantStockChange = onDocumentWritten(
       const variantsSnapshot = await db
         .collection(COLLECTIONS.PRODUCTS)
         .doc(productId)
-        .collection("variants")
+        .collection('variants')
         .get();
 
       let totalStock = 0;
@@ -29,12 +29,14 @@ export const onVariantStockChange = onDocumentWritten(
 
       variantsSnapshot.docs.forEach((doc) => {
         const variantResult = ProductVariantSchema.safeParse(doc.data());
-        
+
         if (!variantResult.success) {
-          logger.warn(`Datos de variante ${doc.id} inválidos.`, { errors: variantResult.error.flatten() });
+          logger.warn(`Datos de variante ${doc.id} inválidos.`, {
+            errors: variantResult.error.flatten(),
+          });
           return;
         }
-        
+
         const variant = variantResult.data;
 
         totalStock += variant.stock;
@@ -56,10 +58,11 @@ export const onVariantStockChange = onDocumentWritten(
         inStockAttributes: inStockAttributes,
       });
 
-      logger.info(`Stock desnormalizado actualizado para Producto ID: ${productId}. Total: ${totalStock}`);
-    
+      logger.info(
+        `Stock desnormalizado actualizado para Producto ID: ${productId}. Total: ${totalStock}`,
+      );
     } catch (error) {
       logger.error(`Error al actualizar stock desnormalizado para ${productId}:`, error);
     }
-  }
+  },
 );

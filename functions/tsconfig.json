@@ -5,14 +5,12 @@
     "noUnusedLocals": true,
     "rootDir": "src",
     "outDir": "lib",
-    "sourceMap": true,  
+    "sourceMap": true,
     "strict": true,
     "target": "ES2022",
     "esModuleInterop": true,
     "skipLibCheck": true
   },
   "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

@@ -6,7 +6,17 @@ const typescriptParser = require('@typescript-eslint/parser');
 
 module.exports = [
   {
-    ignores: ['projects/**/*', 'dist/**/*', 'coverage/**/*', 'node_modules/**/*', '.angular/**/*', '.husky/**/*', 'functions/vitest.config.ts', 'functions/lib/**/*', 'functions/coverage/**/*'],
+    ignores: [
+      'projects/**/*',
+      'dist/**/*',
+      'coverage/**/*',
+      'node_modules/**/*',
+      '.angular/**/*',
+      '.husky/**/*',
+      'functions/vitest.config.ts',
+      'functions/lib/**/*',
+      'functions/coverage/**/*',
+    ],
   },
   // Application source code — strict Angular + TypeScript rules
   {
@@ -34,10 +44,7 @@ module.exports = [
       ],
 
       // TypeScript strict rules
-      '@typescript-eslint/explicit-member-accessibility': [
-        'error',
-        { accessibility: 'no-public' },
-      ],
+      '@typescript-eslint/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
       '@typescript-eslint/explicit-function-return-type': ['error'],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'error',

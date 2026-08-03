@@ -1,11 +1,11 @@
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import * as functions from "firebase-functions/v1";
-import * as logger from "firebase-functions/logger";
-import { getAuth } from "firebase-admin/auth";
-import type { UserRecord } from "firebase-admin/auth";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { COLLECTIONS } from "./core/config";
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as functions from 'firebase-functions/v1';
+import * as logger from 'firebase-functions/logger';
+import { getAuth } from 'firebase-admin/auth';
+import type { UserRecord } from 'firebase-admin/auth';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { COLLECTIONS } from './core/config';
 
 const auth = getAuth();
 const db = getFirestore();
@@ -20,7 +20,10 @@ const DEFAULT_DEV_EMAILS = [
 function getSuperAdminEmails(): string[] {
   const envSuperAdmins = process.env.PROTECTED_SUPER_ADMINS;
   if (envSuperAdmins) {
-    return envSuperAdmins.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
+    return envSuperAdmins
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
   }
   return DEFAULT_DEV_EMAILS;
 }
@@ -29,57 +32,64 @@ function resolveTenantId(request: any): string {
   // Prioridad SIEMPRE al claim del token (fijado por el servidor). El payload del
   // cliente solo se usa como fallback para flujos legacy sin claim; el header Origin
   // nunca se usa (es controlable por un cliente HTTP arbitrario).
-  const tokenTenantId = request.auth?.token?.["tenantId"];
+  const tokenTenantId = request.auth?.token?.['tenantId'];
   if (tokenTenantId) {
     return String(tokenTenantId);
   }
   if (request.data && typeof request.data === 'object' && request.data.tenantId) {
     return String(request.data.tenantId);
   }
-  return "";
+  return '';
 }
 
 /**
  * Triggered when a document is written in the 'admin_roles' collection.
  * Sets the corresponding custom claim on the user's auth token.
  */
-export const onRoleChange = onDocumentWritten(`${COLLECTIONS.ADMIN_ROLES}/{compositeId}`, async (event) => {
-  const compositeId = event.params.compositeId;
-  const firstUnderscore = compositeId.indexOf('_');
-  if (firstUnderscore === -1) return;
-  const tenantId = compositeId.substring(0, firstUnderscore);
-  const email = compositeId.substring(firstUnderscore + 1);
+export const onRoleChange = onDocumentWritten(
+  `${COLLECTIONS.ADMIN_ROLES}/{compositeId}`,
+  async (event) => {
+    const compositeId = event.params.compositeId;
+    const firstUnderscore = compositeId.indexOf('_');
+    if (firstUnderscore === -1) return;
+    const tenantId = compositeId.substring(0, firstUnderscore);
+    const email = compositeId.substring(firstUnderscore + 1);
 
-  const afterData = event.data?.after.data();
-  const nextRole = String(afterData?.role || '').trim().toLowerCase();
-  const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
+    const afterData = event.data?.after.data();
+    const nextRole = String(afterData?.role || '')
+      .trim()
+      .toLowerCase();
+    const isAuthorizedRole = AUTHORIZED_ROLES.has(nextRole);
 
-  let user: UserRecord;
-  try {
-    user = await auth.getUserByEmail(email);
-  } catch (error: any) {
-    if (error.code === 'auth/user-not-found') {
-      logger.warn(`User with email ${email} not found in Firebase Auth.`);
-    } else {
-      logger.error(`Error fetching user ${email}:`, error);
+    let user: UserRecord;
+    try {
+      user = await auth.getUserByEmail(email);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        logger.warn(`User with email ${email} not found in Firebase Auth.`);
+      } else {
+        logger.error(`Error fetching user ${email}:`, error);
+      }
+      return;
     }
-    return;
-  }
-  
-  if (!afterData || !isAuthorizedRole) {
-    logger.info(`Revoking admin access for user: ${email} (UID: ${user.uid})`);
-    await auth.setCustomUserClaims(user.uid, { admin: false, role: null, tenantId: null });
-    return;
-  }
 
-  if (event.data?.before.data()?.role === nextRole) {
-    logger.info(`Role for ${email} already set to ${nextRole}. No change needed.`);
-    return;
-  }
+    if (!afterData || !isAuthorizedRole) {
+      logger.info(`Revoking admin access for user: ${email} (UID: ${user.uid})`);
+      await auth.setCustomUserClaims(user.uid, { admin: false, role: null, tenantId: null });
+      return;
+    }
 
-  logger.info(`Setting admin access claims for user: ${email} (UID: ${user.uid}) role=${nextRole} tenantId=${tenantId}`);
-  await auth.setCustomUserClaims(user.uid, { admin: true, role: nextRole, tenantId });
-});
+    if (event.data?.before.data()?.role === nextRole) {
+      logger.info(`Role for ${email} already set to ${nextRole}. No change needed.`);
+      return;
+    }
+
+    logger.info(
+      `Setting admin access claims for user: ${email} (UID: ${user.uid}) role=${nextRole} tenantId=${tenantId}`,
+    );
+    await auth.setCustomUserClaims(user.uid, { admin: true, role: nextRole, tenantId });
+  },
+);
 
 /**
  * Triggered when a new user is created in Firebase Auth.
@@ -92,13 +102,17 @@ export const onUserCreated = functions.auth.user().onCreate(async (user) => {
   const email = user.email.trim().toLowerCase();
   try {
     const snapshot = await db.collection(COLLECTIONS.ADMIN_ROLES).get();
-    const doc = snapshot.docs.find(d => d.id.endsWith(`_${email}`));
+    const doc = snapshot.docs.find((d) => d.id.endsWith(`_${email}`));
     if (doc) {
       const data = doc.data();
-      const role = String(data?.role || '').trim().toLowerCase();
+      const role = String(data?.role || '')
+        .trim()
+        .toLowerCase();
       const tenantId = data?.tenantId || '';
       if (AUTHORIZED_ROLES.has(role)) {
-        logger.info(`Setting admin access claims for newly registered user: ${email} (UID: ${user.uid}) role=${role} tenantId=${tenantId}`);
+        logger.info(
+          `Setting admin access claims for newly registered user: ${email} (UID: ${user.uid}) role=${role} tenantId=${tenantId}`,
+        );
         await auth.setCustomUserClaims(user.uid, { admin: true, role, tenantId });
       }
     }
@@ -131,7 +145,9 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
 
   const devEmails = getSuperAdminEmails();
   if (!doc.exists && devEmails.includes(emailLower)) {
-    logger.info(`refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`);
+    logger.info(
+      `refreshMyAdminClaim: Auto-creating admin_role document for developer ${emailLower} under tenant ${tenantId}`,
+    );
     await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).set({
       email: emailLower,
       role: 'owner',
@@ -141,10 +157,14 @@ export const refreshMyAdminClaim = onCall({ cors: true, invoker: 'public' }, asy
     doc = await db.collection(COLLECTIONS.ADMIN_ROLES).doc(compositeKey).get();
   }
 
-  const role = String(doc.data()?.role || '').trim().toLowerCase();
+  const role = String(doc.data()?.role || '')
+    .trim()
+    .toLowerCase();
 
   if (doc.exists && AUTHORIZED_ROLES.has(role)) {
-    logger.info(`refreshMyAdminClaim: granting admin claim to ${email} (UID: ${uid}) tenantId=${tenantId}`);
+    logger.info(
+      `refreshMyAdminClaim: granting admin claim to ${email} (UID: ${uid}) tenantId=${tenantId}`,
+    );
     await auth.setCustomUserClaims(uid, { admin: true, role, tenantId });
     return { granted: true };
   }

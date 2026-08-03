@@ -6,11 +6,11 @@ Thank you for using this template! This guide covers how to set up the project l
 
 ## Prerequisites
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Node.js | 22.x LTS | [nodejs.org](https://nodejs.org) |
-| Angular CLI | 20.x | `npm install -g @angular/cli` |
-| Firebase CLI | latest | `npm install -g firebase-tools` |
+| Tool         | Version  | Install                          |
+| ------------ | -------- | -------------------------------- |
+| Node.js      | 22.x LTS | [nodejs.org](https://nodejs.org) |
+| Angular CLI  | 20.x     | `npm install -g @angular/cli`    |
+| Firebase CLI | latest   | `npm install -g firebase-tools`  |
 
 ---
 
@@ -41,13 +41,13 @@ Thank you for using this template! This guide covers how to set up the project l
        appId: '...',
      },
      mercadoPago: {
-       publicKey: 'TEST-...',  // MercadoPago public key (TEST- prefix for sandbox)
+       publicKey: 'TEST-...', // MercadoPago public key (TEST- prefix for sandbox)
      },
      api: {
        cloudFunctionsUrl: 'http://127.0.0.1:5001/<project-id>/us-central1',
      },
      features: {
-       seedDataEnabled: true,   // Show the seed-data panel in dev mode
+       seedDataEnabled: true, // Show the seed-data panel in dev mode
        debugLogging: true,
      },
    };
@@ -70,12 +70,12 @@ Thank you for using this template! This guide covers how to set up the project l
 
 ## Branching Strategy
 
-| Branch type | Pattern | Example |
-|-------------|---------|---------|
-| Feature | `feat/<short-description>` | `feat/product-filters` |
-| Bug fix | `fix/<short-description>` | `fix/cart-total-rounding` |
+| Branch type   | Pattern                     | Example                     |
+| ------------- | --------------------------- | --------------------------- |
+| Feature       | `feat/<short-description>`  | `feat/product-filters`      |
+| Bug fix       | `fix/<short-description>`   | `fix/cart-total-rounding`   |
 | Chore / infra | `chore/<short-description>` | `chore/update-dependencies` |
-| Documentation | `docs/<short-description>` | `docs/readme-setup` |
+| Documentation | `docs/<short-description>`  | `docs/readme-setup`         |
 
 **Base branch:** always branch off `develop`. Only `develop` → `main` merges happen at release time.
 
@@ -100,6 +100,7 @@ Commitlint is enforced via a Husky hook.
 Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `revert`
 
 Rules:
+
 - Type and scope must be **lowercase**
 - Subject must **not** be capitalized (no `Start-Case`, no `UPPER-CASE`)
 - Subject must **not** end with a period

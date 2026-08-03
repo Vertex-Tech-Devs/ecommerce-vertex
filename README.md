@@ -5,11 +5,14 @@ Plantilla de comercio electrónico para la tienda (storefront) y panel de admini
 ## 🏢 Arquitectura Multi-Repo en Paralelo (Side-by-Side)
 
 Este proyecto opera bajo una topología de repositorios hermanos en paralelo:
+
 - **Plano de control (Backoffice central/API):** `platform/` (Asociado al repositorio `vertex-tech-devs/vertex-platform`)
 - **Plantilla de Tienda (Storefront/Admin cliente):** `storefront/` (Asociado al repositorio `vertex-tech-devs/ecommerce-vertex`)
 
 ### Consumo de Contratos Compartidos via File-Path
+
 La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contracts` directamente desde el paquete local del repositorio, mediante la directiva `file:` en `package.json`:
+
 ```json
 "dependencies": {
    "@vertex/contracts": "file:./packages/shared-contracts"
@@ -23,30 +26,37 @@ La tienda consume los esquemas de validación estrictos de Zod de `@vertex/contr
 Puedes inicializar y ejecutar la aplicación usando el entorno contenedorizado unificado o mediante tu host de forma nativa:
 
 ### Opción A: Entorno Contenedorizado Unificado (Recomendado)
+
 Si tienes **Docker Desktop** instalado, puedes levantar el **Storefront** junto con la **Platform** y los **Emuladores de Firebase** en un solo comando desde el repositorio hermano `platform/`:
+
 ```bash
 # Entrar al repositorio de platform y arrancar el stack
 cd ../platform
 bash docker/start.sh
 ```
+
 Esto levantará la tienda de cara al cliente en [http://localhost:4201](http://localhost:4201) y el panel administrativo en [http://localhost:4201/admin](http://localhost:4201/admin) de manera automática.
 
 ---
 
 ### Opción B: Arranque Local (Nativo en el Host)
+
 Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 1. **Configurar el entorno (Script interactivo CLI):**
+
    ```bash
    npm run setup
    ```
 
 2. **Instalar dependencias y vincular contratos:**
+
    ```bash
    npm install --legacy-peer-deps
    ```
 
 3. **Iniciar el servidor local de desarrollo:**
+
    ```bash
    npm start
    ```
@@ -61,35 +71,35 @@ Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 ## 📁 Estructura del Proyecto
 
-* **`src/app`**: Componentes Angular de la tienda (`shop/`) y del panel de administración (`admin/`), servicios del core y utilidades compartidas.
-* **`functions/src`**: Funciones backend de Firebase (TypeScript), tales como la integración con pasarelas de pago y webhooks.
-* **`cypress`**: Suite de pruebas de integración de punta a punta (E2E).
-* **`integration-tests`**: Pruebas que validan la continuidad del ciclo de vida en conjunto con la plataforma principal.
+- **`src/app`**: Componentes Angular de la tienda (`shop/`) y del panel de administración (`admin/`), servicios del core y utilidades compartidas.
+- **`functions/src`**: Funciones backend de Firebase (TypeScript), tales como la integración con pasarelas de pago y webhooks.
+- **`cypress`**: Suite de pruebas de integración de punta a punta (E2E).
+- **`integration-tests`**: Pruebas que validan la continuidad del ciclo de vida en conjunto con la plataforma principal.
 
 ---
 
 ## 🛠️ Tecnologías Principales
 
-* **Frontend**: Angular 22, señales (Signals), componentes independientes (Standalone) y SCSS.
-* **Backend**: Firebase Cloud Functions v2 (TypeScript).
-* **Base de datos e Integraciones**: Cloud Firestore, Firebase Authentication y Firebase Storage.
-* **Pruebas y QA**: Vitest (pruebas unitarias), Cypress y Playwright (pruebas de integración).
-* **CI/CD**: GitHub Actions.
+- **Frontend**: Angular 22, señales (Signals), componentes independientes (Standalone) y SCSS.
+- **Backend**: Firebase Cloud Functions v2 (TypeScript).
+- **Base de datos e Integraciones**: Cloud Firestore, Firebase Authentication y Firebase Storage.
+- **Pruebas y QA**: Vitest (pruebas unitarias), Cypress y Playwright (pruebas de integración).
+- **CI/CD**: GitHub Actions.
 
 ---
 
 ## 💻 Comandos Útiles de Desarrollo
 
-| Comando | Descripción |
-|---------|-------------|
-| `npm start` | Inicia el servidor de desarrollo en Angular (por defecto en `http://localhost:4200`) |
-| `npm run lint` | Ejecuta el análisis estático de código (ESLint) |
-| `npm run typecheck` | Ejecuta la verificación estricta de tipos de TypeScript |
-| `npm run test:ci` | Corre las pruebas unitarias usando Chrome en modo headless |
-| `npm run build` | Genera la compilación optimizada para producción |
-| `npm run quality` | Ejecuta de manera consolidada linting, typecheck y pruebas unitarias |
-| `npm run e2e` | Ejecuta las pruebas Cypress de punta a punta en modo headless |
-| `npm run e2e:open` | Abre la interfaz interactiva de Cypress |
+| Comando             | Descripción                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `npm start`         | Inicia el servidor de desarrollo en Angular (por defecto en `http://localhost:4200`) |
+| `npm run lint`      | Ejecuta el análisis estático de código (ESLint)                                      |
+| `npm run typecheck` | Ejecuta la verificación estricta de tipos de TypeScript                              |
+| `npm run test:ci`   | Corre las pruebas unitarias usando Chrome en modo headless                           |
+| `npm run build`     | Genera la compilación optimizada para producción                                     |
+| `npm run quality`   | Ejecuta de manera consolidada linting, typecheck y pruebas unitarias                 |
+| `npm run e2e`       | Ejecuta las pruebas Cypress de punta a punta en modo headless                        |
+| `npm run e2e:open`  | Abre la interfaz interactiva de Cypress                                              |
 
 ---
 
@@ -134,10 +144,10 @@ Este repositorio opera bajo políticas estrictas de flujo de trabajo y protecci�
 
 ### Entornos y Ramas Principales
 
-| Rama | Entorno / Propósito | Proyecto Firebase | Comando de Despliegue |
-|------|--------------------|-------------------|-----------------------|
-| `develop` | Integración / Pruebas | `ecommerce-vertex-dev` | `npm run deploy:dev` |
-| `main` | Producción / Versión Estable | `ecommerce-vertex` | `npm run deploy:prod` |
+| Rama      | Entorno / Propósito          | Proyecto Firebase      | Comando de Despliegue |
+| --------- | ---------------------------- | ---------------------- | --------------------- |
+| `develop` | Integración / Pruebas        | `ecommerce-vertex-dev` | `npm run deploy:dev`  |
+| `main`    | Producción / Versión Estable | `ecommerce-vertex`     | `npm run deploy:prod` |
 
 ### Políticas Obligatorias
 
@@ -151,16 +161,19 @@ Este repositorio opera bajo políticas estrictas de flujo de trabajo y protecci�
 ## 🚨 Guías de Resolución de Incidentes (Runbooks)
 
 ### 1) PR Bloqueada por Verificaciones Pendientes o Canceladas
+
 1. Inspecciona los resultados de las comprobaciones requeridas en GitHub.
 2. Si un job falló o se canceló por motivos ajenos al código, vuelve a ejecutar el workflow en GitHub Actions.
 3. Espera a que todas las verificaciones del **Quality Gate** pasen a estado verde antes de proceder con la fusión.
 
 ### 2) Deriva de Ramas (Drift) entre `develop` y `main`
+
 1. Abre un PR de sincronización inversa (`main` -> `develop`).
 2. Valida que pasen las comprobaciones de CI requeridas.
 3. Realiza la fusión de forma segura sin eliminar las cabezas de rama permanentes.
 
 ### 3) Lista de Cierre de Lanzamiento (Release Close Checklist)
+
 - [ ] Validaciones de CI en `develop` completadas con éxito (verde ✅).
 - [ ] Despliegue automático de `develop` completado sin errores.
 - [ ] PR de `develop` -> `main` revisado y fusionado de manera lineal (Squash/Rebase).
@@ -213,6 +226,7 @@ orders, clients, settings, mail   →  { storeId, ... }
 ## 🗄️ Firebase Storage (hardening)
 
 `storage.rules` (ver [`docs/security.md`](docs/security.md)):
+
 - Lectura pública de imágenes de catálogo.
 - Escritura solo administradores autenticados, MIME `image/(jpeg|png|webp)` y **≤5MB** (validado además en `image-validation.service.ts`).
 - El borrado de productos (`ProductService.deleteProduct`) elimina las imágenes asociadas de Storage (`deleteFileByUrl`) antes de borrar el documento, evitando archivos huérfanos.
@@ -220,13 +234,12 @@ orders, clients, settings, mail   →  { storeId, ... }
 ## 🧪 Sembrado de Datos de Prueba (Seed)
 
 Los datos de demostración están desacoplados en constantes dedicadas (< 300 líneas por servicio):
+
 - `src/app/core/constants/seed-orders.constants.ts` (`CLIENT_DATA`, `CLIENT_DAYS_LIST`, `CLIENT_ORDER_COUNTS`, `ORDER_DATA`)
 - `src/app/core/constants/seed-products.constants.ts` (`PRODUCT_CATALOGUE`)
 
 Servicios: `seed-data.service.ts`, `seed-content.service.ts`, `seed-products.service.ts`, `seed-orders.service.ts` (todos escriben con `storeId`).
 
-
 ---
 
 📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal. Para reglas de agentes de IA y flujos de QA unificados, consulta [agent.md](agent.md).
-

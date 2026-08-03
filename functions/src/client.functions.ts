@@ -1,72 +1,82 @@
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { getFirestore } from "firebase-admin/firestore";
-import * as logger from "firebase-functions/logger";
-import { FieldValue } from "firebase-admin/firestore";
-import { OrderSchema } from "./core/order.model";
-import { COLLECTIONS } from "./core/config";
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
+import * as logger from 'firebase-functions/logger';
+import { FieldValue } from 'firebase-admin/firestore';
+import { OrderSchema } from './core/order.model';
+import { COLLECTIONS } from './core/config';
 
 const db = getFirestore();
 
-export const onOrderCreateUpdateClients = onDocumentCreated(`${COLLECTIONS.ORDERS}/{orderId}`, async (event) => {
-  const snap = event.data;
-  if (!snap) {
-    logger.warn(`Evento de creación de orden sin datos. ID: ${event.params.orderId}`);
-    return;
-  }
+export const onOrderCreateUpdateClients = onDocumentCreated(
+  `${COLLECTIONS.ORDERS}/{orderId}`,
+  async (event) => {
+    const snap = event.data;
+    if (!snap) {
+      logger.warn(`Evento de creación de orden sin datos. ID: ${event.params.orderId}`);
+      return;
+    }
 
-  const validationResult = OrderSchema.safeParse(snap.data());
-  if (!validationResult.success) {
-    logger.error(`Datos de la orden ${event.params.orderId} son inválidos y no se procesará el cliente.`, {
-      errors: validationResult.error.flatten(),
-    });
-    return;
-  }
-  
-  const order = validationResult.data;
-  const clientEmail = order.clientEmail;
-  const storeId = (snap.data() as Record<string, unknown>)['storeId'] as string | undefined;
+    const validationResult = OrderSchema.safeParse(snap.data());
+    if (!validationResult.success) {
+      logger.error(
+        `Datos de la orden ${event.params.orderId} son inválidos y no se procesará el cliente.`,
+        {
+          errors: validationResult.error.flatten(),
+        },
+      );
+      return;
+    }
 
-  if (!clientEmail) {
-    logger.warn(`La orden ${event.params.orderId} no tiene un email de cliente, no se puede actualizar la colección de clientes.`);
-    return;
-  }
+    const order = validationResult.data;
+    const clientEmail = order.clientEmail;
+    const storeId = (snap.data() as Record<string, unknown>)['storeId'] as string | undefined;
 
-  if (!storeId) {
-    logger.warn(`La orden ${event.params.orderId} no tiene storeId, no se puede aislar el cliente por tienda.`);
-    return;
-  }
+    if (!clientEmail) {
+      logger.warn(
+        `La orden ${event.params.orderId} no tiene un email de cliente, no se puede actualizar la colección de clientes.`,
+      );
+      return;
+    }
 
-  // Flat multi-tenant model: client doc id is a composite {storeId}_{email} to avoid collisions on shared shards.
-  const clientRef = db.collection(COLLECTIONS.CLIENTS).doc(`${storeId}_${clientEmail}`);
+    if (!storeId) {
+      logger.warn(
+        `La orden ${event.params.orderId} no tiene storeId, no se puede aislar el cliente por tienda.`,
+      );
+      return;
+    }
 
-  try {
-    await db.runTransaction(async (transaction) => {
-      const clientDoc = await transaction.get(clientRef);
+    // Flat multi-tenant model: client doc id is a composite {storeId}_{email} to avoid collisions on shared shards.
+    const clientRef = db.collection(COLLECTIONS.CLIENTS).doc(`${storeId}_${clientEmail}`);
 
-      if (!clientDoc.exists) {
-        transaction.set(clientRef, {
-          storeId,
-          email: clientEmail,
-          fullName: order.clientName,
-          phone: order.clientPhone,
-          firstOrderDate: snap.createTime?.toDate() || new Date(),
-          lastOrderDate: snap.createTime?.toDate() || new Date(),
-          numberOfOrders: 1,
-          totalSpent: order.total,
-        });
-        logger.info(`Nuevo cliente creado: ${clientEmail} (store: ${storeId})`);
-      } else {
-        transaction.update(clientRef, {
-          fullName: order.clientName,
-          phone: order.clientPhone,
-          lastOrderDate: snap.createTime?.toDate() || new Date(),
-          numberOfOrders: FieldValue.increment(1),
-          totalSpent: FieldValue.increment(order.total),
-        });
-        logger.info(`Cliente actualizado: ${clientEmail} (store: ${storeId})`);
-      }
-    });
-  } catch (error) {
-    logger.error(`Error en la transacción al actualizar el cliente ${clientEmail}`, { error });
-  }
-});
+    try {
+      await db.runTransaction(async (transaction) => {
+        const clientDoc = await transaction.get(clientRef);
+
+        if (!clientDoc.exists) {
+          transaction.set(clientRef, {
+            storeId,
+            email: clientEmail,
+            fullName: order.clientName,
+            phone: order.clientPhone,
+            firstOrderDate: snap.createTime?.toDate() || new Date(),
+            lastOrderDate: snap.createTime?.toDate() || new Date(),
+            numberOfOrders: 1,
+            totalSpent: order.total,
+          });
+          logger.info(`Nuevo cliente creado: ${clientEmail} (store: ${storeId})`);
+        } else {
+          transaction.update(clientRef, {
+            fullName: order.clientName,
+            phone: order.clientPhone,
+            lastOrderDate: snap.createTime?.toDate() || new Date(),
+            numberOfOrders: FieldValue.increment(1),
+            totalSpent: FieldValue.increment(order.total),
+          });
+          logger.info(`Cliente actualizado: ${clientEmail} (store: ${storeId})`);
+        }
+      });
+    } catch (error) {
+      logger.error(`Error en la transacción al actualizar el cliente ${clientEmail}`, { error });
+    }
+  },
+);

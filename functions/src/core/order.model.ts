@@ -11,10 +11,13 @@ export const OrderItemSchema = z.object({
 });
 
 export const OrderSchema = z.object({
-  clientName: z.string().min(1, "El nombre del cliente es requerido."),
-  clientEmail: z.string().email("El email del cliente no es válido."),
-  clientPhone: z.string().min(8, "El teléfono del cliente es requerido."),
-  items: z.array(OrderItemSchema).min(1, "El pedido debe contener al menos un ítem.").max(100, "Máximo 100 ítems por pedido."),
+  clientName: z.string().min(1, 'El nombre del cliente es requerido.'),
+  clientEmail: z.string().email('El email del cliente no es válido.'),
+  clientPhone: z.string().min(8, 'El teléfono del cliente es requerido.'),
+  items: z
+    .array(OrderItemSchema)
+    .min(1, 'El pedido debe contener al menos un ítem.')
+    .max(100, 'Máximo 100 ítems por pedido.'),
   total: z.number(),
   status: z.string(),
 });
