@@ -410,7 +410,7 @@ export const createPaymentPreference = onCall(
 );
 
 export const mercadoPagoWebhookHandler = onRequest(
-  { maxInstances: 5 },
+  { maxInstances: 5, cors: true, invoker: 'public' },
   async (request, response) => {
     const incomingAction = String(request.body?.action ?? request.query.topic ?? '');
     const incomingPaymentId = String(request.body?.data?.id ?? request.query.id ?? '');
