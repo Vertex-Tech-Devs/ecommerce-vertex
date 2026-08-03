@@ -359,6 +359,7 @@ jobs:
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
+          project_id = os.environ.get("PROJECT_ID", "").strip()
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
@@ -374,9 +375,16 @@ jobs:
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
+
+          site_url = f"https://{site_id}.web.app" if site_id else "https://ecommerce-vertex.web.app"
+          webhook_url = f"https://us-central1-{project_id}.cloudfunctions.net/mercadoPagoWebhookHandler" if project_id else ""
+          with open("functions/.env", "w") as f:
+              f.write(f"SITE_URL={site_url}\n")
+              f.write(f"MERCADOPAGO_WEBHOOK_URL={webhook_url}\n")
           PYEOF
         env:
           SITE_ID: ${{ github.event.client_payload.site_id }}
+          PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3

@@ -7,7 +7,7 @@ import type { Order } from './core/order.model';
 import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 
 const db = getFirestore();
-const siteUrl = defineString('SITE_URL');
+const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
 
 async function getEmailConfig(storeId: string) {
   const configDoc = await db

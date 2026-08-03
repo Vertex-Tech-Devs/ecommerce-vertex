@@ -6,8 +6,8 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { singletonDoc } from './config';
 
-const siteUrl = defineString('SITE_URL');
-const webhookUrl = defineString('MERCADOPAGO_WEBHOOK_URL');
+const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
+const webhookUrl = defineString('MERCADOPAGO_WEBHOOK_URL', { default: '' });
 const secretsClient = new SecretManagerServiceClient();
 
 function resolveProjectId(): string {
