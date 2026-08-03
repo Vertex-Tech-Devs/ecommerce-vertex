@@ -2,7 +2,7 @@ name: Stale PRs
 
 on:
   schedule:
-    - cron: "0 9 * * *"
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,6 +27,6 @@ jobs:
           close-pr-message: >
             Este PR fue cerrado automáticamente por inactividad.
             Podés reabrirlo cuando estés listo para continuar.
-          stale-pr-label: "stale"
-          exempt-pr-labels: "work-in-progress,no-stale"
-          close-pr-label: "auto-closed"
+          stale-pr-label: 'stale'
+          exempt-pr-labels: 'work-in-progress,no-stale'
+          close-pr-label: 'auto-closed'

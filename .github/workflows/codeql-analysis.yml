@@ -1,10 +1,10 @@
-name: "CodeQL Security Analysis"
+name: 'CodeQL Security Analysis'
 
 on:
   push:
-    branches: [ develop, main ]
+    branches: [develop, main]
   pull_request:
-    branches: [ develop, main ]
+    branches: [develop, main]
   schedule:
     - cron: '0 0 * * 0' # Weekly on Sundays
 
@@ -24,19 +24,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript-typescript' ]
+        language: ['javascript-typescript']
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4.37.3
-      with:
-        languages: ${{ matrix.language }}
-        queries: security-and-quality
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4.37.3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4.37.3
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4.37.3
+        with:
+          category: '/language:${{matrix.language}}'

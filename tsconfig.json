@@ -16,26 +16,13 @@
     "experimentalDecorators": true,
     "isolatedModules": true,
     "paths": {
-      "@core/*": [
-        "./src/app/core/*"
-      ],
-      "@shared/*": [
-        "./src/app/shared/*"
-      ],
-      "@domains/*": [
-        "./src/app/domains/*"
-      ],
-      "@features/*": [
-        "./src/app/features/*"
-      ],
-      "@environments/*": [
-        "./src/environments/*"
-      ]
+      "@core/*": ["./src/app/core/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@domains/*": ["./src/app/domains/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@environments/*": ["./src/environments/*"]
     },
-    "lib": [
-      "ES2022",
-      "dom"
-    ]
+    "lib": ["ES2022", "dom"]
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,

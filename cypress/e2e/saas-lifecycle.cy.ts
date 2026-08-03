@@ -153,7 +153,7 @@ describe('4 · Add-to-Cart Flow', () => {
     cy.window().then((win) => {
       win.localStorage.setItem(
         CART_KEY,
-        JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
+        JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price }),
       );
     });
 
@@ -167,7 +167,7 @@ describe('4 · Add-to-Cart Flow', () => {
     cy.window().then((win) => {
       win.localStorage.setItem(
         CART_KEY,
-        JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price })
+        JSON.stringify({ items: [CART_ITEM], total: CART_ITEM.price }),
       );
     });
 
@@ -218,14 +218,14 @@ describe('5 · Checkout Flow', () => {
   it('shows a checkout CTA button when cart has items', () => {
     cy.get('body', { timeout: 6000 }).then(($body) => {
       const btn = $body.find(
-        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), button:contains("Comprar"), [routerlink*="checkout"], [href*="checkout"]'
+        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), button:contains("Comprar"), [routerlink*="checkout"], [href*="checkout"]',
       );
       if (btn.length > 0) {
         expect(btn.length, 'Checkout CTA should be visible').to.be.gte(1);
       } else {
         cy.task(
           'log',
-          '⚠️ Checkout CTA not found with current selectors; flow continues with direct checkout route validation'
+          '⚠️ Checkout CTA not found with current selectors; flow continues with direct checkout route validation',
         );
       }
     });
@@ -234,7 +234,7 @@ describe('5 · Checkout Flow', () => {
   it('navigates to /shop/checkout after clicking the checkout button', () => {
     cy.get('body').then(($body) => {
       const btn = $body.find(
-        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]'
+        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]',
       );
       if (btn.length > 0) {
         cy.wrap(btn.first()).click({ force: true });

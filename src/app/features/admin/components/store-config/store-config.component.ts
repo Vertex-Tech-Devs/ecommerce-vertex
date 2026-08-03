@@ -70,7 +70,7 @@ export class StoreConfigComponent {
         this.form.patchValue({
           tenantId: cfg.tenantId || currentTenant,
           storeId: cfg.storeId || currentTenant,
-          storeName: cfg.storeName || '',
+          storeName: cfg.storeName || 'Mi Tienda',
           tagline: cfg.tagline || 'La mejor tienda online',
           logoUrl: cfg.logoUrl || '',
           faviconUrl: cfg.faviconUrl || '',
@@ -101,10 +101,14 @@ export class StoreConfigComponent {
           storeName: 'Mi Tienda',
           tagline: 'La mejor tienda online',
           logoUrl: '',
+          faviconUrl: '',
           colors: {
             primary: '#ea580c',
             accent: '#ef4444',
             background: '#ffffff',
+          },
+          payments: {
+            mercadoPagoPublicKey: '',
           },
           contact: {
             phone: '+54 11 1234-5678',
@@ -116,6 +120,7 @@ export class StoreConfigComponent {
           seo: {
             metaDescription: 'Bienvenidos a mi tienda virtual.',
           },
+          setupCompleted: true,
         });
       }
     });

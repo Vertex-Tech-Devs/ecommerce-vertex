@@ -1,6 +1,7 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { StoreConfigComponent } from './store-config.component';
@@ -17,6 +18,7 @@ describe('StoreConfigComponent', () => {
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
   let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let mockConfigSignal: WritableSignal<StoreConfig | null>;
 
   const mockConfig: StoreConfig = {
     tenantId: 'store',
@@ -60,7 +62,7 @@ describe('StoreConfigComponent', () => {
     });
 
     // Mock signals
-    const mockConfigSignal = signal<StoreConfig | null>(mockConfig);
+    mockConfigSignal = signal<StoreConfig | null>(mockConfig);
     const mockStoreNameSignal = signal<string>('Test Store');
     const mockLogoUrlSignal = signal<string>('http://example.com/logo.png');
     const mockIsFirstRunSignal = signal<boolean>(false);
@@ -179,26 +181,16 @@ describe('StoreConfigComponent', () => {
   });
 
   it('should initialize form with defaults via effect when config is null', () => {
-    const mockConfigSignalNull = signal<StoreConfig | null>(null);
-    Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
-      value: mockConfigSignalNull.asReadonly(),
-      configurable: true,
-    });
-
+    mockConfigSignal.set(null);
     TestBed.flushEffects();
     expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
     expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
   });
 
   it('should use fallback values via effect when config is empty or missing properties', () => {
-    const mockConfigSignalEmpty = signal<StoreConfig>({} as StoreConfig);
-    Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
-      value: mockConfigSignalEmpty.asReadonly(),
-      configurable: true,
-    });
-
+    mockConfigSignal.set({} as StoreConfig);
     TestBed.flushEffects();
-    expect(component.form.get('storeId')?.value).toBe(mockConfig.storeId);
+    expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
     expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
     expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
     expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');

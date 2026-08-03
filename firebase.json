@@ -10,23 +10,15 @@
     {
       "target": "ecommerce-vertex",
       "public": "dist/ecommerce-vertex/browser",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ],
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "headers": [
         {
           "source": "**",
-          "headers": [
-            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
-          ]
+          "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
         },
         {
           "source": "**/*.@(js|css|woff2|woff|ttf|eot|svg|ico|png|jpg|webp|avif)",
-          "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-          ]
+          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
         }
       ],
       "rewrites": [
@@ -40,8 +32,6 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs22",
-    "predeploy": [
-      "npm run build:fn"
-    ]
+    "predeploy": ["npm run build:fn"]
   }
 }

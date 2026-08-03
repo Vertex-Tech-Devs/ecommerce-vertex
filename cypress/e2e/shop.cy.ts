@@ -122,7 +122,7 @@ describe('Shop — Cart', () => {
     // Click a checkout link/button if it exists
     cy.get('body').then(($body) => {
       const btn = $body.find(
-        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]'
+        'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]',
       );
       if (btn.length > 0) {
         cy.wrap(btn.first()).click();
