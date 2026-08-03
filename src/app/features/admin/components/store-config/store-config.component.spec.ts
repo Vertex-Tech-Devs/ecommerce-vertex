@@ -178,27 +178,27 @@ describe('StoreConfigComponent', () => {
     expect(sweetAlertSpy.error).toHaveBeenCalled();
   });
 
-  it('should initialize form with defaults in ngOnInit when config is null', () => {
+  it('should initialize form with defaults via effect when config is null', () => {
     const mockConfigSignalNull = signal<StoreConfig | null>(null);
     Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
       value: mockConfigSignalNull.asReadonly(),
       configurable: true,
     });
 
-    component.ngOnInit();
+    TestBed.flushEffects();
     expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
     expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
   });
 
-  it('should use fallback values in ngOnInit when config is empty or missing properties', () => {
+  it('should use fallback values via effect when config is empty or missing properties', () => {
     const mockConfigSignalEmpty = signal<StoreConfig>({} as StoreConfig);
     Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
       value: mockConfigSignalEmpty.asReadonly(),
       configurable: true,
     });
 
-    component.ngOnInit();
-    expect(component.form.get('storeId')?.value).toBe('white-label-store');
+    TestBed.flushEffects();
+    expect(component.form.get('storeId')?.value).toBe(mockConfig.storeId);
     expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
     expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
     expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');

@@ -1,5 +1,4 @@
-import type { OnInit } from '@angular/core';
-import { Component, inject, signal, DestroyRef } from '@angular/core';
+import { Component, inject, signal, DestroyRef, effect } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -10,6 +9,7 @@ import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
 import type { StoreConfig } from '@core/models/store-config.model';
+import { resolveTenantId } from '@core/utils/tenant';
 
 @Component({
   selector: 'app-store-config',
@@ -18,7 +18,7 @@ import type { StoreConfig } from '@core/models/store-config.model';
   templateUrl: './store-config.component.html',
   styleUrl: './store-config.component.scss',
 })
-export class StoreConfigComponent implements OnInit {
+export class StoreConfigComponent {
   private fb = inject(FormBuilder);
   private storeConfigService = inject(StoreConfigService);
   private storageService = inject(StorageService);
@@ -36,7 +36,7 @@ export class StoreConfigComponent implements OnInit {
 
   form: FormGroup = this.fb.group({
     tenantId: [''],
-    storeId: ['white-label-store'],
+    storeId: [resolveTenantId()],
     storeName: ['', Validators.required],
     tagline: [''],
     logoUrl: [''],
@@ -62,58 +62,63 @@ export class StoreConfigComponent implements OnInit {
     setupCompleted: [true],
   });
 
-  ngOnInit(): void {
-    const cfg = this.storeConfigService.storeConfig();
-    if (cfg) {
-      this.form.patchValue({
-        tenantId: cfg.tenantId || '',
-        storeId: cfg.storeId || 'white-label-store',
-        storeName: cfg.storeName || '',
-        tagline: cfg.tagline || 'La mejor tienda online',
-        logoUrl: cfg.logoUrl || '',
-        faviconUrl: cfg.faviconUrl || '',
-        colors: {
-          primary: cfg.colors?.primary || '#ea580c',
-          accent: cfg.colors?.accent || '#ef4444',
-          background: cfg.colors?.background || '#ffffff',
-        },
-        payments: {
-          mercadoPagoPublicKey: cfg.payments?.mercadoPagoPublicKey || '',
-        },
-        contact: {
-          phone: cfg.contact?.phone || '+54 11 1234-5678',
-          email: cfg.contact?.email || 'contacto@mitienda.com',
-          whatsApp: cfg.contact?.whatsApp || '',
-          instagram: cfg.contact?.instagram || '',
-          facebook: cfg.contact?.facebook || '',
-        },
-        seo: {
-          metaDescription: cfg.seo?.metaDescription || 'Bienvenidos a mi tienda virtual.',
-        },
-        setupCompleted: cfg.setupCompleted ?? true,
-      });
-    } else {
-      this.form.patchValue({
-        storeName: 'Mi Tienda',
-        tagline: 'La mejor tienda online',
-        logoUrl: '',
-        colors: {
-          primary: '#ea580c',
-          accent: '#ef4444',
-          background: '#ffffff',
-        },
-        contact: {
-          phone: '+54 11 1234-5678',
-          email: 'contacto@mitienda.com',
-          whatsApp: '',
-          instagram: '',
-          facebook: '',
-        },
-        seo: {
-          metaDescription: 'Bienvenidos a mi tienda virtual.',
-        },
-      });
-    }
+  constructor() {
+    effect(() => {
+      const cfg = this.storeConfigService.storeConfig();
+      const currentTenant = resolveTenantId();
+      if (cfg) {
+        this.form.patchValue({
+          tenantId: cfg.tenantId || currentTenant,
+          storeId: cfg.storeId || currentTenant,
+          storeName: cfg.storeName || '',
+          tagline: cfg.tagline || 'La mejor tienda online',
+          logoUrl: cfg.logoUrl || '',
+          faviconUrl: cfg.faviconUrl || '',
+          colors: {
+            primary: cfg.colors?.primary || '#ea580c',
+            accent: cfg.colors?.accent || '#ef4444',
+            background: cfg.colors?.background || '#ffffff',
+          },
+          payments: {
+            mercadoPagoPublicKey: cfg.payments?.mercadoPagoPublicKey || '',
+          },
+          contact: {
+            phone: cfg.contact?.phone || '+54 11 1234-5678',
+            email: cfg.contact?.email || 'contacto@mitienda.com',
+            whatsApp: cfg.contact?.whatsApp || '',
+            instagram: cfg.contact?.instagram || '',
+            facebook: cfg.contact?.facebook || '',
+          },
+          seo: {
+            metaDescription: cfg.seo?.metaDescription || 'Bienvenidos a mi tienda virtual.',
+          },
+          setupCompleted: cfg.setupCompleted ?? true,
+        });
+      } else {
+        this.form.patchValue({
+          tenantId: currentTenant,
+          storeId: currentTenant,
+          storeName: 'Mi Tienda',
+          tagline: 'La mejor tienda online',
+          logoUrl: '',
+          colors: {
+            primary: '#ea580c',
+            accent: '#ef4444',
+            background: '#ffffff',
+          },
+          contact: {
+            phone: '+54 11 1234-5678',
+            email: 'contacto@mitienda.com',
+            whatsApp: '',
+            instagram: '',
+            facebook: '',
+          },
+          seo: {
+            metaDescription: 'Bienvenidos a mi tienda virtual.',
+          },
+        });
+      }
+    });
   }
 
   setTab(tab: 'identity'): void {
