@@ -118,6 +118,9 @@ jobs:
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
+      - run: npm run build
+        working-directory: functions
+
       - name: Inject firebase config
         env:
           FIREBASE_CONFIG_JSON: ${{ matrix.store.firebaseConfig }}
@@ -191,6 +194,9 @@ jobs:
           path: dist/ecommerce-vertex/browser
 
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
+        working-directory: functions
+
+      - run: npm run build
         working-directory: functions
 
       - name: Inject firebase config
