@@ -296,6 +296,9 @@ jobs:
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
         working-directory: functions
 
+      - run: npm run build
+        working-directory: functions
+
       - name: Generate store environment file
         run: |
           python3 << 'PYEOF'
