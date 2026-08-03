@@ -85,7 +85,8 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
         return db;
       }),
       provideFunctions(() => {
-        const fns = getFunctions(inject(FirebaseApp));
+        const masterProject = environment.production ? 'ecommerce-vertex' : 'ecommerce-vertex-dev';
+        const fns = getFunctions(inject(FirebaseApp), masterProject);
         if (isLocal) {
           connectFunctionsEmulator(fns, 'localhost', 5001);
         }
