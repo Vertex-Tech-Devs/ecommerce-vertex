@@ -1,11 +1,11 @@
-import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import * as logger from "firebase-functions/logger";
-import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { COLLECTIONS, collectionPath, singletonDoc } from "./core/config";
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import * as logger from 'firebase-functions/logger';
+import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { COLLECTIONS, collectionPath, singletonDoc } from './core/config';
 
 const db = getFirestore();
 
-type StaffRole = "admin" | "owner";
+type StaffRole = 'admin' | 'owner';
 
 interface StaffMember {
   email: string;
@@ -14,9 +14,11 @@ interface StaffMember {
   updatedAt?: string;
 }
 
-function ensureOwner(requestAuth: { token?: Record<string, unknown>; uid?: string } | null | undefined): void {
-  if (requestAuth?.token?.["role"] !== "owner") {
-    throw new HttpsError("permission-denied", "Only store owners can perform this action.");
+function ensureOwner(
+  requestAuth: { token?: Record<string, unknown>; uid?: string } | null | undefined,
+): void {
+  if (requestAuth?.token?.['role'] !== 'owner') {
+    throw new HttpsError('permission-denied', 'Only store owners can perform this action.');
   }
 }
 
@@ -32,17 +34,17 @@ function formatTimestamp(value: unknown): string | undefined {
 }
 
 function roleLabel(role: StaffRole): string {
-  return role === "admin" ? "Store Admin" : role;
+  return role === 'admin' ? 'Store Admin' : role;
 }
 
 // Escapa valores interpolados en plantillas HTML para prevenir inyección de HTML
 function escapeHtml(value: unknown): string {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function buildInvitationEmailHtml(params: {
@@ -53,7 +55,9 @@ function buildInvitationEmailHtml(params: {
 }): string {
   const { storeName, role, loginUrl, invitedByEmail } = params;
   const safeStoreName = escapeHtml(storeName);
-  const safeInviter = invitedByEmail ? `<p style="margin:0 0 18px;color:#334155;font-size:14px;">Invited by: <strong>${escapeHtml(invitedByEmail)}</strong></p>` : "";
+  const safeInviter = invitedByEmail
+    ? `<p style="margin:0 0 18px;color:#334155;font-size:14px;">Invited by: <strong>${escapeHtml(invitedByEmail)}</strong></p>`
+    : '';
 
   return `
     <div style="background:#f1f5f9;padding:28px 16px;font-family:Arial,sans-serif;color:#0f172a;">
@@ -96,30 +100,32 @@ export const getAdminStaff = onCall({ cors: true, invoker: 'public' }, async (re
   const tenantId = resolveTenantId(request);
   const staffSnapshot = await db
     .collection(COLLECTIONS.ADMIN_ROLES)
-    .where("tenantId", "==", tenantId)
+    .where('tenantId', '==', tenantId)
     .get();
 
   const staffCandidates = staffSnapshot.docs.map((doc): StaffMember | null => {
-      const data = doc.data();
-      const role = String(data["role"] || "").trim().toLowerCase();
-      if (role !== "admin" && role !== "owner") {
-        return null;
-      }
+    const data = doc.data();
+    const role = String(data['role'] || '')
+      .trim()
+      .toLowerCase();
+    if (role !== 'admin' && role !== 'owner') {
+      return null;
+    }
 
-      const docId = doc.id;
-      const prefix = `${tenantId}_`;
-      let email = docId;
-      if (docId.startsWith(prefix)) {
-        email = docId.substring(prefix.length);
-      }
+    const docId = doc.id;
+    const prefix = `${tenantId}_`;
+    let email = docId;
+    if (docId.startsWith(prefix)) {
+      email = docId.substring(prefix.length);
+    }
 
-      return {
-        email,
-        role: role as StaffRole,
-        createdAt: formatTimestamp(data["createdAt"]),
-        updatedAt: formatTimestamp(data["updatedAt"]),
-      };
-    });
+    return {
+      email,
+      role: role as StaffRole,
+      createdAt: formatTimestamp(data['createdAt']),
+      updatedAt: formatTimestamp(data['updatedAt']),
+    };
+  });
 
   const staff: StaffMember[] = staffCandidates
     .filter((item): item is StaffMember => item !== null)
@@ -135,15 +141,17 @@ export const getAdminStaff = onCall({ cors: true, invoker: 'public' }, async (re
 export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {
   ensureOwner(request.auth);
 
-  const email = normalizeEmail(String(request.data?.["email"] || ""));
-  const role = String(request.data?.["role"] || "").trim().toLowerCase() as StaffRole;
+  const email = normalizeEmail(String(request.data?.['email'] || ''));
+  const role = String(request.data?.['role'] || '')
+    .trim()
+    .toLowerCase() as StaffRole;
 
-  if (!email || !email.includes("@")) {
-    throw new HttpsError("invalid-argument", "A valid email is required.");
+  if (!email || !email.includes('@')) {
+    throw new HttpsError('invalid-argument', 'A valid email is required.');
   }
 
-  if (role !== "admin" && role !== "owner") {
-    throw new HttpsError("invalid-argument", "Only owner or admin roles are supported.");
+  if (role !== 'admin' && role !== 'owner') {
+    throw new HttpsError('invalid-argument', 'Only owner or admin roles are supported.');
   }
 
   const tenantId = resolveTenantId(request);
@@ -157,17 +165,21 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
     {
       role,
       tenantId,
-      source: "store-admin-panel",
+      source: 'store-admin-panel',
       updatedAt: now,
-      createdAt: existing.exists ? existing.get("createdAt") || now : now,
+      createdAt: existing.exists ? existing.get('createdAt') || now : now,
     },
     { merge: true },
   );
 
   const storeConfig = await db.doc(singletonDoc(tenantId, 'configuracion', 'store')).get();
-  const storeName = String(storeConfig.data()?.["storeName"] || "Vertex Store").trim() || "Vertex Store";
-  const loginUrl = `https://${process.env["GCLOUD_PROJECT"] || process.env["GOOGLE_CLOUD_PROJECT"]}.web.app/admin/login`;
-  const invitedByEmail = String(request.auth?.token?.["email"] || "").trim().toLowerCase() || undefined;
+  const storeName =
+    String(storeConfig.data()?.['storeName'] || 'Vertex Store').trim() || 'Vertex Store';
+  const loginUrl = `https://${process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT']}.web.app/admin/login`;
+  const invitedByEmail =
+    String(request.auth?.token?.['email'] || '')
+      .trim()
+      .toLowerCase() || undefined;
 
   try {
     await db.collection(collectionPath(COLLECTIONS.MAIL)).add({
@@ -184,14 +196,14 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
         text: `You now have ${roleLabel(role)} access for ${storeName}. Sign in with Google OAuth: ${loginUrl}`,
       },
       meta: {
-        type: "staff-invite",
+        type: 'staff-invite',
         role,
         invitedByEmail: invitedByEmail || null,
       },
       createdAt: FieldValue.serverTimestamp(),
     });
   } catch (error) {
-    logger.error("Failed to enqueue store staff invitation email", error);
+    logger.error('Failed to enqueue store staff invitation email', error);
   }
 
   return { success: true, email, role };
@@ -200,14 +212,14 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
 export const revokeAdminStaff = onCall({ cors: true, invoker: 'public' }, async (request) => {
   ensureOwner(request.auth);
 
-  const email = normalizeEmail(String(request.data?.["email"] || ""));
-  if (!email || !email.includes("@")) {
-    throw new HttpsError("invalid-argument", "A valid email is required.");
+  const email = normalizeEmail(String(request.data?.['email'] || ''));
+  if (!email || !email.includes('@')) {
+    throw new HttpsError('invalid-argument', 'A valid email is required.');
   }
 
-  const requesterEmail = normalizeEmail(String(request.auth?.token?.["email"] || ""));
+  const requesterEmail = normalizeEmail(String(request.auth?.token?.['email'] || ''));
   if (requesterEmail && requesterEmail === email) {
-    throw new HttpsError("failed-precondition", "You cannot revoke your own admin role.");
+    throw new HttpsError('failed-precondition', 'You cannot revoke your own admin role.');
   }
 
   const tenantId = resolveTenantId(request);

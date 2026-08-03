@@ -15,11 +15,12 @@ This file contains instructions for AI agents and developers working on the Stor
 - **Contratos compartidos**: `@vertex/contracts` consumido desde `file:./packages/shared-contracts`
 
 ### Rutas principales
-| Ruta | Acceso | Descripción |
-|---|---|---|
-| `/shop` | Público | Tienda visible para todos |
-| `/admin` | Solo admin autorizado | Panel de backoffice de la tienda |
-| `/admin/login` | Público | Login Google OAuth |
+
+| Ruta           | Acceso                | Descripción                      |
+| -------------- | --------------------- | -------------------------------- |
+| `/shop`        | Público               | Tienda visible para todos        |
+| `/admin`       | Solo admin autorizado | Panel de backoffice de la tienda |
+| `/admin/login` | Público               | Login Google OAuth               |
 
 ---
 
@@ -59,13 +60,14 @@ npm run release:major      # 0.1.0 → 1.0.0
 
 El storefront es el **template de tienda** versionado semánticamente (Semver).
 
-| Tipo de cambio | Comando |
-|---|---|
-| Bugfix / ajuste visual | `npm run release:patch` |
-| Nueva feature | `npm run release:minor` |
+| Tipo de cambio                     | Comando                 |
+| ---------------------------------- | ----------------------- |
+| Bugfix / ajuste visual             | `npm run release:patch` |
+| Nueva feature                      | `npm run release:minor` |
 | Breaking change en modelo de datos | `npm run release:major` |
 
 **Flujo al hacer release:**
+
 1. `npm run release:minor` → bump, commit, tag, push automático
 2. CI `release.yml` crea GitHub Release y notifica a `vertex-platform`
 3. `vertex-platform` abre PR automático para actualizar `CURRENT_TEMPLATE_VERSION`
@@ -93,8 +95,8 @@ El storefront es el **template de tienda** versionado semánticamente (Semver).
 
 ## ⚠️ Errores comunes y soluciones
 
-| Error | Causa | Solución |
-|---|---|---|
-| `auth/operation-not-allowed` | Google OAuth no habilitado en Firebase Console | Habilitar en Authentication > Sign-in methods |
-| `permission-denied` en Firestore | Email no en `admin_roles` | Agregar vía Cloud Function o plataforma |
-| `Cannot read properties of undefined (hasOwnProperty)` | Problema de DI en Angular con lazy loading | Revisar barrel imports y providers |
+| Error                                                  | Causa                                          | Solución                                      |
+| ------------------------------------------------------ | ---------------------------------------------- | --------------------------------------------- |
+| `auth/operation-not-allowed`                           | Google OAuth no habilitado en Firebase Console | Habilitar en Authentication > Sign-in methods |
+| `permission-denied` en Firestore                       | Email no en `admin_roles`                      | Agregar vía Cloud Function o plataforma       |
+| `Cannot read properties of undefined (hasOwnProperty)` | Problema de DI en Angular con lazy loading     | Revisar barrel imports y providers            |

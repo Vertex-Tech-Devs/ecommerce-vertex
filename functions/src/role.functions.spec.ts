@@ -18,7 +18,14 @@ const {
   const capturedCallableRef: { current: ((request: any) => Promise<any>) | null } = {
     current: null,
   };
-  return { mockSetCustomUserClaims, mockGetUserByEmail, mockDocGet, mockDocSet, mockCollectionDoc, capturedCallableRef };
+  return {
+    mockSetCustomUserClaims,
+    mockGetUserByEmail,
+    mockDocGet,
+    mockDocSet,
+    mockCollectionDoc,
+    capturedCallableRef,
+  };
 });
 
 vi.mock('firebase-admin', () => ({
@@ -100,9 +107,9 @@ describe('refreshMyAdminClaim', () => {
   });
 
   it('throws invalid-argument if user has no email', async () => {
-    await expect(
-      callable()({ auth: { uid: 'uid-1', token: {} } }),
-    ).rejects.toMatchObject({ code: 'invalid-argument' });
+    await expect(callable()({ auth: { uid: 'uid-1', token: {} } })).rejects.toMatchObject({
+      code: 'invalid-argument',
+    });
   });
 
   it('grants admin claim when email exists in admin_roles with admin role', async () => {
@@ -116,7 +123,11 @@ describe('refreshMyAdminClaim', () => {
       auth: { uid: 'uid-1', token: { email: 'admin@example.com', tenantId: 'store' } },
     });
 
-    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-1', { admin: true, role: 'admin', tenantId: 'store' });
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-1', {
+      admin: true,
+      role: 'admin',
+      tenantId: 'store',
+    });
     expect(result).toEqual({ granted: true });
   });
 
@@ -166,7 +177,11 @@ describe('refreshMyAdminClaim', () => {
     });
 
     expect(mockDocSet).toHaveBeenCalled();
-    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-dev', { admin: true, role: 'owner', tenantId: 'store' });
+    expect(mockSetCustomUserClaims).toHaveBeenCalledWith('uid-dev', {
+      admin: true,
+      role: 'owner',
+      tenantId: 'store',
+    });
     expect(result).toEqual({ granted: true });
   });
 });

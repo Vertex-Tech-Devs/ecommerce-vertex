@@ -111,15 +111,19 @@ test.describe('Cart route', () => {
 test.describe('Admin login page', () => {
   test('admin login page renders Google OAuth access', async ({ page }) => {
     await page.goto('/admin/login');
-    await expect(page.getByRole('heading', { name: 'Iniciar Sesión' })).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText('Ingresá únicamente con tu cuenta de Google autorizada')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Iniciar Sesión' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(
+      page.getByText('Ingresá únicamente con tu cuenta de Google autorizada'),
+    ).toBeVisible();
   });
 
   test('admin login page has a Google OAuth button', async ({ page }) => {
     await page.goto('/admin/login');
     // Match the Google sign-in button by text or class used in the component
     const googleBtn = page.locator(
-      'button.google-btn, button:has-text("Google"), [aria-label*="Google"], .bi-google'
+      'button.google-btn, button:has-text("Google"), [aria-label*="Google"], .bi-google',
     );
     await expect(googleBtn.first()).toBeVisible();
   });

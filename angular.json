@@ -20,9 +20,7 @@
             "outputPath": "dist/ecommerce-vertex",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -40,20 +38,11 @@
               "node_modules/quill/dist/quill.snow.css",
               "src/styles.scss"
             ],
-            "scripts": [
-              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-            ],
+            "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "src/styles",
-                "node_modules",
-                "../node_modules"
-              ]
+              "includePaths": ["src/styles", "node_modules", "../node_modules"]
             },
-            "allowedCommonJsDependencies": [
-              "sweetalert2",
-              "quill"
-            ]
+            "allowedCommonJsDependencies": ["sweetalert2", "quill"]
           },
           "configurations": {
             "production": {
@@ -120,24 +109,14 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets"
-            ],
+            "assets": ["src/favicon.ico", "src/assets"],
             "scripts": [],
             "karmaConfig": "karma.conf.js",
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "src/styles",
-                "node_modules",
-                "../node_modules"
-              ]
+              "includePaths": ["src/styles", "node_modules", "../node_modules"]
             },
             "codeCoverageExclude": [
               "src/environments/**",
@@ -157,10 +136,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
@@ -168,8 +144,6 @@
   },
   "cli": {
     "analytics": false,
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   }
 }
