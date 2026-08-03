@@ -43,7 +43,7 @@
     "@angular/fire": "^20.0.1",
     "@angular/forms": "^22.0.2",
     "@angular/platform-browser": "^22.0.2",
-    "@angular/platform-browser-dynamic": "^22.0.2",
+    "@angular/platform-browser-dynamic": "^22.1.0",
     "@angular/router": "^22.0.2",
     "@popperjs/core": "^2.11.8",
     "@vertex/contracts": "file:./packages/shared-contracts",
