@@ -293,12 +293,6 @@ jobs:
 
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - run: npm ci --legacy-peer-deps --no-audit --no-fund
-        working-directory: functions
-
-      - run: npm run build
-        working-directory: functions
-
       - name: Generate store environment file
         run: |
           python3 << 'PYEOF'
@@ -309,6 +303,8 @@ jobs:
           config = _json.loads(_payload["firebase_config"])
           store_id = _payload.get("store_id", "store")
           tenant_id = (_payload.get("tenant_id", "") or "").strip() or store_id
+          env = _payload.get("environment", "production")
+          master_functions_project = "ecommerce-vertex-dev" if env == "development" else "ecommerce-vertex"
           content = """export const environment = {{
             production: true,
             useEmulators: false,
@@ -325,7 +321,7 @@ jobs:
               publicKey: ""
             }},
             api: {{
-              cloudFunctionsUrl: "https://us-central1-{projectId}.cloudfunctions.net"
+              cloudFunctionsUrl: "https://us-central1-{masterProject}.cloudfunctions.net"
             }},
             features: {{
               seedDataEnabled: false,
@@ -338,7 +334,8 @@ jobs:
             projectId=config["projectId"],
             storageBucket=config["storageBucket"],
             messagingSenderId=config["messagingSenderId"],
-            appId=config["appId"]
+            appId=config["appId"],
+            masterProject=master_functions_project
           )
           with open("src/environments/environment.prod.ts", "w") as f:
             f.write(content)
@@ -359,32 +356,20 @@ jobs:
           python3 << 'PYEOF'
           import os, json
           site_id = os.environ.get("SITE_ID", "").strip()
-          project_id = os.environ.get("PROJECT_ID", "").strip()
           payload = {
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
               "rewrites": [{ "source": "**", "destination": "/index.html" }]
-            },
-            "functions": {
-              "source": "functions",
-              "runtime": "nodejs22"
             }
           }
           if site_id and site_id != "default":
               payload["hosting"]["site"] = site_id
           with open("firebase.json", "w") as f:
               json.dump(payload, f, indent=2)
-
-          site_url = f"https://{site_id}.web.app" if site_id else "https://ecommerce-vertex.web.app"
-          webhook_url = f"https://us-central1-{project_id}.cloudfunctions.net/mercadoPagoWebhookHandler" if project_id else ""
-          with open("functions/.env", "w") as f:
-              f.write(f"SITE_URL={site_url}\n")
-              f.write(f"MERCADOPAGO_WEBHOOK_URL={webhook_url}\n")
           PYEOF
         env:
           SITE_ID: ${{ github.event.client_payload.site_id }}
-          PROJECT_ID: ${{ github.event.client_payload.project_id }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
@@ -404,22 +389,8 @@ jobs:
             npx --yes firebase-tools hosting:sites:create "$SITE_ID" --project "$PROJECT_ID" --non-interactive || echo "Warning: hosting:sites:create returned non-zero status"
           fi
 
-          echo "Deploying hosting and functions to Firebase project $PROJECT_ID..."
-          for attempt in 1 2 3; do
-            echo "Deployment attempt $attempt of 3..."
-            if npx --yes firebase-tools deploy --project "$PROJECT_ID" --only hosting,functions --non-interactive; then
-              echo "Deployment successful on attempt $attempt"
-              break
-            else
-              if [ $attempt -lt 3 ]; then
-                echo "Deploy attempt $attempt failed. Waiting 10 seconds for GCP IAM/API propagation..."
-                sleep 10
-              else
-                echo "Error: Firebase deploy failed after 3 attempts."
-                exit 1
-              fi
-            fi
-          done
+          echo "Deploying hosting to Firebase project $PROJECT_ID..."
+          npx --yes firebase-tools deploy --project "$PROJECT_ID" --only hosting --non-interactive
 
       - name: Notify platform of deployment completion
         if: always() && github.event.client_payload.platform_project_id != ''
