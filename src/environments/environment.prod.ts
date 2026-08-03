@@ -14,7 +14,7 @@ export const environment = {
     publicKey: '',
   },
   api: {
-    cloudFunctionsUrl: '',
+    cloudFunctionsUrl: 'https://us-central1-ecommerce-vertex.cloudfunctions.net',
   },
   features: {
     seedDataEnabled: false,
