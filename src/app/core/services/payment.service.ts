@@ -48,7 +48,13 @@ export class PaymentService {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            data: { items: preferenceItems, external_reference: orderId },
+            data: {
+              items: preferenceItems,
+              external_reference: orderId,
+              // El proyecto del shard donde viven los datos de la tienda (orden/catálogo).
+              // Las functions del master resuelven el Firestore de ese proyecto.
+              projectId: environment.firebaseConfig.projectId,
+            },
           }),
         }).then(async (res) => {
           if (!res.ok) {

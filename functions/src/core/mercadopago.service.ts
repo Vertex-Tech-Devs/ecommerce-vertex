@@ -109,13 +109,23 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       currency_id: 'ARS',
     })),
     external_reference,
+    // El tenant (tienda) en la URL del webhook para que la notificación de MP pueda
+    // resolver el access token correcto y el shard de la tienda.
+    notification_url:
+      runtime.webhook +
+      (runtime.webhook.includes('?') ? '&' : '?') +
+      `tenant=${encodeURIComponent(tenantId || '')}`,
+    // Metadata para el webhook: identifica la tienda y su shard (Firestore del proyecto).
+    metadata: {
+      tenant_id: tenantId || '',
+      project_id: data.projectId || '',
+    },
     back_urls: {
       success: `${siteUrl.value()}/shop/order-confirmation/${external_reference}`,
       failure: `${siteUrl.value()}/shop/cart`,
       pending: `${siteUrl.value()}/shop/cart`,
     },
     auto_return: 'approved' as const,
-    notification_url: runtime.webhook,
     // Expiración explícita (+1 día) para que cleanupExpiredOrders pueda revertir stock
     // de órdenes abandonadas de forma fiable.
     date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
@@ -143,6 +153,7 @@ export async function getPaymentDetails(paymentId: string, tenantId?: string) {
       id: paymentId,
       status: 'approved',
       external_reference: orderId,
+      metadata: {},
     };
   }
 

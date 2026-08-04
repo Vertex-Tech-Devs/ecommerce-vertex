@@ -1,6 +1,7 @@
 import { onCall, HttpsError, onRequest } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { initializeApp, getApps } from 'firebase-admin/app';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { PaymentRequestSchema } from './core/payment.model';
 import { createPreference, getPaymentDetails } from './core/mercadopago.service';
@@ -11,6 +12,26 @@ import * as crypto from 'crypto';
 const db = getFirestore();
 const secretsClient = new SecretManagerServiceClient();
 const secretCache = new Map<string, string>();
+
+/**
+ * Resuelve el Firestore del proyecto correcto.
+ * - Sin projectId (o igual al del entorno): el Firestore local (master).
+ * - Con un projectId de shard: una app dedicada (usa las credenciales del default app;
+ *   la SA del ecommerce debe tener roles/datastore.user en el shard).
+ * Así la orden y el catálogo de cada tienda se leen del shard donde realmente viven.
+ */
+function resolveTenantDb(projectId?: string): ReturnType<typeof getFirestore> {
+  const ownProject = process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT'] || '';
+  if (!projectId || projectId === ownProject) {
+    return db;
+  }
+  const appName = `shard-${projectId}`;
+  let app = getApps().find((a) => a.name === appName);
+  if (!app) {
+    app = initializeApp({ projectId }, appName);
+  }
+  return getFirestore(app);
+}
 
 function resolveProjectId(): string {
   return process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT'] || '';
@@ -217,13 +238,14 @@ export const upsertMercadoPagoCredentials = onCall(
   },
 );
 
-async function revertStockOnFailure(orderId: string) {
+async function revertStockOnFailure(orderId: string, projectId?: string) {
   logger.info(`Iniciando reversón de stock para pedido cancelado/fallido: ${orderId}`);
 
-  const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+  const tenantDb = resolveTenantDb(projectId);
+  const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
   try {
-    await db.runTransaction(async (transaction) => {
+    await tenantDb.runTransaction(async (transaction) => {
       const freshOrderDoc = await transaction.get(orderRef);
       if (!freshOrderDoc.exists) {
         logger.error(`Pedido ${orderId} no existe. No se puede revertir stock.`);
@@ -250,7 +272,7 @@ async function revertStockOnFailure(orderId: string) {
         }
         const validItem = itemValidation.data;
 
-        const variantRef = db
+        const variantRef = tenantDb
           .collection(collectionPath(COLLECTIONS.PRODUCTS))
           .doc(validItem.productId)
           .collection('variants')
@@ -290,14 +312,16 @@ export const createPaymentPreference = onCall(
 
     const paymentData = validationResult.data;
     const orderId = paymentData.external_reference;
+    // Datos de la tienda (orden/catálogo) viven en el proyecto del shard.
+    const tenantDb = resolveTenantDb(paymentData.projectId);
 
     logger.info(`Iniciando creación de preferencia para el pedido: ${orderId}`);
 
     // Resolve order document in the flat orders collection
-    const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+    const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
     try {
-      const preference = await db.runTransaction(async (transaction) => {
+      const preference = await tenantDb.runTransaction(async (transaction) => {
         const orderDoc = await transaction.get(orderRef);
         if (!orderDoc.exists) {
           logger.error(`Intento de pago para una orden no existente: ${orderId}`);
@@ -508,10 +532,20 @@ export const mercadoPagoWebhookHandler = onRequest(
     }
 
     try {
-      const payment = await getPaymentDetails(paymentId);
+      // El tenant (tienda) viene en el query del notification_url (configurado por
+      // createPreference) — necesario para resolver el access token de MP de la tienda.
+      const tenantFromQuery = String(request.query.tenant || request.query.tenantId || '');
+      const payment = await getPaymentDetails(paymentId, tenantFromQuery);
       if (!payment) {
         throw new Error(`Detalles del pago ${paymentId} no encontrados.`);
       }
+
+      // El shard (projectId del Firestore de la tienda) viaja en la metadata del pago.
+      const paymentMeta = (payment as { metadata?: Record<string, string> }).metadata ?? {};
+      const tenantProjectId = String(
+        paymentMeta.project_id || paymentMeta.projectId || '',
+      );
+      const tenantDb = resolveTenantDb(tenantProjectId);
 
       const orderId = payment.external_reference;
       const paymentStatus = payment.status;
@@ -522,8 +556,8 @@ export const mercadoPagoWebhookHandler = onRequest(
         return;
       }
 
-      // Resolve order in the flat orders collection
-      const orderRef = db.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+      // Resolve order in the flat orders collection (Firestore del shard de la tienda)
+      const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
       if (paymentStatus === 'approved') {
         logger.info(`Pago ${paymentId} (pedido ${orderId}) aprobado. Stock ya fue descontado.`);
@@ -534,7 +568,7 @@ export const mercadoPagoWebhookHandler = onRequest(
             `El pago ${paymentId} fue aprobado, pero el stock no estaba marcado como descontado. Re-ejecutando lógica de descuento.`,
           );
 
-          await db.runTransaction(async (transaction) => {
+          await tenantDb.runTransaction(async (transaction) => {
             const orderData = orderDoc.data();
             if (!orderData) return;
 
@@ -543,7 +577,7 @@ export const mercadoPagoWebhookHandler = onRequest(
               if (!itemValidation.success) continue;
               const validItem = itemValidation.data;
 
-              const variantRef = db
+              const variantRef = tenantDb
                 .collection(collectionPath(COLLECTIONS.PRODUCTS))
                 .doc(validItem.productId)
                 .collection('variants')
@@ -570,7 +604,7 @@ export const mercadoPagoWebhookHandler = onRequest(
         logger.warn(
           `Pago ${paymentId} (pedido ${orderId}) fue ${paymentStatus}. Revertiendo stock si es necesario.`,
         );
-        await revertStockOnFailure(orderId);
+        await revertStockOnFailure(orderId, tenantProjectId);
       } else {
         logger.info(
           `Pago ${paymentId} (pedido ${orderId}) está en estado ${paymentStatus}. No se toma acción.`,

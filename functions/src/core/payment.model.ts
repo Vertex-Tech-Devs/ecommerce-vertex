@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const PaymentRequestSchema = z.object({
   external_reference: z.string().min(1, 'La referencia externa (orderId) es requerida.'),
+  // Proyecto del shard donde viven los datos de la tienda (orden/catálogo).
+  projectId: z.string().optional(),
   items: z
     .array(
       z.object({
