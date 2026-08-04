@@ -53,7 +53,7 @@ export class PaymentService {
         }).then(async (res) => {
           if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            throw new Error(body?.error?.message || `HTTP ${res.status}`);
+            throw new Error(body?.error?.message ?? `HTTP ${res.status}`);
           }
           return res.json();
         }),
