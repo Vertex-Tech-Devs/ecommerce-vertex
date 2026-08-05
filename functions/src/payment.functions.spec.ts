@@ -2,11 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ── Firebase & SDK mocks ───────────────────────────────────────────────────
 
-const {
-  mockRunTransaction,
-  mockTenantDbCollection,
-  mockCreatePreference,
-} = vi.hoisted(() => {
+const { mockRunTransaction, mockTenantDbCollection, mockCreatePreference } = vi.hoisted(() => {
   const mockRunTransaction = vi.fn();
   const mockTenantDbCollection = vi.fn();
   const mockCreatePreference = vi.fn();

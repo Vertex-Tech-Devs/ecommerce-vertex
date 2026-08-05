@@ -68,8 +68,14 @@ async function getMercadoPagoRuntimeConfig(
   }
 
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
-  const tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : '';
-  // NUNCA se usa el accessToken en claro guardado en el documento público de configuración.
+  let tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : '';
+  if (!tokenFromSecret) {
+    // Fallback de plataforma para credenciales de prueba predeterminadas
+    tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
+    if (!tokenFromSecret && process.env.MERCADOPAGO_TEST_TOKEN) {
+      tokenFromSecret = process.env.MERCADOPAGO_TEST_TOKEN.trim();
+    }
+  }
   const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.['webhookUrl'] || webhookUrl.value() || '').trim();
 

@@ -429,7 +429,10 @@ export const createPaymentPreference = onCall(
         throw error;
       }
 
-      if (typeof error?.message === 'string' && error.message.includes('Mercado Pago no está configurado')) {
+      if (
+        typeof error?.message === 'string' &&
+        error.message.includes('Mercado Pago no está configurado')
+      ) {
         throw new HttpsError('failed-precondition', error.message);
       }
 
@@ -547,9 +550,7 @@ export const mercadoPagoWebhookHandler = onRequest(
 
       // El shard (projectId del Firestore de la tienda) viaja en la metadata del pago.
       const paymentMeta = (payment as { metadata?: Record<string, string> }).metadata ?? {};
-      const tenantProjectId = String(
-        paymentMeta.project_id || paymentMeta.projectId || '',
-      );
+      const tenantProjectId = String(paymentMeta.project_id || paymentMeta.projectId || '');
       const tenantDb = resolveTenantDb(tenantProjectId);
 
       const orderId = payment.external_reference;
