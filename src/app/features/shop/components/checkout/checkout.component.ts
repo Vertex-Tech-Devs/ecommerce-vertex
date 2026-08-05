@@ -111,6 +111,8 @@ export class CheckoutComponent implements OnInit {
         errorMessage = `¡Stock insuficiente! ${err.message}. Por favor, revisa tu carrito.`;
       } else if ((err.message ?? '').includes('precio inválido')) {
         errorMessage = `Uno de los productos en tu carrito tiene un precio inválido. Por favor, revisa tu carrito.`;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       this.sweetAlertService.error('Pago Rechazado', errorMessage);

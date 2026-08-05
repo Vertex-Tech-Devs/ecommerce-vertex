@@ -11,7 +11,7 @@ export const PaymentRequestSchema = z.object({
         variantId: z.string().min(1),
         title: z.string(),
         quantity: z.number().positive(),
-        unit_price: z.number().positive(),
+        unit_price: z.number().nonnegative(),
       }),
     )
     .min(1, 'La solicitud debe incluir al menos un producto.')
