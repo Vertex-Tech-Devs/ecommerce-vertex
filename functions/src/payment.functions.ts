@@ -340,7 +340,7 @@ export const createPaymentPreference = onCall(
         const serverItems: typeof paymentData.items = [];
 
         for (const item of paymentData.items) {
-          const productRef = db
+          const productRef = tenantDb
             .collection(collectionPath(COLLECTIONS.PRODUCTS))
             .doc(item.productId);
           const variantRef = productRef.collection('variants').doc(item.variantId);
@@ -384,7 +384,7 @@ export const createPaymentPreference = onCall(
         }
 
         for (const item of paymentData.items) {
-          const variantRef = db
+          const variantRef = tenantDb
             .collection(collectionPath(COLLECTIONS.PRODUCTS))
             .doc(item.productId)
             .collection('variants')
@@ -421,11 +421,16 @@ export const createPaymentPreference = onCall(
       };
     } catch (error: any) {
       logger.error(`Error crítico al crear la preferencia de pago para ${orderId}:`, {
-        errorMessage: error.message,
+        errorMessage: error?.message,
+        errorStack: error?.stack,
       });
 
       if (error instanceof HttpsError) {
         throw error;
+      }
+
+      if (typeof error?.message === 'string' && error.message.includes('Mercado Pago no está configurado')) {
+        throw new HttpsError('failed-precondition', error.message);
       }
 
       throw new HttpsError('internal', 'No se pudo procesar la solicitud de pago.');
