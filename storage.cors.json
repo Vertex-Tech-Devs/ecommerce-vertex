@@ -1,23 +1,22 @@
 [
   {
     "origin": [
-      "https://*.web.app",
-      "https://*.firebaseapp.com",
-      "http://localhost:4200",
-      "http://localhost:4000",
-      "http://localhost",
-      "http://127.0.0.1:4200",
-      "http://127.0.0.1:4000",
-      "http://127.0.0.1"
+      "*"
     ],
-    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    "maxAgeSeconds": 3600,
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS"
+    ],
     "responseHeader": [
       "Content-Type",
       "Authorization",
       "Content-Length",
       "x-firebase-storage-version",
       "x-goog-resumable"
-    ]
+    ],
+    "maxAgeSeconds": 3600
   }
 ]
