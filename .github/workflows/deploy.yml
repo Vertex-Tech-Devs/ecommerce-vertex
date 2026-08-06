@@ -208,10 +208,12 @@ jobs:
         env:
           MERCADOPAGO_WEBHOOK_URL: ${{ secrets.MERCADOPAGO_WEBHOOK_URL }}
           SITE_URL: ${{ secrets.SITE_URL }}
+          MERCADOPAGO_ACCESSTOKEN: ${{ secrets.MERCADOPAGO_ACCESSTOKEN }}
         run: |
           cat > functions/.env.ecommerce-vertex-dev << EOF
           MERCADOPAGO_WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
           SITE_URL=${SITE_URL}
+          MERCADOPAGO_ACCESSTOKEN=${MERCADOPAGO_ACCESSTOKEN}
           EOF
 
       - name: Authenticate to Google Cloud
@@ -253,10 +255,12 @@ jobs:
         env:
           MERCADOPAGO_WEBHOOK_URL: ${{ secrets.MERCADOPAGO_WEBHOOK_URL }}
           SITE_URL: ${{ secrets.SITE_URL }}
+          MERCADOPAGO_ACCESSTOKEN: ${{ secrets.MERCADOPAGO_ACCESSTOKEN }}
         run: |
           cat > functions/.env.ecommerce-vertex << EOF
           MERCADOPAGO_WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
           SITE_URL=${SITE_URL}
+          MERCADOPAGO_ACCESSTOKEN=${MERCADOPAGO_ACCESSTOKEN}
           EOF
 
       - name: Authenticate to Google Cloud
