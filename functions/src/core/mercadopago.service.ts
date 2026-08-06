@@ -8,6 +8,7 @@ import { singletonDoc } from './config';
 
 const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
 const webhookUrl = defineString('MERCADOPAGO_WEBHOOK_URL', { default: '' });
+const mpAccessTokenParam = defineString('MERCADOPAGO_ACCESSTOKEN', { default: '' });
 const secretsClient = new SecretManagerServiceClient();
 
 function resolveProjectId(): string {
@@ -70,11 +71,16 @@ async function getMercadoPagoRuntimeConfig(
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
   let tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : '';
   if (!tokenFromSecret) {
-    // Fallback de plataforma para credenciales de prueba predeterminadas
+    // Fallback de plataforma para credenciales de prueba predeterminadas en Secret Manager
     tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
-    if (!tokenFromSecret && process.env.MERCADOPAGO_TEST_TOKEN) {
-      tokenFromSecret = process.env.MERCADOPAGO_TEST_TOKEN.trim();
-    }
+  }
+  if (!tokenFromSecret) {
+    // Fallback a variable de entorno o parámetro (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
+    tokenFromSecret =
+      mpAccessTokenParam.value() ||
+      process.env.MERCADOPAGO_ACCESSTOKEN?.trim() ||
+      process.env.MERCADOPAGO_TEST_TOKEN?.trim() ||
+      '';
   }
   const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.['webhookUrl'] || webhookUrl.value() || '').trim();
