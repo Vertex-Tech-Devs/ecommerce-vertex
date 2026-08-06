@@ -47,7 +47,7 @@ export class CatalogComponent implements OnInit {
 
   readonly sort = signal<string>('newest');
   readonly page = signal<number>(1);
-  readonly itemsPerPage = signal<number>(12);
+  readonly itemsPerPage = signal<number>(8);
   readonly productsFromQuery = signal<Product[]>([]);
   readonly isLoading = signal<boolean>(true);
 
