@@ -41,9 +41,29 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
   }
 }
 
+function resolveStoreBaseUrl(tenantId?: string, mpConfig?: Record<string, any>): string {
+  if (process.env.FUNCTIONS_EMULATOR === 'true') {
+    return 'http://localhost:4201';
+  }
+
+  const customDomain = String(mpConfig?.['siteUrl'] || mpConfig?.['customDomain'] || '').trim();
+  if (customDomain) {
+    if (/^https?:\/\//i.test(customDomain)) {
+      return customDomain.replace(/\/+$/, '');
+    }
+    return `https://${customDomain.replace(/\/+$/, '')}`;
+  }
+
+  if (tenantId && tenantId !== 'ecommerce-vertex-dev' && tenantId !== 'store') {
+    return `https://vtx-${tenantId}.web.app`;
+  }
+
+  return siteUrl.value().replace(/\/+$/, '');
+}
+
 async function getMercadoPagoRuntimeConfig(
   storeId?: string,
-): Promise<{ accessToken: string; webhook: string }> {
+): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
   const db = getFirestore();
 
   // Flat multi-tenant path: configuracion/store_{storeId}
@@ -70,6 +90,10 @@ async function getMercadoPagoRuntimeConfig(
 
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
   let tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : '';
+  if (!tokenFromSecret && secretName !== 'mp-access-token-default') {
+    // Si el secreto específico falló, intentar fallback al secreto por defecto de la plataforma
+    tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
+  }
   if (!tokenFromSecret) {
     // Fallback de plataforma para credenciales de prueba predeterminadas en Secret Manager
     tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
@@ -84,12 +108,13 @@ async function getMercadoPagoRuntimeConfig(
   }
   const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.['webhookUrl'] || webhookUrl.value() || '').trim();
+  const baseUrl = resolveStoreBaseUrl(storeId, mpConfig);
 
   if (!accessToken) {
     throw new Error('Mercado Pago no está configurado: falta access token.');
   }
 
-  return { accessToken, webhook };
+  return { accessToken, webhook, baseUrl };
 }
 
 export async function createPreference(data: PaymentRequestData, tenantId?: string) {
@@ -133,9 +158,9 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       project_id: data.projectId || '',
     },
     back_urls: {
-      success: `${siteUrl.value()}/shop/order-confirmation/${external_reference}`,
-      failure: `${siteUrl.value()}/shop/cart`,
-      pending: `${siteUrl.value()}/shop/cart`,
+      success: `${runtime.baseUrl}/shop/order-confirmation/${external_reference}`,
+      failure: `${runtime.baseUrl}/shop/cart`,
+      pending: `${runtime.baseUrl}/shop/cart`,
     },
     auto_return: 'approved' as const,
     // Expiración explícita (+1 día) para que cleanupExpiredOrders pueda revertir stock
