@@ -196,15 +196,6 @@
           [items]="cartService.cart().items"
           [total]="cartService.cart().total"
         ></app-order-summary>
-        <div class="checkout__sandbox-notice" aria-label="Aviso de Modo Prueba">
-          <div class="checkout__sandbox-badge">ℹ️ Modo Prueba (Sandbox Mercado Pago)</div>
-          <p class="checkout__sandbox-text">
-            Para probar el pago en Mercado Pago, seleccioná <strong>"Pagar como invitado"</strong> o
-            usá un <strong>Usuario de Prueba</strong> de Mercado Pago. Si intentás pagar iniciando
-            sesión con tu cuenta real de Mercado Pago, la pasarela mostrará un aviso de
-            incompatibilidad de Sandbox.
-          </p>
-        </div>
         <button
           type="button"
           class="checkout__pay-btn"
