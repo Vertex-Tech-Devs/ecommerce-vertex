@@ -149,8 +149,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   const rawPhone = String(payerData?.phone || '1122334455').replace(/\D/g, '');
   const areaCode = rawPhone.length >= 8 ? rawPhone.slice(0, 2) : '11';
   const phoneNumber = rawPhone.length >= 8 ? rawPhone.slice(2) : rawPhone || '22334455';
-  const streetNumber =
-    Number(String(payerData?.address?.zipCode || '1234').replace(/\D/g, '')) || 1234;
+  const streetNumber = String(payerData?.address?.zipCode || '1234').replace(/\D/g, '') || '1234';
 
   const payerObject = payerData?.email
     ? {
