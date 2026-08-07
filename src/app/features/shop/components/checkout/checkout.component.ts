@@ -13,6 +13,8 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { OrderService } from '@core/services/order.service';
 import type { Order, OrderItem } from '@core/models/order.model';
 
+import { environment } from '../../../../environments/environment';
+
 @Component({
   selector: 'app-checkout',
   standalone: true,
@@ -29,6 +31,7 @@ export class CheckoutComponent implements OnInit {
   private orderService = inject(OrderService);
   private router = inject(Router);
 
+  readonly isProduction = environment.production;
   checkoutForm!: FormGroup;
   isProcessingPayment = signal(false);
 
@@ -59,17 +62,19 @@ export class CheckoutComponent implements OnInit {
         firstName: 'Juan',
         lastName: 'Prueba',
         email: 'test_user_2739270755134742108@testuser.com',
-        phone: '1122334455',
+        phone: '1123456789',
         dni: '30123456',
       },
       shippingInfo: {
         address: 'Av. Corrientes 1234',
-        city: 'Buenos Aires',
+        city: 'CABA',
         zipCode: '1043',
         province: 'Buenos Aires',
       },
     });
     this.checkoutForm.markAllAsTouched();
+    this.checkoutForm.markAsDirty();
+    this.checkoutForm.updateValueAndValidity();
   }
 
   get contactControls(): { [key: string]: AbstractControl } {

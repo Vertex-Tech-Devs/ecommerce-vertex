@@ -145,6 +145,18 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   const preferenceClient = new Preference(mpClient);
 
   const payerData = data.payer;
+  const sanitizedDni = String(payerData?.dni || '30123456').replace(/\D/g, '');
+  const payerObject = payerData?.email
+    ? {
+        name: payerData.firstName?.trim() || 'Cliente',
+        surname: payerData.lastName?.trim() || 'Vertex',
+        email: payerData.email?.trim().toLowerCase(),
+        identification: {
+          type: 'DNI',
+          number: sanitizedDni.length >= 7 ? sanitizedDni : '30123456',
+        },
+      }
+    : undefined;
 
   const preferenceBody = {
     items: items.map((item) => ({
@@ -154,17 +166,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       unit_price: Number(item.unit_price),
       currency_id: 'ARS',
     })),
-    payer: payerData?.email
-      ? {
-          name: payerData.firstName || 'Cliente',
-          surname: payerData.lastName || 'Vertex',
-          email: payerData.email,
-          identification: {
-            type: 'DNI',
-            number: String(payerData.dni || '30123456').replace(/\D/g, ''),
-          },
-        }
-      : undefined,
+    payer: payerObject,
     external_reference,
     // El tenant (tienda) en la URL del webhook para que la notificación de MP pueda
     // resolver el access token correcto y el shard de la tienda.

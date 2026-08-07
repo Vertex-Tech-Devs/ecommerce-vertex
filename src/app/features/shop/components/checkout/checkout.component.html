@@ -6,14 +6,16 @@
         <fieldset class="checkout__section">
           <div class="checkout__section-header">
             <legend class="checkout__section-title">1. Información de Contacto</legend>
-            <button
-              type="button"
-              class="checkout__test-fill-btn"
-              (click)="fillTestUser()"
-              title="Auto-completar datos válidos de prueba para Mercado Pago Sandbox"
-            >
-              ⚡ Usar Datos de Prueba MP
-            </button>
+            @if (!isProduction) {
+              <button
+                type="button"
+                class="checkout__test-fill-btn"
+                (click)="fillTestUser()"
+                title="Auto-completar datos válidos de prueba para Mercado Pago Sandbox"
+              >
+                ⚡ Usar Datos de Prueba MP
+              </button>
+            }
           </div>
           <div formGroupName="contactInfo" class="checkout__fields">
             <div class="checkout__field checkout__field--half">
