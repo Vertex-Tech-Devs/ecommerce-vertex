@@ -13,7 +13,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { OrderService } from '@core/services/order.service';
 import type { Order, OrderItem } from '@core/models/order.model';
 
-import { environment } from '../../../../environments/environment';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-checkout',
