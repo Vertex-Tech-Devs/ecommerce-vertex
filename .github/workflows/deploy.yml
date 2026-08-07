@@ -206,11 +206,23 @@ jobs:
           MERCADOPAGO_WEBHOOK_URL: ${{ secrets.MERCADOPAGO_WEBHOOK_URL }}
           SITE_URL: ${{ secrets.SITE_URL }}
           MERCADOPAGO_ACCESSTOKEN: ${{ secrets.MERCADOPAGO_ACCESSTOKEN }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
           cat > functions/.env.ecommerce-vertex-dev << EOF
           MERCADOPAGO_WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
           SITE_URL=${SITE_URL}
           MERCADOPAGO_ACCESSTOKEN=${MERCADOPAGO_ACCESSTOKEN}
+          SMTP_HOST=${SMTP_HOST}
+          SMTP_PORT=${SMTP_PORT:-587}
+          SMTP_USER=${SMTP_USER}
+          SMTP_PASS=${SMTP_PASS}
+          FROM_EMAIL=${FROM_EMAIL}
+          NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
           EOF
 
       - name: Authenticate to Google Cloud
@@ -267,11 +279,23 @@ jobs:
           MERCADOPAGO_WEBHOOK_URL: ${{ secrets.MERCADOPAGO_WEBHOOK_URL }}
           SITE_URL: ${{ secrets.SITE_URL }}
           MERCADOPAGO_ACCESSTOKEN: ${{ secrets.MERCADOPAGO_ACCESSTOKEN }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          NOTIFICATION_EMAIL: ${{ secrets.NOTIFICATION_EMAIL }}
         run: |
           cat > functions/.env.ecommerce-vertex << EOF
           MERCADOPAGO_WEBHOOK_URL=${MERCADOPAGO_WEBHOOK_URL}
           SITE_URL=${SITE_URL}
           MERCADOPAGO_ACCESSTOKEN=${MERCADOPAGO_ACCESSTOKEN}
+          SMTP_HOST=${SMTP_HOST}
+          SMTP_PORT=${SMTP_PORT:-587}
+          SMTP_USER=${SMTP_USER}
+          SMTP_PASS=${SMTP_PASS}
+          FROM_EMAIL=${FROM_EMAIL}
+          NOTIFICATION_EMAIL=${NOTIFICATION_EMAIL}
           EOF
 
       - name: Authenticate to Google Cloud
