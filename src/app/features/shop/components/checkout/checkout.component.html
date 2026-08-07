@@ -4,19 +4,7 @@
     <div class="checkout__form-card">
       <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" novalidate>
         <fieldset class="checkout__section">
-          <div class="checkout__section-header">
-            <legend class="checkout__section-title">1. Información de Contacto</legend>
-            @if (isDevEnvironment) {
-              <button
-                type="button"
-                class="checkout__test-fill-btn"
-                (click)="fillTestUser()"
-                title="Auto-completar datos válidos de prueba para Mercado Pago Sandbox"
-              >
-                ⚡ Usar Datos de Prueba MP
-              </button>
-            }
-          </div>
+          <legend class="checkout__section-title">1. Información de Contacto</legend>
           <div formGroupName="contactInfo" class="checkout__fields">
             <div class="checkout__field checkout__field--half">
               <label for="firstName" class="checkout__label">Nombre</label>

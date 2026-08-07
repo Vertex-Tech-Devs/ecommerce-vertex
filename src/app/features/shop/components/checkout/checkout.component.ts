@@ -13,8 +13,6 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { OrderService } from '@core/services/order.service';
 import type { Order, OrderItem } from '@core/models/order.model';
 
-import { environment } from '@environments/environment';
-
 @Component({
   selector: 'app-checkout',
   standalone: true,
@@ -31,11 +29,6 @@ export class CheckoutComponent implements OnInit {
   private orderService = inject(OrderService);
   private router = inject(Router);
 
-  readonly isDevEnvironment =
-    !environment.production ||
-    environment.firebaseConfig.projectId.includes('dev') ||
-    environment.firebaseConfig.projectId.startsWith('vtx-sd-') ||
-    (typeof window !== 'undefined' && window.location.hostname.includes('localhost'));
   checkoutForm!: FormGroup;
   isProcessingPayment = signal(false);
 
@@ -58,32 +51,6 @@ export class CheckoutComponent implements OnInit {
         province: ['', [Validators.required, Validators.minLength(4)]],
       }),
     });
-  }
-
-  fillTestUser(): void {
-    this.checkoutForm.patchValue({
-      contactInfo: {
-        firstName: 'Juan',
-        lastName: 'Prueba',
-        email: 'test_user_2739270755134742108@testuser.com',
-        phone: '1123456789',
-        dni: '30123456',
-      },
-      shippingInfo: {
-        address: 'Av. Corrientes 1234',
-        city: 'CABA',
-        zipCode: '1043',
-        province: 'Buenos Aires',
-      },
-    });
-    this.checkoutForm.markAllAsTouched();
-    this.checkoutForm.markAsDirty();
-    this.checkoutForm.updateValueAndValidity();
-
-    this.sweetAlertService.warning(
-      'Datos de Prueba Cargados',
-      'Mercado Pago Sandbox requiere pagar en ventana Incógnito (sin tu cuenta personal logueada en MP) con la tarjeta de prueba 4509 9500 0000 0000 (venc. 11/28, CVC 123).',
-    );
   }
 
   get contactControls(): { [key: string]: AbstractControl } {

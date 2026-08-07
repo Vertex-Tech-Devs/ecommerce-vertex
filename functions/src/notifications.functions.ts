@@ -1,10 +1,11 @@
-import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentWritten, onDocumentCreated } from 'firebase-functions/v2/firestore';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { defineString } from 'firebase-functions/params';
 import { OrderSchema } from './core/order.model';
 import type { Order } from './core/order.model';
 import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
+import { sendEmail, getNotificationEmail } from './core/email.service';
 
 const db = getFirestore();
 const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
@@ -51,7 +52,6 @@ function getVariantDescription(
     .join(' / ');
 }
 
-// Escapa valores interpolados en plantillas HTML para prevenir inyección de HTML/links maliciosos
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -97,17 +97,29 @@ function buildEmailHtml(
   return emailBody + buttonsHtml;
 }
 
-export const onOrderCreatedSendNotifications = onDocumentCreated(
+export const onOrderWrittenSendNotifications = onDocumentWritten(
   `${COLLECTIONS.ORDERS}/{orderId}`,
   async (event) => {
-    const snap = event.data;
+    const afterSnap = event.data?.after;
     const orderId = event.params.orderId;
-    if (!snap) {
-      logger.warn(`Evento sin datos para el pedido ${orderId}.`);
+    if (!afterSnap || !afterSnap.exists) {
       return;
     }
 
-    const validationResult = OrderSchema.safeParse(snap.data());
+    const orderRaw = afterSnap.data() as Record<string, unknown>;
+    const status = orderRaw['status'] as string | undefined;
+
+    // Solo notificar cuando el pedido fue pagado/aprobado
+    if (status !== 'processing' && status !== 'approved') {
+      return;
+    }
+
+    // Idempotencia: evitar re-envíos si las notificaciones ya fueron marcadas como enviadas
+    if (orderRaw['notificationsSent'] === true) {
+      return;
+    }
+
+    const validationResult = OrderSchema.safeParse(afterSnap.data());
     if (!validationResult.success) {
       logger.error(`Datos del pedido ${orderId} son inválidos.`, {
         errors: validationResult.error.flatten(),
@@ -115,35 +127,36 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(
       return;
     }
     const orderData = validationResult.data;
-    const storeId = (snap.data() as Record<string, unknown>)['storeId'] as string | undefined;
+    const storeId = orderRaw['storeId'] as string | undefined;
     if (!storeId) {
       logger.warn(`Pedido ${orderId} sin storeId. No se enviarán notificaciones.`);
       return;
     }
-    logger.info(`Pedido ${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`);
+    logger.info(`Pedido pagado #${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`);
 
     const config = await getEmailConfig(storeId);
-    if (!config) {
-      logger.error(`No se enviarán correos para el pedido ${orderId} por falta de configuración.`);
-      return;
-    }
-
     const attributeMap = await getAttributeMap(storeId);
     const mailCreationPromises = [];
 
     const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    // Build standard FROM address matching the platform's verified SMTP domain
     const projectId = process.env.GCLOUD_PROJECT || 'vertex-platform-dev';
     const defaultFromDomain = projectId.includes('vertex-platform-app')
       ? 'vertex-platform-app.web.app'
       : 'vertex-platform-dev.firebaseapp.com';
     const defaultFromEmail = `no-reply@${defaultFromDomain}`;
-    const storeName = config.storeName || 'Vertex Store';
+    const storeName = config?.storeName || 'Vertex Store';
     const fromAddress = `${storeName} <${defaultFromEmail}>`;
 
-    if (config.adminNotification && config.storeOwnerEmail) {
-      const adminConfig = config.adminNotification;
+    const adminEmail = config?.storeOwnerEmail || config?.notificationEmail || getNotificationEmail();
+
+    if (adminEmail) {
+      const adminConfig = config?.adminNotification || {
+        subject: `Nueva venta aprobada #${orderId}`,
+        template: `<p>Has recibido una nueva venta aprobada para el pedido #{orderId} de {clientName}.</p><p>Total: ${orderData.total}</p>{itemsList}`,
+        showManageButton: true,
+        showWhatsappButton: true,
+      };
+
       const manageButtonUrl = adminConfig.showManageButton
         ? `${siteUrl.value()}/admin/orders/detail/${orderId}`
         : null;
@@ -162,7 +175,7 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(
       mailCreationPromises.push(
         db.collection(collectionPath(COLLECTIONS.MAIL)).add({
           storeId,
-          to: [config.storeOwnerEmail],
+          to: [adminEmail],
           from: fromAddress,
           message: {
             subject: adminConfig.subject.replace(/{orderId}/g, orderId),
@@ -173,10 +186,15 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(
       );
     }
 
-    if (config.customerConfirmation && orderData.clientEmail) {
-      const customerConfig = config.customerConfirmation;
+    if (orderData.clientEmail) {
+      const customerConfig = config?.customerConfirmation || {
+        subject: `Confirmación de tu compra #${orderId}`,
+        template: `<p>¡Hola {clientName}! Gracias por tu compra.</p><p>Tu pedido #{orderId} fue recibido y se está procesando.</p>{itemsList}`,
+        showWhatsappButton: true,
+      };
+
       const whatsappUrl =
-        customerConfig.showWhatsappButton && config.storeWhatsappNumber
+        customerConfig.showWhatsappButton && config?.storeWhatsappNumber
           ? `https://wa.me/${config.storeWhatsappNumber}`
           : null;
 
@@ -204,9 +222,50 @@ export const onOrderCreatedSendNotifications = onDocumentCreated(
 
     try {
       await Promise.all(mailCreationPromises);
-      logger.info(`Correos para el pedido ${orderId} han sido encolados para envío con TTL.`);
+      await afterSnap.ref.update({ notificationsSent: true });
+      logger.info(`Correos para el pedido ${orderId} encolados exitosamente.`);
     } catch (error) {
       logger.error(`Error al encolar los correos para el pedido ${orderId}`, { error });
+    }
+  },
+);
+
+export const onMailCreatedSendEmail = onDocumentCreated(
+  `${COLLECTIONS.MAIL}/{mailId}`,
+  async (event) => {
+    const snap = event.data;
+    if (!snap) return;
+
+    const mailData = snap.data() as {
+      to?: string | string[];
+      from?: string;
+      message?: { subject?: string; html?: string };
+      status?: string;
+    };
+
+    if (mailData.status === 'sent' || mailData.status === 'skipped') {
+      return;
+    }
+
+    const to = mailData.to;
+    if (!to) {
+      logger.warn(`Documento de email ${event.params.mailId} no tiene destinatario ('to').`);
+      return;
+    }
+
+    const from = mailData.from;
+    const subject = mailData.message?.subject || 'Notificación de compra';
+    const html = mailData.message?.html || '';
+
+    try {
+      const result = await sendEmail({ to, from, subject, html });
+      await snap.ref.update({
+        status: result.success ? 'sent' : result.skipped ? 'skipped' : 'failed',
+        sentAt: new Date(),
+      });
+    } catch (err) {
+      logger.error(`[EmailService] Error al procesar el mail ${event.params.mailId}:`, err);
+      await snap.ref.update({ status: 'failed', error: String(err) });
     }
   },
 );
