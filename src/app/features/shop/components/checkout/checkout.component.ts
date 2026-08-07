@@ -32,7 +32,10 @@ export class CheckoutComponent implements OnInit {
   private router = inject(Router);
 
   readonly isDevEnvironment =
-    !environment.production || environment.firebaseConfig.projectId.includes('dev');
+    !environment.production ||
+    environment.firebaseConfig.projectId.includes('dev') ||
+    environment.firebaseConfig.projectId.startsWith('vtx-sd-') ||
+    (typeof window !== 'undefined' && window.location.hostname.includes('localhost'));
   checkoutForm!: FormGroup;
   isProcessingPayment = signal(false);
 
