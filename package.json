@@ -76,6 +76,7 @@
     "cypress": "^15.17.0",
     "eslint": "^10.5.0",
     "eslint-config-prettier": "^10.1.8",
+    "firebase-tools": "^15.26.0",
     "http-proxy-agent": "^9.1.0",
     "husky": "^9.1.7",
     "jasmine-core": "^6.3.0",
