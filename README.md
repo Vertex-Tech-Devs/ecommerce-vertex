@@ -126,6 +126,25 @@ Errores comunes (capturados en `auth.service.ts` / `login.component.ts`):
 
 ---
 
+## 🖼️ Gestión de Imágenes y Buscador de Variantes en Admin
+
+### Buscador Integrado de Variantes
+
+El formulario de creación/edición de productos (`/admin/products/new` y `/admin/products/:id`) incluye una barra de búsqueda reactiva sobre la tabla de variantes. Permite filtrar al instante por:
+
+- SKU / ID de variante
+- Talle, Color y Atributos dinámicos
+- Nivel de stock
+
+### Subida Multi-Tenant de Imágenes
+
+Las imágenes del producto (`mainImage` y la galería `images`) son procesadas por `ProductMediaService`:
+
+- Se suben a Firebase Storage bajo el namespace estricto del tenant: `tenants/${storeId}/products/images/` y `tenants/${storeId}/products/gallery/`.
+- Cuentan con manejo reactivo de progreso, errores con alertas SweetAlert y marcado automático como `dirty` en los FormControls para evitar desincronizaciones al guardar.
+
+---
+
 ## 💳 Mercado Pago (Credenciales y Webhook)
 
 Desde mayo de 2026, la URL de webhook en configuración de tienda se calcula automáticamente y no es editable en UI.
@@ -135,6 +154,7 @@ Reglas operativas:
 1. `webhookUrl` se deriva de la URL base de Cloud Functions (`.../mercadoPagoWebhookHandler`).
 2. Si existe token configurado (o se rota), la `Public Key` es obligatoria.
 3. El `accessToken` se persiste en Secret Manager; en Firestore solo se guarda referencia y valor enmascarado.
+4. **Resiliencia de Webhooks**: `mercadoPagoWebhookHandler` valida la firma HMAC-SHA256 (`x-signature`) y procesa el pedido en Firestore. Retorna **siempre un código HTTP 200 OK** (incluso en caso de excepciones internas) para evitar que la infraestructura de Mercado Pago entre en bucles de reintentos continuos que puedan degradar la disponibilidad del servicio.
 
 ---
 

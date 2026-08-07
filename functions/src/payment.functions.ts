@@ -417,7 +417,9 @@ export const createPaymentPreference = onCall(
           { ...paymentData, items: serverItems },
           storeId,
         );
-        logger.info(`[MercadoPago:Preference] Preferencia ${mpPreference.id} creada exitosamente para pedido ${orderId}. Total items: ${serverItems.length}`);
+        logger.info(
+          `[MercadoPago:Preference] Preferencia ${mpPreference.id} creada exitosamente para pedido ${orderId}. Total items: ${serverItems.length}`,
+        );
 
         transaction.update(orderRef, {
           mercadopago_preference_id: mpPreference.id,
@@ -458,6 +460,19 @@ export const createPaymentPreference = onCall(
   },
 );
 
+/**
+ * Cloud Function HTTP que recibe y procesa las notificaciones webhook enviadas por Mercado Pago.
+ *
+ * Flujo y Resiliencia:
+ * 1. Valida la firma HMAC-SHA256 (`x-signature`) contra `mp-webhook-secret` almacenado en Secret Manager.
+ * 2. Extrae el `paymentId` y consulta la API de Mercado Pago con las credenciales del tenant.
+ * 3. Actualiza el documento del pedido en la colección `orders` del shard correspondiente y ajusta el stock.
+ * 4. Retorna SIEMPRE `HTTP 200 OK` (incluso ante errores internos de procesamiento) para prevenir
+ *    reintentos infinitos por parte de los servidores de Mercado Pago.
+ *
+ * @param request Solicitud HTTP entrante desde Mercado Pago (POST/GET).
+ * @param response Respuesta HTTP devuelta a Mercado Pago.
+ */
 export const mercadoPagoWebhookHandler = onRequest(
   { maxInstances: 5, cors: true, invoker: 'public' },
   async (request, response) => {
