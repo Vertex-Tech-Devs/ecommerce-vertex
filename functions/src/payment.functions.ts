@@ -384,22 +384,13 @@ export const createPaymentPreference = onCall(
 
           const productData = productDoc.data() ?? {};
 
-          // Resolver el precio oficial del producto/variante
-          const rawPrice =
+          // Resolver el precio oficial del producto/variante exactamente como figura en el catálogo
+          const serverPrice =
             (productData['price'] as number | undefined) ??
             (variantData['price'] as number | undefined) ??
             (productData['finalPrice'] as number | undefined) ??
             0;
 
-          const discount =
-            (productData['discountPercentage'] as number | undefined) ??
-            (productData['discount'] as number | undefined) ??
-            0;
-
-          const serverPrice =
-            discount > 0 && discount < 100
-              ? Math.round(rawPrice * (1 - discount / 100) * 100) / 100
-              : rawPrice;
           serverItems.push({
             productId: item.productId,
             variantId: item.variantId,
@@ -426,7 +417,7 @@ export const createPaymentPreference = onCall(
           { ...paymentData, items: serverItems },
           storeId,
         );
-        logger.info(`Preferencia ${mpPreference.id} creada para el pedido ${orderId}.`);
+        logger.info(`[MercadoPago:Preference] Preferencia ${mpPreference.id} creada exitosamente para pedido ${orderId}. Total items: ${serverItems.length}`);
 
         transaction.update(orderRef, {
           mercadopago_preference_id: mpPreference.id,

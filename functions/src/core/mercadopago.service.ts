@@ -134,6 +134,13 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
 
   const runtime = await getMercadoPagoRuntimeConfig(tenantId);
 
+  const tokenPrefix = runtime.accessToken.slice(0, 8);
+  const isSandbox =
+    runtime.accessToken.startsWith('TEST-') || runtime.accessToken.startsWith('APP_USR-');
+  logger.info(
+    `[MercadoPago:Preference] Initializing preference for order ${external_reference} (Tenant: ${tenantId ?? 'default'}, Token Prefix: ${tokenPrefix}..., Mode: ${isSandbox ? 'SANDBOX / TEST' : 'PRODUCTION'})`,
+  );
+
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
   const preferenceClient = new Preference(mpClient);
 
