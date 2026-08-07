@@ -170,6 +170,11 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       pending: `${runtime.baseUrl}/shop/cart`,
     },
     auto_return: 'approved' as const,
+    payment_methods: {
+      excluded_payment_methods: [],
+      excluded_payment_types: [],
+      installments: 12,
+    },
     // Expiración explícita (+1 día) para que cleanupExpiredOrders pueda revertir stock
     // de órdenes abandonadas de forma fiable.
     date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
