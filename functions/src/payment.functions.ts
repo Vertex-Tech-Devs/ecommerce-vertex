@@ -382,12 +382,24 @@ export const createPaymentPreference = onCall(
             );
           }
 
-          // Precio oficial del servidor (finalPrice del producto en Firestore)
           const productData = productDoc.data() ?? {};
-          const serverPrice =
-            (productData['finalPrice'] as number | undefined) ??
+
+          // Resolver el precio oficial del producto/variante
+          const rawPrice =
             (productData['price'] as number | undefined) ??
+            (variantData['price'] as number | undefined) ??
+            (productData['finalPrice'] as number | undefined) ??
             0;
+
+          const discount =
+            (productData['discountPercentage'] as number | undefined) ??
+            (productData['discount'] as number | undefined) ??
+            0;
+
+          const serverPrice =
+            discount > 0 && discount < 100
+              ? Math.round(rawPrice * (1 - discount / 100) * 100) / 100
+              : rawPrice;
           serverItems.push({
             productId: item.productId,
             variantId: item.variantId,
