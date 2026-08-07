@@ -1,8 +1,15 @@
+/* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
 import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  ReactiveFormsModule,
+  FormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
@@ -63,17 +70,40 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
   currentPage = 1;
   pageSize = 5;
+  variantSearchControl = new FormControl('');
+
+  get filteredVariantsControls(): AbstractControl[] {
+    const query = (this.variantSearchControl.value ?? '').trim().toLowerCase();
+    const allControls = this.variants.controls;
+    if (!query) {
+      return allControls;
+    }
+    return allControls.filter((group) => {
+      const rawVal = group.value as {
+        id?: string;
+        stock?: number;
+        attributes?: Record<string, string>;
+      };
+      const stockStr = String(rawVal.stock ?? '');
+      const attrValues = Object.values(rawVal.attributes ?? {})
+        .join(' ')
+        .toLowerCase();
+      const idStr = String(rawVal.id ?? '').toLowerCase();
+      return stockStr.includes(query) || attrValues.includes(query) || idStr.includes(query);
+    });
+  }
 
   get totalPages(): number {
-    return Math.ceil(this.variants.length / this.pageSize) || 1;
+    return Math.ceil(this.filteredVariantsControls.length / this.pageSize) || 1;
   }
   get pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   get paginatedVariantsControls(): AbstractControl[] {
+    const filtered = this.filteredVariantsControls;
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.variants.controls.slice(start, start + this.pageSize);
+    return filtered.slice(start, start + this.pageSize);
   }
 
   getVariantRealIndex(control: AbstractControl): number {

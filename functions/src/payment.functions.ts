@@ -638,7 +638,8 @@ export const mercadoPagoWebhookHandler = onRequest(
       response.status(200).send('Webhook procesado.');
     } catch (error) {
       logger.error(`Error al procesar el webhook para pago ${paymentId}:`, error);
-      response.status(500).send('Error interno al procesar webhook.');
+      // Responder HTTP 200 OK para evitar bucles de reintento en webhooks de Mercado Pago
+      response.status(200).send('Webhook procesado con observaciones.');
     }
   },
 );

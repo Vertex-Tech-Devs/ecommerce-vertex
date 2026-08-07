@@ -3,8 +3,9 @@ import type { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import { Validators } from '@angular/forms';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { resolveTenantId } from '@core/utils/tenant';
 import type { Observable } from 'rxjs';
-import { finalize } from 'rxjs';
+import { finalize, catchError, throwError } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ProductMediaService {
@@ -16,10 +17,19 @@ export class ProductMediaService {
     onProgress: (p: number) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/images');
+    const storeId = resolveTenantId() || 'store';
+    const { progress$, downloadUrl$ } = this.storageService.uploadFile(
+      file,
+      `tenants/${storeId}/products/images`,
+    );
     progress$.subscribe(onProgress);
     downloadUrl$
       .pipe(
+        catchError((err) => {
+          console.error('Error al subir la imagen principal:', err);
+          this.sweetAlertService.error('Error de Carga', 'No se pudo subir la imagen principal.');
+          return throwError(() => err);
+        }),
         finalize(() => {
           onProgress(0);
         }),
@@ -34,10 +44,19 @@ export class ProductMediaService {
     onProgress: (index: number, p: number | null) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, 'products/gallery');
+    const storeId = resolveTenantId() || 'store';
+    const { progress$, downloadUrl$ } = this.storageService.uploadFile(
+      file,
+      `tenants/${storeId}/products/gallery`,
+    );
     progress$.subscribe((p) => onProgress(index, p));
     downloadUrl$
       .pipe(
+        catchError((err) => {
+          console.error(`Error al subir la imagen de galería #${index}:`, err);
+          this.sweetAlertService.error('Error de Carga', 'No se pudo subir la imagen adicional.');
+          return throwError(() => err);
+        }),
         finalize(() => {
           onProgress(index, null);
         }),

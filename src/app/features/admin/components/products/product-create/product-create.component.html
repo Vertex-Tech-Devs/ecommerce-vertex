@@ -315,6 +315,20 @@
             </div>
           }
 
+          @if (variants.length > 0) {
+            <div class="mb-3">
+              <div class="input-group">
+                <span class="input-group-text glass-addon"><i class="bi bi-search"></i></span>
+                <input
+                  type="text"
+                  class="form-control glass-input"
+                  [formControl]="variantSearchControl"
+                  placeholder="Buscar variante por talle, color, SKU o stock..."
+                />
+              </div>
+            </div>
+          }
+
           <div formArrayName="variants" class="variants-container">
             @for (
               variantGroup of paginatedVariantsControls;
