@@ -332,6 +332,20 @@ export const createPaymentPreference = onCall(
         if (!orderData) throw new HttpsError('internal', 'Datos de orden corruptos.');
 
         if (orderData.status !== 'pending') {
+          if (
+            orderData.status === 'processing' &&
+            typeof orderData['mercadopago_init_point'] === 'string' &&
+            typeof orderData['mercadopago_preference_id'] === 'string'
+          ) {
+            logger.info(
+              `Pedido ${orderId} ya tenía preferencia creada. Retornando preferencia existente.`,
+            );
+            return {
+              id: orderData['mercadopago_preference_id'] as string,
+              init_point: orderData['mercadopago_init_point'] as string,
+              date_of_expiration: undefined,
+            };
+          }
           logger.warn(`Pedido ${orderId} ya procesado o en proceso. Estado: ${orderData.status}`);
           throw new HttpsError('failed-precondition', 'Este pedido ya fue procesado.');
         }

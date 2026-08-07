@@ -6,6 +6,8 @@
   },
   "targets": {
     "ecommerce-vertex": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex"] } },
-    "ecommerce-vertex-dev": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex-dev"] } }
+    "ecommerce-vertex-dev": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex-dev"] } },
+    "development": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex-dev"] } }
   }
 }
+
