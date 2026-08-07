@@ -31,7 +31,8 @@ export class CheckoutComponent implements OnInit {
   private orderService = inject(OrderService);
   private router = inject(Router);
 
-  readonly isProduction = environment.production;
+  readonly isDevEnvironment =
+    !environment.production || environment.firebaseConfig.projectId.includes('dev');
   checkoutForm!: FormGroup;
   isProcessingPayment = signal(false);
 
@@ -75,6 +76,11 @@ export class CheckoutComponent implements OnInit {
     this.checkoutForm.markAllAsTouched();
     this.checkoutForm.markAsDirty();
     this.checkoutForm.updateValueAndValidity();
+
+    this.sweetAlertService.warning(
+      'Datos de Prueba Cargados',
+      'Mercado Pago Sandbox requiere pagar en ventana Incógnito (sin tu cuenta personal logueada en MP) con la tarjeta de prueba 4509 9500 0000 0000 (venc. 11/28, CVC 123).',
+    );
   }
 
   get contactControls(): { [key: string]: AbstractControl } {

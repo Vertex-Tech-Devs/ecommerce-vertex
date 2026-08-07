@@ -6,7 +6,7 @@
         <fieldset class="checkout__section">
           <div class="checkout__section-header">
             <legend class="checkout__section-title">1. Información de Contacto</legend>
-            @if (!isProduction) {
+            @if (isDevEnvironment) {
               <button
                 type="button"
                 class="checkout__test-fill-btn"
