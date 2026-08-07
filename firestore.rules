@@ -20,13 +20,14 @@ service cloud.firestore {
     // Admin of a given store: custom claim (fast path — set by role.functions.ts after provisioning)
     // or root-level admin_roles composite key {storeId}_{email} fallback.
     function isStoreAdmin(storeId) {
+      let targetTenant = storeId != null && storeId != '' ? storeId : request.auth.token.get('tenantId', '');
       return isAuthenticated() && (
         isSuperAdmin() ||
-        (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == storeId) ||
-        (request.auth.token.get('email', '') != '' &&
-         exists(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)) &&
-         (get(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)).data.role == 'owner' ||
-          get(/databases/$(database)/documents/admin_roles/$(storeId + '_' + request.auth.token.email)).data.role == 'admin'))
+        (request.auth.token.get('admin', false) == true && request.auth.token.get('tenantId', '') == targetTenant) ||
+        (request.auth.token.get('email', '') != '' && targetTenant != '' &&
+         exists(/databases/$(database)/documents/admin_roles/$(targetTenant + '_' + request.auth.token.email)) &&
+         (get(/databases/$(database)/documents/admin_roles/$(targetTenant + '_' + request.auth.token.email)).data.role == 'owner' ||
+          get(/databases/$(database)/documents/admin_roles/$(targetTenant + '_' + request.auth.token.email)).data.role == 'admin'))
       );
     }
 
@@ -119,14 +120,14 @@ service cloud.firestore {
         && request.resource.data.storeId != ''
         && request.resource.data.items.size() <= 100
         && request.resource.data.stockDecremented == false;
-      allow list: if isAuthenticated() && isStoreAdmin(request.query.get('storeId'));
+      allow list: if isAuthenticated() && isStoreAdmin(request.query.storeId);
       allow update: if canUpdateStoreDoc();
       allow delete: if canDeleteStoreDoc();
     }
 
     match /clients/{clientId} {
       allow get: if isAuthenticated() && isStoreAdmin(resource.data.storeId);
-      allow list: if isAuthenticated() && isStoreAdmin(request.query.get('storeId'));
+      allow list: if isAuthenticated() && isStoreAdmin(request.query.storeId);
       allow write: if false;
     }
 
@@ -142,14 +143,14 @@ service cloud.firestore {
 
     match /settings/{docId} {
       allow get: if isAuthenticated() && isStoreAdmin(resource.data.storeId);
-      allow list: if isAuthenticated() && isStoreAdmin(request.query.get('storeId'));
+      allow list: if isAuthenticated() && isStoreAdmin(request.query.storeId);
       allow create: if canCreateForStore();
       allow update: if canUpdateStoreDoc();
       allow delete: if canDeleteStoreDoc();
     }
 
     match /mail/{docId} {
-      allow list: if isAuthenticated() && isStoreAdmin(request.query.get('storeId'));
+      allow list: if isAuthenticated() && isStoreAdmin(request.query.storeId);
       allow create: if canCreateForStore();
       allow update: if canUpdateStoreDoc();
       allow delete: if canDeleteStoreDoc();
