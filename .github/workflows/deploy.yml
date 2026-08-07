@@ -218,8 +218,22 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
-      - name: Deploy to Firebase Development
-        run: npx firebase-tools deploy --project development --only hosting:ecommerce-vertex,functions --force
+      - name: Deploy Hosting (Development)
+        run: npx firebase-tools deploy --project development --only hosting:ecommerce-vertex --non-interactive
+
+      - name: Deploy Functions (Development)
+        run: bash scripts/deploy-functions.sh development
+
+      - name: Post-Deploy Health Check (Development)
+        run: |
+          echo "Verificando respuesta del sitio desplegado (ecommerce-vertex-dev)..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://ecommerce-vertex-dev.web.app/shop)
+          if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 304 ]; then
+            echo "✅ Storefront DEV responde correctamente (HTTP $STATUS)"
+          else
+            echo "❌ Falló verificación post-deploy en Storefront DEV (HTTP $STATUS)"
+            exit 1
+          fi
 
   deploy-prod:
     name: '→ Production'
@@ -265,8 +279,22 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
-      - name: Deploy to Firebase Production
-        run: npx firebase-tools deploy --project production --only hosting:ecommerce-vertex,functions --force
+      - name: Deploy Hosting (Production)
+        run: npx firebase-tools deploy --project production --only hosting:ecommerce-vertex --non-interactive
+
+      - name: Deploy Functions (Production)
+        run: bash scripts/deploy-functions.sh production
+
+      - name: Post-Deploy Health Check (Production)
+        run: |
+          echo "Verificando respuesta del sitio desplegado (ecommerce-vertex)..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://ecommerce-vertex.web.app/shop)
+          if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 304 ]; then
+            echo "✅ Storefront PROD responde correctamente (HTTP $STATUS)"
+          else
+            echo "❌ Falló verificación post-deploy en Storefront PROD (HTTP $STATUS)"
+            exit 1
+          fi
 
       - name: Create GitHub Release
         env:
