@@ -146,15 +146,32 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
 
   const payerData = data.payer;
   const sanitizedDni = String(payerData?.dni || '30123456').replace(/\D/g, '');
+  const rawPhone = String(payerData?.phone || '1122334455').replace(/\D/g, '');
+  const areaCode = rawPhone.length >= 8 ? rawPhone.slice(0, 2) : '11';
+  const phoneNumber = rawPhone.length >= 8 ? rawPhone.slice(2) : rawPhone || '22334455';
+  const streetNumber =
+    Number(String(payerData?.address?.zipCode || '1234').replace(/\D/g, '')) || 1234;
+
   const payerObject = payerData?.email
     ? {
         name: payerData.firstName?.trim() || 'Cliente',
         surname: payerData.lastName?.trim() || 'Vertex',
         email: payerData.email?.trim().toLowerCase(),
+        phone: {
+          area_code: areaCode,
+          number: phoneNumber,
+        },
         identification: {
           type: 'DNI',
           number: sanitizedDni.length >= 7 ? sanitizedDni : '30123456',
         },
+        address: payerData.address
+          ? {
+              zip_code: payerData.address.zipCode || '1000',
+              street_name: payerData.address.street || 'Av. Corrientes',
+              street_number: streetNumber,
+            }
+          : undefined,
       }
     : undefined;
 

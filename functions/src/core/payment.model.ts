@@ -5,6 +5,13 @@ export const PayerSchema = z.object({
   lastName: z.string().optional(),
   email: z.string().email().optional(),
   dni: z.string().optional(),
+  phone: z.string().optional(),
+  address: z
+    .object({
+      street: z.string().optional(),
+      zipCode: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const PaymentRequestSchema = z.object({
