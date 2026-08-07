@@ -9,6 +9,13 @@ export interface PaymentResponse {
   init_point?: string;
 }
 
+export interface PayerData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  dni?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -28,7 +35,11 @@ export class PaymentService {
     }
   }
 
-  async initiatePayment(items: CartItem[], orderId: string): Promise<PaymentResponse> {
+  async initiatePayment(
+    items: CartItem[],
+    orderId: string,
+    payer?: PayerData,
+  ): Promise<PaymentResponse> {
     try {
       const preferenceItems = items.map((item) => ({
         productId: item.productId,
@@ -54,6 +65,7 @@ export class PaymentService {
               // El proyecto del shard donde viven los datos de la tienda (orden/catálogo).
               // Las functions del master resuelven el Firestore de ese proyecto.
               projectId: environment.firebaseConfig.projectId,
+              payer,
             },
           }),
         }).then(async (res) => {

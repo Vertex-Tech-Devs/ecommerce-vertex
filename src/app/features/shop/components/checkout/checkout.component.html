@@ -4,7 +4,17 @@
     <div class="checkout__form-card">
       <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()" novalidate>
         <fieldset class="checkout__section">
-          <legend class="checkout__section-title">1. Información de Contacto</legend>
+          <div class="checkout__section-header">
+            <legend class="checkout__section-title">1. Información de Contacto</legend>
+            <button
+              type="button"
+              class="checkout__test-fill-btn"
+              (click)="fillTestUser()"
+              title="Auto-completar datos válidos de prueba para Mercado Pago Sandbox"
+            >
+              ⚡ Usar Datos de Prueba MP
+            </button>
+          </div>
           <div formGroupName="contactInfo" class="checkout__fields">
             <div class="checkout__field checkout__field--half">
               <label for="firstName" class="checkout__label">Nombre</label>
@@ -52,7 +62,7 @@
                 </div>
               }
             </div>
-            <div class="checkout__field">
+            <div class="checkout__field checkout__field--half">
               <label for="email" class="checkout__label">Email</label>
               <input
                 type="email"
@@ -71,6 +81,30 @@
                   }
                   @if (contactControls['email'].errors?.['email']) {
                     <div>El formato del email no es válido.</div>
+                  }
+                </div>
+              }
+            </div>
+            <div class="checkout__field checkout__field--half">
+              <label for="dni" class="checkout__label">DNI / Identificación</label>
+              <input
+                type="text"
+                id="dni"
+                formControlName="dni"
+                class="checkout__input"
+                placeholder="Ej: 30123456"
+                [ngClass]="{
+                  'checkout__input--invalid':
+                    contactControls['dni'].invalid && contactControls['dni'].touched,
+                }"
+              />
+              @if (contactControls['dni'].invalid && contactControls['dni'].touched) {
+                <div class="checkout__error">
+                  @if (contactControls['dni'].errors?.['required']) {
+                    <div>El DNI es requerido.</div>
+                  }
+                  @if (contactControls['dni'].errors?.['pattern']) {
+                    <div>Ingresa un DNI válido (7 u 8 dígitos).</div>
                   }
                 </div>
               }

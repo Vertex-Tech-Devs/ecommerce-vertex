@@ -144,14 +144,27 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   const mpClient = new MercadoPagoConfig({ accessToken: runtime.accessToken });
   const preferenceClient = new Preference(mpClient);
 
+  const payerData = data.payer;
+
   const preferenceBody = {
     items: items.map((item) => ({
       id: item.variantId,
       title: item.title,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
+      quantity: Number(item.quantity),
+      unit_price: Number(item.unit_price),
       currency_id: 'ARS',
     })),
+    payer: payerData?.email
+      ? {
+          name: payerData.firstName || 'Cliente',
+          surname: payerData.lastName || 'Vertex',
+          email: payerData.email,
+          identification: {
+            type: 'DNI',
+            number: String(payerData.dni || '30123456').replace(/\D/g, ''),
+          },
+        }
+      : undefined,
     external_reference,
     // El tenant (tienda) en la URL del webhook para que la notificación de MP pueda
     // resolver el access token correcto y el shard de la tienda.

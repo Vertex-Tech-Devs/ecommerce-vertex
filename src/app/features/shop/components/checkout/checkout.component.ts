@@ -42,6 +42,7 @@ export class CheckoutComponent implements OnInit {
           '',
           [Validators.required, Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]*$')],
         ],
+        dni: ['', [Validators.required, Validators.pattern('^[0-9]{7,8}$')]],
       }),
       shippingInfo: this.fb.group({
         address: ['', [Validators.required, Validators.minLength(5)]],
@@ -50,6 +51,25 @@ export class CheckoutComponent implements OnInit {
         province: ['', [Validators.required, Validators.minLength(4)]],
       }),
     });
+  }
+
+  fillTestUser(): void {
+    this.checkoutForm.patchValue({
+      contactInfo: {
+        firstName: 'Juan',
+        lastName: 'Prueba',
+        email: 'test_user_2739270755134742108@testuser.com',
+        phone: '1122334455',
+        dni: '30123456',
+      },
+      shippingInfo: {
+        address: 'Av. Corrientes 1234',
+        city: 'Buenos Aires',
+        zipCode: '1043',
+        province: 'Buenos Aires',
+      },
+    });
+    this.checkoutForm.markAllAsTouched();
   }
 
   get contactControls(): { [key: string]: AbstractControl } {
@@ -85,7 +105,16 @@ export class CheckoutComponent implements OnInit {
 
     try {
       orderId = await this.createOrder(cart.items, cart.total);
-      const paymentResult = await this.paymentService.initiatePayment(cart.items, orderId);
+
+      const contactValue = this.checkoutForm.get('contactInfo')?.value;
+      const payer = {
+        firstName: contactValue?.firstName,
+        lastName: contactValue?.lastName,
+        email: contactValue?.email,
+        dni: contactValue?.dni,
+      };
+
+      const paymentResult = await this.paymentService.initiatePayment(cart.items, orderId, payer);
 
       if (paymentResult.success && paymentResult.init_point) {
         this.cartService.clearCart();
