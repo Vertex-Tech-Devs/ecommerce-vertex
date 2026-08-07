@@ -136,10 +136,26 @@ export class StoreConfigComponent {
       return;
     }
     const file = input.files[0];
+    const allowedTypes = [
+      'image/x-icon',
+      'image/vnd.microsoft.icon',
+      'image/png',
+      'image/svg+xml',
+      'image/jpeg',
+    ];
+    if (!allowedTypes.includes(file.type) && !file.name.endsWith('.ico')) {
+      this.sweetAlert.error(
+        'Formato no válido',
+        'Por favor selecciona un archivo de favicon válido (.ico, .png, .svg, .jpg).',
+      );
+      return;
+    }
+
+    const storeId = resolveTenantId() || 'store';
     this.faviconUploading.set(true);
     this.faviconProgress.set(0);
 
-    const upload = this.storageService.uploadFile(file, 'store/branding');
+    const upload = this.storageService.uploadFile(file, `tenants/${storeId}/branding/favicon`);
     upload.progress$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((progress) => this.faviconProgress.set(Math.round(progress)));
@@ -151,6 +167,13 @@ export class StoreConfigComponent {
           faviconCtrl.markAsDirty();
           faviconCtrl.updateValueAndValidity();
         }
+        let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'icon';
+          document.head.appendChild(link);
+        }
+        link.href = url;
         this.faviconUploading.set(false);
         this.sweetAlert.success(
           'Favicon subido',

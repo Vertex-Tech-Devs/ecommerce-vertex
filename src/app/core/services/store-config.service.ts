@@ -86,7 +86,7 @@ export class StoreConfigService {
   }
 
   protected async setDocData(ref: DocumentReference, data: Record<string, unknown>): Promise<void> {
-    return runInInjectionContext(this.injector, () => setDoc(ref, data));
+    return runInInjectionContext(this.injector, () => setDoc(ref, data, { merge: true }));
   }
 
   async loadConfig(): Promise<void> {

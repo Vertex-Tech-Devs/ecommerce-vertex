@@ -1,7 +1,6 @@
 <div class="home-page">
   @if (bannerLoading()) {
-    <div class="hero-loading">
-      <div class="spinner-border text-primary" role="status"></div>
+    <div class="hero-skeleton" role="status" aria-label="Cargando banner principal">
       <span class="visually-hidden">Cargando banner...</span>
     </div>
   } @else if (heroBanner(); as banner) {
@@ -67,8 +66,16 @@
       </a>
 
       @if (productsLoading()) {
-        <div class="loading-state" role="status">
-          <div class="spinner-border text-primary" aria-hidden="true"></div>
+        <div class="product-grid" role="status" aria-label="Cargando productos">
+          @for (_ of [1, 2, 3, 4, 5]; track $index) {
+            <div class="product-card product-card--skeleton">
+              <div class="product-card__image-wrap skeleton-box"></div>
+              <div class="product-card__body">
+                <div class="skeleton-box skeleton-box--title"></div>
+                <div class="skeleton-box skeleton-box--price"></div>
+              </div>
+            </div>
+          }
           <span class="visually-hidden">Cargando productos...</span>
         </div>
       } @else if (newArrivals()?.length) {

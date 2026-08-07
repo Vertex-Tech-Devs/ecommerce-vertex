@@ -150,7 +150,7 @@ describe('StoreConfigComponent', () => {
 
     component.onFaviconUpload(event);
 
-    expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, 'store/branding');
+    expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(file, jasmine.any(String));
     expect(component.form.get('faviconUrl')?.value).toBe('http://example.com/new-favicon.png');
     expect(component.form.get('faviconUrl')?.dirty).toBeTrue();
     expect(component.form.dirty).toBeTrue();

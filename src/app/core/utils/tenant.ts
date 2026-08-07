@@ -51,20 +51,30 @@ export function resolveTenantId(locationOverride?: { hostname: string; search: s
   if (loc) {
     const host = loc.hostname?.trim().toLowerCase();
     if (host && host !== 'localhost' && host !== '127.0.0.1') {
-      const firstLabel = host.split('.')[0] ?? '';
+      // Handle Firebase Hosting Preview Channels (e.g. site--pr-12-hash.web.app)
+      if (host.includes('--pr-')) {
+        const prPart = host.split('--pr-')[1]?.split('.')[0]?.split('-')[0];
+        if (prPart) {
+          resolvedId = `vtx-pr-${prPart}`;
+        }
+      }
 
-      // Handle {slug}-vtx pattern (e.g., "tienda-a-vtx" → "tienda-a")
-      if (firstLabel.endsWith('-vtx') && firstLabel.length > 4) {
-        resolvedId = firstLabel.slice(0, -4);
-      } else if (
-        firstLabel &&
-        firstLabel !== 'ecommerce-vertex' &&
-        firstLabel !== 'ecommerce-vertex-dev'
-      ) {
-        // Strip vtx- prefix: Firebase Hosting siteIds for stores use the pattern
-        // "vtx-{slug}" but the actual tenantId in Firestore/admin_roles is "{slug}".
-        // This mirrors the server-side strip in role.functions.ts resolveTenantId().
-        resolvedId = firstLabel.startsWith('vtx-') ? firstLabel.substring(4) : firstLabel;
+      if (!resolvedId) {
+        const firstLabel = host.split('.')[0] ?? '';
+
+        // Handle {slug}-vtx pattern (e.g., "tienda-a-vtx" → "tienda-a")
+        if (firstLabel.endsWith('-vtx') && firstLabel.length > 4) {
+          resolvedId = firstLabel.slice(0, -4);
+        } else if (
+          firstLabel &&
+          firstLabel !== 'ecommerce-vertex' &&
+          firstLabel !== 'ecommerce-vertex-dev'
+        ) {
+          // Strip vtx- prefix: Firebase Hosting siteIds for stores use the pattern
+          // "vtx-{slug}" but the actual tenantId in Firestore/admin_roles is "{slug}".
+          // This mirrors the server-side strip in role.functions.ts resolveTenantId().
+          resolvedId = firstLabel.startsWith('vtx-') ? firstLabel.substring(4) : firstLabel;
+        }
       }
     }
 
