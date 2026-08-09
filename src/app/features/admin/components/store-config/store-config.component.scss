@@ -398,19 +398,56 @@
 
 .file-input {
   cursor: pointer;
+
   &::file-selector-button {
     background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 0.3rem 0.75rem;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     margin-right: 0.5rem;
-    transition: all 0.2s ease;
+    transition: all 0.2s ease-in-out;
+
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(79, 172, 254, 0.25));
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      color: #ffffff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
+  }
+
+  &::-webkit-file-upload-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.3rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-right: 0.5rem;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(79, 172, 254, 0.25));
+      border: 1px solid rgba(0, 242, 254, 0.4);
+      color: #ffffff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  }
+
+  &:hover::file-selector-button,
+  &::file-selector-button:hover,
+  &:hover::-webkit-file-upload-button,
+  &::-webkit-file-upload-button:hover {
+    background: linear-gradient(135deg, rgba(0, 242, 254, 0.25), rgba(79, 172, 254, 0.25));
+    border: 1px solid rgba(0, 242, 254, 0.4);
+    color: #ffffff;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 
