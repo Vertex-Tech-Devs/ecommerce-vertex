@@ -183,6 +183,15 @@
     }
   },
   "overrides": {
+    "@angular/fire": {
+      "@angular/common": "$@angular/common",
+      "@angular/core": "$@angular/core",
+      "@angular/platform-browser": "$@angular/platform-browser",
+      "@angular/platform-browser-dynamic": "$@angular/platform-browser-dynamic",
+      "@angular/compiler": "$@angular/compiler",
+      "rxjs": "$rxjs",
+      "firebase-tools": "$firebase-tools"
+    },
     "protobufjs": ">=7.5.8",
     "@protobufjs/utf8": ">=1.1.1",
     "ws": ">=8.20.1",
