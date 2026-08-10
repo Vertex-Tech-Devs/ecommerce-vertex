@@ -41,6 +41,22 @@ export class SeedDataService {
     }
   }
 
+  async seedAllDataSilently(overrideStoreName?: string): Promise<void> {
+    try {
+      await this.clearAll();
+      await this.contentService.seedAttributes();
+      const cats = await this.contentService.seedCategories();
+      const prods = await this.productsService.seedProducts(cats);
+      const clients = await this.ordersService.seedClients();
+      await this.ordersService.seedOrders(prods, clients);
+      await this.contentService.seedHeroBanner(cats);
+      await this.contentService.seedAboutUs();
+      await this.contentService.seedFooter(overrideStoreName);
+    } catch (err) {
+      console.error('Silent seed error for preview channel:', err);
+    }
+  }
+
   private async clearAll(): Promise<void> {
     const cols = ['products', 'categories', 'clients', 'orders', 'attributes'];
     for (const col of cols) {

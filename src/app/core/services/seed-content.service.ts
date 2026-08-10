@@ -186,8 +186,8 @@ export class SeedContentService {
     );
   }
 
-  async seedFooter(): Promise<void> {
-    const storeName = this.storeConfigService.storeName() || 'Mi Tienda';
+  async seedFooter(overrideStoreName?: string): Promise<void> {
+    const storeName = overrideStoreName ?? (this.storeConfigService.storeName() || 'Mi Tienda');
     const email = 'contacto@mitiendaonline.com';
     const payload: StoreConfig = {
       ...DEFAULT_STORE_CONFIG,
