@@ -62,6 +62,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           NODE_PATH: functions/node_modules
         run: |
+          npm --prefix functions install
           npx tsx scripts/seed-pr-tenant.ts
 
       - name: Deploy to Firebase Hosting Preview Channel
