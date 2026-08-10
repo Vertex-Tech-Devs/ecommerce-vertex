@@ -6,31 +6,12 @@ import { normalizeFirebaseOptions } from './app/core/utils/firebase-config.util'
 import { environment } from './environments/environment';
 import { STORE_CONFIG } from './environments/store.config';
 
-// 1. Dynamic Tenant ID inference from Hostname
-if (globalThis.location) {
-  const host = (globalThis.location.hostname ?? '').trim().toLowerCase();
-  if (host && host !== 'localhost' && host !== '127.0.0.1') {
-    const firstLabel = host.split('.')[0] ?? '';
-    if (
-      firstLabel &&
-      firstLabel !== 'ecommerce-vertex' &&
-      firstLabel !== 'ecommerce-vertex-dev' &&
-      (!environment.tenantId || environment.tenantId === 'store')
-    ) {
-      // Strip vtx- prefix: Firebase Hosting siteIds use "vtx-{slug}" but
-      // tenantId in Firestore/admin_roles is just "{slug}".
-      environment.tenantId = firstLabel.startsWith('vtx-') ? firstLabel.substring(4) : firstLabel;
-    }
-  }
+import { resolveTenantId } from './app/core/utils/tenant';
 
-  // tenantId override via query param is restricted to non-production environments only
-  if (!environment.production) {
-    const urlParams = new URLSearchParams(globalThis.location.search);
-    const queryTenantId = urlParams.get('tenantId');
-    if (queryTenantId) {
-      environment.tenantId = queryTenantId.trim();
-    }
-  }
+// 1. Dynamic Tenant ID inference
+const resolvedTenant = resolveTenantId();
+if (resolvedTenant) {
+  environment.tenantId = resolvedTenant;
 }
 
 function inferStoreNameFromHostname(): string {
