@@ -3,13 +3,7 @@ import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core
 import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import {
-  FormBuilder,
-  FormControl,
-  ReactiveFormsModule,
-  FormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
@@ -70,7 +64,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
   currentPage = 1;
   pageSize = 5;
-  variantSearchControl = new FormControl('');
+  readonly variantSearchControl = this.variantFormService.variantSearchControl;
 
   get filteredVariantsControls(): AbstractControl[] {
     const query = (this.variantSearchControl.value ?? '').trim().toLowerCase();
@@ -117,6 +111,12 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((attrs) => {
         this.attributesSubject.next(attrs);
+        this.cdr.markForCheck();
+      });
+    this.variantSearchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.currentPage = 1;
         this.cdr.markForCheck();
       });
     this.initializeForm();

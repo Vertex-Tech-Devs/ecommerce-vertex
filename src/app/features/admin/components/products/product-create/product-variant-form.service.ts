@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import type { FormGroup } from '@angular/forms';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import type { WithFieldValue } from '@angular/fire/firestore';
 import type { Attribute } from '@core/models/attribute.model';
 import type { Product, ProductVariant } from '@core/models/product.model';
@@ -31,6 +31,7 @@ export interface EditVariantChanges {
 @Injectable({ providedIn: 'root' })
 export class ProductVariantFormService {
   private fb = inject(FormBuilder);
+  readonly variantSearchControl = new FormControl('', { nonNullable: true });
 
   createVariantGroup(selectedIds: string[], variant?: ProductVariant): FormGroup {
     const attributesGroup = this.fb.group({});
