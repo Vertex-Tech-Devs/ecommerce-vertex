@@ -51,8 +51,13 @@ fetch('/firebase-config.json?t=' + new Date().getTime())
         config.projectId = inferredProject;
       }
     }
-    if (!config?.apiKey || !config.projectId) {
-      throw new Error('Invalid or incomplete firebase-config.json');
+    if (
+      !config?.apiKey ||
+      !config.projectId ||
+      config.apiKey === 'test' ||
+      config.projectId === 'ci-stub'
+    ) {
+      throw new Error('Invalid, incomplete, or stub firebase-config.json');
     }
     return config;
   })

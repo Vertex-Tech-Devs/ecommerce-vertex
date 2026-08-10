@@ -227,11 +227,12 @@ export class CatalogComponent implements OnInit {
         this.maxPrice.set(filters.maxPrice);
         this.dynamicAttributesFilter.set(filters.dynamicAttributes ?? {});
 
-        const newCatId = filters.category === 'all' ? null : (filters.category ?? null);
-        if (this.selectedCategoryId() !== newCatId) {
-          this.selectedCategoryId.set(newCatId);
+        const rawCategory = filters.category ?? 'all';
+        if (this.selectedCategoryId() !== rawCategory) {
+          this.selectedCategoryId.set(rawCategory);
+          const newCatId = rawCategory === 'all' ? null : rawCategory;
           this.page.set(1);
-          this.updateActiveFilters(filters.category ?? null);
+          this.updateActiveFilters(rawCategory);
 
           this.productService
             .getProductsByQuery(newCatId)
