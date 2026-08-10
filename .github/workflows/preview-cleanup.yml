@@ -59,4 +59,5 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
           NODE_PATH: functions/node_modules
         run: |
+          npm --prefix functions install
           npx tsx scripts/cleanup-pr-tenant.ts
