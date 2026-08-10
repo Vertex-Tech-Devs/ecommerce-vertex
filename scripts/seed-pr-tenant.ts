@@ -82,23 +82,31 @@ async function main(): Promise<void> {
     if (!catInfo) continue;
 
     for (const item of catGroup.items) {
+      const mainImg = u(item.imgs[0] || '1521572163474-6864f9cf17ab', 800, 800);
+      const extraImgs = item.imgs.slice(1).map((id) => u(id, 800, 800));
+      const fp =
+        item.discount > 0 ? Math.round(item.price * (1 - item.discount / 100)) : item.price;
+
       await db.collection('products').add({
         name: item.name,
         description: item.desc,
         price: item.price,
-        compareAtPrice: item.discount > 0 ? Math.round(item.price / (1 - item.discount / 100)) : null,
+        discount: item.discount,
         discountPercentage: item.discount,
-        images: item.imgs.map((id) => u(id, 800, 800)),
-        imageUrl: u(item.imgs[0] || '1521572163474-6864f9cf17ab', 800, 800),
+        finalPrice: fp,
+        compareAtPrice: item.discount > 0 ? Math.round(item.price / (1 - item.discount / 100)) : null,
+        image: mainImg,
+        imageUrl: mainImg,
+        images: [mainImg, ...extraImgs],
         categoryId: catInfo.id,
         categoryName: catInfo.name,
-        stock: 25,
-        isActive: true,
+        stock: 50,
+        totalStock: 50,
+        inStockAttributes: { talle: ['S', 'M', 'L'], color: ['Negro', 'Blanco'] },
+        variantAttributes: catGroup.variants,
         featured: item.featured,
-        variants: [
-          { sku: `SKU-${catGroup.slug}-S-NEGRO`, attributes: { talle: 'S', color: 'Negro' }, price: item.price, stock: 10 },
-          { sku: `SKU-${catGroup.slug}-M-NEGRO`, attributes: { talle: 'M', color: 'Negro' }, price: item.price, stock: 15 },
-        ],
+        active: true,
+        isActive: true,
         storeId: tenantId,
         createdAt: new Date(),
       });
