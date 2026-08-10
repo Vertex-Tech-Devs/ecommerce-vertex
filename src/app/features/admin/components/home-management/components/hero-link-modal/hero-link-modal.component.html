@@ -48,37 +48,106 @@
           }
 
           @if (heroImage.linkType === 'product') {
-            <div class="mb-4">
+            <div class="mb-4 position-relative">
               <label class="form-label text-label">Seleccionar Producto</label>
 
-              <div class="position-relative mb-2">
+              @if (heroImage.linkId && selectedProduct) {
+                <div
+                  class="selected-product-card d-flex align-items-center justify-content-between p-3 mb-3"
+                >
+                  <div class="d-flex align-items-center gap-3 overflow-hidden">
+                    @if (selectedProduct.image) {
+                      <img
+                        [src]="selectedProduct.image"
+                        [alt]="selectedProduct.name"
+                        class="product-thumb rounded"
+                      />
+                    } @else {
+                      <div
+                        class="product-thumb-placeholder rounded d-flex align-items-center justify-content-center"
+                      >
+                        <i class="bi bi-box-seam text-soft"></i>
+                      </div>
+                    }
+                    <div class="text-truncate">
+                      <span class="badge bg-primary-subtle text-primary mb-1"
+                        >Producto Seleccionado</span
+                      >
+                      <div class="fw-semibold text-white text-truncate">
+                        {{ selectedProduct.name }}
+                      </div>
+                      <div class="small text-soft text-truncate">
+                        ID: {{ selectedProduct.id }} &bull; {{ selectedProduct.price | currency }}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger shrink-0 ms-2"
+                    (click)="clearSelectedProduct()"
+                  >
+                    <i class="bi bi-x-circle me-1"></i> Quitar
+                  </button>
+                </div>
+              }
+
+              <div class="position-relative">
                 <i
                   class="bi bi-search position-absolute text-soft"
                   style="top: 50%; left: 1rem; transform: translateY(-50%)"
                 ></i>
                 <input
+                  #searchInput
                   type="text"
                   class="form-control glass-input"
                   style="padding-left: 2.5rem"
                   placeholder="Buscar producto por nombre..."
                   [value]="productSearchTerm"
                   (input)="onSearch($event)"
+                  (focus)="isDropdownOpen = true"
                 />
               </div>
 
-              <select
-                class="form-select glass-input glass-select"
-                [value]="heroImage.linkId || ''"
-                (change)="onIdChange($event)"
-              >
-                <option value="" disabled selected>Elegir producto...</option>
-                @for (prod of filteredProducts; track prod.id) {
-                  <option [value]="prod.id">{{ prod.name }}</option>
-                }
-                @if (filteredProducts.length === 0) {
-                  <option value="" disabled>No se encontraron productos...</option>
-                }
-              </select>
+              @if (isDropdownOpen) {
+                <div class="product-results-dropdown shadow-lg mt-1">
+                  @for (prod of filteredProducts; track prod.id) {
+                    <div
+                      class="dropdown-item-product d-flex align-items-center justify-content-between p-2 rounded cursor-pointer"
+                      [class.active-item]="prod.id === heroImage.linkId"
+                      (click)="selectProduct(prod)"
+                    >
+                      <div class="d-flex align-items-center gap-2 overflow-hidden me-2">
+                        @if (prod.image) {
+                          <img [src]="prod.image" [alt]="prod.name" class="mini-thumb rounded" />
+                        } @else {
+                          <div
+                            class="mini-thumb-placeholder rounded d-flex align-items-center justify-content-center"
+                          >
+                            <i class="bi bi-box-seam text-soft"></i>
+                          </div>
+                        }
+                        <div class="text-truncate">
+                          <div class="product-name text-white fw-medium text-truncate">
+                            {{ prod.name }}
+                          </div>
+                          <div class="product-meta small text-soft">ID: {{ prod.id }}</div>
+                        </div>
+                      </div>
+                      <div class="text-end shrink-0">
+                        <span class="product-price text-indigo font-monospace">{{
+                          prod.price | currency
+                        }}</span>
+                      </div>
+                    </div>
+                  }
+                  @if (filteredProducts.length === 0) {
+                    <div class="empty-results text-center py-3 text-soft">
+                      <i class="bi bi-search-heart d-block fs-4 mb-1"></i>
+                      No se encontraron productos...
+                    </div>
+                  }
+                </div>
+              }
             </div>
           }
         </div>
