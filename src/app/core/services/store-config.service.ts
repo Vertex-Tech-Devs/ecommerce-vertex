@@ -103,28 +103,6 @@ export class StoreConfigService {
         this._storeConfig.set(validatedData as unknown as StoreConfig);
         this.applyConfigToDom(validatedData as unknown as StoreConfig);
       } else {
-        const currentTenant = resolveTenantId();
-        const prMatch = currentTenant.match(/(?:vtx-)?pr-(\d+)/i);
-        if (prMatch) {
-          const prNumber = prMatch[1];
-          const previewStoreName = `Tienda Preview PR #${prNumber}`;
-          try {
-            const { SeedDataService } = await import('./seed-data.service');
-            const seedDataService = this.injector.get(SeedDataService);
-            await seedDataService.seedAllDataSilently(previewStoreName);
-            const retrySnap = await this.getDocSnap(
-              this.getDocRef(tenantPath('configuracion'), storeDocId('store')),
-            ).catch(() => null);
-            if (retrySnap?.exists()) {
-              const validatedData = StoreConfigSchema.parse(retrySnap.data());
-              this._storeConfig.set(validatedData as unknown as StoreConfig);
-              this.applyConfigToDom(validatedData as unknown as StoreConfig);
-              return;
-            }
-          } catch (seedErr) {
-            console.error('Error auto-seeding PR preview store:', seedErr);
-          }
-        }
         this._storeConfig.set(null);
       }
     } catch (err) {
