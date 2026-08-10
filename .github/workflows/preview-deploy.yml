@@ -39,7 +39,7 @@ jobs:
           npm run test -- --watch=false --browsers=ChromeHeadlessCI
 
       - name: Build Storefront Application
-        run: npm run build
+        run: npm run build:dev-template
 
       - name: Check secret availability
         id: check
