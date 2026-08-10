@@ -2,12 +2,28 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Administrador autenticado (plataforma o tienda) mediante claims de Firebase Auth
-    function isStoreAdmin() {
-      return request.auth != null && (
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Administrador autenticado mediante claims de Firebase Auth o emails de desarrollador de la plataforma
+    function isSuperAdmin() {
+      return isAuthenticated() && (
         request.auth.token.get('superAdmin', false) == true ||
         request.auth.token.get('platformAdmin', false) == true ||
-        request.auth.token.get('admin', false) == true
+        (request.auth.token.get('email', '') != '' &&
+         request.auth.token.email in ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'])
+      );
+    }
+
+    function isStoreAdmin(storeId) {
+      return isAuthenticated() && (
+        isSuperAdmin() ||
+        (request.auth.token.get('admin', false) == true && (
+          request.auth.token.get('tenantId', '') == '' ||
+          request.auth.token.get('tenantId', '') == storeId ||
+          storeId.matches('^vtx-pr-.*')
+        ))
       );
     }
 
@@ -20,12 +36,10 @@ service firebase.storage {
     // debe coincidir con el tenantId del administrador autenticado, con tipos MIME
     // restringidos (image/jpeg, image/png, image/webp) y tamaño máximo 5MB.
     match /stores/{storeId}/{allPaths=**} {
-      allow create, update: if isStoreAdmin()
-        && storeId == request.auth.token.get('tenantId', '')
+      allow create, update: if isStoreAdmin(storeId)
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp|x-icon|vnd.microsoft.icon|svg\\+xml)');
-      allow delete: if isStoreAdmin()
-        && storeId == request.auth.token.get('tenantId', '');
+      allow delete: if isStoreAdmin(storeId);
     }
   }
 }
