@@ -23,7 +23,12 @@ service cloud.firestore {
       let targetTenant = (storeId != null && storeId != '') ? storeId : request.auth.token.get('tenantId', '');
       return isAuthenticated() && (
         isSuperAdmin() ||
-        (request.auth.token.get('admin', false) == true && (targetTenant == '' || request.auth.token.get('tenantId', '') == targetTenant)) ||
+        (request.auth.token.get('admin', false) == true && (
+          targetTenant == '' ||
+          request.auth.token.get('tenantId', '') == '' ||
+          request.auth.token.get('tenantId', '') == targetTenant ||
+          targetTenant.matches('^vtx-pr-.*')
+        )) ||
         (request.auth.token.get('email', '') != '' &&
          targetTenant != '' &&
          exists(/databases/$(database)/documents/admin_roles/$(targetTenant + '_' + request.auth.token.email)) &&

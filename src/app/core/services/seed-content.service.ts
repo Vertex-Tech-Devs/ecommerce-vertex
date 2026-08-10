@@ -34,7 +34,7 @@ const CAT: Record<string, string> = {
 
 // Featured categories (600×400)
 const FEAT: Record<string, string> = {
-  remeras: '1523381240423-59b6e0c53abe',
+  remeras: '1521572163474-6864f9cf17ab',
   zapatillas: '1491553895911-0055eca6402d',
   camperas: '1551537482-f2075a1d41f2',
 };

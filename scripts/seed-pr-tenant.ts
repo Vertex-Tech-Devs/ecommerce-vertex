@@ -139,7 +139,7 @@ async function main(): Promise<void> {
     buttonText: 'Explorar todo',
     buttonLink: '/shop/catalog',
     featuredCategories: [
-      { categoryId: catMap['remeras']?.id ?? '', name: 'Remeras', slug: 'remeras', imageUrl: u('1523381240423-59b6e0c53abe', 600, 400) },
+      { categoryId: catMap['remeras']?.id ?? '', name: 'Remeras', slug: 'remeras', imageUrl: u('1521572163474-6864f9cf17ab', 600, 400) },
       { categoryId: catMap['camperas']?.id ?? '', name: 'Camperas', slug: 'camperas', imageUrl: u('1551537482-f2075a1d41f2', 600, 400) },
       { categoryId: catMap['zapatillas']?.id ?? '', name: 'Zapatillas', slug: 'zapatillas', imageUrl: u('1491553895911-0055eca6402d', 600, 400) },
     ],

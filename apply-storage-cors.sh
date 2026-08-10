@@ -19,12 +19,12 @@ apply_cors() {
   fi
 
   echo "Applying CORS to gs://${bucket} (project: ${project})..."
-  if command -v gcloud &>/dev/null; then
-    gcloud storage buckets update "gs://${bucket}" --cors-file="${CORS_FILE}" --project="${project}"
-    gcloud storage buckets describe "gs://${bucket}" --format="json(cors)" --project="${project}"
-  elif command -v gsutil &>/dev/null; then
+  if command -v gsutil &>/dev/null; then
     gsutil cors set "${CORS_FILE}" "gs://${bucket}"
     gsutil cors get "gs://${bucket}"
+  elif command -v gcloud &>/dev/null; then
+    gcloud storage buckets update "gs://${bucket}" --cors-file="${CORS_FILE}" --project="${project}"
+    gcloud storage buckets describe "gs://${bucket}" --format="json(cors)" --project="${project}"
   else
     echo "Error: gcloud or gsutil is required."
     exit 1
@@ -45,6 +45,15 @@ else
   # ── Production shard (ecommerce-vertex) buckets ───────────────────────
   apply_cors "ecommerce-vertex.appspot.com" "ecommerce-vertex" || true
   apply_cors "ecommerce-vertex.firebasestorage.app" "ecommerce-vertex" || true
+
+  # ── Dynamic shard (vtx-sd-*) buckets ─────────────────────────────────
+  if command -v gcloud &>/dev/null; then
+    for proj in $(gcloud projects list --filter="projectId:vtx-sd-*" --format="value(projectId)" 2>/dev/null); do
+      for b in $(gcloud storage buckets list --project="${proj}" --format="value(name)" 2>/dev/null); do
+        apply_cors "${b}" "${proj}" || true
+      done
+    done
+  fi
 fi
 
 echo "Done."
