@@ -15,24 +15,34 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (!saJson) {
-    console.log('No FIREBASE_SERVICE_ACCOUNT_DEV provided. Skipping seeding.');
-    return;
-  }
+
 
   const tenantId = `vtx-pr-${prNumber}`;
   const storeName = `Tienda Preview PR #${prNumber}`;
 
   console.log(`Pre-seeding Firestore data for PR #${prNumber} (tenantId: ${tenantId}, storeName: "${storeName}")...`);
 
-  const credentials = JSON.parse(saJson);
   if (!getApps().length) {
-    initializeApp({
-      credential: cert(credentials),
-    });
+    if (saJson) {
+      const credentials = JSON.parse(saJson);
+      initializeApp({ credential: cert(credentials) });
+    } else {
+      initializeApp({ projectId: 'ecommerce-vertex-dev' });
+    }
   }
 
   const db = getFirestore();
+
+  // 0. Clean existing data for this PR tenant to prevent stale document conflicts
+  const collections = ['products', 'categories', 'clients', 'orders', 'attributes'];
+  for (const col of collections) {
+    const snap = await db.collection(col).where('storeId', '==', tenantId).get();
+    if (!snap.empty) {
+      const batch = db.batch();
+      snap.docs.forEach((docSnap) => batch.delete(docSnap.ref));
+      await batch.commit();
+    }
+  }
 
   // 1. Seed Attributes
   const attributesList = [
