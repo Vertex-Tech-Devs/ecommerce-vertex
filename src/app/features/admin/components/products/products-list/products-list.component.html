@@ -137,7 +137,7 @@
                 >&lsaquo;</a
               >
             </li>
-            @for (page of [].constructor(totalPages); track page; let i = $index) {
+            @for (page of [].constructor(totalPages); track i; let i = $index) {
               <li class="page-item" [class.active]="currentPageSubject.value === i + 1">
                 <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
               </li>
