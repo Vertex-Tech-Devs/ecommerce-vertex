@@ -338,7 +338,12 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  async removeVariant(index: number): Promise<void> {
+  async removeVariant(index: number, event?: Event): Promise<void> {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    const scrollY = window.scrollY;
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
@@ -351,6 +356,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.currentPage = this.totalPages;
     }
     this.cdr.markForCheck();
+    window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
   }
 
   generateVariantCombinations(): void {
@@ -434,6 +440,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.mediaService
       .uploadMainImage(
         file,
+        this.productId ?? 'new',
         (p) => {
           this.uploadProgress = p;
           this.cdr.markForCheck();
@@ -459,6 +466,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.mediaService
       .uploadGalleryImage(
         file,
+        this.productId ?? 'new',
         index,
         (idx, p) => {
           this.galleryUploadProgress[idx] = p;

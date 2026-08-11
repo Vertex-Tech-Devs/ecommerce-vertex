@@ -28,8 +28,8 @@ export function normalizeFirebaseOptions(config: FirebaseOptions): FirebaseOptio
     normalized.storageBucket = `${projectId}.appspot.com`;
   }
 
-  // 2. Preserve explicit authDomain, or default to `${projectId}.firebaseapp.com`
-  // Mismatched authDomain vs apiKey/projectId triggers auth/invalid-continue-uri in Firebase Auth.
+  // 2. Preserve explicit authDomain, or default to master / project firebaseapp domain
+  // authDomain determines where OAuth popups and redirects originate.
   const authDomain = config.authDomain?.trim();
   if (!authDomain) {
     normalized.authDomain = `${projectId}.firebaseapp.com`;
