@@ -42,6 +42,7 @@
                     id="storeOwnerEmail"
                     class="form-control glass-input"
                     formControlName="storeOwnerEmail"
+                    placeholder="ejemplo@tienda.com"
                     [class.is-invalid]="
                       emailForm.get('storeOwnerEmail')?.invalid &&
                       emailForm.get('storeOwnerEmail')?.touched
@@ -105,6 +106,7 @@
                 id="adminSubject"
                 class="form-control glass-input"
                 formControlName="subject"
+                placeholder="Asunto de la notificación..."
               />
             </div>
 
@@ -190,6 +192,7 @@
                 id="customerSubject"
                 class="form-control glass-input"
                 formControlName="subject"
+                placeholder="Asunto de la confirmación..."
               />
             </div>
 
