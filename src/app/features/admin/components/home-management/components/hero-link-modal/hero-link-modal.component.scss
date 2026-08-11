@@ -37,6 +37,11 @@
   font-weight: 500;
   transition: all 0.3s ease;
 
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+    opacity: 1;
+  }
+
   &:focus {
     background-color: rgba(15, 23, 42, 0.8) !important;
     border-color: #818cf8 !important;
