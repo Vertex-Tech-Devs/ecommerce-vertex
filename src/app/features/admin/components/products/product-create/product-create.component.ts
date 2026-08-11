@@ -1,6 +1,14 @@
 /* eslint-disable max-lines */
-import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import type { OnInit, QueryList, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  ViewChild,
+  ViewChildren,
+  DestroyRef,
+  ChangeDetectorRef,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
@@ -45,6 +53,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   @ViewChildren('galleryInput') galleryInputs!: QueryList<ElementRef<HTMLInputElement>>;
   @ViewChildren('variantSelect') variantSelects!: QueryList<ElementRef<HTMLSelectElement>>;
   @ViewChildren('variantStock') variantStocks!: QueryList<ElementRef<HTMLInputElement>>;
+  @ViewChild('addVariantBtn', { read: ElementRef }) addVariantBtn?: ElementRef<HTMLButtonElement>;
+  @ViewChildren('variantRow', { read: ElementRef }) variantRows!: QueryList<
+    ElementRef<HTMLDivElement>
+  >;
 
   productForm!: FormGroup;
   categories$!: Observable<Category[]>;
@@ -338,7 +350,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
   }
 
-  async removeVariant(index: number): Promise<void> {
+  async removeVariant(index: number, event?: Event): Promise<void> {
+    event?.preventDefault();
+    event?.stopPropagation();
+
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
@@ -351,6 +366,32 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.currentPage = this.totalPages;
     }
     this.cdr.markForCheck();
+
+    setTimeout(() => {
+      const rows = this.variantRows.toArray();
+      if (rows.length === 0) {
+        this.addVariantBtn?.nativeElement.focus({ preventScroll: true });
+        return;
+      }
+
+      const startIdx = (this.currentPage - 1) * this.pageSize;
+      const relativeIdx = Math.max(0, index - startIdx);
+      const targetRowIndex = Math.min(relativeIdx, rows.length - 1);
+      const targetRow = rows[targetRowIndex];
+
+      if (targetRow) {
+        const focusable = targetRow.nativeElement.querySelector<HTMLElement>(
+          'select, input:not([type="hidden"]), button',
+        );
+        if (focusable) {
+          focusable.focus({ preventScroll: true });
+        } else {
+          targetRow.nativeElement.focus({ preventScroll: true });
+        }
+      } else {
+        this.addVariantBtn?.nativeElement.focus({ preventScroll: true });
+      }
+    });
   }
 
   generateVariantCombinations(): void {

@@ -298,6 +298,7 @@
                 <i class="bi bi-stars me-1" aria-hidden="true"></i> Generar
               </button>
               <button
+                #addVariantBtn
                 (click)="addVariant()"
                 type="button"
                 class="btn-glass-success btn-sm"
@@ -335,6 +336,7 @@
               track getVariantRealIndex(variantGroup)
             ) {
               <div
+                #variantRow
                 [formGroupName]="getVariantRealIndex(variantGroup)"
                 class="variant-row glass-panel mb-3"
                 [class.variant-invalid]="variantGroup.invalid && variantGroup.touched"
@@ -401,7 +403,7 @@
 
                 <div class="variant-action-item">
                   <button
-                    (click)="removeVariant(getVariantRealIndex(variantGroup))"
+                    (click)="removeVariant(getVariantRealIndex(variantGroup), $event)"
                     type="button"
                     class="btn-glass-danger btn-sm"
                     aria-label="Eliminar"
