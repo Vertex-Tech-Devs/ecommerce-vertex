@@ -106,6 +106,17 @@ service cloud.firestore {
       allow delete: if canDeleteStoreDoc();
     }
 
+    // ── Lectura pública universal en cualquier nivel de anidamiento ─────────────
+    // Cubre subcolecciones y Collection Groups (p. ej. stores/{id}/products) para que
+    // el storefront lea sin token sin importar la estructura. Los writes se mantienen
+    // aislados por tienda (canCreateForStore / canUpdateStoreDoc / canDeleteStoreDoc).
+    match /{path=**}/products/{docId} { allow read: if true; }
+    match /{path=**}/categories/{docId} { allow read: if true; }
+    match /{path=**}/attributes/{docId} { allow read: if true; }
+    match /{path=**}/configuracion/{docId} { allow read: if true; }
+    match /{path=**}/banners/{docId} { allow read: if true; }
+    match /{path=**}/pages/{docId} { allow read: if true; }
+
     // ── Transactional / admin collections ────────────────────────────────────────
 
     match /orders/{orderId} {
