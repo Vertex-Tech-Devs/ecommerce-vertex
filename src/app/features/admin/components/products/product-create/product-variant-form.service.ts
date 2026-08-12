@@ -33,18 +33,34 @@ export class ProductVariantFormService {
   private fb = inject(FormBuilder);
   readonly variantSearchControl = new FormControl('', { nonNullable: true });
 
-  createVariantGroup(selectedIds: string[], variant?: ProductVariant): FormGroup {
+  createVariantGroup(selectedIds: string[], variant?: Partial<ProductVariant>): FormGroup {
     const attributesGroup = this.fb.group({});
     selectedIds.forEach((id) => {
       attributesGroup.addControl(
         id,
-        this.fb.control(variant?.attributes[id] ?? null, Validators.required),
+        this.fb.control(variant?.attributes?.[id] ?? null, Validators.required),
       );
     });
     return this.fb.group({
       id: [variant?.id ?? null],
       attributes: attributesGroup,
       stock: [variant?.stock ?? 0, [Validators.required, Validators.min(0)]],
+    });
+  }
+
+  createVariantGroupFromCombo(
+    selectedIds: string[],
+    combo: Record<string, string>,
+    existingVariants: ProductVariantFormValue[] = [],
+  ): FormGroup {
+    const match = existingVariants.find((v) =>
+      selectedIds.every((id) => v.attributes?.[id] === combo[id]),
+    );
+
+    return this.createVariantGroup(selectedIds, {
+      id: match?.id ?? undefined,
+      attributes: combo,
+      stock: match?.stock ?? 0,
     });
   }
 

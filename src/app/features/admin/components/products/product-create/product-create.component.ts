@@ -25,7 +25,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AttributeService } from '@core/services/attribute.service';
 import type { Attribute } from '@core/models/attribute.model';
 import { ProductVariantFormService } from './product-variant-form.service';
-import type { ProductFormValue } from './product-variant-form.service';
+import type { ProductFormValue, ProductVariantFormValue } from './product-variant-form.service';
 import { ProductMediaService } from './product-media.service';
 
 @Component({
@@ -354,6 +354,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     event?.preventDefault();
     event?.stopPropagation();
 
+    const currentScrollY = window.scrollY;
+
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
@@ -368,6 +370,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.cdr.markForCheck();
 
     setTimeout(() => {
+      window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+
       const rows = this.variantRows.toArray();
       if (rows.length === 0) {
         this.addVariantBtn?.nativeElement.focus({ preventScroll: true });
@@ -391,7 +395,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       } else {
         this.addVariantBtn?.nativeElement.focus({ preventScroll: true });
       }
-    });
+    }, 0);
   }
 
   generateVariantCombinations(): void {
@@ -417,15 +421,16 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           return;
         }
         const limitedCombos = combos.slice(0, 20);
+        const existingVariants = this.variants.value as ProductVariantFormValue[];
         this.variants.clear();
         this.currentPage = 1;
         limitedCombos.forEach((combo) => {
           this.variants.push(
-            this.fb.group({
-              id: [null],
-              attributes: this.fb.group(combo, Validators.required),
-              stock: [0, [Validators.required, Validators.min(0)]],
-            }),
+            this.variantFormService.createVariantGroupFromCombo(
+              selectedIds,
+              combo,
+              existingVariants,
+            ),
           );
         });
         this.sweetAlertService.success(

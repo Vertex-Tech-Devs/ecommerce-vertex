@@ -153,7 +153,7 @@
             </div>
 
             <div class="gallery-container">
-              @for (imageControl of images.controls; track $index; let i = $index) {
+              @for (imageControl of images.controls; track imageControl; let i = $index) {
                 <div class="gallery-item-row glass-panel p-2 p-md-3">
                   <div class="gallery-preview">
                     @if (imageControl.value) {
@@ -333,7 +333,7 @@
           <div formArrayName="variants" class="variants-container">
             @for (
               variantGroup of paginatedVariantsControls;
-              track getVariantRealIndex(variantGroup)
+              track variantGroup.get('id')?.value || variantGroup
             ) {
               <div
                 #variantRow
