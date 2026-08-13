@@ -1,6 +1,6 @@
 {
   "name": "functions",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "lint": "eslint . --ext .js,.ts",
