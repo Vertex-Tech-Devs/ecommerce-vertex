@@ -35,9 +35,12 @@ export class ProductMediaService {
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
     progress$.subscribe({
       next: onProgress,
-      // Evita un error sin handler (uncaught) que rompería el flujo; el error
-      // real se maneja abajo vía downloadUrl$ y el subscribe del componente.
-      error: () => {},
+      // Registrar el error REAL del UploadTask (permisos/token/red) y limpiar
+      // el estado — antes se tragaba el error y el spinner quedaba colgado.
+      error: (err) => {
+        console.error('UploadTask error (imagen principal):', err);
+        onProgress(0);
+      },
     });
     downloadUrl$
       .pipe(
@@ -77,7 +80,10 @@ export class ProductMediaService {
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
     progress$.subscribe({
       next: (p) => onProgress(index, p),
-      error: () => {},
+      error: (err) => {
+        console.error(`UploadTask error (galería #${index}):`, err);
+        onProgress(index, null);
+      },
     });
     downloadUrl$
       .pipe(
