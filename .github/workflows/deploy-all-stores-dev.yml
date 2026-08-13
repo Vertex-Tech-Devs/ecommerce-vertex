@@ -132,7 +132,17 @@ jobs:
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+              "rewrites": [{ "source": "**", "destination": "/index.html" }],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|woff|woff2|ttf|eot|png|jpg|jpeg|webp|svg|ico)",
+                  "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+                },
+                {
+                  "source": "**",
+                  "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+                }
+              ]
             },
             "storage": {
               "rules": "storage.rules"
@@ -236,7 +246,17 @@ jobs:
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+              "rewrites": [{ "source": "**", "destination": "/index.html" }],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|woff|woff2|ttf|eot|png|jpg|jpeg|webp|svg|ico)",
+                  "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+                },
+                {
+                  "source": "**",
+                  "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+                }
+              ]
             },
             "storage": {
               "rules": "storage.rules"
