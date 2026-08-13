@@ -35,7 +35,9 @@
             </div>
 
             <div class="col-md-6">
-              <label for="price" class="form-label">Precio Base (Requerido)</label>
+              <label for="price" class="form-label">
+                Precio Base {{ hasVariants ? '(Opcional)' : '(Requerido)' }}
+              </label>
               <div class="input-group">
                 <span class="input-group-text glass-addon">$</span>
                 <input
@@ -57,6 +59,30 @@
                 </div>
               }
             </div>
+
+            @if (!hasVariants) {
+              <div class="col-md-6">
+                <label for="stock" class="form-label">Stock Total (Requerido)</label>
+                <input
+                  type="number"
+                  id="stock"
+                  class="form-control glass-input"
+                  formControlName="stock"
+                  placeholder="0"
+                  [ngClass]="{ 'is-invalid': stock.invalid && (stock.dirty || stock.touched) }"
+                />
+                @if (stock.invalid && (stock.dirty || stock.touched)) {
+                  <div class="invalid-feedback d-block mt-1">
+                    @if (stock.errors?.['required']) {
+                      <div>El stock es obligatorio.</div>
+                    }
+                    @if (stock.errors?.['min']) {
+                      <div>El stock debe ser mayor o igual a 0.</div>
+                    }
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           <div class="mb-3 mb-md-4">
@@ -285,9 +311,24 @@
           <div
             class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 mb-md-4 gap-3"
           >
-            <h4 class="section-subtitle mb-0 flex-shrink-0">
-              <i class="bi bi-diagram-3 me-2"></i>Variantes y Stock
-            </h4>
+            <div class="d-flex align-items-center gap-3">
+              <h4 class="section-subtitle mb-0 flex-shrink-0">
+                <i class="bi bi-diagram-3 me-2"></i>Variantes y Stock
+              </h4>
+              <div class="form-check form-switch mb-0 ms-2">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  role="switch"
+                  id="hasVariantsToggle"
+                  formControlName="hasVariants"
+                  (change)="onHasVariantsChange($any($event.target).checked)"
+                />
+                <label class="form-check-label small text-white-50 ms-1" for="hasVariantsToggle">
+                  Habilitar Variantes
+                </label>
+              </div>
+            </div>
             <div class="d-flex gap-2 justify-content-end">
               <button
                 (click)="generateVariantCombinations()"
@@ -455,11 +496,7 @@
             class="form-actions border-top-glass pt-3 mt-3 pt-md-4 mt-md-4 d-flex justify-content-end gap-2 gap-md-3"
           >
             <button type="button" class="btn-glass-secondary" (click)="onCancel()">Cancelar</button>
-            <button
-              type="submit"
-              class="btn-glass-primary"
-              [disabled]="productForm.invalid || isSubmitting"
-            >
+            <button type="submit" class="btn-glass-primary" [disabled]="isSaveDisabled()">
               @if (isSubmitting) {
                 <span
                   class="spinner-border spinner-border-sm me-2"

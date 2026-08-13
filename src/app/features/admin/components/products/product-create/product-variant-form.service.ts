@@ -7,6 +7,8 @@ import type { Product, ProductVariant } from '@core/models/product.model';
 
 export interface ProductVariantFormValue {
   id: string | null;
+  sku?: string;
+  price?: number;
   attributes: Record<string, string>;
   stock: number;
 }
@@ -15,6 +17,8 @@ export interface ProductFormValue {
   name: string;
   description: string;
   price: number;
+  stock?: number;
+  hasVariants?: boolean;
   categoryId: string;
   image: string;
   images: string[];
@@ -36,13 +40,18 @@ export class ProductVariantFormService {
   createVariantGroup(selectedIds: string[], variant?: Partial<ProductVariant>): FormGroup {
     const attributesGroup = this.fb.group({});
     selectedIds.forEach((id) => {
-      attributesGroup.addControl(
-        id,
-        this.fb.control(variant?.attributes?.[id] ?? null, Validators.required),
-      );
+      if (id) {
+        attributesGroup.addControl(
+          id,
+          this.fb.control(variant?.attributes?.[id] ?? null, Validators.required),
+        );
+      }
     });
+
     return this.fb.group({
       id: [variant?.id ?? null],
+      sku: [variant?.sku ?? ''],
+      price: [variant?.price ?? null, [Validators.min(0)]],
       attributes: attributesGroup,
       stock: [variant?.stock ?? 0, [Validators.required, Validators.min(0)]],
     });
@@ -57,10 +66,19 @@ export class ProductVariantFormService {
       selectedIds.every((id) => v.attributes?.[id] === combo[id]),
     );
 
+    const comboAttributes: Record<string, string> = {};
+    selectedIds.forEach((id) => {
+      if (combo[id] !== undefined) {
+        comboAttributes[id] = combo[id];
+      }
+    });
+
     return this.createVariantGroup(selectedIds, {
       id: match?.id ?? undefined,
-      attributes: combo,
+      attributes: comboAttributes,
       stock: match?.stock ?? 0,
+      sku: match?.sku,
+      price: match?.price,
     });
   }
 
@@ -92,10 +110,21 @@ export class ProductVariantFormService {
 
     formVariants.forEach((v) => {
       if (v.id) {
-        toUpdate.push({ id: v.id, attributes: v.attributes, stock: v.stock });
+        toUpdate.push({
+          id: v.id,
+          attributes: v.attributes,
+          stock: v.stock,
+          sku: v.sku,
+          price: v.price,
+        });
         currentIds.add(v.id);
       } else {
-        toAdd.push({ attributes: v.attributes, stock: v.stock });
+        toAdd.push({
+          attributes: v.attributes,
+          stock: v.stock,
+          sku: v.sku,
+          price: v.price,
+        });
       }
     });
 
@@ -105,16 +134,20 @@ export class ProductVariantFormService {
   }
 
   buildProductData(formValue: ProductFormValue): WithFieldValue<Omit<Product, 'id'>> {
+    const totalStock = formValue.hasVariants
+      ? formValue.variants.reduce((acc, v) => acc + (v.stock ?? 0), 0)
+      : (formValue.stock ?? 0);
+
     return {
       name: formValue.name,
       description: formValue.description,
-      price: formValue.price,
+      price: formValue.price ?? 0,
       categoryId: formValue.categoryId,
       image: formValue.image,
       images: formValue.images ?? [],
-      variantAttributes: formValue.variantAttributes ?? [],
+      variantAttributes: formValue.hasVariants ? (formValue.variantAttributes ?? []) : [],
       createdAt: new Date(),
-      totalStock: 0,
+      totalStock,
       inStockAttributes: {},
     };
   }

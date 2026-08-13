@@ -10,8 +10,14 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import type { FormArray, AbstractControl } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  FormsModule,
+  Validators,
+} from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
@@ -180,11 +186,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       price: [null, [Validators.required, Validators.min(0.01)]],
+      stock: [0, [Validators.required, Validators.min(0)]],
+      hasVariants: [false],
       categoryId: [null, Validators.required],
       image: ['', [Validators.required]],
       images: this.fb.array([]),
-      variantAttributes: this.fb.array([], Validators.required),
-      variants: this.fb.array([], Validators.required),
+      variantAttributes: this.fb.array([]),
+      variants: this.fb.array([]),
     });
     this.onAttributeSelectionChange();
   }
@@ -211,10 +219,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           const { product, variants } = data;
           this.initialVariants = variants;
           this.pageTitle = `Editar: ${product.name}`;
+          const hasVariants = (product.variantAttributes?.length ?? 0) > 0 || variants.length > 0;
           this.productForm.patchValue({
             name: product.name,
             description: product.description,
             price: product.price,
+            stock: product.totalStock ?? 0,
+            hasVariants,
             categoryId: product.categoryId,
             image: product.image,
           });
@@ -237,8 +248,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
             emitEvent: false,
           });
 
-          this.productForm.updateValueAndValidity();
-          this.cdr.markForCheck();
+          this.onHasVariantsChange(hasVariants);
         },
         error: () => {
           this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
@@ -252,6 +262,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
   get price(): AbstractControl {
     return this.productForm.get('price')!;
+  }
+  get stock(): AbstractControl {
+    return this.productForm.get('stock')!;
   }
   get categoryId(): AbstractControl {
     return this.productForm.get('categoryId')!;
@@ -267,6 +280,34 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
   get variantAttributes(): FormArray {
     return this.productForm.get('variantAttributes') as FormArray;
+  }
+  get hasVariants(): boolean {
+    return (
+      Boolean(this.productForm.get('hasVariants')?.value) ||
+      this.variantAttributes.length > 0 ||
+      this.variants.length > 0
+    );
+  }
+
+  onHasVariantsChange(enabled?: boolean): void {
+    const hasVar = enabled ?? this.hasVariants;
+    this.productForm.get('hasVariants')?.setValue(hasVar, { emitEvent: false });
+
+    const priceCtrl = this.productForm.get('price');
+    const stockCtrl = this.productForm.get('stock');
+
+    if (hasVar) {
+      priceCtrl?.clearValidators();
+      stockCtrl?.clearValidators();
+    } else {
+      priceCtrl?.setValidators([Validators.required, Validators.min(0.01)]);
+      stockCtrl?.setValidators([Validators.required, Validators.min(0)]);
+    }
+
+    priceCtrl?.updateValueAndValidity();
+    stockCtrl?.updateValueAndValidity();
+    this.productForm.updateValueAndValidity();
+    this.cdr.markForCheck();
   }
 
   onAttributeSelectionChange(): void {
@@ -288,6 +329,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
               attributesGroup.addControl(id, this.fb.control(null, Validators.required));
             });
         });
+        if (selectedIds.length > 0) {
+          this.onHasVariantsChange(true);
+        }
         this.cdr.markForCheck();
       });
   }
@@ -524,9 +568,64 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       .subscribe();
   }
 
+  private lastLoggedErrors = '';
+
+  private logInvalidControls(): void {
+    if (!this.productForm.invalid) {
+      this.lastLoggedErrors = '';
+      return;
+    }
+
+    const invalidInfo: Record<string, unknown> = {};
+
+    Object.keys(this.productForm.controls).forEach((key) => {
+      const control = this.productForm.get(key);
+      if (control?.invalid) {
+        invalidInfo[`form.${key}`] = control.errors;
+      }
+    });
+
+    if (this.variants.invalid) {
+      this.variants.controls.forEach((group, index) => {
+        if (group.invalid) {
+          const fg = group as FormGroup;
+          Object.keys(fg.controls).forEach((childKey) => {
+            const childControl = fg.get(childKey);
+            if (childControl?.invalid) {
+              invalidInfo[`variant[${index}].${childKey}`] = childControl.errors;
+              if (childKey === 'attributes' && childControl instanceof FormGroup) {
+                Object.keys(childControl.controls).forEach((attrKey) => {
+                  const attrCtrl = childControl.get(attrKey);
+                  if (attrCtrl?.invalid) {
+                    invalidInfo[`variant[${index}].attributes.${attrKey}`] = attrCtrl.errors;
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+    const currentErrorState = JSON.stringify(invalidInfo);
+    if (currentErrorState !== this.lastLoggedErrors) {
+      this.lastLoggedErrors = currentErrorState;
+      console.warn('[Form Validation] Invalid controls detected:', invalidInfo);
+    }
+  }
+
+  isSaveDisabled(): boolean {
+    const disabled = this.productForm.invalid || this.isSubmitting;
+    if (this.productForm.invalid) {
+      this.logInvalidControls();
+    }
+    return disabled;
+  }
+
   async onSubmit(): Promise<void> {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
+      this.logInvalidControls();
       this.sweetAlertService.error('Formulario Inválido', 'Revisa todos los campos.');
       return;
     }
@@ -554,6 +653,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         const variantsData = formValue.variants.map((v) => ({
           attributes: v.attributes,
           stock: v.stock,
+          sku: v.sku,
+          price: v.price,
         }));
         const newId = await this.productService.createProductWithVariants(
           productData,
