@@ -101,6 +101,9 @@ jobs:
   deploy-canary:
     name: '🐤 Canary dev → ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ matrix.store.projectId }}
+      cancel-in-progress: false
     needs: [build, get-stores]
     if: needs.get-stores.outputs.has_stores == 'true'
     environment: development
@@ -195,6 +198,9 @@ jobs:
   deploy-rest:
     name: '→ dev ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ matrix.store.projectId }}
+      cancel-in-progress: false
     needs: [build, get-stores, deploy-canary]
     if: needs.get-stores.outputs.rest != '[]' && needs.get-stores.outputs.rest != ''
     environment: development

@@ -330,6 +330,9 @@ jobs:
   provision-store:
     name: '→ Provision Store (${{ github.event.client_payload.project_id }}) [${{ github.event.client_payload.site_id || github.event.client_payload.store_id }}]'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ github.event.client_payload.project_id }}
+      cancel-in-progress: false
     permissions:
       id-token: write # OIDC para autenticación automática con vertex-platform (sin secrets manuales)
       contents: read
