@@ -152,7 +152,7 @@ jobs:
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore,storage \
+            --only hosting,firestore,storage,functions \
             --non-interactive
 
       - name: Health check (30s)
