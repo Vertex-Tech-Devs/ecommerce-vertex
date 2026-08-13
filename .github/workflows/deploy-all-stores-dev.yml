@@ -148,6 +148,34 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Ensure Firestore database exists
+        run: |
+          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
+            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
+            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
+              --location=us-central1 --type=firestore-native 2>/dev/null || true
+            sleep 10
+          fi
+
+      - name: Clean orphaned functions (type conflicts)
+        run: |
+          cd functions
+          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    names = [f['name'] if isinstance(f, dict) else str(f) for f in d]
+    print('\n'.join(names))
+except Exception:
+    sys.exit(0)
+" 2>/dev/null)"
+          for fn in $REMOTE; do
+            if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
+              echo "→ Deleting orphaned function: ${fn}"
+              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
+            fi
+          done
+
       - name: Deploy
         run: |
           npx --yes firebase-tools deploy \
@@ -227,6 +255,34 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+
+      - name: Ensure Firestore database exists
+        run: |
+          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
+            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
+            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
+              --location=us-central1 --type=firestore-native 2>/dev/null || true
+            sleep 10
+          fi
+
+      - name: Clean orphaned functions (type conflicts)
+        run: |
+          cd functions
+          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    names = [f['name'] if isinstance(f, dict) else str(f) for f in d]
+    print('\n'.join(names))
+except Exception:
+    sys.exit(0)
+" 2>/dev/null)"
+          for fn in $REMOTE; do
+            if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
+              echo "→ Deleting orphaned function: ${fn}"
+              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
+            fi
+          done
 
       - name: Deploy
         run: |
