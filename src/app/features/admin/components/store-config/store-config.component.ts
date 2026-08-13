@@ -134,7 +134,7 @@ export class StoreConfigComponent {
     });
   }
 
-  setTab(tab: 'identity'): void {
+  setTab(tab: 'identity' | 'emails'): void {
     this.activeTab.set(tab);
   }
 
