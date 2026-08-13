@@ -356,7 +356,16 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.currentPage = this.totalPages;
     }
     this.cdr.markForCheck();
-    window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+    // Restaurar el scroll y el foco de teclado en el frame siguiente, para que
+    // la fila contigua reciba el foco y el viewport no salte al inicio de la página.
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+      const targetId = `variant-row-${Math.max(0, index - 1)}`;
+      const targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        (targetEl as HTMLElement).focus();
+      }
+    });
   }
 
   generateVariantCombinations(): void {

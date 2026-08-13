@@ -226,9 +226,24 @@ Cada comando hace automáticamente: bump de `package.json` + commit + tag + push
 5. La plataforma abre un **PR automático** para actualizar `CURRENT_TEMPLATE_VERSION`
 6. Un admin de plataforma revisa y mergea el PR (paso manual intencional)
 
-### Versión actual: `v0.1.0` → **V1.0 (lanzamiento oficial)**
+### Versión actual: `v0.2.0` (desarrollo)
+
+La versión del template vive en `CURRENT_TEMPLATE_VERSION` (platform) y `version` en los
+`package.json` de ambos repos. El panel del platform la muestra por tienda
+(`appVersion`, `targetChannel`, `lastDeployedAt` en `stores/{storeId}`) y permite
+seleccionar la versión a desplegar individualmente.
 
 ---
+
+## 🧩 Multi-shard deployment
+
+Cada tienda se despliega a un **shard** (`vtx-sd-*`, ~35 tiendas por shard) con hosting +
+functions + rules + índices vía el workflow `Deploy All Stores (Development/Production)`.
+El `authDomain` del storefront apunta al shard (`https://{shard}.firebaseapp.com`) y el
+Google IdP del shard usa el clientId del master. El único paso manual es registrar el
+redirect URI del shard en la consola de Google (una vez por shard) — verificado
+automáticamente por `check-oauth-redirects.ts` y con banner en el panel.
+
 
 ## 🧩 Modelo de Datos Flat y Tenant Filtering (V1.0)
 

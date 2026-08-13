@@ -21,6 +21,17 @@
           <i class="bi bi-palette-fill me-2"></i>Identidad
         </button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button
+          class="nav-link"
+          [class.active]="activeTab() === 'emails'"
+          (click)="setTab('emails')"
+          type="button"
+          role="tab"
+        >
+          <i class="bi bi-envelope-fill me-2"></i>Emails
+        </button>
+      </li>
     </ul>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
@@ -96,6 +107,70 @@
                         }
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Tab 2: Emails -->
+        @if (activeTab() === 'emails') {
+          <div class="tab-pane active" role="tabpanel">
+            <div class="glass-card card-email">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-envelope me-2"></i> Notificaciones por Email
+              </div>
+              <div class="card-body">
+                <p class="text-soft mb-4">
+                  Configurá el remitente y los destinatarios de los correos transaccionales de la
+                  tienda (notificaciones de ventas, pedidos y administración).
+                </p>
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Email del propietario</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                      <input
+                        formControlName="storeOwnerEmail"
+                        type="email"
+                        class="form-control glass-input"
+                        placeholder="dueno@mitienda.com"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Email de notificaciones</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-bell"></i></span>
+                      <input
+                        formControlName="notificationEmail"
+                        type="email"
+                        class="form-control glass-input"
+                        placeholder="ventas@mitienda.com"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Nombre del remitente</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-person"></i></span>
+                      <input
+                        formControlName="emailSenderName"
+                        type="text"
+                        class="form-control glass-input"
+                        placeholder="Mi Tienda"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <label class="form-label text-label">Firma del email</label>
+                    <textarea
+                      formControlName="emailSignature"
+                      class="form-control glass-input"
+                      rows="3"
+                      placeholder="Gracias por tu compra — Mi Tienda"
+                    ></textarea>
                   </div>
                 </div>
               </div>

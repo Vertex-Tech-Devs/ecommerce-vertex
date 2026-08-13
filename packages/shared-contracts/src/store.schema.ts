@@ -61,6 +61,12 @@ export const StoreConfigSchema = z
     setupCompleted: z.boolean().default(true).catch(true),
     updatedAt: z.any().optional().nullable(),
     createdAt: z.any().optional().nullable(),
+
+    // Configuración de emails (editable desde /admin/store-config)
+    storeOwnerEmail: z.string().optional(),
+    notificationEmail: z.string().optional(),
+    emailSenderName: z.string().optional(),
+    emailSignature: z.string().optional(),
     features: z.any().optional(),
     strapline: z.string().optional().nullable(),
     currency: z.string().optional().nullable(),

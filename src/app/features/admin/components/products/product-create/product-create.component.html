@@ -336,6 +336,8 @@
             ) {
               <div
                 [formGroupName]="getVariantRealIndex(variantGroup)"
+                [id]="'variant-row-' + getVariantRealIndex(variantGroup)"
+                tabindex="-1"
                 class="variant-row glass-panel mb-3"
                 [class.variant-invalid]="variantGroup.invalid && variantGroup.touched"
               >

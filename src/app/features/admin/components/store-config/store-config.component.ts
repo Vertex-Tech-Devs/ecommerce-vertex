@@ -28,7 +28,7 @@ export class StoreConfigComponent {
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   isSubmitting = signal(false);
-  activeTab = signal<'identity'>('identity');
+  activeTab = signal<'identity' | 'emails'>('identity');
 
   // File uploading states
   faviconProgress = signal<number>(0);
@@ -60,6 +60,10 @@ export class StoreConfigComponent {
       metaDescription: [''],
     }),
     setupCompleted: [true],
+    storeOwnerEmail: [''],
+    notificationEmail: [''],
+    emailSenderName: [''],
+    emailSignature: [''],
   });
 
   constructor() {
@@ -93,6 +97,10 @@ export class StoreConfigComponent {
             metaDescription: cfg.seo?.metaDescription || 'Bienvenidos a mi tienda virtual.',
           },
           setupCompleted: cfg.setupCompleted ?? true,
+          storeOwnerEmail: cfg.storeOwnerEmail ?? '',
+          notificationEmail: cfg.notificationEmail ?? '',
+          emailSenderName: cfg.emailSenderName ?? '',
+          emailSignature: cfg.emailSignature ?? '',
         });
       } else {
         this.form.patchValue({

@@ -13,14 +13,30 @@ function envSiteUrl(): string {
 }
 
 async function getEmailConfig(storeId: string) {
+  const db = getFirestore();
+  // Fuente primaria: settings/emailTemplates (configuración avanzada por tienda).
   const configDoc = await db
     .doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES))
     .get();
-  if (!configDoc.exists) {
-    logger.error(`Email config doc not found for store ${storeId}.`);
-    return null;
+  const base = configDoc.exists ? configDoc.data() : {};
+
+  // Fuente secundaria: configuracion/store_{storeId} — el doc público que edita
+  // /admin/store-config (pestaña Emails). Los campos del panel tienen prioridad
+  // solo si están presentes (el doc primario manda).
+  const publicSnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
+  if (publicSnap.exists) {
+    const pub = publicSnap.data();
+    const merged: Record<string, unknown> = { ...base };
+    if (pub) {
+      if (!merged['storeName'] && pub['storeName']) merged['storeName'] = pub['storeName'];
+      if (pub['storeOwnerEmail']) merged['storeOwnerEmail'] = pub['storeOwnerEmail'];
+      if (pub['notificationEmail']) merged['notificationEmail'] = pub['notificationEmail'];
+      if (pub['emailSenderName']) merged['emailSenderName'] = pub['emailSenderName'];
+      if (pub['emailSignature']) merged['emailSignature'] = pub['emailSignature'];
+    }
+    return merged;
   }
-  return configDoc.data();
+  return configDoc.exists ? base : null;
 }
 
 async function getAttributeMap(storeId: string): Promise<Map<string, string>> {
@@ -147,7 +163,10 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
       : 'vertex-platform-dev.firebaseapp.com';
     const defaultFromEmail = `no-reply@${defaultFromDomain}`;
     const storeName = config?.storeName || 'Vertex Store';
-    const fromAddress = `${storeName} <${defaultFromEmail}>`;
+    // Remitente dinámico desde /admin/store-config (emailSenderName) o el nombre de la tienda.
+    const senderName = config?.emailSenderName || storeName;
+    const fromAddress = `${senderName} <${defaultFromEmail}>`;
+    const emailSignature = (config?.emailSignature || '').trim();
 
     const adminEmail = config?.storeOwnerEmail || config?.notificationEmail || getNotificationEmail();
 
@@ -172,7 +191,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
       const adminHtml = buildEmailHtml(adminConfig.template, orderData, orderId, attributeMap, {
         manageButtonUrl,
         whatsappUrl,
-      });
+      }) + (emailSignature ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>` : '');
 
       mailCreationPromises.push(
         db.collection(collectionPath(COLLECTIONS.MAIL)).add({
@@ -206,7 +225,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
         orderId,
         attributeMap,
         { whatsappUrl },
-      );
+      ) + (emailSignature ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>` : '');
 
       mailCreationPromises.push(
         db.collection(collectionPath(COLLECTIONS.MAIL)).add({

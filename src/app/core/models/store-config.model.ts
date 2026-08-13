@@ -32,6 +32,12 @@ export interface StoreConfig {
   };
   setupCompleted: boolean;
 
+  // Configuración de emails (editable desde /admin/store-config)
+  storeOwnerEmail?: string;
+  notificationEmail?: string;
+  emailSenderName?: string;
+  emailSignature?: string;
+
   // Legacy compatibility fields
   contactPhone?: string;
   contactEmail?: string;
