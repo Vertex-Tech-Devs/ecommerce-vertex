@@ -3,10 +3,11 @@ import * as logger from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { COLLECTIONS, DOCS, singletonDoc } from './core/config';
-import { defineString } from 'firebase-functions/params';
-
 const db = getFirestore();
-const siteUrl = defineString('SITE_URL', { default: 'http://localhost:4200' });
+// Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
+function envSiteUrl(): string {
+  return process.env.SITE_URL || 'http://localhost:4200';
+}
 
 const EmailTemplateSchema = z.object({
   subject: z.string(),
@@ -103,7 +104,7 @@ export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, a
     if (templates.adminNotification) {
       const adminConfig = templates.adminNotification;
       const manageButtonUrl = adminConfig.showManageButton
-        ? `${siteUrl.value()}/admin/orders/detail/${testData.orderId}`
+        ? `${envSiteUrl()}/admin/orders/detail/${testData.orderId}`
         : null;
       const whatsappMessage = encodeURIComponent(
         `Hola ${testData.clientName}, te contacto sobre el pedido de prueba #${testData.orderId}.`,

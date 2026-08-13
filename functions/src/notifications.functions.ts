@@ -1,14 +1,16 @@
 import { onDocumentWritten, onDocumentCreated } from 'firebase-functions/v2/firestore';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
-import { defineString } from 'firebase-functions/params';
 import { OrderSchema } from './core/order.model';
 import type { Order } from './core/order.model';
 import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 import { sendEmail, getNotificationEmail } from './core/email.service';
 
 const db = getFirestore();
-const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
+// Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
+function envSiteUrl(): string {
+  return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
+}
 
 async function getEmailConfig(storeId: string) {
   const configDoc = await db
@@ -158,7 +160,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
       };
 
       const manageButtonUrl = adminConfig.showManageButton
-        ? `${siteUrl.value()}/admin/orders/detail/${orderId}`
+        ? `${envSiteUrl()}/admin/orders/detail/${orderId}`
         : null;
       const whatsappMessage = encodeURIComponent(
         `Hola ${orderData.clientName}, te contacto sobre tu pedido #${orderId}.`,
