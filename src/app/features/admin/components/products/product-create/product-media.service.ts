@@ -4,7 +4,7 @@ import { Validators } from '@angular/forms';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { Observable } from 'rxjs';
-import { finalize, catchError, throwError } from 'rxjs';
+import { catchError, throwError } from 'rxjs';
 
 /**
  * Servicio encargado de la gestión y subida de archivos multimedia de productos a Firebase Storage.
@@ -39,7 +39,6 @@ export class ProductMediaService {
       // el estado — antes se tragaba el error y el spinner quedaba colgado.
       error: (err) => {
         console.error('UploadTask error (imagen principal):', err);
-        onProgress(0);
       },
     });
     downloadUrl$
@@ -48,9 +47,6 @@ export class ProductMediaService {
           console.error('Error al subir la imagen principal:', err);
           this.sweetAlertService.error('Error de Carga', 'No se pudo subir la imagen principal.');
           return throwError(() => err);
-        }),
-        finalize(() => {
-          onProgress(0);
         }),
       )
       .subscribe(onComplete);
@@ -82,7 +78,6 @@ export class ProductMediaService {
       next: (p) => onProgress(index, p),
       error: (err) => {
         console.error(`UploadTask error (galería #${index}):`, err);
-        onProgress(index, null);
       },
     });
     downloadUrl$
@@ -91,9 +86,6 @@ export class ProductMediaService {
           console.error(`Error al subir la imagen de galería #${index}:`, err);
           this.sweetAlertService.error('Error de Carga', 'No se pudo subir la imagen adicional.');
           return throwError(() => err);
-        }),
-        finalize(() => {
-          onProgress(index, null);
         }),
       )
       .subscribe(onComplete);
