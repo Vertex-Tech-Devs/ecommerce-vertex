@@ -461,7 +461,14 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         },
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
+      .subscribe({
+        // Si el upload falla (permisos/red), limpiar el estado para no dejar
+        // el "Subiendo (0%)..." colgado ni bloquear el guardado.
+        error: () => {
+          this.uploadProgress = null;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   onGalleryFileSelected(event: Event, index: number): void {
@@ -488,7 +495,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         },
       )
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
+      .subscribe({
+        // Limpiar el progreso de la galería si el upload falla.
+        error: () => {
+          this.galleryUploadProgress[index] = null;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   async onSubmit(): Promise<void> {
