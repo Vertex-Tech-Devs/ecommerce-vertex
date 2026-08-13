@@ -351,8 +351,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   async removeVariant(index: number, event?: Event): Promise<void> {
-    event?.preventDefault();
-    event?.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     const currentScrollY = window.scrollY;
 
@@ -480,6 +482,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.mediaService
       .uploadMainImage(
         file,
+        this.productId ?? 'new',
         (p) => {
           this.uploadProgress = p;
           this.cdr.markForCheck();
@@ -505,6 +508,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.mediaService
       .uploadGalleryImage(
         file,
+        this.productId ?? 'new',
         index,
         (idx, p) => {
           this.galleryUploadProgress[idx] = p;

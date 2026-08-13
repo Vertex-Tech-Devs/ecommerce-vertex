@@ -26,14 +26,16 @@ export class ProductMediaService {
    */
   uploadMainImage(
     file: File,
+    productId: string,
     onProgress: (p: number) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
     const storeId = resolveTenantId() || 'store';
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(
-      file,
-      `tenants/${storeId}/products/images`,
-    );
+    const timestamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `tenants/${storeId}/products/${productId || 'new'}/${timestamp}_${cleanFileName}`;
+
+    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
     progress$.subscribe(onProgress);
     downloadUrl$
       .pipe(
@@ -54,6 +56,7 @@ export class ProductMediaService {
    * Sube una imagen adicional de la galería de un producto a Firebase Storage bajo el namespace del tenant activo.
    *
    * @param file Archivo binario de la imagen a subir.
+   * @param productId ID del producto (o 'new').
    * @param index Índice de la imagen dentro del FormArray de la galería.
    * @param onProgress Callback invocado con el índice y el porcentaje de progreso (0-100) o null al finalizar.
    * @param onComplete Callback invocado con la URL pública descargable al finalizar.
@@ -61,15 +64,17 @@ export class ProductMediaService {
    */
   uploadGalleryImage(
     file: File,
+    productId: string,
     index: number,
     onProgress: (index: number, p: number | null) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
     const storeId = resolveTenantId() || 'store';
-    const { progress$, downloadUrl$ } = this.storageService.uploadFile(
-      file,
-      `tenants/${storeId}/products/gallery`,
-    );
+    const timestamp = Date.now();
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `tenants/${storeId}/products/${productId || 'new'}/${timestamp}_${cleanFileName}`;
+
+    const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
     progress$.subscribe((p) => onProgress(index, p));
     downloadUrl$
       .pipe(

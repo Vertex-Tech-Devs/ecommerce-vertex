@@ -9,6 +9,7 @@ import {
   EmailAuthProvider,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
 } from '@angular/fire/auth';
 import type { Observable } from 'rxjs';
 import { from, of } from 'rxjs';
@@ -137,12 +138,22 @@ export class AuthService {
             code.includes('auth/popup-blocked') ||
             code.includes('auth/popup-closed-by-user') ||
             code.includes('auth/unauthorized-domain') ||
-            code.includes('auth/invalid-continue-uri') ||
             code.includes('auth/redirect-uri-mismatch') ||
             code.includes('redirect_uri_mismatch')
           ) {
             throw new Error(code);
           }
+
+          if (code.includes('auth/invalid-continue-uri')) {
+            console.warn(
+              '[Google Login]: Popup auth failed with invalid-continue-uri. Falling back to signInWithRedirect...',
+            );
+            await runInInjectionContext(this.injector, () =>
+              signInWithRedirect(this.auth, provider),
+            );
+            return {} as UserCredential;
+          }
+
           throw err;
         }
       })(),
