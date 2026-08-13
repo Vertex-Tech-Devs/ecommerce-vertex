@@ -289,6 +289,11 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     );
   }
 
+  get isVariantsFormInvalid(): boolean {
+    const variantsCtrl = this.productForm.get('variants');
+    return Boolean(variantsCtrl?.touched && variantsCtrl?.invalid);
+  }
+
   onHasVariantsChange(enabled?: boolean): void {
     const hasVar = enabled ?? this.hasVariants;
     this.productForm.get('hasVariants')?.setValue(hasVar, { emitEvent: false });
@@ -299,13 +304,16 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     if (hasVar) {
       priceCtrl?.clearValidators();
       stockCtrl?.clearValidators();
+      this.variants.setValidators(Validators.required);
     } else {
       priceCtrl?.setValidators([Validators.required, Validators.min(0.01)]);
       stockCtrl?.setValidators([Validators.required, Validators.min(0)]);
+      this.variants.clearValidators();
     }
 
     priceCtrl?.updateValueAndValidity();
     stockCtrl?.updateValueAndValidity();
+    this.variants.updateValueAndValidity();
     this.productForm.updateValueAndValidity();
     this.cdr.markForCheck();
   }
@@ -623,6 +631,20 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   async onSubmit(): Promise<void> {
+    console.warn(
+      'VARIANT VALIDATION DEBUG:',
+      this.variants.controls.map((v, i) => ({
+        index: i,
+        valid: v.valid,
+        errors: v.errors,
+        value: v.value,
+        controlErrors: Object.keys((v as FormGroup).controls).map((k) => ({
+          control: k,
+          errors: (v as FormGroup).controls[k].errors,
+        })),
+      })),
+    );
+
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       this.logInvalidControls();

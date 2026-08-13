@@ -350,7 +350,7 @@
             </div>
           </div>
 
-          @if (productForm.get('variants')?.touched && productForm.get('variants')?.invalid) {
+          @if (isVariantsFormInvalid) {
             <div class="glass-alert-danger mb-4">
               <i class="bi bi-exclamation-triangle me-2"></i> Debes añadir al menos una variante y
               completar todos sus campos.
