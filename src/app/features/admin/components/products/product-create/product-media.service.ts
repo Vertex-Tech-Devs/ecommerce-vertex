@@ -3,13 +3,12 @@ import type { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import { Validators } from '@angular/forms';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
-import { resolveTenantId } from '@core/utils/tenant';
 import type { Observable } from 'rxjs';
 import { finalize, catchError, throwError } from 'rxjs';
 
 /**
  * Servicio encargado de la gestión y subida de archivos multimedia de productos a Firebase Storage.
- * Garantiza el aislamiento multi-tenant almacenando imágenes bajo la ruta `tenants/${storeId}/products/...`.
+ * Garantiza el aislamiento multi-tenant almacenando imágenes bajo la ruta `stores/{storeId}/products/...`.
  */
 @Injectable({ providedIn: 'root' })
 export class ProductMediaService {
@@ -30,13 +29,16 @@ export class ProductMediaService {
     onProgress: (p: number) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
-    const storeId = resolveTenantId() || 'store';
-    const timestamp = Date.now();
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `tenants/${storeId}/products/${productId || 'new'}/${timestamp}_${cleanFileName}`;
+    // Path aislado por tienda: stores/{storeId}/products/... (storage.rules)
+    const path = `products/${productId || 'new'}`;
 
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
-    progress$.subscribe(onProgress);
+    progress$.subscribe({
+      next: onProgress,
+      // Evita un error sin handler (uncaught) que rompería el flujo; el error
+      // real se maneja abajo vía downloadUrl$ y el subscribe del componente.
+      error: () => {},
+    });
     downloadUrl$
       .pipe(
         catchError((err) => {
@@ -69,13 +71,14 @@ export class ProductMediaService {
     onProgress: (index: number, p: number | null) => void,
     onComplete: (url: string) => void,
   ): Observable<number> {
-    const storeId = resolveTenantId() || 'store';
-    const timestamp = Date.now();
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const path = `tenants/${storeId}/products/${productId || 'new'}/${timestamp}_${cleanFileName}`;
+    // Path aislado por tienda: stores/{storeId}/products/... (storage.rules)
+    const path = `products/${productId || 'new'}`;
 
     const { progress$, downloadUrl$ } = this.storageService.uploadFile(file, path);
-    progress$.subscribe((p) => onProgress(index, p));
+    progress$.subscribe({
+      next: (p) => onProgress(index, p),
+      error: () => {},
+    });
     downloadUrl$
       .pipe(
         catchError((err) => {

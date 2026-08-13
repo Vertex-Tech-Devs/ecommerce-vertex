@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Storage } from '@angular/fire/storage';
 import type { StorageReference, UploadTask, UploadTaskSnapshot } from 'firebase/storage';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Observable, from, throwError } from 'rxjs';
+import { Observable, from, share, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SweetAlertService } from './sweet-alert.service';
 import { resolveTenantId } from '@core/utils/tenant';
@@ -43,6 +43,8 @@ export class StorageService {
     const storageRef = this.getStorageRef(filePath);
     const uploadTask = this.uploadBytes(storageRef, file);
 
+    // share(): un único listener al UploadTask aunque haya varios suscriptores
+    // (evita doble registro y errores sin handler que dejan el spinner colgado).
     const progress$ = new Observable<number>((observer) => {
       const unsubscribe = uploadTask.on(
         'state_changed',
@@ -56,7 +58,7 @@ export class StorageService {
       return (): void => {
         unsubscribe();
       };
-    });
+    }).pipe(share());
 
     const downloadUrl$ = new Observable<string>((observer) => {
       uploadTask
