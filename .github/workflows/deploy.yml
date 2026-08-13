@@ -463,6 +463,11 @@ jobs:
           ENDPOINT="completeStoreDeployment"
           if [ "${{ github.event.action }}" == "update-store-version" ]; then
             ENDPOINT="completeVersionUpdate"
+            # Reportar progreso real al panel antes de finalizar (deploy ya terminó).
+            curl -s -X POST \
+              "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/reportVersionUpdateProgress" \
+              -H "Content-Type: application/json" \
+              -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"deployToken\": \"${{ github.event.client_payload.deploy_token }}\", \"step\": \"Finalizando deploy\", \"pct\": 95}}"
           fi
           curl -s -X POST \
             "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$ENDPOINT" \
