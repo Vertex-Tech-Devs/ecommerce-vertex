@@ -14,6 +14,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -89,8 +90,26 @@ def main() -> int:
             token,
         )
         if "_err" in res:
+            # 409 = ya existe (puede ser la eliminación previa aún propagándose).
+            # Reintenta unos segundos antes de darlo por existente.
+            retried = False
+            for _ in range(6):
+                if res["_err"] != 409:
+                    break
+                time.sleep(15)
+                res = call(
+                    f"{base}/{cg}/indexes",
+                    "POST",
+                    {"queryScope": spec.get("queryScope", "COLLECTION"), "fields": spec["fields"]},
+                    token,
+                )
+                retried = True
+            if res["_err"] in (None,):
+                created += 1
+                print(f"✅ {cg} {want} created (after retry)" if retried else f"✅ {cg} {want} created")
+                continue
             if res["_err"] == 409:
-                continue  # ya existe
+                continue  # definitivamente ya existe
             print(f"⚠️ {cg} {want}: HTTP {res['_err']} {res.get('_msg', '')[:80]}")
         else:
             created += 1
