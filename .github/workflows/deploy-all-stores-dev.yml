@@ -175,6 +175,11 @@ jobs:
             --only hosting,firestore,storage,functions \
             --non-interactive --force
 
+      - name: Reconcile composite indexes (idempotent)
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: python3 scripts/reconcile-indexes.py
+
       - name: Health check (30s)
         run: |
           sleep 30
@@ -274,3 +279,8 @@ jobs:
             --project ${{ matrix.store.projectId }} \
             --only hosting,firestore,storage,functions \
             --non-interactive --force
+
+      - name: Reconcile composite indexes (idempotent)
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: python3 scripts/reconcile-indexes.py
