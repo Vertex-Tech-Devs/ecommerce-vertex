@@ -64,12 +64,18 @@ export class SweetAlertService {
   }
 
   /**
-   * Identical to `confirm()` but with `returnFocus: false`.
+   * Identical to `confirm()` but with `returnFocus: false` and scroll-position
+   * preservation via `scrollbarPadding: false` + `didOpen` restoration.
+   *
    * Use when the trigger element may be removed from the DOM before the dialog
-   * closes (e.g., deleting a list item), to prevent SweetAlert2 from trying to
-   * restore focus to a non-existent node and causing an unintended scroll-to-top.
+   * closes (e.g., deleting a list item) to prevent two scroll-to-top vectors:
+   *  1. On OPEN  — Swal2 adds `overflow:hidden` to <body> which Chromium resets
+   *               the scroll position to 0. Fixed by `didOpen` scroll restoration.
+   *  2. On CLOSE — Swal2 tries to return focus to the now-deleted trigger element.
+   *               Fixed by `returnFocus: false`.
    */
   confirmNoFocus(title: string, text: string, icon: SweetAlertIcon = 'warning'): Promise<boolean> {
+    const scrollY = window.scrollY;
     return Swal.fire({
       title,
       text,
@@ -80,6 +86,12 @@ export class SweetAlertService {
       confirmButtonText: 'Sí, estoy seguro',
       cancelButtonText: 'Cancelar',
       returnFocus: false,
+      scrollbarPadding: false,
+      didOpen: () => {
+        // Swal2 adds overflow:hidden to <body> before didOpen fires.
+        // In Chromium this resets window.scrollY to 0, so we restore it here.
+        window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+      },
     }).then((result) => {
       return result.isConfirmed;
     });
