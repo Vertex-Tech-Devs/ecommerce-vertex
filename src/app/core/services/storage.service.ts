@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Storage } from '@angular/fire/storage';
 import type { StorageReference, UploadTask, UploadTaskSnapshot } from 'firebase/storage';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Observable, from, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, from, race, share, throwError, timer } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { SweetAlertService } from './sweet-alert.service';
 import { resolveTenantId } from '@core/utils/tenant';
 
@@ -43,6 +43,8 @@ export class StorageService {
     const storageRef = this.getStorageRef(filePath);
     const uploadTask = this.uploadBytes(storageRef, file);
 
+    // share(): un único listener al UploadTask aunque haya varios suscriptores
+    // (evita doble registro y errores sin handler que dejan el spinner colgado).
     const progress$ = new Observable<number>((observer) => {
       const unsubscribe = uploadTask.on(
         'state_changed',
@@ -56,7 +58,19 @@ export class StorageService {
       return (): void => {
         unsubscribe();
       };
-    });
+    }).pipe(share());
+
+    // Anti-hang: si la sesión resumable no emite nada en 90s (ni progreso ni error),
+    // lo convertimos en un error visible para que el spinner nunca quede en 0% para
+    // siempre. La descarga (downloadUrl$) seguirá su propio curso y reportará el error.
+    const progressWithTimeout$ = race([
+      progress$,
+      timer(90_000).pipe(
+        map(() => {
+          throw new Error('Upload stalled: no progress from Firebase Storage in 90s.');
+        }),
+      ),
+    ]).pipe(share());
 
     const downloadUrl$ = new Observable<string>((observer) => {
       uploadTask
@@ -71,7 +85,7 @@ export class StorageService {
         .catch((error) => observer.error(error));
     });
 
-    return { progress$, downloadUrl$ };
+    return { progress$: progressWithTimeout$, downloadUrl$ };
   }
 
   private sanitizeFileName(name: string): string {

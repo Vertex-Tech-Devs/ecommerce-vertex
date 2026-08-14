@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { FooterService } from '@core/services/footer.service';
+import { version as pkgVersion } from '../../../../../../../package.json';
 
 function getCoalesced(...values: (string | undefined)[]): string {
   for (const v of values) {
@@ -22,6 +23,9 @@ function getCoalesced(...values: (string | undefined)[]): string {
 })
 export class FooterComponent {
   currentYear = new Date().getFullYear();
+
+  /** Versión del template horneada en el bundle (verificación visual del deploy). */
+  readonly storeVersion = `v${pkgVersion}`;
 
   private storeConfig = inject(StoreConfigService);
   private footerService = inject(FooterService);

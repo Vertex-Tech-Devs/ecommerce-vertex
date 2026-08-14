@@ -7,6 +7,22 @@ import { environment } from './environments/environment';
 import { STORE_CONFIG } from './environments/store.config';
 
 import { resolveTenantId } from './app/core/utils/tenant';
+import { version as pkgVersion } from '../package.json';
+
+// 0. Versión del build (desde package.json del tag compilado — sin drift).
+//    Expuesta para verificación: console (una vez), window global y <meta>.
+const APP_VERSION = `v${pkgVersion}`;
+try {
+  // eslint-disable-next-line no-console
+  console.info(`[Vertex Storefront] ${APP_VERSION}`);
+  (globalThis as Record<string, unknown>)['__VERTEX_STORE_VERSION__'] = APP_VERSION;
+  const meta = document.createElement('meta');
+  meta.name = 'app-version';
+  meta.content = APP_VERSION;
+  document.head.appendChild(meta);
+} catch {
+  // Non-fatal: la app arranca igual sin los expositores de versión.
+}
 
 // 1. Dynamic Tenant ID inference
 const resolvedTenant = resolveTenantId();

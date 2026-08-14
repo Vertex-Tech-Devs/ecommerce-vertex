@@ -1,14 +1,22 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
-import { defineString } from 'firebase-functions/params';
 import type { PaymentRequestData } from './payment.model';
 import { logger } from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { singletonDoc } from './config';
 
-const siteUrl = defineString('SITE_URL', { default: 'https://ecommerce-vertex.web.app' });
-const webhookUrl = defineString('MERCADOPAGO_WEBHOOK_URL', { default: '' });
-const mpAccessTokenParam = defineString('MERCADOPAGO_ACCESSTOKEN', { default: '' });
+// Las credenciales de Mercado Pago viven en Firestore (store_payments) + Secret Manager por tienda.
+// Los fallbacks de entorno se leen con process.env para que el deploy a shards nuevos
+// no exija definir env vars en el proyecto (firebase-tools solo las exige con defineString).
+function envSiteUrl(): string {
+  return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
+}
+function envWebhookUrl(): string {
+  return process.env.MERCADOPAGO_WEBHOOK_URL || '';
+}
+function envMpAccessToken(): string {
+  return process.env.MERCADOPAGO_ACCESSTOKEN || process.env.MERCADOPAGO_TEST_TOKEN || '';
+}
 const secretsClient = new SecretManagerServiceClient();
 
 function resolveProjectId(): string {
@@ -58,7 +66,7 @@ function resolveStoreBaseUrl(tenantId?: string, mpConfig?: Record<string, any>):
     return `https://vtx-${tenantId}.web.app`;
   }
 
-  return siteUrl.value().replace(/\/+$/, '');
+  return envSiteUrl().replace(/\/+$/, '');
 }
 
 async function getMercadoPagoRuntimeConfig(
@@ -100,14 +108,10 @@ async function getMercadoPagoRuntimeConfig(
   }
   if (!tokenFromSecret) {
     // Fallback a variable de entorno o parámetro (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
-    tokenFromSecret =
-      mpAccessTokenParam.value() ||
-      process.env.MERCADOPAGO_ACCESSTOKEN?.trim() ||
-      process.env.MERCADOPAGO_TEST_TOKEN?.trim() ||
-      '';
+    tokenFromSecret = envMpAccessToken().trim();
   }
   const accessToken = tokenFromSecret.trim();
-  const webhook = (mpConfig?.['webhookUrl'] || webhookUrl.value() || '').trim();
+  const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig);
 
   if (!accessToken) {
@@ -122,7 +126,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
 
   if (process.env.FUNCTIONS_EMULATOR === 'true') {
     logger.info(`[Emulator] Simulating Mercado Pago preference creation for ${external_reference}`);
-    const host = siteUrl.value() || 'http://localhost:4201';
+    const host = envSiteUrl() || 'http://localhost:4201';
     // El id mock incluye el external_reference para que el webhook emulado pueda
     // resolver la orden (el parseo por timestamp no era reversible).
     return {

@@ -330,6 +330,9 @@ jobs:
   provision-store:
     name: '→ Provision Store (${{ github.event.client_payload.project_id }}) [${{ github.event.client_payload.site_id || github.event.client_payload.store_id }}]'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ github.event.client_payload.project_id }}
+      cancel-in-progress: false
     permissions:
       id-token: write # OIDC para autenticación automática con vertex-platform (sin secrets manuales)
       contents: read
@@ -413,7 +416,17 @@ jobs:
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+              "rewrites": [{ "source": "**", "destination": "/index.html" }],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|woff|woff2|ttf|eot|png|jpg|jpeg|webp|svg|ico)",
+                  "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+                },
+                {
+                  "source": "**",
+                  "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+                }
+              ]
             }
           }
           if site_id and site_id != "default":
@@ -463,6 +476,11 @@ jobs:
           ENDPOINT="completeStoreDeployment"
           if [ "${{ github.event.action }}" == "update-store-version" ]; then
             ENDPOINT="completeVersionUpdate"
+            # Reportar progreso real al panel antes de finalizar (deploy ya terminó).
+            curl -s -X POST \
+              "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/reportVersionUpdateProgress" \
+              -H "Content-Type: application/json" \
+              -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"deployToken\": \"${{ github.event.client_payload.deploy_token }}\", \"step\": \"Finalizando deploy\", \"pct\": 95}}"
           fi
           curl -s -X POST \
             "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$ENDPOINT" \

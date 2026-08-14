@@ -101,6 +101,9 @@ jobs:
   deploy-canary:
     name: '🐤 Canary dev → ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ matrix.store.projectId }}
+      cancel-in-progress: false
     needs: [build, get-stores]
     if: needs.get-stores.outputs.has_stores == 'true'
     environment: development
@@ -129,7 +132,17 @@ jobs:
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+              "rewrites": [{ "source": "**", "destination": "/index.html" }],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|woff|woff2|ttf|eot|png|jpg|jpeg|webp|svg|ico)",
+                  "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+                },
+                {
+                  "source": "**",
+                  "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+                }
+              ]
             },
             "storage": {
               "rules": "storage.rules"
@@ -148,12 +161,37 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Ensure Firestore database exists
+        run: |
+          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
+            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
+            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
+              --location=us-central1 --type=firestore-native 2>/dev/null || true
+            sleep 10
+          fi
+
+      - name: Clean orphaned functions (type conflicts)
+        run: |
+          cd functions
+          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(chr(10).join((f['name'] if isinstance(f,dict) else str(f)) for f in d))" 2>/dev/null)"
+          for fn in $REMOTE; do
+            if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
+              echo "→ Deleting orphaned function: ${fn}"
+              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
+            fi
+          done
+
       - name: Deploy
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore,storage \
-            --non-interactive
+            --only hosting,firestore,storage,functions \
+            --non-interactive --force
+
+      - name: Reconcile composite indexes (idempotent)
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: python3 scripts/reconcile-indexes.py
 
       - name: Health check (30s)
         run: |
@@ -170,6 +208,9 @@ jobs:
   deploy-rest:
     name: '→ dev ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ matrix.store.projectId }}
+      cancel-in-progress: false
     needs: [build, get-stores, deploy-canary]
     if: needs.get-stores.outputs.rest != '[]' && needs.get-stores.outputs.rest != ''
     environment: development
@@ -205,7 +246,17 @@ jobs:
             "hosting": {
               "public": "dist/ecommerce-vertex/browser",
               "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-              "rewrites": [{ "source": "**", "destination": "/index.html" }]
+              "rewrites": [{ "source": "**", "destination": "/index.html" }],
+              "headers": [
+                {
+                  "source": "**/*.@(js|css|woff|woff2|ttf|eot|png|jpg|jpeg|webp|svg|ico)",
+                  "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+                },
+                {
+                  "source": "**",
+                  "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+                }
+              ]
             },
             "storage": {
               "rules": "storage.rules"
@@ -228,9 +279,34 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Ensure Firestore database exists
+        run: |
+          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
+            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
+            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
+              --location=us-central1 --type=firestore-native 2>/dev/null || true
+            sleep 10
+          fi
+
+      - name: Clean orphaned functions (type conflicts)
+        run: |
+          cd functions
+          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(chr(10).join((f['name'] if isinstance(f,dict) else str(f)) for f in d))" 2>/dev/null)"
+          for fn in $REMOTE; do
+            if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
+              echo "→ Deleting orphaned function: ${fn}"
+              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
+            fi
+          done
+
       - name: Deploy
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
             --only hosting,firestore,storage,functions \
-            --non-interactive
+            --non-interactive --force
+
+      - name: Reconcile composite indexes (idempotent)
+        env:
+          PROJECT_ID: ${{ matrix.store.projectId }}
+        run: python3 scripts/reconcile-indexes.py

@@ -63,10 +63,16 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ needs.validate-tag-source.outputs.version }}"
-          gh release create "${{ github.ref_name }}" \
-            --title "v${VERSION}" \
-            --generate-notes \
-            --verify-tag
+          # Idempotente: si la release ya existe (p. ej. creada manualmente o en un
+          # re-run), no falla el pipeline — la actualiza y sigue.
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+            echo "ℹ️ Release ${{ github.ref_name }} ya existe — se omite la creación."
+          else
+            gh release create "${{ github.ref_name }}" \
+              --title "v${VERSION}" \
+              --generate-notes \
+              --verify-tag
+          fi
 
   notify-platform:
     name: Notify platform of new storefront version

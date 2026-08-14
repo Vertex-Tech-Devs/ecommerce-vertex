@@ -20,7 +20,9 @@
 
     <div class="footer__copyright">
       <p>&copy; {{ currentYear }} {{ viewData().copyrightText }}</p>
-      <p class="footer__watermark">HECHO CON VERTEX</p>
+      <p class="footer__watermark">
+        HECHO CON VERTEX <span class="footer__version">· {{ storeVersion }}</span>
+      </p>
     </div>
 
     <nav class="footer__social" aria-label="Redes sociales">
