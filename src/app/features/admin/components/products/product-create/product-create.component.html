@@ -390,39 +390,21 @@
                       @if (attr.id && variantAttributes.value.includes(attr.id)) {
                         <div class="variant-attribute-item">
                           <label class="form-label">{{ attr.name }}</label>
-                          @if (attr.id === getFirstActiveAttributeId(attributes)) {
-                            <select
-                              #variantSelect
-                              class="form-select glass-input hardware-accelerated"
-                              [formControlName]="attr.id"
-                              [ngClass]="{
-                                'is-invalid':
-                                  variantGroup.get('attributes.' + attr.id)?.invalid &&
-                                  variantGroup.get('attributes.' + attr.id)?.touched,
-                              }"
-                            >
-                              <option [ngValue]="null" disabled>Seleccionar...</option>
-                              @for (val of attr.values; track val) {
-                                <option [value]="val">{{ val }}</option>
-                              }
-                            </select>
-                          } @else {
-                            <select
-                              #variantSelect
-                              class="form-select glass-input hardware-accelerated"
-                              [formControlName]="attr.id"
-                              [ngClass]="{
-                                'is-invalid':
-                                  variantGroup.get('attributes.' + attr.id)?.invalid &&
-                                  variantGroup.get('attributes.' + attr.id)?.touched,
-                              }"
-                            >
-                              <option [ngValue]="null" disabled>Seleccionar...</option>
-                              @for (val of attr.values; track val) {
-                                <option [value]="val">{{ val }}</option>
-                              }
-                            </select>
-                          }
+                          <select
+                            #variantSelect
+                            class="form-select glass-input hardware-accelerated"
+                            [formControlName]="attr.id"
+                            [ngClass]="{
+                              'is-invalid':
+                                variantGroup.get('attributes.' + attr.id)?.invalid &&
+                                variantGroup.get('attributes.' + attr.id)?.touched,
+                            }"
+                          >
+                            <option [ngValue]="null" disabled>Seleccionar...</option>
+                            @for (val of attr.values; track val) {
+                              <option [value]="val">{{ val }}</option>
+                            }
+                          </select>
                         </div>
                       }
                     }

@@ -234,7 +234,16 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           );
           this.productForm.setControl('images', this.fb.array(imageControls));
 
-          const attributeControls = (product.variantAttributes ?? []).map((attrId) =>
+          const allAttrs = this.attributesSubject.value;
+          const rawVariantAttrs = (product.variantAttributes ?? []) as string[];
+          const normalizedVariantAttrIds = rawVariantAttrs
+            .map((attrKey) => {
+              const matched = allAttrs.find((a) => a.id === attrKey || a.name === attrKey);
+              return matched?.id ?? attrKey;
+            })
+            .filter(Boolean);
+
+          const attributeControls = normalizedVariantAttrIds.map((attrId) =>
             this.fb.control(attrId),
           );
           this.productForm.setControl('variantAttributes', this.fb.array(attributeControls), {
@@ -242,7 +251,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           });
 
           const variantControls = variants.map((v) =>
-            this.variantFormService.createVariantGroup(product.variantAttributes ?? [], v),
+            this.variantFormService.createVariantGroup(normalizedVariantAttrIds, v, allAttrs),
           );
           this.productForm.setControl('variants', this.fb.array(variantControls), {
             emitEvent: false,
@@ -324,20 +333,35 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         startWith(this.variantAttributes.value as string[]),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((selectedIds: string[]) => {
+      .subscribe((selectedKeys: string[]) => {
+        const allAttrs = this.attributesSubject.value;
+        const validSelectedIds = Array.from(
+          new Set(
+            selectedKeys
+              .map((key) => {
+                const matched = allAttrs.find((a) => a.id === key || a.name === key);
+                return matched?.id ?? key;
+              })
+              .filter(Boolean),
+          ),
+        );
+
         this.variants.controls.forEach((control) => {
           const attributesGroup = control.get('attributes') as FormGroup;
-          const currentIds = Object.keys(attributesGroup.controls);
-          currentIds
-            .filter((id) => !selectedIds.includes(id))
-            .forEach((id) => attributesGroup.removeControl(id));
-          selectedIds
-            .filter((id) => !currentIds.includes(id))
+          if (!attributesGroup) {
+            return;
+          }
+          const currentKeys = Object.keys(attributesGroup.controls);
+          currentKeys
+            .filter((key) => !validSelectedIds.includes(key))
+            .forEach((key) => attributesGroup.removeControl(key));
+          validSelectedIds
+            .filter((id) => !currentKeys.includes(id))
             .forEach((id) => {
               attributesGroup.addControl(id, this.fb.control(null, Validators.required));
             });
         });
-        if (selectedIds.length > 0) {
+        if (validSelectedIds.length > 0) {
           this.onHasVariantsChange(true);
         }
         this.cdr.markForCheck();
@@ -395,9 +419,20 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
   addVariant(variant?: ProductVariant): void {
     this.focusNewVariant = true;
-    this.variants.push(
-      this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
+    const allAttrs = this.attributesSubject.value;
+    const rawSelected = this.variantAttributes.value as string[];
+    const selectedIds = Array.from(
+      new Set(
+        rawSelected
+          .map((key) => {
+            const matched = allAttrs.find((a) => a.id === key || a.name === key);
+            return matched?.id ?? key;
+          })
+          .filter(Boolean),
+      ),
     );
+
+    this.variants.push(this.variantFormService.createVariantGroup(selectedIds, variant, allAttrs));
     this.currentPage = this.totalPages;
     this.cdr.markForCheck();
   }
@@ -455,11 +490,21 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.attributes$
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((allAttributes) => {
-        const selectedIds = this.variantAttributes.value as string[];
-        if (!selectedIds.length) {
+        const rawSelected = this.variantAttributes.value as string[];
+        if (!rawSelected.length) {
           this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
           return;
         }
+        const selectedIds = Array.from(
+          new Set(
+            rawSelected
+              .map((key) => {
+                const matched = allAttributes.find((a) => a.id === key || a.name === key);
+                return matched?.id ?? key;
+              })
+              .filter(Boolean),
+          ),
+        );
         const selectedAttrs = allAttributes.filter((a) => a.id && selectedIds.includes(a.id));
         if (!selectedAttrs.length) {
           this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
@@ -483,6 +528,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
               selectedIds,
               combo,
               existingVariants,
+              allAttributes,
             ),
           );
         });

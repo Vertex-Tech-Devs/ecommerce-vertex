@@ -37,14 +37,24 @@ export class ProductVariantFormService {
   private fb = inject(FormBuilder);
   readonly variantSearchControl = new FormControl('', { nonNullable: true });
 
-  createVariantGroup(selectedIds: string[], variant?: Partial<ProductVariant>): FormGroup {
+  createVariantGroup(
+    selectedIds: string[],
+    variant?: Partial<ProductVariant>,
+    allAttributes?: Attribute[],
+  ): FormGroup {
     const attributesGroup = this.fb.group({});
-    selectedIds.forEach((id) => {
-      if (id) {
-        attributesGroup.addControl(
-          id,
-          this.fb.control(variant?.attributes?.[id] ?? null, Validators.required),
-        );
+    const normalizedIds = Array.from(new Set(selectedIds.filter(Boolean)));
+
+    normalizedIds.forEach((key) => {
+      const attr = allAttributes?.find((a) => a.id === key || a.name === key);
+      const targetId = attr?.id ?? key;
+      const initialValue =
+        variant?.attributes?.[targetId] ??
+        (attr?.name ? variant?.attributes?.[attr.name] : null) ??
+        null;
+
+      if (!attributesGroup.contains(targetId)) {
+        attributesGroup.addControl(targetId, this.fb.control(initialValue, Validators.required));
       }
     });
 
@@ -61,6 +71,7 @@ export class ProductVariantFormService {
     selectedIds: string[],
     combo: Record<string, string>,
     existingVariants: ProductVariantFormValue[] = [],
+    allAttributes?: Attribute[],
   ): FormGroup {
     const match = existingVariants.find((v) =>
       selectedIds.every((id) => v.attributes?.[id] === combo[id]),
@@ -73,13 +84,17 @@ export class ProductVariantFormService {
       }
     });
 
-    return this.createVariantGroup(selectedIds, {
-      id: match?.id ?? undefined,
-      attributes: comboAttributes,
-      stock: match?.stock ?? 0,
-      sku: match?.sku,
-      price: match?.price,
-    });
+    return this.createVariantGroup(
+      selectedIds,
+      {
+        id: match?.id ?? undefined,
+        attributes: comboAttributes,
+        stock: match?.stock ?? 0,
+        sku: match?.sku,
+        price: match?.price,
+      },
+      allAttributes,
+    );
   }
 
   generateCombinations(attributes: Attribute[]): Record<string, string>[] {
