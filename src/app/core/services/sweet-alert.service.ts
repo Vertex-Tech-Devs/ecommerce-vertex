@@ -63,6 +63,28 @@ export class SweetAlertService {
     });
   }
 
+  /**
+   * Identical to `confirm()` but with `returnFocus: false`.
+   * Use when the trigger element may be removed from the DOM before the dialog
+   * closes (e.g., deleting a list item), to prevent SweetAlert2 from trying to
+   * restore focus to a non-existent node and causing an unintended scroll-to-top.
+   */
+  confirmNoFocus(title: string, text: string, icon: SweetAlertIcon = 'warning'): Promise<boolean> {
+    return Swal.fire({
+      title,
+      text,
+      icon,
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, estoy seguro',
+      cancelButtonText: 'Cancelar',
+      returnFocus: false,
+    }).then((result) => {
+      return result.isConfirmed;
+    });
+  }
+
   loading(title: string, text?: string): void {
     void Swal.fire({
       title,

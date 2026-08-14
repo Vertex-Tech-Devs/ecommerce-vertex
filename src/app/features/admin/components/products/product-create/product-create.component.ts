@@ -352,7 +352,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       event.stopPropagation();
     }
     const scrollY = window.scrollY;
-    const isConfirmed = await this.sweetAlertService.confirm(
+    const isConfirmed = await this.sweetAlertService.confirmNoFocus(
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
     );
