@@ -245,7 +245,6 @@
 .image-upload-overlay {
   position: absolute;
   inset: 0;
-  margin-bottom: 1rem; // aligns with the mb-3 on .preview-wrapper
   border-radius: 12px;
   background: rgba(15, 23, 42, 0.82);
   backdrop-filter: blur(6px);

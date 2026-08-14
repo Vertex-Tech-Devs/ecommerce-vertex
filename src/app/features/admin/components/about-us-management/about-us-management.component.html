@@ -68,27 +68,25 @@
 
               <div class="col-md-6">
                 <label class="form-label text-label d-block">Imagen del Banner</label>
-                <div class="position-relative">
-                  <div class="preview-wrapper mb-3">
-                    @if (bannerPreviewUrl) {
-                      <img
-                        [src]="bannerPreviewUrl"
-                        alt="Previsualización del nuevo banner"
-                        class="img-fluid"
-                      />
-                    } @else if (aboutUsForm.get('bannerImageUrl')?.value) {
-                      <img
-                        [src]="aboutUsForm.get('bannerImageUrl')?.value"
-                        alt="Banner actual"
-                        class="img-fluid"
-                      />
-                    } @else {
-                      <div class="no-preview-placeholder">
-                        <i class="bi bi-image"></i>
-                        <span>Sin imagen</span>
-                      </div>
-                    }
-                  </div>
+                <div class="preview-wrapper mb-3 position-relative">
+                  @if (bannerPreviewUrl) {
+                    <img
+                      [src]="bannerPreviewUrl"
+                      alt="Previsualización del nuevo banner"
+                      class="img-fluid"
+                    />
+                  } @else if (aboutUsForm.get('bannerImageUrl')?.value) {
+                    <img
+                      [src]="aboutUsForm.get('bannerImageUrl')?.value"
+                      alt="Banner actual"
+                      class="img-fluid"
+                    />
+                  } @else {
+                    <div class="no-preview-placeholder">
+                      <i class="bi bi-image"></i>
+                      <span>Sin imagen</span>
+                    </div>
+                  }
                   @if (isUploadingBanner()) {
                     <div class="image-upload-overlay">
                       <span
@@ -174,27 +172,25 @@
 
               <div class="col-md-5 col-lg-4">
                 <label class="form-label text-label d-block">Imagen Lateral</label>
-                <div class="position-relative">
-                  <div class="preview-wrapper mb-3 preview-wrapper--vertical">
-                    @if (centralPreviewUrl) {
-                      <img
-                        [src]="centralPreviewUrl"
-                        alt="Previsualización de imagen lateral"
-                        class="img-fluid"
-                      />
-                    } @else if (aboutUsForm.get('centralImageUrl')?.value) {
-                      <img
-                        [src]="aboutUsForm.get('centralImageUrl')?.value"
-                        alt="Imagen lateral actual"
-                        class="img-fluid"
-                      />
-                    } @else {
-                      <div class="no-preview-placeholder">
-                        <i class="bi bi-image"></i>
-                        <span>Sin imagen</span>
-                      </div>
-                    }
-                  </div>
+                <div class="preview-wrapper mb-3 preview-wrapper--vertical position-relative">
+                  @if (centralPreviewUrl) {
+                    <img
+                      [src]="centralPreviewUrl"
+                      alt="Previsualización de imagen lateral"
+                      class="img-fluid"
+                    />
+                  } @else if (aboutUsForm.get('centralImageUrl')?.value) {
+                    <img
+                      [src]="aboutUsForm.get('centralImageUrl')?.value"
+                      alt="Imagen lateral actual"
+                      class="img-fluid"
+                    />
+                  } @else {
+                    <div class="no-preview-placeholder">
+                      <i class="bi bi-image"></i>
+                      <span>Sin imagen</span>
+                    </div>
+                  }
                   @if (isUploadingCentral()) {
                     <div class="image-upload-overlay">
                       <span
