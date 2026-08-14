@@ -242,6 +242,39 @@
   }
 }
 
+.image-upload-overlay {
+  position: absolute;
+  inset: 0;
+  margin-bottom: 1rem; // aligns with the mb-3 on .preview-wrapper
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  z-index: 10;
+  animation: fade-in-overlay 0.2s ease;
+
+  @keyframes fade-in-overlay {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.disabled-label {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .features-scroll-wrapper {
   @media (min-width: 992px) {
     display: grid;
