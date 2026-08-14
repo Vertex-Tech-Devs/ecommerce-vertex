@@ -10,10 +10,11 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { FormArray, AbstractControl } from '@angular/forms';
+import type { AbstractControl } from '@angular/forms';
 import {
   FormBuilder,
   FormGroup,
+  FormArray,
   ReactiveFormsModule,
   FormsModule,
   Validators,
@@ -129,6 +130,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((attrs) => {
         this.attributesSubject.next(attrs);
+        const currentSelected = this.variantAttributes.value as string[];
+        if (currentSelected.length > 0) {
+          this.variantAttributes.updateValueAndValidity({ emitEvent: true });
+        }
         this.cdr.markForCheck();
       });
     this.variantSearchControl.valueChanges
@@ -358,7 +363,12 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           validSelectedIds
             .filter((id) => !currentKeys.includes(id))
             .forEach((id) => {
-              attributesGroup.addControl(id, this.fb.control(null, Validators.required));
+              const matchedAttr = allAttrs.find((a) => a.id === id || a.name === id);
+              const isRequired = Boolean(matchedAttr?.values?.length);
+              attributesGroup.addControl(
+                id,
+                this.fb.control(null, isRequired ? Validators.required : []),
+              );
             });
         });
         if (validSelectedIds.length > 0) {
@@ -647,18 +657,28 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     Object.keys(this.productForm.controls).forEach((key) => {
       const control = this.productForm.get(key);
       if (control?.invalid) {
-        invalidInfo[`form.${key}`] = control.errors;
+        if (key === 'images' && control instanceof FormArray) {
+          control.controls.forEach((imgCtrl, idx) => {
+            if (imgCtrl.invalid) {
+              invalidInfo[`form.images[${idx}]`] = imgCtrl.errors;
+            }
+          });
+        } else if (key !== 'variants') {
+          invalidInfo[`form.${key}`] = control.errors;
+        }
       }
     });
 
     if (this.variants.invalid) {
+      if (this.variants.errors) {
+        invalidInfo['form.variants'] = this.variants.errors;
+      }
       this.variants.controls.forEach((group, index) => {
         if (group.invalid) {
           const fg = group as FormGroup;
           Object.keys(fg.controls).forEach((childKey) => {
             const childControl = fg.get(childKey);
             if (childControl?.invalid) {
-              invalidInfo[`variant[${index}].${childKey}`] = childControl.errors;
               if (childKey === 'attributes' && childControl instanceof FormGroup) {
                 Object.keys(childControl.controls).forEach((attrKey) => {
                   const attrCtrl = childControl.get(attrKey);
@@ -666,6 +686,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
                     invalidInfo[`variant[${index}].attributes.${attrKey}`] = attrCtrl.errors;
                   }
                 });
+              } else {
+                invalidInfo[`variant[${index}].${childKey}`] = childControl.errors;
               }
             }
           });
@@ -673,10 +695,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       });
     }
 
-    const currentErrorState = JSON.stringify(invalidInfo);
+    const currentErrorState = JSON.stringify(invalidInfo, null, 2);
     if (currentErrorState !== this.lastLoggedErrors) {
       this.lastLoggedErrors = currentErrorState;
-      console.warn('[Form Validation] Invalid controls detected:', invalidInfo);
+      console.warn('[Form Validation] Invalid controls detected:\n' + currentErrorState);
     }
   }
 

@@ -54,7 +54,11 @@ export class ProductVariantFormService {
         null;
 
       if (!attributesGroup.contains(targetId)) {
-        attributesGroup.addControl(targetId, this.fb.control(initialValue, Validators.required));
+        const isVisibleWithValues = allAttributes ? Boolean(attr?.values?.length) : true;
+        attributesGroup.addControl(
+          targetId,
+          this.fb.control(initialValue, isVisibleWithValues ? Validators.required : []),
+        );
       }
     });
 
