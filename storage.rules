@@ -20,7 +20,6 @@ service firebase.storage {
       return isAuthenticated() && (
         isSuperAdmin() ||
         (request.auth.token.get('admin', false) == true && (
-          request.auth.token.get('tenantId', '') == '' ||
           request.auth.token.get('tenantId', '') == storeId ||
           storeId.matches('^vtx-pr-.*')
         ))
@@ -38,7 +37,7 @@ service firebase.storage {
     match /stores/{storeId}/{allPaths=**} {
       allow create, update: if isStoreAdmin(storeId)
         && request.resource.size < 5 * 1024 * 1024
-        && request.resource.contentType.matches('image/(jpeg|png|webp|x-icon|vnd.microsoft.icon|svg\\+xml)');
+        && request.resource.contentType.matches('image/(jpeg|png|webp|x-icon|vnd.microsoft.icon|svg[+]xml)');
       allow delete: if isStoreAdmin(storeId);
     }
   }
