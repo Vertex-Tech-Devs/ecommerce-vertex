@@ -298,10 +298,12 @@
                 <i class="bi bi-stars me-1" aria-hidden="true"></i> Generar
               </button>
               <button
+                #addVariantBtn
                 (click)="addVariant()"
                 type="button"
                 class="btn-glass-success btn-sm"
                 [disabled]="variantAttributes.length === 0"
+                aria-label="Agregar variante manualmente"
               >
                 <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Manual
               </button>

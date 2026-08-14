@@ -1,6 +1,13 @@
 /* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  ViewChild,
+  ViewChildren,
+  DestroyRef,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
@@ -42,6 +49,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   private focusNewImage = false;
   private focusNewVariant = false;
 
+  @ViewChild('addVariantBtn') addVariantBtn?: ElementRef<HTMLButtonElement>;
   @ViewChildren('galleryInput') galleryInputs!: QueryList<ElementRef<HTMLInputElement>>;
   @ViewChildren('variantSelect') variantSelects!: QueryList<ElementRef<HTMLSelectElement>>;
   @ViewChildren('variantStock') variantStocks!: QueryList<ElementRef<HTMLInputElement>>;
@@ -356,14 +364,19 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.currentPage = this.totalPages;
     }
     this.cdr.markForCheck();
-    // Restaurar el scroll y el foco de teclado en el frame siguiente, para que
-    // la fila contigua reciba el foco y el viewport no salte al inicio de la página.
-    requestAnimationFrame(() => {
+    // Restaurar el scroll y redirigir el foco al botón "Agregar variante" (o a la
+    // fila contigua) tras el ciclo de detección de cambios de Angular y el cierre
+    // del modal de confirmación. Se usa setTimeout (macrotask) en lugar de
+    // requestAnimationFrame para asegurar que el DOM ya esté estabilizado.
+    setTimeout(() => {
       window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-      const targetId = `variant-row-${Math.max(0, index - 1)}`;
-      const targetEl = document.getElementById(targetId);
+      // Prioridad 1: botón "Agregar variante" (siempre presente cuando hay atributos)
+      const targetEl =
+        this.addVariantBtn?.nativeElement ??
+        (document.getElementById(`variant-row-${Math.max(0, index - 1)}`) as HTMLElement | null);
       if (targetEl) {
-        (targetEl as HTMLElement).focus();
+        targetEl.focus({ preventScroll: true });
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     });
   }
