@@ -734,6 +734,14 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     this.isSubmitting = true;
     const formValue = this.productForm.value as ProductFormValue;
     try {
+      const hasVariants = Boolean(formValue.hasVariants);
+      const totalStock = hasVariants
+        ? (formValue.variants || []).reduce(
+            (acc: number, v: ProductVariantFormValue) => acc + (Number(v.stock) || 0),
+            0,
+          )
+        : Number(formValue.stock) || 0;
+
       if (this.isEditMode && this.productId) {
         const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(
           formValue.variants,
@@ -743,7 +751,17 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           formValue;
         await this.productService.updateProductWithVariants(
           this.productId,
-          { name, description, price, categoryId, image, images, variantAttributes },
+          {
+            name,
+            description,
+            price: Number(price) || 0,
+            stock: totalStock,
+            totalStock,
+            categoryId,
+            image,
+            images,
+            variantAttributes: hasVariants ? (variantAttributes ?? []) : [],
+          },
           toUpdate,
           toAdd,
           toDelete,
@@ -752,9 +770,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         void this.router.navigate(['/admin/products', this.productId]);
       } else {
         const productData = this.variantFormService.buildProductData(formValue);
-        const variantsData = formValue.variants.map((v) => ({
+        const variantsData = (formValue.variants || []).map((v) => ({
           attributes: v.attributes,
-          stock: v.stock,
+          stock: Number(v.stock) || 0,
           sku: v.sku,
           price: v.price,
         }));

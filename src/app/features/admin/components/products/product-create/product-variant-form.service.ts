@@ -127,12 +127,13 @@ export class ProductVariantFormService {
     const toAdd: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = [];
     const currentIds = new Set<string>();
 
-    formVariants.forEach((v) => {
+    (formVariants || []).forEach((v) => {
+      const variantStock = Number(v.stock) || 0;
       if (v.id) {
         toUpdate.push({
           id: v.id,
           attributes: v.attributes,
-          stock: v.stock,
+          stock: variantStock,
           sku: v.sku,
           price: v.price,
         });
@@ -140,7 +141,7 @@ export class ProductVariantFormService {
       } else {
         toAdd.push({
           attributes: v.attributes,
-          stock: v.stock,
+          stock: variantStock,
           sku: v.sku,
           price: v.price,
         });
@@ -154,13 +155,17 @@ export class ProductVariantFormService {
 
   buildProductData(formValue: ProductFormValue): WithFieldValue<Omit<Product, 'id'>> {
     const totalStock = formValue.hasVariants
-      ? formValue.variants.reduce((acc, v) => acc + (v.stock ?? 0), 0)
-      : (formValue.stock ?? 0);
+      ? (formValue.variants || []).reduce(
+          (acc: number, v: ProductVariantFormValue) => acc + (Number(v.stock) || 0),
+          0,
+        )
+      : Number(formValue.stock) || 0;
 
     return {
       name: formValue.name,
       description: formValue.description,
-      price: formValue.price ?? 0,
+      price: Number(formValue.price) || 0,
+      stock: totalStock,
       categoryId: formValue.categoryId,
       image: formValue.image,
       images: formValue.images ?? [],

@@ -18,6 +18,7 @@ export interface Product {
   images?: string[];
   createdAt: Date;
 
+  stock?: number;
   totalStock: number;
   inStockAttributes: { [key: string]: string[] };
   variantAttributes: string[];
