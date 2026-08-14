@@ -68,7 +68,7 @@
 
               <div class="col-md-6">
                 <label class="form-label text-label d-block">Imagen del Banner</label>
-                <div class="preview-wrapper mb-3">
+                <div class="preview-wrapper mb-3 position-relative">
                   @if (bannerPreviewUrl) {
                     <img
                       [src]="bannerPreviewUrl"
@@ -87,12 +87,34 @@
                       <span>Sin imagen</span>
                     </div>
                   }
+                  @if (isUploadingBanner()) {
+                    <div class="image-upload-overlay">
+                      <span
+                        class="spinner-border text-light mb-2"
+                        role="status"
+                        style="width: 1.75rem; height: 1.75rem"
+                      ></span>
+                      <span class="text-white fs-6 font-monospace fw-bold"
+                        >{{ uploadProgressBanner() }}%</span
+                      >
+                    </div>
+                  }
                 </div>
                 <label
                   for="bannerImageUpload"
                   class="btn-glass-action btn-change-image w-100 m-0 text-center d-block"
+                  [class.disabled-label]="isUploadingBanner()"
                 >
-                  <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar Imagen
+                  @if (isUploadingBanner()) {
+                    <span
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Subiendo... {{ uploadProgressBanner() }}%
+                  } @else {
+                    <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar Imagen
+                  }
                 </label>
                 <input
                   type="file"
@@ -100,6 +122,7 @@
                   class="d-none"
                   (change)="onFileSelected($event, 'banner')"
                   accept="image/png, image/jpeg, image/webp"
+                  [disabled]="isUploadingBanner()"
                 />
                 <div class="form-text mt-2 text-soft text-center small">
                   WebP, JPG, PNG. Proporción 16:9 recomendada.
@@ -149,7 +172,7 @@
 
               <div class="col-md-5 col-lg-4">
                 <label class="form-label text-label d-block">Imagen Lateral</label>
-                <div class="preview-wrapper mb-3 preview-wrapper--vertical">
+                <div class="preview-wrapper mb-3 preview-wrapper--vertical position-relative">
                   @if (centralPreviewUrl) {
                     <img
                       [src]="centralPreviewUrl"
@@ -168,12 +191,34 @@
                       <span>Sin imagen</span>
                     </div>
                   }
+                  @if (isUploadingCentral()) {
+                    <div class="image-upload-overlay">
+                      <span
+                        class="spinner-border text-light mb-2"
+                        role="status"
+                        style="width: 1.75rem; height: 1.75rem"
+                      ></span>
+                      <span class="text-white fs-6 font-monospace fw-bold"
+                        >{{ uploadProgressCentral() }}%</span
+                      >
+                    </div>
+                  }
                 </div>
                 <label
                   for="centralImageUpload"
                   class="btn-glass-action btn-change-image w-100 m-0 text-center d-block"
+                  [class.disabled-label]="isUploadingCentral()"
                 >
-                  <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar Imagen
+                  @if (isUploadingCentral()) {
+                    <span
+                      class="spinner-border spinner-border-sm me-2"
+                      role="status"
+                      aria-hidden="true"
+                    ></span>
+                    Subiendo... {{ uploadProgressCentral() }}%
+                  } @else {
+                    <i class="bi bi-upload me-2" aria-hidden="true"></i> Cambiar Imagen
+                  }
                 </label>
                 <input
                   type="file"
@@ -181,6 +226,7 @@
                   class="d-none"
                   (change)="onFileSelected($event, 'central')"
                   accept="image/png, image/jpeg, image/webp"
+                  [disabled]="isUploadingCentral()"
                 />
               </div>
 
@@ -359,7 +405,7 @@
           <button
             type="submit"
             class="btn-save-primary"
-            [disabled]="isSubmitting || aboutUsForm.invalid || !aboutUsForm.dirty"
+            [disabled]="isSubmitting || isAnyUploading || aboutUsForm.invalid || !aboutUsForm.dirty"
           >
             @if (isSubmitting) {
               <span
@@ -368,8 +414,21 @@
                 aria-hidden="true"
               ></span>
             }
-            <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
-            {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+            @if (isAnyUploading && !isSubmitting) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            }
+            <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting || isAnyUploading"></i>
+            {{
+              isSubmitting
+                ? 'Guardando...'
+                : isAnyUploading
+                  ? 'Subiendo imagen...'
+                  : 'Guardar Cambios'
+            }}
           </button>
         </div>
       </form>
