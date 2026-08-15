@@ -12,7 +12,8 @@ service cloud.firestore {
       return isAuthenticated() && (
         request.auth.token.get('superAdmin', false) == true ||
         request.auth.token.get('platformAdmin', false) == true ||
-        (request.auth.token.get('email', '') != '' &&
+        (request.auth.token.get('email_verified', false) == true &&
+         request.auth.token.get('email', '') != '' &&
          request.auth.token.email in ['juan.l.espeche@gmail.com', 'leivalihue@gmail.com', 'vertex.tech.dev@gmail.com'])
       );
     }
