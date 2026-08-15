@@ -1,5 +1,5 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, DestroyRef, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AboutUsData, AboutUsFeatureCard } from '@core/models/about-us.model';
 import { AboutUsService } from '@core/services/about-us.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { StorageService } from '@core/services/storage.service';
 
 @Component({
   selector: 'app-about-us-management',
@@ -21,6 +22,7 @@ export class AboutUsManagementComponent implements OnInit {
   private fb = inject(FormBuilder);
   private aboutUsService = inject(AboutUsService);
   private alertService = inject(SweetAlertService);
+  private storageService = inject(StorageService);
   private destroyRef = inject(DestroyRef);
   private cdr = inject(ChangeDetectorRef);
 
@@ -34,6 +36,16 @@ export class AboutUsManagementComponent implements OnInit {
   bannerPreviewUrl: string | null = null;
   selectedCentralFile: File | null = null;
   centralPreviewUrl: string | null = null;
+
+  // Upload progress signals
+  readonly isUploadingBanner = signal(false);
+  readonly uploadProgressBanner = signal(0);
+  readonly isUploadingCentral = signal(false);
+  readonly uploadProgressCentral = signal(0);
+
+  get isAnyUploading(): boolean {
+    return this.isUploadingBanner() || this.isUploadingCentral();
+  }
 
   constructor() {
     this.data$ = this.aboutUsService.getAboutUsData();
@@ -142,34 +154,99 @@ export class AboutUsManagementComponent implements OnInit {
 
   onFileSelected(event: Event, type: 'banner' | 'central'): void {
     const input = event.target as HTMLInputElement;
-    if (input.files?.[0]) {
-      const file = input.files[0];
-      if (!file.type.startsWith('image/')) {
-        this.alertService.error('Archivo no válido', 'Por favor, selecciona un archivo de imagen.');
-        input.value = '';
-        return;
-      }
+    if (!input.files?.[0]) {
+      return;
+    }
+    const file = input.files[0];
+    input.value = '';
 
-      const reader = new FileReader();
-      reader.onload = (): void => {
-        const previewUrl = reader.result as string;
+    if (!file.type.startsWith('image/')) {
+      this.alertService.error('Archivo no válido', 'Por favor, selecciona un archivo de imagen.');
+      return;
+    }
+
+    // Show local preview immediately via FileReader
+    const reader = new FileReader();
+    reader.onload = (): void => {
+      const previewUrl = reader.result as string;
+      if (type === 'banner') {
+        this.bannerPreviewUrl = previewUrl;
+      } else {
+        this.centralPreviewUrl = previewUrl;
+      }
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+
+    // Start upload immediately and track real-time progress
+    const storagePath = type === 'banner' ? 'pages/about-us/banner' : 'pages/about-us/central';
+    const upload = this.storageService.uploadFile(file, storagePath);
+
+    if (type === 'banner') {
+      this.isUploadingBanner.set(true);
+      this.uploadProgressBanner.set(0);
+    } else {
+      this.isUploadingCentral.set(true);
+      this.uploadProgressCentral.set(0);
+    }
+
+    upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (progress) => {
         if (type === 'banner') {
-          this.selectedBannerFile = file;
-          this.bannerPreviewUrl = previewUrl;
-          this.aboutUsForm.get('bannerImageUrl')?.setValue('');
-        } else if (type === 'central') {
-          this.selectedCentralFile = file;
-          this.centralPreviewUrl = previewUrl;
-          this.aboutUsForm.get('centralImageUrl')?.setValue('');
+          this.uploadProgressBanner.set(Math.round(progress));
+        } else {
+          this.uploadProgressCentral.set(Math.round(progress));
+        }
+        this.cdr.markForCheck();
+      },
+    });
+
+    upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (url) => {
+        if (type === 'banner') {
+          this.bannerPreviewUrl = url;
+          this.aboutUsForm.get('bannerImageUrl')?.setValue(url);
+          this.selectedBannerFile = null;
+          this.isUploadingBanner.set(false);
+          this.uploadProgressBanner.set(0);
+        } else {
+          this.centralPreviewUrl = url;
+          this.aboutUsForm.get('centralImageUrl')?.setValue(url);
+          this.selectedCentralFile = null;
+          this.isUploadingCentral.set(false);
+          this.uploadProgressCentral.set(0);
         }
         this.aboutUsForm.markAsDirty();
-      };
-      reader.readAsDataURL(file);
-      input.value = '';
-    }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error(`Error uploading ${type} image:`, err);
+        this.alertService.error(
+          'Error al subir imagen',
+          'No se pudo subir la imagen. Por favor, intenta de nuevo.',
+        );
+        if (type === 'banner') {
+          this.isUploadingBanner.set(false);
+          this.uploadProgressBanner.set(0);
+          this.bannerPreviewUrl = null;
+        } else {
+          this.isUploadingCentral.set(false);
+          this.uploadProgressCentral.set(0);
+          this.centralPreviewUrl = null;
+        }
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   onSubmit(): void {
+    if (this.isAnyUploading) {
+      this.alertService.error(
+        'Carga en progreso',
+        'Espera a que termine la subida de imágenes antes de guardar.',
+      );
+      return;
+    }
     if (this.aboutUsForm.invalid) {
       this.aboutUsForm.markAllAsTouched();
       this.alertService.error(
@@ -184,8 +261,9 @@ export class AboutUsManagementComponent implements OnInit {
 
     const formData = this.aboutUsForm.value as AboutUsData;
 
+    // Images are already uploaded; pass null files to avoid re-uploading
     this.aboutUsService
-      .saveAboutUsData(formData, this.selectedBannerFile, this.selectedCentralFile)
+      .saveAboutUsData(formData, null, null)
       .then(() => {
         this.alertService.success(
           '¡Guardado!',
