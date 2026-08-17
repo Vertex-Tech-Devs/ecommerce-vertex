@@ -276,121 +276,124 @@
   <div class="modal-backdrop glass-backdrop fade show"></div>
   <div class="modal fade show custom-glass-modal" style="display: block" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content glass-modal-content">
-        <form [formGroup]="testEmailModalForm" (ngSubmit)="onSendAdvancedTest()">
-          <div class="modal-header border-0">
-            <h5 class="modal-title fw-bold text-white">
-              <i class="bi bi-robot me-2" style="color: #38bdf8"></i> Prueba de Envío Avanzada
-            </h5>
-            <button
-              type="button"
-              class="btn-close btn-close-white"
-              (click)="closeTestModal()"
-            ></button>
-          </div>
+      <form
+        [formGroup]="testEmailModalForm"
+        (ngSubmit)="onSendAdvancedTest()"
+        class="modal-content glass-modal-content"
+      >
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold text-white">
+            <i class="bi bi-robot me-2" style="color: #38bdf8"></i> Prueba de Envío Avanzada
+          </h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            (click)="closeTestModal()"
+          ></button>
+        </div>
 
-          <div class="modal-body">
-            <h6 class="text-label mb-3">1. Destinatario</h6>
-            <div class="mb-4">
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-send"></i></span>
-                <input
-                  type="email"
-                  class="form-control glass-input"
-                  formControlName="recipientEmail"
-                  placeholder="correo@ejemplo.com"
-                />
-              </div>
-            </div>
-
-            <h6 class="text-label mb-3">Plantillas a Probar</h6>
-            <div class="mb-4 glass-switches-container p-3" formGroupName="templatesToTest">
-              <div class="form-check form-switch custom-glass-switch mb-2">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="testAdmin"
-                  formControlName="adminNotification"
-                />
-                <label class="form-check-label text-white" for="testAdmin"
-                  >Notificación al Administrador</label
-                >
-              </div>
-              <div class="form-check form-switch custom-glass-switch">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="testCustomer"
-                  formControlName="customerConfirmation"
-                />
-                <label class="form-check-label text-white" for="testCustomer"
-                  >Confirmación al Cliente</label
-                >
-              </div>
-            </div>
-
-            <h6 class="text-label mb-3">Valores de Prueba (Simulados)</h6>
-            <div formGroupName="testData" class="row g-3">
-              <div class="col-md-6">
-                <input
-                  type="text"
-                  class="form-control glass-input"
-                  formControlName="orderId"
-                  placeholder="ID del Pedido"
-                />
-              </div>
-              <div class="col-md-6">
-                <input
-                  type="text"
-                  class="form-control glass-input"
-                  formControlName="clientName"
-                  placeholder="Nombre del Cliente"
-                />
-              </div>
-              <div class="col-md-6">
-                <input
-                  type="email"
-                  class="form-control glass-input"
-                  formControlName="clientEmail"
-                  placeholder="Email del Cliente"
-                />
-              </div>
-              <div class="col-md-6">
-                <input
-                  type="text"
-                  class="form-control glass-input"
-                  formControlName="clientPhone"
-                  placeholder="Teléfono del Cliente"
-                />
-              </div>
-              <div class="col-12">
-                <input
-                  type="text"
-                  class="form-control glass-input"
-                  formControlName="totalAmount"
-                  placeholder="Monto Total (Ej: $15.000)"
-                />
-              </div>
+        <div class="modal-body">
+          <h6 class="text-label mb-3">1. Destinatario</h6>
+          <div class="mb-4">
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-send"></i></span>
+              <input
+                #recipientEmailInput
+                type="email"
+                class="form-control glass-input"
+                formControlName="recipientEmail"
+                placeholder="correo@ejemplo.com"
+              />
             </div>
           </div>
 
-          <div class="modal-footer border-0">
-            <button type="button" class="btn-glass-action" (click)="closeTestModal()">
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="btn-save-primary m-0"
-              [disabled]="isSendingAdvancedTest || testEmailModalForm.invalid"
-            >
-              @if (isSendingAdvancedTest) {
-                <span class="spinner-border spinner-border-sm me-2"></span>
-              }
-              {{ isSendingAdvancedTest ? 'Enviando...' : 'Enviar Prueba' }}
-            </button>
+          <h6 class="text-label mb-3">Plantillas a Probar</h6>
+          <div class="mb-4 glass-switches-container p-3" formGroupName="templatesToTest">
+            <div class="form-check form-switch custom-glass-switch mb-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="testAdmin"
+                formControlName="adminNotification"
+              />
+              <label class="form-check-label text-white" for="testAdmin"
+                >Notificación al Administrador</label
+              >
+            </div>
+            <div class="form-check form-switch custom-glass-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="testCustomer"
+                formControlName="customerConfirmation"
+              />
+              <label class="form-check-label text-white" for="testCustomer"
+                >Confirmación al Cliente</label
+              >
+            </div>
           </div>
-        </form>
-      </div>
+
+          <h6 class="text-label mb-3">Valores de Prueba (Simulados)</h6>
+          <div formGroupName="testData" class="row g-3">
+            <div class="col-md-6">
+              <input
+                type="text"
+                class="form-control glass-input"
+                formControlName="orderId"
+                placeholder="ID del Pedido"
+              />
+            </div>
+            <div class="col-md-6">
+              <input
+                type="text"
+                class="form-control glass-input"
+                formControlName="clientName"
+                placeholder="Nombre del Cliente"
+              />
+            </div>
+            <div class="col-md-6">
+              <input
+                type="email"
+                class="form-control glass-input"
+                formControlName="clientEmail"
+                placeholder="Email del Cliente"
+              />
+            </div>
+            <div class="col-md-6">
+              <input
+                type="text"
+                class="form-control glass-input"
+                formControlName="clientPhone"
+                placeholder="Teléfono del Cliente"
+              />
+            </div>
+            <div class="col-12">
+              <input
+                type="text"
+                class="form-control glass-input"
+                formControlName="totalAmount"
+                placeholder="Monto Total (Ej: $15.000)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn-glass-action" (click)="closeTestModal()">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-save-primary m-0"
+            [disabled]="isSendingAdvancedTest || testEmailModalForm.invalid"
+          >
+            @if (isSendingAdvancedTest) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            {{ isSendingAdvancedTest ? 'Enviando...' : 'Enviar Prueba' }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 }
