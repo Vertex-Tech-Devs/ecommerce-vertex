@@ -1,4 +1,4 @@
-import type { OnInit } from '@angular/core';
+import type { OnInit, ElementRef } from '@angular/core';
 import { Component, ViewChild, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
@@ -34,6 +34,7 @@ export class EmailManagementComponent implements OnInit {
 
   @ViewChild('adminEditor') adminEditor!: QuillEditorComponent;
   @ViewChild('customerEditor') customerEditor!: QuillEditorComponent;
+  @ViewChild('recipientEmailInput') recipientEmailInput?: ElementRef<HTMLInputElement>;
 
   emailForm!: FormGroup;
   testEmailModalForm!: FormGroup;
@@ -177,6 +178,9 @@ export class EmailManagementComponent implements OnInit {
     this.testEmailModalForm.get('recipientEmail')?.setValue(currentAdminEmail);
     this.isTestModalVisible = true;
     this.cdr.detectChanges();
+    setTimeout(() => {
+      this.recipientEmailInput?.nativeElement.focus();
+    }, 0);
   }
 
   closeTestModal(): void {
