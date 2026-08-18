@@ -98,5 +98,7 @@ El storefront es el **template de tienda** versionado semánticamente (Semver).
 | Error                                                  | Causa                                          | Solución                                      |
 | ------------------------------------------------------ | ---------------------------------------------- | --------------------------------------------- |
 | `auth/operation-not-allowed`                           | Google OAuth no habilitado en Firebase Console | Habilitar en Authentication > Sign-in methods |
+| `auth/popup-closed-by-user`                            | COOP header omitido o desconfigurado           | Garantizar `Cross-Origin-Opener-Policy: same-origin-allow-popups` en `firebase.json` |
+| `7 PERMISSION_DENIED` en `createPaymentPreference`     | SA de Cloud Run 2da Gen sin rol datastore.user | `ensureShardProjectIam` asigna automáticamente `roles/datastore.user` a la SA del Compute Engine en el shard |
 | `permission-denied` en Firestore                       | Email no en `admin_roles`                      | Agregar vía Cloud Function o plataforma       |
 | `Cannot read properties of undefined (hasOwnProperty)` | Problema de DI en Angular con lazy loading     | Revisar barrel imports y providers            |
