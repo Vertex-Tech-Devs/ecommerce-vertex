@@ -343,7 +343,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       event.preventDefault();
       event.stopPropagation();
     }
-    const scrollY = window.scrollY;
+    // Grabar posición real de la sección de variantes antes de abrir el modal SweetAlert
+    const targetElement = event?.target as HTMLElement | null;
+    const variantRow = targetElement?.closest('.variant-action-item') || targetElement?.closest('.glass-card-subtle');
+    const targetScrollY = variantRow
+      ? variantRow.getBoundingClientRect().top + window.scrollY - 100
+      : window.scrollY;
+
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
       '¿Estás seguro de eliminar la variante?',
@@ -351,21 +357,22 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     if (!isConfirmed) {
       return;
     }
+
     this.variants.removeAt(index);
     if (this.currentPage > this.totalPages) {
       this.currentPage = this.totalPages;
     }
     this.cdr.markForCheck();
-    // Restaurar el scroll y el foco de teclado en el frame siguiente, para que
-    // la fila contigua reciba el foco y el viewport no salte al inicio de la página.
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+
+    // Restaurar el scroll y el foco de teclado tras el cierre del modal SweetAlert
+    setTimeout(() => {
+      window.scrollTo({ top: Math.max(0, targetScrollY), behavior: 'instant' as ScrollBehavior });
       const targetId = `variant-row-${Math.max(0, index - 1)}`;
       const targetEl = document.getElementById(targetId);
       if (targetEl) {
-        (targetEl as HTMLElement).focus();
+        (targetEl as HTMLElement).focus({ preventScroll: true });
       }
-    });
+    }, 60);
   }
 
   generateVariantCombinations(): void {

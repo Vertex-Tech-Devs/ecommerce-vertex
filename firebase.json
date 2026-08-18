@@ -14,7 +14,10 @@
       "headers": [
         {
           "source": "**",
-          "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+          "headers": [
+            { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+            { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
+          ]
         },
         {
           "source": "**/*.@(js|css|woff2|woff|ttf|eot|svg|ico|png|jpg|webp|avif)",
