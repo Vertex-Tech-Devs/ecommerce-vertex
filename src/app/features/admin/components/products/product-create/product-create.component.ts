@@ -345,7 +345,9 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     }
     // Grabar posición real de la sección de variantes antes de abrir el modal SweetAlert
     const targetElement = event?.target as HTMLElement | null;
-    const variantRow = targetElement?.closest('.variant-action-item') || targetElement?.closest('.glass-card-subtle');
+    const variantRow =
+      targetElement?.closest('.variant-action-item') ||
+      targetElement?.closest('.glass-card-subtle');
     const targetScrollY = variantRow
       ? variantRow.getBoundingClientRect().top + window.scrollY - 100
       : window.scrollY;
