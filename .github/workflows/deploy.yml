@@ -15,7 +15,7 @@ on:
         options: [production, development]
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-${{ github.ref }}-${{ github.event.client_payload.store_id || github.event_name }}
   cancel-in-progress: true
 
 env:
