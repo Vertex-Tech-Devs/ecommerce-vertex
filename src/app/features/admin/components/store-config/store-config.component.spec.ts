@@ -215,4 +215,81 @@ describe('StoreConfigComponent', () => {
     );
     expect(component.isSubmitting()).toBeFalse();
   });
+
+  describe('deliveryMethods and pickup locations', () => {
+    it('should initialize deliveryMethods FormGroup with default values', () => {
+      const deliveryGroup = component.deliveryMethodsGroup;
+      expect(deliveryGroup).toBeTruthy();
+      expect(deliveryGroup.get('enableHomeDelivery')?.value).toBeTrue();
+      expect(deliveryGroup.get('enableStorePickup')?.value).toBeFalse();
+      expect(deliveryGroup.get('homeDeliveryDescription')?.value).toBe(
+        'Coordinamos el envío y costo por WhatsApp',
+      );
+      expect(component.pickupLocationsArray).toBeTruthy();
+    });
+
+    it('should add a new pickup location group with enabled: true and required fields when calling addPickupLocation()', () => {
+      const initialCount = component.pickupLocationsArray.length;
+      component.addPickupLocation();
+
+      expect(component.pickupLocationsArray.length).toBe(initialCount + 1);
+      const newGroup = component.pickupLocationsArray.at(component.pickupLocationsArray.length - 1);
+      expect(newGroup.get('enabled')?.value).toBeTrue();
+      expect(newGroup.get('name')?.value).toBe('');
+      expect(newGroup.get('address')?.value).toBe('');
+      expect(newGroup.get('city')?.value).toBe('');
+      expect(newGroup.get('schedule')?.value).toBe('');
+      expect(newGroup.invalid).toBeTrue();
+    });
+
+    it('should remove pickup location from array when calling removePickupLocation(index)', () => {
+      component.addPickupLocation();
+      const countBefore = component.pickupLocationsArray.length;
+      expect(countBefore).toBeGreaterThan(0);
+
+      component.removePickupLocation(0);
+      expect(component.pickupLocationsArray.length).toBe(countBefore - 1);
+    });
+
+    it('should toggle enabled status when calling togglePickupLocationStatus(index)', () => {
+      component.addPickupLocation();
+      const lastIndex = component.pickupLocationsArray.length - 1;
+      const group = component.pickupLocationsArray.at(lastIndex);
+
+      expect(group.get('enabled')?.value).toBeTrue();
+      component.togglePickupLocationStatus(lastIndex);
+      expect(group.get('enabled')?.value).toBeFalse();
+
+      component.togglePickupLocationStatus(lastIndex);
+      expect(group.get('enabled')?.value).toBeTrue();
+    });
+
+    it('should invalidate pickup location form group if required fields (name, address, city, schedule) are empty', () => {
+      component.addPickupLocation();
+      const lastIndex = component.pickupLocationsArray.length - 1;
+      const group = component.pickupLocationsArray.at(lastIndex);
+
+      expect(group.invalid).toBeTrue();
+
+      group.patchValue({
+        name: 'Sucursal Test',
+        address: 'Calle Falsa 123',
+        city: 'Cordoba',
+        schedule: '9-18',
+      });
+      expect(group.valid).toBeTrue();
+
+      group.patchValue({ name: '' });
+      expect(group.invalid).toBeTrue();
+
+      group.patchValue({ name: 'Sucursal Test', address: '' });
+      expect(group.invalid).toBeTrue();
+
+      group.patchValue({ address: 'Calle Falsa 123', city: '' });
+      expect(group.invalid).toBeTrue();
+
+      group.patchValue({ city: 'Cordoba', schedule: '' });
+      expect(group.invalid).toBeTrue();
+    });
+  });
 });

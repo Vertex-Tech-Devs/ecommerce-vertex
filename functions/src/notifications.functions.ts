@@ -7,22 +7,20 @@ import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 import { sendEmail, getNotificationEmail } from './core/email.service';
 
 const db = getFirestore();
-// Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
+
 function envSiteUrl(): string {
   return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
 }
 
 async function getEmailConfig(storeId: string) {
   const db = getFirestore();
-  // Fuente primaria: settings/emailTemplates (configuración avanzada por tienda).
+
   const configDoc = await db
     .doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES))
     .get();
   const base = configDoc.exists ? configDoc.data() : {};
 
-  // Fuente secundaria: configuracion/store_{storeId} — el doc público que edita
-  // /admin/store-config (pestaña Emails). Los campos del panel tienen prioridad
-  // solo si están presentes (el doc primario manda).
+
   const publicSnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
   if (publicSnap.exists) {
     const pub = publicSnap.data();
@@ -149,12 +147,10 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     const orderRaw = afterSnap.data() as Record<string, unknown>;
     const status = orderRaw['status'] as string | undefined;
 
-    // Solo notificar cuando el pedido fue pagado/aprobado
     if (status !== 'processing' && status !== 'approved') {
       return;
     }
 
-    // Idempotencia: evitar re-envíos si las notificaciones ya fueron marcadas como enviadas
     if (orderRaw['notificationsSent'] === true) {
       return;
     }
