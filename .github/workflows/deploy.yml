@@ -474,7 +474,10 @@ jobs:
           COMMIT_MSG=$(git log -1 --pretty=%B | tr -d '"' | tr -d '\n' | tr -d '\r' | cut -c1-100)
           # El ref del token OIDC es el del workflow (main), no el del template (client_payload.ref).
           REF_NAME="${{ github.ref }}"
-          VERSION="${{ github.event.client_payload.version || '0.1.0' }}"
+          VERSION="${{ github.event.client_payload.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(node -p "require('./package.json').version")
+          fi
           # update-store-version finaliza vía completeVersionUpdate (no completeStoreDeployment)
           ENDPOINT="completeStoreDeployment"
           if [ "${{ github.event.action }}" == "update-store-version" ]; then
