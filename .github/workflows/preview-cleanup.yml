@@ -42,22 +42,15 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Ensure Dummy Build Output Directory for Cleanup
-        if: steps.check.outputs.available == 'true'
-        run: |
-          mkdir -p dist/ecommerce-vertex/browser
-          echo '<!DOCTYPE html><html><body>Preview expired</body></html>' > dist/ecommerce-vertex/browser/index.html
-
       - name: Delete Firebase Hosting Preview Channel
         if: steps.check.outputs.available == 'true'
         continue-on-error: true
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
-          projectId: 'ecommerce-vertex-dev'
-          channelId: 'pr-${{ github.event.number }}'
-          expires: 0d
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_DEV" > sa_key.json
+          GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/sa_key.json" npx firebase-tools hosting:channel:delete pr-${{ github.event.number }} --project ecommerce-vertex-dev --force || true
+          rm -f sa_key.json
 
       - name: Clean Firestore PR Tenant Data
         if: steps.check.outputs.available == 'true'
