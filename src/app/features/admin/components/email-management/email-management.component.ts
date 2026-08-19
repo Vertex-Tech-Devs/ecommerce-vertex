@@ -264,12 +264,12 @@ export class EmailManagementComponent implements OnInit {
     }
 
     try {
+      this.closeTestModal();
       await this.emailSettingsService.sendAdvancedTestEmail(payload);
       this.sweetAlertService.success(
         'Prueba Enviada',
-        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}.`,
+        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}. Revisa tu bandeja de entrada o spam.`,
       );
-      this.closeTestModal();
     } catch (error) {
       console.error('Error sending advanced test email:', error);
       this.sweetAlertService.error('Error', 'No se pudo enviar el email de prueba.');
