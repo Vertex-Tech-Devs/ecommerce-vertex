@@ -1,4 +1,4 @@
-import { onRequest } from 'firebase-functions/v2/https';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
@@ -9,7 +9,6 @@ import { getSuperAdminEmails } from './role.functions';
 const db = getFirestore();
 const auth = getAuth();
 
-// Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
 function envSiteUrl(): string {
   return process.env.SITE_URL || 'http://localhost:4200';
 }
@@ -34,6 +33,8 @@ const AdvancedTestEmailPayloadSchema = z.object({
     adminNotification: EmailTemplateSchema.optional(),
     customerConfirmation: EmailTemplateSchema.optional(),
   }),
+  idToken: z.string().optional(),
+  tenantId: z.string().optional(),
 });
 
 function buildTestEmailHtml(
@@ -64,75 +65,59 @@ function buildTestEmailHtml(
   return emailBody + buttonsHtml;
 }
 
-export const sendAdvancedTestEmail = onRequest({ cors: true }, async (req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
-    return;
-  }
+export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, async (request) => {
+  let callerEmail = String(request.auth?.token?.['email'] ?? '').trim().toLowerCase();
+  let isAdminClaim = Boolean(request.auth?.token?.['admin']);
 
-  try {
-    const authHeader = String(req.headers.authorization || '');
-    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.substring(7) : '';
-    const bodyData = req.body?.data || req.body || {};
-    const tokenToVerify = bearerToken || String(bodyData.idToken || '');
+  const payloadData = request.data ?? {};
+  const bodyToken = String(payloadData.idToken ?? '');
 
-    let callerEmail = '';
-    let isAdminClaim = false;
-
-    if (tokenToVerify) {
-      try {
-        const decodedToken = await auth.verifyIdToken(tokenToVerify);
-        callerEmail = String(decodedToken.email || '').trim().toLowerCase();
-        isAdminClaim = Boolean(decodedToken['admin']);
-      } catch {
-        const parts = tokenToVerify.split('.');
-        if (parts.length === 3) {
-          try {
-            const payloadJson = Buffer.from(parts[1], 'base64').toString('utf8');
-            const payload = JSON.parse(payloadJson);
-            callerEmail = String(payload.email || '').trim().toLowerCase();
-            isAdminClaim = Boolean(payload.admin);
-          } catch {
-            // Ignore parse errors
-          }
+  if (!callerEmail && bodyToken) {
+    try {
+      const decodedToken = await auth.verifyIdToken(bodyToken);
+      callerEmail = String(decodedToken.email ?? '').trim().toLowerCase();
+      isAdminClaim = Boolean(decodedToken['admin']);
+    } catch {
+      const parts = bodyToken.split('.');
+      if (parts.length === 3) {
+        try {
+          const payloadJson = Buffer.from(parts[1], 'base64').toString('utf8');
+          const payload = JSON.parse(payloadJson);
+          callerEmail = String(payload.email ?? '').trim().toLowerCase();
+          isAdminClaim = Boolean(payload.admin);
+        } catch {
+          // Ignore decode errors
         }
       }
     }
+  }
 
-    const isSuperAdmin = getSuperAdminEmails().includes(callerEmail);
+  const isSuperAdmin = getSuperAdminEmails().includes(callerEmail);
 
-    if (!callerEmail || (!isAdminClaim && !isSuperAdmin)) {
-      logger.error("Unauthorized attempt to call 'sendAdvancedTestEmail'", { callerEmail });
-      res.status(401).json({
-        error: {
-          status: 'UNAUTHENTICATED',
-          message: 'Debe estar autenticado como administrador para enviar emails de prueba.',
-        },
-      });
-      return;
-    }
+  if (!callerEmail || (!isAdminClaim && !isSuperAdmin)) {
+    logger.error("Unauthorized attempt to call 'sendAdvancedTestEmail'", { callerEmail });
+    throw new HttpsError(
+      'unauthenticated',
+      'Debe estar autenticado como administrador para enviar emails de prueba.',
+    );
+  }
 
-    logger.info('Iniciando envío de email de prueba avanzado...', { callerEmail, data: bodyData });
+  logger.info('Iniciando envío de email de prueba avanzado...', { callerEmail, data: payloadData });
 
-    const validationResult = AdvancedTestEmailPayloadSchema.safeParse(bodyData);
+  const validationResult = AdvancedTestEmailPayloadSchema.safeParse(payloadData);
 
-    if (!validationResult.success) {
-      logger.error('Payload inválido para sendAdvancedTestEmail', {
-        errors: validationResult.error.flatten(),
-      });
-      res.status(400).json({
-        error: {
-          status: 'INVALID_ARGUMENT',
-          message: 'Los datos proporcionados no son válidos.',
-        },
-      });
-      return;
-    }
+  if (!validationResult.success) {
+    logger.error('Payload inválido para sendAdvancedTestEmail', {
+      errors: validationResult.error.flatten(),
+    });
+    throw new HttpsError('invalid-argument', 'Los datos proporcionados no son válidos.');
+  }
 
-    const { recipientEmail, testData, templates } = validationResult.data;
-    const storeTenantId = String(bodyData.tenantId || bodyData.storeId || '');
-    const mailCreationPromises = [];
+  const { recipientEmail, testData, templates } = validationResult.data;
+  const storeTenantId = String(payloadData.tenantId ?? payloadData.storeId ?? request.auth?.token?.['tenantId'] ?? '');
+  const mailCreationPromises = [];
 
+  try {
     const configDoc = storeTenantId
       ? await db.doc(singletonDoc(storeTenantId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES)).get()
       : await db.collection(COLLECTIONS.SETTINGS).doc(DOCS.EMAIL_TEMPLATES).get();
@@ -198,19 +183,9 @@ export const sendAdvancedTestEmail = onRequest({ cors: true }, async (req, res) 
 
     await Promise.all(mailCreationPromises);
     logger.info(`Emails de prueba para ${recipientEmail} encolados correctamente.`);
-    res.status(200).json({
-      result: {
-        success: true,
-        message: `Emails de prueba encolados para ${recipientEmail}.`,
-      },
-    });
+    return { success: true, message: `Emails de prueba encolados para ${recipientEmail}.` };
   } catch (error) {
     logger.error('Error al procesar y encolar emails de prueba:', error);
-    res.status(500).json({
-      error: {
-        status: 'INTERNAL',
-        message: 'No se pudieron generar los emails de prueba.',
-      },
-    });
+    throw new HttpsError('internal', 'No se pudieron generar los emails de prueba.');
   }
 });
