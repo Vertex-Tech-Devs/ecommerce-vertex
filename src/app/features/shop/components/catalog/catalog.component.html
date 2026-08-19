@@ -139,7 +139,20 @@
         </div>
       </div>
 
-      @if (paginatedProducts$ | async; as products) {
+      @if (isLoading()) {
+        <div class="catalog__loading product-grid" role="status" aria-label="Cargando productos">
+          @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
+            <div class="product-card product-card--skeleton">
+              <div class="product-card__image-wrap skeleton-box"></div>
+              <div class="product-card__body">
+                <div class="skeleton-box skeleton-box--title"></div>
+                <div class="skeleton-box skeleton-box--price"></div>
+              </div>
+            </div>
+          }
+          <span class="visually-hidden">Cargando productos...</span>
+        </div>
+      } @else if (paginatedProducts$ | async; as products) {
         @if (products.length > 0) {
           <div class="product-grid">
             @for (product of products; track product.id) {
@@ -203,19 +216,6 @@
             <p>No se encontraron productos con los filtros seleccionados.</p>
           </div>
         }
-      } @else {
-        <div class="catalog__loading product-grid" role="status" aria-label="Cargando productos">
-          @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
-            <div class="product-card product-card--skeleton">
-              <div class="product-card__image-wrap skeleton-box"></div>
-              <div class="product-card__body">
-                <div class="skeleton-box skeleton-box--title"></div>
-                <div class="skeleton-box skeleton-box--price"></div>
-              </div>
-            </div>
-          }
-          <span class="visually-hidden">Cargando productos...</span>
-        </div>
       }
     </main>
   </div>

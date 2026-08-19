@@ -35,10 +35,11 @@ export class ProductVariantFormService {
 
   createVariantGroup(selectedIds: string[], variant?: ProductVariant): FormGroup {
     const attributesGroup = this.fb.group({});
-    selectedIds.forEach((id) => {
+    const ids = selectedIds ?? [];
+    ids.forEach((id) => {
       attributesGroup.addControl(
         id,
-        this.fb.control(variant?.attributes[id] ?? null, Validators.required),
+        this.fb.control(variant?.attributes?.[id] ?? null, Validators.required),
       );
     });
     return this.fb.group({

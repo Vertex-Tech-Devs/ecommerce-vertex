@@ -5,6 +5,26 @@
       <hr />
     </header>
 
+    @if (isLoading()) {
+      <div class="home-management-skeleton" aria-busy="true" aria-label="Cargando contenido de inicio">
+        <div class="glass-card mb-5 card-skeleton">
+          <div class="card-header border-0 text-center py-3">
+            <div class="skeleton-box skeleton-box--header mx-auto"></div>
+          </div>
+          <div class="card-body p-4">
+            <div class="skeleton-box skeleton-box--dropzone mb-4"></div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
     <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
       <div class="glass-card mb-5 card-hero">
         <div class="card-header border-0 text-center fw-bold">
@@ -205,6 +225,7 @@
         </button>
       </div>
     </form>
+    }
   </div>
 </section>
 

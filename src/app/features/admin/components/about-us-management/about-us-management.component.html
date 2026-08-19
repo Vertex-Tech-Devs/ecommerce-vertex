@@ -6,9 +6,25 @@
     </header>
 
     @if (isLoading) {
-      <div class="text-center p-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando datos...</span>
+      <div class="about-us-skeleton" aria-busy="true" aria-label="Cargando contenido de Nosotros">
+        <div class="glass-card mb-4 mb-md-5 card-skeleton">
+          <div class="card-header border-0 py-3">
+            <div class="skeleton-box skeleton-box--header"></div>
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input mb-4"></div>
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--image"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     } @else {
