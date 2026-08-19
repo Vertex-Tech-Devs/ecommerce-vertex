@@ -5,7 +5,7 @@
         <h2 class="card-title text-center mb-4">Lista de Pedidos</h2>
 
         <div class="row g-3 mb-4 align-items-center">
-          <div class="col-12 col-lg-6">
+          <div class="col-12 col-lg-4">
             <input
               type="text"
               class="form-control glass-input"
@@ -14,7 +14,7 @@
               (ngModelChange)="onSearchTermChange($event)"
             />
           </div>
-          <div class="col-6 col-lg-3">
+          <div class="col-12 col-sm-4 col-lg-3">
             <select
               class="form-select glass-input"
               [ngModel]="filterStatusSubject | async"
@@ -29,6 +29,9 @@
                     }
                     @case ('processing') {
                       Procesando
+                    }
+                    @case ('ready_for_pickup') {
+                      Listo para Retirar
                     }
                     @case ('shipped') {
                       Enviado
@@ -47,7 +50,18 @@
               }
             </select>
           </div>
-          <div class="col-6 col-lg-3">
+          <div class="col-12 col-sm-4 col-lg-3">
+            <select
+              class="form-select glass-input"
+              [ngModel]="deliveryFilter()"
+              (ngModelChange)="onDeliveryFilterChange($event)"
+            >
+              <option value="all">Todos los Métodos</option>
+              <option value="store_pickup">Retiro en Local</option>
+              <option value="home_delivery">Envío a Domicilio</option>
+            </select>
+          </div>
+          <div class="col-12 col-sm-4 col-lg-2">
             <select
               class="form-select glass-input"
               [ngModel]="itemsPerPageSubject | async"
@@ -67,6 +81,7 @@
                 <th scope="col">ID Pedido</th>
                 <th scope="col">Cliente</th>
                 <th scope="col">Fecha</th>
+                <th scope="col" class="text-center">Método Entrega</th>
                 <th scope="col" class="text-end">Total</th>
                 <th scope="col" class="text-center">Estado</th>
                 <th scope="col" class="text-end">Acciones</th>
@@ -81,6 +96,17 @@
                     <td data-label="Fecha" class="order-date">
                       {{ order.orderDate | date: 'short' }}
                     </td>
+                    <td data-label="Método Entrega" class="text-center order-delivery">
+                      @let badge = getDeliveryBadge(order);
+                      <span
+                        class="badge py-1 px-2 fw-medium d-inline-flex align-items-center gap-1"
+                        [ngClass]="badge.cssClass"
+                        [title]="badge.summary || badge.label"
+                      >
+                        <i class="bi" [ngClass]="badge.icon" aria-hidden="true"></i>
+                        <span>{{ badge.label }}</span>
+                      </span>
+                    </td>
                     <td data-label="Total" class="order-total text-end fw-bold">
                       {{ order.total | currency: 'ARS' : '$' }}
                     </td>
@@ -89,7 +115,8 @@
                         class="badge glass-badge"
                         [ngClass]="{
                           'badge-warning': order.status === 'pending',
-                          'badge-primary': order.status === 'processing',
+                          'badge-primary':
+                            order.status === 'processing' || order.status === 'ready_for_pickup',
                           'badge-info': order.status === 'shipped',
                           'badge-success': order.status === 'delivered',
                           'badge-danger': order.status === 'cancelled',
@@ -101,6 +128,9 @@
                           }
                           @case ('processing') {
                             <span>Procesando</span>
+                          }
+                          @case ('ready_for_pickup') {
+                            <span>Listo para Retirar</span>
                           }
                           @case ('shipped') {
                             <span>Enviado</span>
@@ -121,6 +151,21 @@
                       <div
                         class="action-wrapper d-flex justify-content-end align-items-center gap-2 flex-nowrap"
                       >
+                        <select
+                          class="form-select form-select-sm glass-input d-none d-md-inline-block py-1 px-2 fs-7"
+                          style="width: auto; min-width: 120px"
+                          [ngModel]="order.status"
+                          (ngModelChange)="updateOrderStatus(order, $event)"
+                          title="Cambiar estado de orden"
+                          aria-label="Cambiar estado de orden"
+                        >
+                          <option value="pending">Pendiente</option>
+                          <option value="processing">Procesando</option>
+                          <option value="ready_for_pickup">Listo para Retirar</option>
+                          <option value="shipped">Enviado</option>
+                          <option value="delivered">Entregado</option>
+                          <option value="cancelled">Cancelado</option>
+                        </select>
                         <button
                           class="btn-glass-primary m-0"
                           [routerLink]="['/admin/orders', order.id]"
@@ -142,8 +187,12 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="6" class="text-center text-muted-custom py-5">
-                      @if ((searchTermSubject | async) || (filterStatusSubject | async) !== 'all') {
+                    <td colspan="7" class="text-center text-muted-custom py-5">
+                      @if (
+                        (searchTermSubject | async) ||
+                        (filterStatusSubject | async) !== 'all' ||
+                        deliveryFilter() !== 'all'
+                      ) {
                         <div>
                           <i class="bi bi-search fs-2 d-block mb-2" aria-hidden="true"></i>
                           No se encontraron pedidos que coincidan.
@@ -159,7 +208,7 @@
                 }
               } @else {
                 <tr>
-                  <td colspan="6" class="text-center py-5 spinner-cell">
+                  <td colspan="7" class="text-center py-5 spinner-cell">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Cargando pedidos...</span>
                     </div>
