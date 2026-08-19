@@ -63,6 +63,11 @@
     animation-delay: 0.1s;
   }
 
+  &.card-delivery {
+    --glow-rgb: 34, 197, 94;
+    animation-delay: 0.2s;
+  }
+
   &.card-contact {
     --glow-rgb: 236, 72, 153;
     animation-delay: 0.2s;
