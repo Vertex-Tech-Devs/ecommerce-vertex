@@ -293,6 +293,16 @@ jobs:
         run: |
           [ -n "$FIREBASE_SERVICE_ACCOUNT_DEV" ] && echo "available=true" >> "$GITHUB_OUTPUT" || echo "available=false" >> "$GITHUB_OUTPUT"
 
+      - name: Pre-seed Firestore PR Tenant Data
+        if: steps.check.outputs.available == 'true'
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets['FIREBASE_SERVICE_ACCOUNT_DEV'] }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          NODE_PATH: functions/node_modules
+        run: |
+          npm --prefix functions install
+          npx tsx scripts/seed-pr-tenant.ts
+
       - name: Deploy preview channel
         if: steps.check.outputs.available == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -302,6 +312,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ env.FIREBASE_SERVICE_ACCOUNT_DEV }}
           projectId: ecommerce-vertex-dev
+          target: ecommerce-vertex
           channelId: pr-${{ github.event.pull_request.number }}
           expires: 7d
 
