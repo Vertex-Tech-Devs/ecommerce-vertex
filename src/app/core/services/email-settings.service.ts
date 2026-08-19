@@ -6,10 +6,12 @@ import { Functions } from '@angular/fire/functions';
 import type { Functions as FirebaseFunctions } from 'firebase/functions';
 import { httpsCallable } from 'firebase/functions';
 import type { Observable } from 'rxjs';
-import { of, from } from 'rxjs';
+import { of, from, firstValueFrom } from 'rxjs';
 import { catchError, timeout, map } from 'rxjs/operators';
 import type { EmailSettings, EmailTemplate } from '@core/models/email-settings.model';
 import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
+import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface AdvancedTestEmailPayload {
   recipientEmail: string;
@@ -76,10 +78,57 @@ export class EmailSettingsService {
     });
   }
 
-  sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
-    return this.callFunction(
-      'sendAdvancedTestEmail',
-      payload as unknown as Record<string, unknown>,
-    );
+  async sendAdvancedTestEmail(payload: AdvancedTestEmailPayload): Promise<unknown> {
+    try {
+      return await this.callFunction(
+        'sendAdvancedTestEmail',
+        payload as unknown as Record<string, unknown>,
+      );
+    } catch (err: unknown) {
+      const errStr = String((err as { message?: string })?.message || err);
+      const errCode = String((err as { code?: string })?.code || '');
+      if (
+        errCode === 'unauthenticated' ||
+        errStr.includes('Unauthenticated') ||
+        errStr.includes('401')
+      ) {
+        const authService = runInInjectionContext(this.injector, () =>
+          inject(AuthService, { optional: true }),
+        );
+        const currentUser = authService
+          ? await firstValueFrom(authService.currentUser$).catch(() => null)
+          : null;
+        const idToken = currentUser ? await currentUser.getIdToken().catch(() => '') : '';
+        const tenantId = resolveTenantId();
+
+        const response = await fetch(`${environment.api.cloudFunctionsUrl}/sendAdvancedTestEmail`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          },
+          body: JSON.stringify({
+            data: {
+              ...payload,
+              idToken,
+              tenantId,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          const msg =
+            errJson?.error?.message ||
+            errJson?.message ||
+            `Error HTTP ${response.status} al enviar el email de prueba.`;
+          throw new Error(msg);
+        }
+
+        const resJson = await response.json();
+        return resJson.result || resJson;
+      }
+      throw err;
+    }
   }
 }
