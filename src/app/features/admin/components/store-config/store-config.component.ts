@@ -89,11 +89,11 @@ export class StoreConfigComponent {
             mercadoPagoPublicKey: cfg.payments?.mercadoPagoPublicKey || '',
           },
           contact: {
-            phone: cfg.contact?.phone || '+54 11 1234-5678',
-            email: cfg.contact?.email || 'contacto@mitienda.com',
-            whatsApp: cfg.contact?.whatsApp || '',
-            instagram: cfg.contact?.instagram || '',
-            facebook: cfg.contact?.facebook || '',
+            phone: cfg.contact?.phone ?? '+54 11 1234-5678',
+            email: cfg.contact?.email ?? 'contacto@mitienda.com',
+            whatsApp: cfg.contact?.whatsApp ?? '',
+            instagram: cfg.contact?.instagram ?? '',
+            facebook: cfg.contact?.facebook ?? '',
           },
           seo: {
             metaDescription: cfg.seo?.metaDescription || 'Bienvenidos a mi tienda virtual.',
@@ -198,6 +198,13 @@ export class StoreConfigComponent {
     });
   }
 
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.style.display = 'none';
+    }
+  }
+
   async onSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -209,10 +216,8 @@ export class StoreConfigComponent {
     }
     this.isSubmitting.set(true);
     try {
-      // Validate form value at runtime using Zod
-      const rawValue = this.form.value;
-      const validatedData = StoreConfigSchema.parse(rawValue);
-      await this.storeConfigService.saveConfig(validatedData as unknown as StoreConfig);
+      const rawValue = this.form.getRawValue();
+      await this.storeConfigService.saveConfig(rawValue as unknown as StoreConfig);
       await this.storeConfigService.loadConfig();
       this.form.markAsPristine();
       this.sweetAlert.success(
