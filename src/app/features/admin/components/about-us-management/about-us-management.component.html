@@ -355,6 +355,30 @@
                       </button>
 
                       <div class="mb-4 mt-2">
+                        <label class="form-label text-label d-block">Ícono de la Card</label>
+                        <div
+                          class="icon-picker-grid"
+                          role="radiogroup"
+                          aria-label="Seleccionar ícono"
+                        >
+                          @for (icon of availableIcons; track icon.id) {
+                            <button
+                              type="button"
+                              class="icon-tile"
+                              [class.active]="card.get('icon')?.value === icon.id"
+                              (click)="selectCardIcon(i, icon.id)"
+                              [title]="icon.label"
+                              [attr.aria-label]="icon.label"
+                              [attr.aria-checked]="card.get('icon')?.value === icon.id"
+                              role="radio"
+                            >
+                              <i [class]="'bi ' + icon.iconClass" aria-hidden="true"></i>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="mb-4">
                         <label [for]="'cardTitle' + i" class="form-label text-label"
                           >Título de la Card {{ i + 1 }}</label
                         >
