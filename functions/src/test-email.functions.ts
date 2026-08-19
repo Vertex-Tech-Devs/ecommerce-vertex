@@ -29,6 +29,14 @@ const AdvancedTestEmailPayloadSchema = z.object({
     clientEmail: z.string().email(),
     clientPhone: z.string(),
     totalAmount: z.string(),
+    deliverySelection: z
+      .object({
+        type: z.enum(['home_delivery', 'store_pickup']).optional(),
+        pickupLocationId: z.string().optional(),
+        pickupAddressFormatted: z.string().optional(),
+        notes: z.string().optional(),
+      })
+      .optional(),
   }),
   templates: z.object({
     adminNotification: EmailTemplateSchema.optional(),
@@ -38,17 +46,52 @@ const AdvancedTestEmailPayloadSchema = z.object({
 
 function buildTestEmailHtml(
   template: string,
-  testData: { [key: string]: string },
+  testData: {
+    orderId: string;
+    clientName: string;
+    clientEmail: string;
+    clientPhone: string;
+    totalAmount: string;
+    deliverySelection?: {
+      type?: string;
+      pickupLocationId?: string;
+      pickupAddressFormatted?: string;
+      notes?: string;
+    };
+  },
   options: { manageButtonUrl?: string | null; whatsappUrl?: string | null } = {},
 ) {
   const itemsHtml = `<li>Producto de Prueba 1 (x2) - $50.00</li><li>Producto de Prueba 2 (x1) - $75.50</li>`;
-  const emailBody = template
+
+  const deliverySectionHtml =
+    testData.deliverySelection?.type === 'store_pickup'
+      ? `<tr>
+           <td style="padding: 10px; border-bottom: 1px solid #eee;">
+             <strong>Método de Entrega:</strong> Retiro en el Local<br/>
+             <strong>Punto de Retiro:</strong> ${testData.deliverySelection.pickupAddressFormatted || 'Local Comercial'}<br/>
+             ${testData.deliverySelection.notes ? `<em>Instrucciones: ${testData.deliverySelection.notes}</em>` : ''}
+           </td>
+         </tr>`
+      : `<tr>
+           <td style="padding: 10px; border-bottom: 1px solid #eee;">
+             <strong>Método de Entrega:</strong> Envío a Domicilio (A Coordinar)
+           </td>
+         </tr>`;
+
+  const deliveryTable = `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">${deliverySectionHtml}</table>`;
+
+  let emailBody = template
     .replace(/{orderId}/g, testData.orderId)
     .replace(/{clientName}/g, testData.clientName)
     .replace(/{clientEmail}/g, testData.clientEmail)
     .replace(/{clientPhone}/g, testData.clientPhone)
     .replace(/{itemsList}/g, `<ul>${itemsHtml}</ul>`)
+    .replace(/{deliverySection}/g, deliveryTable)
     .replace(/{totalAmount}/g, testData.totalAmount);
+
+  if (!template.includes('{deliverySection}')) {
+    emailBody += deliveryTable;
+  }
 
   const buttonStyle = `style="display: inline-block; padding: 12px 24px; margin: 10px 10px 10px 0; font-size: 16px; color: #ffffff; background-color: #007bff; border-radius: 5px; text-decoration: none;"`;
   let buttonsHtml = '<div style="margin-top: 30px;">';
@@ -193,9 +236,16 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
 
     if (templates.customerConfirmation) {
       const customerConfig = templates.customerConfirmation;
+      const isPickup = testData.deliverySelection?.type === 'store_pickup';
+      const customerWaMsg = encodeURIComponent(
+        isPickup
+          ? `Hola! Hice el pedido #${testData.orderId} para retirar por el local (${testData.deliverySelection?.pickupAddressFormatted || 'Sucursal seleccionada'}). ¿Cuándo puedo pasar a buscarlo?`
+          : `Hola! Hice el pedido #${testData.orderId} y quisiera coordinar el envío a domicilio.`,
+      );
+      const cleanStoreWa = (emailConfig?.storeWhatsappNumber || '').replace(/[^0-9]/g, '');
       const whatsappUrl =
-        customerConfig.showWhatsappButton && emailConfig?.storeWhatsappNumber
-          ? `https://wa.me/${emailConfig.storeWhatsappNumber}`
+        customerConfig.showWhatsappButton && cleanStoreWa
+          ? `https://wa.me/${cleanStoreWa}?text=${customerWaMsg}`
           : null;
       const customerHtml = buildTestEmailHtml(customerConfig.template, testData, { whatsappUrl });
       const subject = `[PRUEBA CLIENTE] ${customerConfig.subject.replace(/{orderId}/g, testData.orderId)}`;

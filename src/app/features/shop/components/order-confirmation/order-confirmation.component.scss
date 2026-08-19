@@ -126,6 +126,81 @@
   color: var(--text-primary);
 }
 
+.confirmation__delivery {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+  text-align: left;
+}
+
+.confirmation__delivery-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.confirmation__delivery-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+
+  &--pickup {
+    background-color: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &--shipping {
+    background-color: #fef3c7;
+    color: #b45309;
+  }
+}
+
+.confirmation__delivery-details {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+
+  p {
+    margin-bottom: var(--space-2);
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.confirmation__delivery-actions {
+  margin-top: var(--space-4);
+}
+
+.confirmation__whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #25d366;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+
+  &:hover {
+    background-color: #128c7e;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+}
+
 .confirmation__email {
   margin-bottom: var(--space-6);
   color: var(--text-muted);
