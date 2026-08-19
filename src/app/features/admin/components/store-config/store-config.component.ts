@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { StoreConfigService, StoreConfigSchema } from '@core/services/store-config.service';
+import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
