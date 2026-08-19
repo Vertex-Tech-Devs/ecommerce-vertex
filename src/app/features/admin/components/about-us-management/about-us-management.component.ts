@@ -7,6 +7,7 @@ import type { Observable } from 'rxjs';
 import { take } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { AboutUsData, AboutUsFeatureCard } from '@core/models/about-us.model';
+import { ABOUT_US_CARD_ICONS } from '@core/models/about-us.model';
 import { AboutUsService } from '@core/services/about-us.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { StorageService } from '@core/services/storage.service';
@@ -19,6 +20,8 @@ import { StorageService } from '@core/services/storage.service';
   styleUrl: './about-us-management.component.scss',
 })
 export class AboutUsManagementComponent implements OnInit {
+  readonly availableIcons = ABOUT_US_CARD_ICONS;
+
   private fb = inject(FormBuilder);
   private aboutUsService = inject(AboutUsService);
   private alertService = inject(SweetAlertService);
@@ -121,9 +124,19 @@ export class AboutUsManagementComponent implements OnInit {
 
   private createFeatureCardGroup(card: AboutUsFeatureCard | null = null): FormGroup {
     return this.fb.group({
+      icon: [card?.icon ?? 'stars', [Validators.required]],
       title: [card?.title ?? '', Validators.required],
       content: [card?.content ?? '', Validators.required],
     });
+  }
+
+  selectCardIcon(cardIndex: number, iconId: string): void {
+    const cardGroup = this.featureCards.at(cardIndex);
+    if (cardGroup && cardGroup.get('icon')?.value !== iconId) {
+      cardGroup.get('icon')?.setValue(iconId);
+      cardGroup.get('icon')?.markAsDirty();
+      this.aboutUsForm.markAsDirty();
+    }
   }
 
   addFeatureCard(cardData?: AboutUsFeatureCard): void {
