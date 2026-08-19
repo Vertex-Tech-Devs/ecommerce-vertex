@@ -103,9 +103,42 @@
     </div>
   </article>
 } @else {
-  <div class="product-detail product-detail__card product-detail--loading" role="status">
-    <div class="spinner-border">
-      <span class="visually-hidden">Cargando producto...</span>
+  <article class="product-detail" aria-busy="true" aria-label="Cargando detalles del producto">
+    <div class="product-detail__card product-detail__card--skeleton">
+      <div class="product-detail__grid">
+        <!-- Skeleton Gallery -->
+        <div class="product-gallery">
+          <div class="product-gallery__main skeleton-box skeleton-box--main-img"></div>
+          <div class="product-gallery__thumbs">
+            <div class="skeleton-box skeleton-box--thumb"></div>
+            <div class="skeleton-box skeleton-box--thumb"></div>
+            <div class="skeleton-box skeleton-box--thumb"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton Info -->
+        <div class="product-info">
+          <div class="skeleton-box skeleton-box--title mb-3"></div>
+          <div class="skeleton-box skeleton-box--price mb-4"></div>
+          <div class="skeleton-box skeleton-box--line mb-2"></div>
+          <div class="skeleton-box skeleton-box--line mb-2" style="width: 85%;"></div>
+          <div class="skeleton-box skeleton-box--line mb-4" style="width: 60%;"></div>
+
+          <!-- Skeleton Variant Selectors -->
+          <div class="skeleton-box skeleton-box--label mb-2"></div>
+          <div class="d-flex gap-2 mb-4">
+            <div class="skeleton-box skeleton-box--pill"></div>
+            <div class="skeleton-box skeleton-box--pill"></div>
+            <div class="skeleton-box skeleton-box--pill"></div>
+          </div>
+
+          <!-- Skeleton Actions -->
+          <div class="purchase-actions mt-4">
+            <div class="skeleton-box skeleton-box--qty"></div>
+            <div class="skeleton-box skeleton-box--btn"></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </article>
 }

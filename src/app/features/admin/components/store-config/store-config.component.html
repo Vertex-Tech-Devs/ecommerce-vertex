@@ -8,131 +8,181 @@
       <hr />
     </header>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <div class="tab-content custom-tab-content mb-4">
-        <!-- Identidad Corporativa -->
-        <div class="tab-pane active" role="tabpanel">
-          <div class="glass-card card-identity mb-4">
-            <div class="card-header border-0 fw-bold d-flex align-items-center">
-              <i class="bi bi-shop me-2"></i> Identidad Corporativa
+    @if (isLoading()) {
+      <div class="config-skeleton-wrapper" aria-busy="true" aria-label="Cargando configuración">
+        <div class="glass-card mb-4 p-4">
+          <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--input"></div>
             </div>
-            <div class="card-body">
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label class="form-label text-label">Nombre del comercio</label>
-                  <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-building"></i></span>
-                    <input
-                      formControlName="storeName"
-                      type="text"
-                      class="form-control glass-input"
-                      placeholder="Mi Tienda"
-                    />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label text-label">Eslogan / Frase representativa</label>
-                  <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-chat-quote"></i></span>
-                    <input
-                      formControlName="tagline"
-                      type="text"
-                      class="form-control glass-input"
-                      placeholder="Tu tienda de confianza"
-                    />
-                  </div>
-                </div>
-              </div>
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--input"></div>
             </div>
           </div>
+        </div>
 
-          <!-- Favicon & Logo -->
-          <div class="glass-card card-branding mb-4">
-            <div class="card-header border-0 fw-bold d-flex align-items-center">
-              <i class="bi bi-image me-2"></i> Favicon e Isotipo (Pestaña Web)
+        <div class="glass-card mb-4 p-4">
+          <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+          <div class="row g-4 align-items-center">
+            <div class="col-md-8">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--input"></div>
             </div>
-            <div class="card-body">
-              <div class="row g-4 align-items-center">
-                <div class="col-md-8">
-                  <label class="form-label text-label">URL del Favicon (.ico / .png)</label>
-                  <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                    <input
-                      formControlName="faviconUrl"
-                      type="url"
-                      class="form-control glass-input"
-                      placeholder="https://mitienda.com/favicon.ico"
-                    />
-                  </div>
-                  <div class="form-text text-soft mt-1">
-                    Imagen cuadrada (32x32px recomendado) para el icono de la pestaña del navegador.
-                  </div>
-                </div>
-                <div class="col-md-4 text-center">
-                  <div
-                    class="favicon-preview-box p-3 border rounded border-secondary border-opacity-25 bg-dark"
-                  >
-                    <div class="text-soft small mb-2">Vista previa:</div>
-                    @if (form.get('faviconUrl')?.value) {
-                      <img
-                        [src]="form.get('faviconUrl')?.value"
-                        alt="Favicon preview"
-                        class="favicon-preview-img"
-                        style="width: 32px; height: 32px; object-fit: contain"
-                        (error)="onImageError($event)"
-                      />
-                    } @else {
-                      <i class="bi bi-globe fs-3 text-secondary"></i>
-                    }
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Acceso directo a Gestión de Emails -->
-          <div
-            class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3"
-          >
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-              <div>
-                <h6 class="mb-1 text-white d-flex align-items-center">
-                  <i class="bi bi-envelope-paper-fill me-2 text-info fs-5"></i>
-                  Gestión de Correos Transaccionales y Notificaciones
-                </h6>
-                <small class="text-soft">
-                  Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde
-                  la sección centralizada.
-                </small>
-              </div>
-              <a
-                routerLink="/admin/email-management"
-                class="btn btn-outline-info btn-sm px-3 py-2 fw-semibold"
-              >
-                <i class="bi bi-envelope-paper-fill me-1"></i> Ir a Gestión de Emails →
-              </a>
+            <div class="col-md-4 text-center">
+              <div class="skeleton-box skeleton-box--preview mx-auto"></div>
             </div>
           </div>
         </div>
       </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <div class="tab-content custom-tab-content mb-4">
+          <!-- Identidad Corporativa -->
+          <div class="tab-pane active" role="tabpanel">
+            <div class="glass-card card-identity mb-4">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-shop me-2"></i> Identidad Corporativa
+              </div>
+              <div class="card-body">
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Nombre del comercio</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-building"></i></span>
+                      <input
+                        formControlName="storeName"
+                        type="text"
+                        class="form-control glass-input"
+                        placeholder="Mi Tienda"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Eslogan / Frase representativa</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-chat-quote"></i></span>
+                      <input
+                        formControlName="tagline"
+                        type="text"
+                        class="form-control glass-input"
+                        placeholder="Tu tienda de confianza"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <div class="save-action-container mt-4">
-        <button
-          type="submit"
-          class="btn-save-primary ms-auto"
-          [disabled]="isSubmitting() || form.invalid || form.pristine"
-        >
-          @if (isSubmitting()) {
-            <span
-              class="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          }
-          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting()"></i>
-          {{ isSubmitting() ? 'Guardando...' : 'Guardar Identidad de Marca' }}
-        </button>
-      </div>
-    </form>
+            <!-- Favicon & Logo -->
+            <div class="glass-card card-branding mb-4">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-image me-2"></i> Favicon e Isotipo (Pestaña Web)
+              </div>
+              <div class="card-body">
+                <div class="row g-4 align-items-center">
+                  <div class="col-md-8">
+                    <label class="form-label text-label">URL del Favicon (.ico / .png)</label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                      <input
+                        formControlName="faviconUrl"
+                        type="url"
+                        class="form-control glass-input"
+                        placeholder="https://..."
+                      />
+                      <input
+                        type="file"
+                        #faviconFileInput
+                        (change)="onFaviconSelected($event)"
+                        accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
+                        style="display: none"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary glass-btn"
+                        (click)="faviconFileInput.click()"
+                        [disabled]="faviconUploading()"
+                      >
+                        <i class="bi bi-upload"></i> Subir
+                      </button>
+                    </div>
+                    @if (faviconUploading()) {
+                      <div class="progress mt-2" style="height: 6px">
+                        <div
+                          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                          role="progressbar"
+                          [style.width.%]="faviconProgress()"
+                        ></div>
+                      </div>
+                    }
+                  </div>
+                  <div class="col-md-4 text-center">
+                    <div class="favicon-preview-box">
+                      @if (form.get('faviconUrl')?.value) {
+                        <img
+                          [src]="form.get('faviconUrl')?.value"
+                          alt="Favicon preview"
+                          class="img-fluid favicon-img"
+                        />
+                      } @else {
+                        <div class="favicon-placeholder">
+                          <i class="bi bi-browser-chrome"></i>
+                          <span>Sin icono</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acceso directo a Gestión de Emails -->
+            <div
+              class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3 mb-4"
+            >
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                  <h6 class="mb-1 text-white d-flex align-items-center">
+                    <i class="bi bi-envelope-paper-fill me-2 text-info fs-5"></i>
+                    Gestión de Correos Transaccionales y Notificaciones
+                  </h6>
+                  <small class="text-soft">
+                    Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde
+                    la sección centralizada.
+                  </small>
+                </div>
+                <a
+                  routerLink="/admin/email-management"
+                  class="btn btn-outline-info btn-sm px-3 py-2 fw-semibold"
+                >
+                  <i class="bi bi-envelope-paper-fill me-1"></i> Ir a Gestión de Emails →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-action-container mt-4">
+          <button
+            type="submit"
+            class="btn-save-primary ms-auto"
+            [disabled]="isSubmitting() || form.invalid || form.pristine"
+          >
+            @if (isSubmitting()) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            }
+            <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting()"></i>
+            {{ isSubmitting() ? 'Guardando...' : 'Guardar Identidad de Marca' }}
+          </button>
+        </div>
+      </form>
+    }
   </div>
 </section>

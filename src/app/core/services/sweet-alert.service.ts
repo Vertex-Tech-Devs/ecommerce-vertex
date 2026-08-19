@@ -17,6 +17,9 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
+      returnFocus: false,
+      heightAuto: false,
+      scrollbarPadding: false,
     });
   }
 
@@ -31,6 +34,9 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
+      returnFocus: false,
+      heightAuto: false,
+      scrollbarPadding: false,
     });
   }
 
@@ -45,6 +51,9 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
+      returnFocus: false,
+      heightAuto: false,
+      scrollbarPadding: false,
     });
   }
 
@@ -58,6 +67,9 @@ export class SweetAlertService {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Sí, estoy seguro',
       cancelButtonText: 'Cancelar',
+      returnFocus: false,
+      heightAuto: false,
+      scrollbarPadding: false,
     }).then((result) => {
       return result.isConfirmed;
     });
@@ -69,6 +81,9 @@ export class SweetAlertService {
       text,
       allowOutsideClick: false,
       allowEscapeKey: false,
+      returnFocus: false,
+      heightAuto: false,
+      scrollbarPadding: false,
       didOpen: () => {
         Swal.showLoading();
       },
@@ -79,3 +94,4 @@ export class SweetAlertService {
     Swal.close();
   }
 }
+

@@ -26,6 +26,9 @@ export class StoreConfigService {
   private readonly _storeConfig = signal<StoreConfig | null>(null);
   readonly storeConfig = this._storeConfig.asReadonly();
 
+  private readonly _isLoading = signal<boolean>(false);
+  readonly isLoading = this._isLoading.asReadonly();
+
   readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
   readonly isFirstRun = computed(() => {
@@ -90,6 +93,7 @@ export class StoreConfigService {
   }
 
   async loadConfig(): Promise<void> {
+    this._isLoading.set(true);
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
     try {
       const docPromise = this.getDocSnap(
@@ -106,6 +110,8 @@ export class StoreConfigService {
     } catch (err) {
       console.error('Error al cargar la configuración de la tienda:', err);
       this._storeConfig.set(null);
+    } finally {
+      this._isLoading.set(false);
     }
   }
 

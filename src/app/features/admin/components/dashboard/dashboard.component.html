@@ -59,7 +59,17 @@
               </div>
             </div>
           } @else {
-            <div class="text-center p-5"><div class="spinner-border text-primary"></div></div>
+            <div class="dashboard__summary-grid" aria-busy="true" aria-label="Cargando métricas">
+              @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+                <div class="summary-card summary-card--skeleton">
+                  <div class="skeleton-box skeleton-box--icon"></div>
+                  <div class="summary-card__content">
+                    <div class="skeleton-box skeleton-box--label mb-2"></div>
+                    <div class="skeleton-box skeleton-box--value"></div>
+                  </div>
+                </div>
+              }
+            </div>
           }
         }
       </section>

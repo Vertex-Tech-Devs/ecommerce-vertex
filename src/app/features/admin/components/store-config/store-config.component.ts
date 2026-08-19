@@ -29,6 +29,7 @@ export class StoreConfigComponent {
   private destroyRef = inject(DestroyRef);
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
+  readonly isLoading = this.storeConfigService.isLoading;
   isSubmitting = signal(false);
 
   // File uploading states

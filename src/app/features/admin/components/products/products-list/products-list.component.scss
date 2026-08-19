@@ -504,3 +504,51 @@
       0 0 15px rgba(vars.$accent-blue, 0.3);
   }
 }
+
+// ── Skeleton Shimmer for Product List ──────────────────────────────────────
+.product-card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-box {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+
+  &--img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 20px 20px 0 0;
+  }
+
+  &--title {
+    height: 1.3rem;
+    width: 70%;
+  }
+
+  &--category {
+    height: 0.9rem;
+    width: 40%;
+  }
+
+  &--price {
+    height: 1.4rem;
+    width: 50%;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+

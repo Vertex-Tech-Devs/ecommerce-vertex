@@ -254,3 +254,80 @@
     opacity: 1;
   }
 }
+
+// ── PDP Wireframe Skeletons ────────────────────────────────────────────────
+.product-detail__card--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-box {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.09) 50%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+
+  &--main-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-lg);
+  }
+
+  &--thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-md);
+  }
+
+  &--title {
+    height: 2.25rem;
+    width: 70%;
+  }
+
+  &--price {
+    height: 1.75rem;
+    width: 35%;
+  }
+
+  &--line {
+    height: 1rem;
+    width: 100%;
+  }
+
+  &--label {
+    height: 1rem;
+    width: 25%;
+  }
+
+  &--pill {
+    width: 60px;
+    height: 38px;
+    border-radius: var(--radius-md);
+  }
+
+  &--qty {
+    width: 120px;
+    height: 48px;
+    border-radius: var(--radius-md);
+  }
+
+  &--btn {
+    flex: 1;
+    height: 48px;
+    border-radius: var(--radius-md);
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
