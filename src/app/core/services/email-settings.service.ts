@@ -85,8 +85,8 @@ export class EmailSettingsService {
         payload as unknown as Record<string, unknown>,
       );
     } catch (err: unknown) {
-      const errStr = String((err as { message?: string })?.message || err);
-      const errCode = String((err as { code?: string })?.code || '');
+      const errStr = String((err as { message?: string })?.message ?? err);
+      const errCode = String((err as { code?: string })?.code ?? '');
       if (
         errCode === 'unauthenticated' ||
         errStr.includes('Unauthenticated') ||
@@ -119,14 +119,14 @@ export class EmailSettingsService {
         if (!response.ok) {
           const errJson = await response.json().catch(() => ({}));
           const msg =
-            errJson?.error?.message ||
-            errJson?.message ||
+            errJson?.error?.message ??
+            errJson?.message ??
             `Error HTTP ${response.status} al enviar el email de prueba.`;
           throw new Error(msg);
         }
 
         const resJson = await response.json();
-        return resJson.result || resJson;
+        return resJson.result ?? resJson;
       }
       throw err;
     }
