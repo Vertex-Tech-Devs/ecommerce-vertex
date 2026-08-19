@@ -343,14 +343,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       event.preventDefault();
       event.stopPropagation();
     }
-    // Grabar posición real de la sección de variantes antes de abrir el modal SweetAlert
-    const targetElement = event?.target as HTMLElement | null;
-    const variantRow =
-      targetElement?.closest('.variant-action-item') ??
-      targetElement?.closest('.glass-card-subtle');
-    const targetScrollY = variantRow
-      ? variantRow.getBoundingClientRect().top + window.scrollY - 100
-      : window.scrollY;
+    // Guardar posición exacta del scroll
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
 
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
@@ -362,19 +356,28 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
     this.variants.removeAt(index);
     if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages;
+      this.currentPage = Math.max(1, this.totalPages);
     }
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
 
-    // Restaurar el scroll y el foco de teclado tras el cierre del modal SweetAlert
-    setTimeout(() => {
-      window.scrollTo({ top: Math.max(0, targetScrollY), behavior: 'instant' as ScrollBehavior });
-      const targetId = `variant-row-${Math.max(0, index - 1)}`;
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        (targetEl as HTMLElement).focus({ preventScroll: true });
+    // Restaurar el scroll de inmediato y colocar el foco en la variante continua o botón manual
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+      const targetIndex = Math.min(index, this.variants.length - 1);
+      if (targetIndex >= 0) {
+        const targetRow = document.getElementById(`variant-row-${targetIndex}`);
+        const focusable = targetRow?.querySelector<HTMLElement>('input, select, button');
+        if (focusable) {
+          focusable.focus({ preventScroll: true });
+        } else if (targetRow) {
+          targetRow.focus({ preventScroll: true });
+        }
+      } else {
+        const manualBtn = document.getElementById('btn-add-variant-manual');
+        manualBtn?.focus({ preventScroll: true });
       }
-    }, 60);
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+    });
   }
 
   generateVariantCombinations(): void {

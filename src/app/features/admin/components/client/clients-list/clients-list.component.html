@@ -97,13 +97,19 @@
                   </tr>
                 }
               } @else {
-                <tr>
-                  <td colspan="5" class="text-center py-5 spinner-cell">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Cargando clientes...</span>
-                    </div>
-                  </td>
-                </tr>
+                @for (_ of [1, 2, 3, 4, 5]; track $index) {
+                  <tr class="table-row--skeleton">
+                    <td data-label="Nombre Completo"><div class="skeleton-box skeleton-box--name"></div></td>
+                    <td data-label="Email"><div class="skeleton-box skeleton-box--email"></div></td>
+                    <td data-label="Teléfono"><div class="skeleton-box skeleton-box--phone"></div></td>
+                    <td data-label="N.º Pedidos" class="text-center">
+                      <div class="skeleton-box skeleton-box--orders mx-auto"></div>
+                    </td>
+                    <td data-label="Acciones" class="text-end action-cell">
+                      <div class="skeleton-box skeleton-box--actions ms-auto"></div>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

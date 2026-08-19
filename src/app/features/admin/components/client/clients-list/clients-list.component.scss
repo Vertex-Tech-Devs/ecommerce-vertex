@@ -345,3 +345,57 @@
     }
   }
 }
+
+// ── Clients List Skeleton Shimmer ──────────────────────────────────────────
+.table-row--skeleton {
+  pointer-events: none;
+}
+
+.skeleton-box {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+
+  &--name {
+    width: 140px;
+    height: 18px;
+  }
+
+  &--email {
+    width: 160px;
+    height: 16px;
+  }
+
+  &--phone {
+    width: 100px;
+    height: 16px;
+  }
+
+  &--orders {
+    width: 40px;
+    height: 22px;
+    border-radius: 12px;
+  }
+
+  &--actions {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+

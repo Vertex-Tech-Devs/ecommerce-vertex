@@ -201,9 +201,39 @@
             </div>
           </div>
         } @else {
-          <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Cargando detalles...</span>
+          <div class="order-detail--skeleton" aria-busy="true" aria-label="Cargando detalles del pedido">
+            <div class="glass-panel p-3 p-md-4 mb-4">
+              <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="skeleton-box skeleton-box--line mb-2"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 70%;"></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="skeleton-box skeleton-box--line mb-2"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 50%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-panel p-3 p-md-4 mb-4">
+              <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="skeleton-box skeleton-box--line mb-2"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 60%;"></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="skeleton-box skeleton-box--line mb-2"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 80%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="glass-panel p-3 p-md-4">
+              <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+              <div class="skeleton-box skeleton-box--table-row mb-2"></div>
+              <div class="skeleton-box skeleton-box--table-row"></div>
             </div>
           </div>
         }
