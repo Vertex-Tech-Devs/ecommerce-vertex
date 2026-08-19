@@ -92,12 +92,10 @@ export class StoreConfigService {
   async loadConfig(): Promise<void> {
     const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
     try {
-      const snap = await Promise.race([
-        this.getDocSnap(this.getDocRef(tenantPath('configuracion'), storeDocId('store'))).catch(
-          () => null,
-        ),
-        timeout,
-      ]);
+      const docPromise = this.getDocSnap(
+        this.getDocRef(tenantPath('configuracion'), storeDocId('store')),
+      ).catch(() => null);
+      const snap = await Promise.race([docPromise, timeout]);
       if (snap?.exists()) {
         const validatedData = StoreConfigSchema.parse(snap.data());
         this._storeConfig.set(validatedData as unknown as StoreConfig);
