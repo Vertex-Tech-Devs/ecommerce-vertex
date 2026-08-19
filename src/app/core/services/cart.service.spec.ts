@@ -302,6 +302,7 @@ describe('CartService', () => {
 
   describe('localStorage error handling', () => {
     it('should not throw when localStorage.setItem fails', () => {
+      spyOn(console, 'error');
       spyOn(localStorage, 'setItem').and.callFake(() => {
         throw new Error('QuotaExceededError');
       });

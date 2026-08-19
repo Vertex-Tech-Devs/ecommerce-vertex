@@ -8,197 +8,110 @@
       <hr />
     </header>
 
-    <!-- Nav tabs -->
-    <ul class="nav nav-tabs custom-tabs mb-4" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          [class.active]="activeTab() === 'identity'"
-          (click)="setTab('identity')"
-          type="button"
-          role="tab"
-        >
-          <i class="bi bi-palette-fill me-2"></i>Identidad
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button
-          class="nav-link"
-          [class.active]="activeTab() === 'emails'"
-          (click)="setTab('emails')"
-          type="button"
-          role="tab"
-        >
-          <i class="bi bi-envelope-fill me-2"></i>Emails
-        </button>
-      </li>
-    </ul>
-
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-      <!-- Tab content -->
       <div class="tab-content custom-tab-content mb-4">
-        <!-- Tab 1: Identidad -->
-        @if (activeTab() === 'identity') {
-          <div class="tab-pane active" role="tabpanel">
-            <div class="glass-card card-identity">
-              <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-shop me-2"></i> Identidad Corporativa
+        <!-- Identidad Corporativa -->
+        <div class="tab-pane active" role="tabpanel">
+          <div class="glass-card card-identity mb-4">
+            <div class="card-header border-0 fw-bold d-flex align-items-center">
+              <i class="bi bi-shop me-2"></i> Identidad Corporativa
+            </div>
+            <div class="card-body">
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <label class="form-label text-label">Nombre del comercio</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-building"></i></span>
+                    <input
+                      formControlName="storeName"
+                      type="text"
+                      class="form-control glass-input"
+                      placeholder="Mi Tienda"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-label">Eslogan / Frase representativa</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-chat-quote"></i></span>
+                    <input
+                      formControlName="tagline"
+                      type="text"
+                      class="form-control glass-input"
+                      placeholder="Tu tienda de confianza"
+                    />
+                  </div>
+                </div>
               </div>
-              <div class="card-body">
-                <div class="row g-4">
-                  <div class="col-md-6">
-                    <label class="form-label text-label"
-                      >Nombre de la tienda <span class="text-danger">*</span></label
-                    >
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-tag-fill"></i></span>
-                      <input
-                        formControlName="storeName"
-                        type="text"
-                        class="form-control glass-input"
-                        [class.is-invalid]="
-                          form.get('storeName')?.invalid && form.get('storeName')?.touched
-                        "
-                        placeholder="Ej: Vertex Premium Store"
+            </div>
+          </div>
+
+          <!-- Favicon & Logo -->
+          <div class="glass-card card-branding mb-4">
+            <div class="card-header border-0 fw-bold d-flex align-items-center">
+              <i class="bi bi-image me-2"></i> Favicon e Isotipo (Pestaña Web)
+            </div>
+            <div class="card-body">
+              <div class="row g-4 align-items-center">
+                <div class="col-md-8">
+                  <label class="form-label text-label">URL del Favicon (.ico / .png)</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                    <input
+                      formControlName="faviconUrl"
+                      type="url"
+                      class="form-control glass-input"
+                      placeholder="https://mitienda.com/favicon.ico"
+                    />
+                  </div>
+                  <div class="form-text text-soft mt-1">
+                    Imagen cuadrada (32x32px recomendado) para el icono de la pestaña del navegador.
+                  </div>
+                </div>
+                <div class="col-md-4 text-center">
+                  <div class="favicon-preview-box p-3 border rounded border-secondary border-opacity-25 bg-dark">
+                    <div class="text-soft small mb-2">Vista previa:</div>
+                    @if (form.get('faviconUrl')?.value) {
+                      <img
+                        [src]="form.get('faviconUrl')?.value"
+                        alt="Favicon preview"
+                        class="favicon-preview-img"
+                        style="width: 32px; height: 32px; object-fit: contain;"
+                        (error)="onImageError($event)"
                       />
-                    </div>
-                    @if (form.get('storeName')?.invalid && form.get('storeName')?.touched) {
-                      <div class="invalid-feedback d-block mt-2">
-                        El nombre de la tienda es obligatorio.
-                      </div>
+                    } @else {
+                      <i class="bi bi-globe fs-3 text-secondary"></i>
                     }
                   </div>
-
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Favicon Corporativo</label>
-                    <div class="d-flex align-items-center gap-3">
-                      <div class="avatar-preview-box favicon-box">
-                        @if (form.get('faviconUrl')?.value) {
-                          <img
-                            [src]="form.get('faviconUrl')?.value"
-                            alt="Favicon de tienda"
-                            class="branding-preview-img favicon-img"
-                          />
-                        } @else {
-                          <i class="bi bi-bookmark-star text-muted" style="font-size: 2rem"></i>
-                        }
-                      </div>
-                      <div class="flex-grow-1">
-                        <input
-                          type="file"
-                          (change)="onFaviconUpload($event)"
-                          accept="image/*"
-                          class="form-control glass-input file-input"
-                          [disabled]="faviconUploading()"
-                        />
-                        @if (faviconUploading()) {
-                          <div class="progress mt-2 custom-progress">
-                            <div
-                              class="progress-bar progress-bar-striped progress-bar-animated bg-accent"
-                              role="progressbar"
-                              [style.width.%]="faviconProgress()"
-                              [attr.aria-valuenow]="faviconProgress()"
-                              aria-valuemin="0"
-                              aria-valuemax="100"
-                            >
-                              {{ faviconProgress() }}%
-                            </div>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
-        }
 
-        <!-- Tab 2: Emails -->
-        @if (activeTab() === 'emails') {
-          <div class="tab-pane active" role="tabpanel">
-            <div class="glass-card card-email">
-              <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-envelope me-2"></i> Notificaciones por Email
+          <!-- Acceso directo a Gestión de Emails -->
+          <div class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+              <div>
+                <h6 class="mb-1 text-white d-flex align-items-center">
+                  <i class="bi bi-envelope-paper-fill me-2 text-info fs-5"></i>
+                  Gestión de Correos Transaccionales y Notificaciones
+                </h6>
+                <small class="text-soft">
+                  Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde la sección centralizada.
+                </small>
               </div>
-              <div class="card-body">
-                <p class="text-soft mb-4">
-                  Configurá el remitente y los destinatarios de los correos transaccionales de la
-                  tienda (notificaciones de ventas, pedidos y administración).
-                </p>
-                <div class="row g-4">
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Email del propietario</label>
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                      <input
-                        formControlName="storeOwnerEmail"
-                        type="email"
-                        class="form-control glass-input"
-                        placeholder="dueno@mitienda.com"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Email de notificaciones</label>
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-bell"></i></span>
-                      <input
-                        formControlName="notificationEmail"
-                        type="email"
-                        class="form-control glass-input"
-                        placeholder="ventas@mitienda.com"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Nombre del remitente</label>
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-person"></i></span>
-                      <input
-                        formControlName="emailSenderName"
-                        type="text"
-                        class="form-control glass-input"
-                        placeholder="Mi Tienda"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-12">
-                    <label class="form-label text-label">Firma del email</label>
-                    <textarea
-                      formControlName="emailSignature"
-                      class="form-control glass-input"
-                      rows="3"
-                      placeholder="Gracias por tu compra — Mi Tienda"
-                    ></textarea>
-                  </div>
-                  <div
-                    class="col-md-12 mt-3 pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between flex-wrap gap-2"
-                  >
-                    <div>
-                      <h6 class="mb-1 text-white">
-                        <i class="bi bi-envelope-paper-fill me-2 text-info"></i>Plantillas y Envíos
-                        de Prueba
-                      </h6>
-                      <small class="text-soft"
-                        >Personalizá plantillas HTML avanzadas y enviá emails de prueba.</small
-                      >
-                    </div>
-                    <a
-                      routerLink="/admin/email-management"
-                      class="btn btn-outline-info btn-sm px-3"
-                    >
-                      <i class="bi bi-envelope-paper-fill me-1"></i> Abrir Gestión de Emails →
-                    </a>
-                  </div>
-                </div>
-              </div>
+              <a
+                routerLink="/admin/email-management"
+                class="btn btn-outline-info btn-sm px-3 py-2 fw-semibold"
+              >
+                <i class="bi bi-envelope-paper-fill me-1"></i> Ir a Gestión de Emails →
+              </a>
             </div>
           </div>
-        }
+        </div>
       </div>
 
-      <div class="save-action-container">
+      <div class="save-action-container mt-4">
         <button
           type="submit"
           class="btn-save-primary ms-auto"
@@ -212,7 +125,7 @@
             ></span>
           }
           <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting()"></i>
-          {{ isSubmitting() ? 'Guardando...' : 'Guardar Marca Blanca' }}
+          {{ isSubmitting() ? 'Guardando...' : 'Guardar Identidad de Marca' }}
         </button>
       </div>
     </form>

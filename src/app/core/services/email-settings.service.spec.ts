@@ -111,15 +111,22 @@ describe('EmailSettingsService', () => {
       templates: {},
     };
 
-    const callFnSpy = spyOn(serviceTest, 'callFunction').and.returnValue(
-      Promise.resolve({ success: true }),
+    spyOn(window, 'fetch').and.returnValue(
+      Promise.resolve(
+        new Response(JSON.stringify({ result: { success: true } }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
     );
 
     const result = await service.sendAdvancedTestEmail(payload);
 
-    expect(callFnSpy).toHaveBeenCalledWith(
-      'sendAdvancedTestEmail',
-      payload as unknown as Record<string, unknown>,
+    expect(window.fetch).toHaveBeenCalledWith(
+      jasmine.stringMatching(/\/sendAdvancedTestEmail$/),
+      jasmine.objectContaining({
+        method: 'POST',
+      }),
     );
     expect(result).toEqual({ success: true });
   });
