@@ -69,14 +69,16 @@
                   </div>
                 </div>
                 <div class="col-md-4 text-center">
-                  <div class="favicon-preview-box p-3 border rounded border-secondary border-opacity-25 bg-dark">
+                  <div
+                    class="favicon-preview-box p-3 border rounded border-secondary border-opacity-25 bg-dark"
+                  >
                     <div class="text-soft small mb-2">Vista previa:</div>
                     @if (form.get('faviconUrl')?.value) {
                       <img
                         [src]="form.get('faviconUrl')?.value"
                         alt="Favicon preview"
                         class="favicon-preview-img"
-                        style="width: 32px; height: 32px; object-fit: contain;"
+                        style="width: 32px; height: 32px; object-fit: contain"
                         (error)="onImageError($event)"
                       />
                     } @else {
@@ -89,7 +91,9 @@
           </div>
 
           <!-- Acceso directo a Gestión de Emails -->
-          <div class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3">
+          <div
+            class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3"
+          >
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
               <div>
                 <h6 class="mb-1 text-white d-flex align-items-center">
@@ -97,7 +101,8 @@
                   Gestión de Correos Transaccionales y Notificaciones
                 </h6>
                 <small class="text-soft">
-                  Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde la sección centralizada.
+                  Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde
+                  la sección centralizada.
                 </small>
               </div>
               <a

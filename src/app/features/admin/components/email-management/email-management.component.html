@@ -293,6 +293,28 @@
         </div>
 
         <div class="modal-body">
+          @if (testSendSuccess) {
+            <div class="test-feedback test-feedback--success mb-4">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <span>{{ testSendSuccessMessage }}</span>
+            </div>
+          }
+          @if (testSendError) {
+            <div class="test-feedback test-feedback--error mb-4">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <span>{{ testSendError }}</span>
+            </div>
+          }
+          @if (isSendingAdvancedTest) {
+            <div class="test-sending-overlay mb-4">
+              <div class="neon-ring-spinner mb-2"></div>
+              <p class="test-sending-text mb-1">Despachando emails de prueba…</p>
+              <span class="test-sending-sub"
+                >Enviando vía SMTP a {{ testEmailModalForm.get('recipientEmail')?.value }}</span
+              >
+            </div>
+          }
+
           <h6 class="text-label mb-3">1. Destinatario</h6>
           <div class="mb-4">
             <div class="input-group">
@@ -379,8 +401,13 @@
         </div>
 
         <div class="modal-footer border-0">
-          <button type="button" class="btn-glass-action" (click)="closeTestModal()">
-            Cancelar
+          <button
+            type="button"
+            class="btn-glass-action"
+            (click)="closeTestModal()"
+            [disabled]="isSendingAdvancedTest"
+          >
+            {{ testSendSuccess ? 'Cerrar' : 'Cancelar' }}
           </button>
           <button
             type="submit"
@@ -388,9 +415,13 @@
             [disabled]="isSendingAdvancedTest || testEmailModalForm.invalid"
           >
             @if (isSendingAdvancedTest) {
-              <span class="spinner-border spinner-border-sm me-2"></span>
+              <span class="spinner-ring-sm me-2"></span>
+              <span>Enviando…</span>
+            } @else if (testSendSuccess) {
+              <i class="bi bi-check2 me-2 text-success"></i> ¡Enviado!
+            } @else {
+              <i class="bi bi-send-fill me-2"></i> Enviar Prueba
             }
-            {{ isSendingAdvancedTest ? 'Enviando...' : 'Enviar Prueba' }}
           </button>
         </div>
       </form>

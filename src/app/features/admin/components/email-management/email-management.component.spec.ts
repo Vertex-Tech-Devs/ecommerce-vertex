@@ -198,7 +198,7 @@ describe('EmailManagementComponent', () => {
     expect(emailSettingsSpy.sendAdvancedTestEmail).not.toHaveBeenCalled();
   });
 
-  it('onSendAdvancedTest should send email and close modal on success', async () => {
+  it('onSendAdvancedTest should send email and set success on response', async () => {
     emailSettingsSpy.sendAdvancedTestEmail.and.returnValue(Promise.resolve());
     component.testEmailModalForm.get('recipientEmail')?.setValue('test@test.com');
     component.isTestModalVisible = true;
@@ -207,7 +207,7 @@ describe('EmailManagementComponent', () => {
 
     expect(emailSettingsSpy.sendAdvancedTestEmail).toHaveBeenCalled();
     expect(sweetAlertSpy.success).toHaveBeenCalled();
-    expect(component.isTestModalVisible).toBeFalse();
+    expect(component.testSendSuccess).toBeTrue();
   });
 
   it('onSendAdvancedTest should call error when sendAdvancedTestEmail rejects', async () => {
