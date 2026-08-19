@@ -162,21 +162,25 @@ export class SeedContentService {
         cardsSectionTitle: '¿Por qué elegirnos?',
         featureCards: [
           {
+            icon: 'patch-check',
             title: 'Calidad sin compromiso',
             content:
               'Cada prenda pasa por tres etapas de control de calidad antes de llegar a tus manos. Solo trabajamos con materiales de primera línea y proveedores certificados.',
           },
           {
+            icon: 'truck',
             title: 'Envíos en 24-72 hs',
             content:
               'Despachamos a cualquier punto de Argentina en 24 a 72 horas hábiles con seguimiento en tiempo real. Envío sin costo en compras superiores a $30.000.',
           },
           {
+            icon: 'arrow-counterclockwise',
             title: 'Cambios sin burocracia',
             content:
               'Si el talle no es el correcto o algo no te convenció, gestionamos el cambio o devolución en menos de 48 horas sin preguntas ni costos adicionales.',
           },
           {
+            icon: 'leaf',
             title: 'Producción responsable',
             content:
               'Embalajes 100% reciclables, tintas a base de agua y apoyo activo a marcas locales y talleres de producción justa.',
