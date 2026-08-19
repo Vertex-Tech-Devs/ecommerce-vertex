@@ -30,7 +30,6 @@ export class StoreConfigComponent {
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   isSubmitting = signal(false);
-  activeTab = signal<'identity' | 'emails'>('identity');
 
   // File uploading states
   faviconProgress = signal<number>(0);
@@ -136,9 +135,7 @@ export class StoreConfigComponent {
     });
   }
 
-  setTab(tab: 'identity' | 'emails'): void {
-    this.activeTab.set(tab);
-  }
+
 
   onFaviconUpload(event: Event): void {
     const input = event.target as HTMLInputElement;

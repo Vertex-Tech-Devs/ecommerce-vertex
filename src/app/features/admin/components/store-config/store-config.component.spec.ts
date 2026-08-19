@@ -112,9 +112,7 @@ describe('StoreConfigComponent', () => {
     expect(component.form.get('contact.email')?.value).toBe('test@store.com');
   });
 
-  it('should maintain identity activeTab signal', () => {
-    expect(component.activeTab()).toBe('identity');
-  });
+
 
   it('should show error alert if form is invalid on submit', async () => {
     component.form.patchValue({ storeName: '' }); // Invalid

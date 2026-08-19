@@ -8,7 +8,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CORS_FILE="${SCRIPT_DIR}/storage.cors.json"
+CORS_FILE="${SCRIPT_DIR}/../storage.cors.json"
+if [ ! -f "${CORS_FILE}" ]; then
+  CORS_FILE="${SCRIPT_DIR}/storage.cors.json"
+fi
 
 apply_cors() {
   local bucket="$1"
