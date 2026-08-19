@@ -123,7 +123,7 @@ describe('EmailSettingsService', () => {
     const result = await service.sendAdvancedTestEmail(payload);
 
     expect(window.fetch).toHaveBeenCalledWith(
-      jasmine.stringMatching(/\/sendAdvancedTestEmail$/),
+      jasmine.stringMatching(/\/sendAdvancedTestEmailApi$/),
       jasmine.objectContaining({
         method: 'POST',
       }),

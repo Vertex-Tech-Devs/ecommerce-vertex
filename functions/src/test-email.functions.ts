@@ -63,7 +63,7 @@ function buildTestEmailHtml(
   return emailBody + buttonsHtml;
 }
 
-export const sendAdvancedTestEmail = onRequest({ cors: true }, async (req, res) => {
+export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.status(204).send('');
     return;

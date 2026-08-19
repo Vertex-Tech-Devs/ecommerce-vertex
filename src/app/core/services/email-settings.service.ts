@@ -88,7 +88,7 @@ export class EmailSettingsService {
     const idToken = currentUser ? await currentUser.getIdToken().catch(() => '') : '';
     const tenantId = resolveTenantId();
 
-    const response = await fetch(`${environment.api.cloudFunctionsUrl}/sendAdvancedTestEmail`, {
+    const response = await fetch(`${environment.api.cloudFunctionsUrl}/sendAdvancedTestEmailApi`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
