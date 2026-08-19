@@ -135,8 +135,6 @@ export class StoreConfigComponent {
     });
   }
 
-
-
   onFaviconUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) {

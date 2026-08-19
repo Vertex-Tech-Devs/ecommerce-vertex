@@ -150,7 +150,9 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
       logger.warn(`Pedido ${orderId} sin storeId. No se enviarán notificaciones.`);
       return;
     }
-    logger.info(`Pedido pagado #${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`);
+    logger.info(
+      `Pedido pagado #${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`,
+    );
 
     const config = await getEmailConfig(storeId);
     const attributeMap = await getAttributeMap(storeId);
@@ -168,7 +170,8 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     const fromAddress = `${senderName} <${defaultFromEmail}>`;
     const emailSignature = (config?.emailSignature || '').trim();
 
-    const adminEmail = config?.storeOwnerEmail || config?.notificationEmail || getNotificationEmail();
+    const adminEmail =
+      config?.storeOwnerEmail || config?.notificationEmail || getNotificationEmail();
 
     if (adminEmail) {
       const adminConfig = config?.adminNotification || {
@@ -188,10 +191,14 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
         ? `https://wa.me/${orderData.clientPhone}?text=${whatsappMessage}`
         : null;
 
-      const adminHtml = buildEmailHtml(adminConfig.template, orderData, orderId, attributeMap, {
-        manageButtonUrl,
-        whatsappUrl,
-      }) + (emailSignature ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>` : '');
+      const adminHtml =
+        buildEmailHtml(adminConfig.template, orderData, orderId, attributeMap, {
+          manageButtonUrl,
+          whatsappUrl,
+        }) +
+        (emailSignature
+          ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
+          : '');
 
       mailCreationPromises.push(
         db.collection(collectionPath(COLLECTIONS.MAIL)).add({
@@ -219,13 +226,11 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
           ? `https://wa.me/${config.storeWhatsappNumber}`
           : null;
 
-      const customerHtml = buildEmailHtml(
-        customerConfig.template,
-        orderData,
-        orderId,
-        attributeMap,
-        { whatsappUrl },
-      ) + (emailSignature ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>` : '');
+      const customerHtml =
+        buildEmailHtml(customerConfig.template, orderData, orderId, attributeMap, { whatsappUrl }) +
+        (emailSignature
+          ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
+          : '');
 
       mailCreationPromises.push(
         db.collection(collectionPath(COLLECTIONS.MAIL)).add({

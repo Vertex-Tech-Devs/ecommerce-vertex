@@ -5,6 +5,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { z } from 'zod';
 import { COLLECTIONS, DOCS, singletonDoc } from './core/config';
 import { getSuperAdminEmails } from './role.functions';
+import { sendEmail } from './core/email.service';
 
 const db = getFirestore();
 const auth = getAuth();
@@ -41,7 +42,7 @@ function buildTestEmailHtml(
   options: { manageButtonUrl?: string | null; whatsappUrl?: string | null } = {},
 ) {
   const itemsHtml = `<li>Producto de Prueba 1 (x2) - $50.00</li><li>Producto de Prueba 2 (x1) - $75.50</li>`;
-  let emailBody = template
+  const emailBody = template
     .replace(/{orderId}/g, testData.orderId)
     .replace(/{clientName}/g, testData.clientName)
     .replace(/{clientEmail}/g, testData.clientEmail)
@@ -81,7 +82,9 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
     if (tokenToVerify) {
       try {
         const decodedToken = await auth.verifyIdToken(tokenToVerify);
-        callerEmail = String(decodedToken.email ?? '').trim().toLowerCase();
+        callerEmail = String(decodedToken.email ?? '')
+          .trim()
+          .toLowerCase();
         isAdminClaim = Boolean(decodedToken['admin']);
       } catch {
         const parts = tokenToVerify.split('.');
@@ -89,7 +92,9 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
           try {
             const payloadJson = Buffer.from(parts[1], 'base64').toString('utf8');
             const payload = JSON.parse(payloadJson);
-            callerEmail = String(payload.email ?? '').trim().toLowerCase();
+            callerEmail = String(payload.email ?? '')
+              .trim()
+              .toLowerCase();
             isAdminClaim = Boolean(payload.admin);
           } catch {
             // Ignore parse errors
@@ -130,7 +135,6 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
 
     const { recipientEmail, testData, templates } = validationResult.data;
     const storeTenantId = String(bodyData.tenantId ?? bodyData.storeId ?? '');
-    const mailCreationPromises = [];
 
     const configDoc = storeTenantId
       ? await db.doc(singletonDoc(storeTenantId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES)).get()
@@ -138,12 +142,10 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
     const emailConfig = configDoc.data();
 
     const storeName = emailConfig?.storeName || 'Vertex Store';
-    const projectId = process.env.GCLOUD_PROJECT || 'vertex-platform-dev';
-    const defaultFromDomain = projectId.includes('vertex-platform-app')
-      ? 'vertex-platform-app.web.app'
-      : 'vertex-platform-dev.firebaseapp.com';
-    const defaultFromEmail = `no-reply@${defaultFromDomain}`;
-    const fromAddress = `${storeName} <${defaultFromEmail}>`;
+    const fromUser = (process.env.SMTP_USER || 'vertex.tech.dev@gmail.com').trim();
+    const fromAddress = `"${storeName}" <${fromUser}>`;
+
+    const sendResults: { template: string; success: boolean; error?: unknown }[] = [];
 
     if (templates.adminNotification) {
       const adminConfig = templates.adminNotification;
@@ -160,18 +162,33 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
         manageButtonUrl,
         whatsappUrl,
       });
+      const subject = `[PRUEBA ADMIN] ${adminConfig.subject.replace(/{orderId}/g, testData.orderId)}`;
 
-      mailCreationPromises.push(
-        db.collection(COLLECTIONS.MAIL).add({
-          storeId: storeTenantId || undefined,
-          to: [recipientEmail],
-          from: fromAddress,
-          message: {
-            subject: `[PRUEBA ADMIN] ${adminConfig.subject.replace(/{orderId}/g, testData.orderId)}`,
-            html: adminHtml,
-          },
-        }),
-      );
+      const delivery = await sendEmail({
+        to: recipientEmail,
+        from: fromAddress,
+        subject,
+        html: adminHtml,
+      });
+
+      sendResults.push({
+        template: 'adminNotification',
+        success: delivery.success,
+        error: delivery.error,
+      });
+
+      await db.collection(COLLECTIONS.MAIL).add({
+        storeId: storeTenantId || undefined,
+        to: [recipientEmail],
+        from: fromAddress,
+        message: {
+          subject,
+          html: adminHtml,
+        },
+        status: delivery.success ? 'sent' : delivery.skipped ? 'skipped' : 'failed',
+        sentAt: new Date(),
+        error: delivery.error ? String(delivery.error) : null,
+      });
     }
 
     if (templates.customerConfirmation) {
@@ -181,30 +198,62 @@ export const sendAdvancedTestEmailApi = onRequest({ cors: true }, async (req, re
           ? `https://wa.me/${emailConfig.storeWhatsappNumber}`
           : null;
       const customerHtml = buildTestEmailHtml(customerConfig.template, testData, { whatsappUrl });
+      const subject = `[PRUEBA CLIENTE] ${customerConfig.subject.replace(/{orderId}/g, testData.orderId)}`;
 
-      mailCreationPromises.push(
-        db.collection(COLLECTIONS.MAIL).add({
-          storeId: storeTenantId || undefined,
-          to: [recipientEmail],
-          from: fromAddress,
-          message: {
-            subject: `[PRUEBA CLIENTE] ${customerConfig.subject.replace(/{orderId}/g, testData.orderId)}`,
-            html: customerHtml,
-          },
-        }),
-      );
+      const delivery = await sendEmail({
+        to: recipientEmail,
+        from: fromAddress,
+        subject,
+        html: customerHtml,
+      });
+
+      sendResults.push({
+        template: 'customerConfirmation',
+        success: delivery.success,
+        error: delivery.error,
+      });
+
+      await db.collection(COLLECTIONS.MAIL).add({
+        storeId: storeTenantId || undefined,
+        to: [recipientEmail],
+        from: fromAddress,
+        message: {
+          subject,
+          html: customerHtml,
+        },
+        status: delivery.success ? 'sent' : delivery.skipped ? 'skipped' : 'failed',
+        sentAt: new Date(),
+        error: delivery.error ? String(delivery.error) : null,
+      });
     }
 
-    await Promise.all(mailCreationPromises);
-    logger.info(`Emails de prueba para ${recipientEmail} encolados correctamente.`);
+    const allSuccessful = sendResults.length > 0 && sendResults.every((r) => r.success);
+
+    if (!allSuccessful) {
+      const anySkipped = sendResults.some((r) => !r.success && !r.error);
+      const errorMessage = anySkipped
+        ? 'No se pudieron enviar los emails de prueba: credenciales SMTP no disponibles en este shard.'
+        : 'Hubo un error al despachar los emails de prueba a través de SMTP.';
+
+      logger.warn('[sendAdvancedTestEmailApi] Envío parcial o fallido', { sendResults });
+      res.status(500).json({
+        error: {
+          status: 'INTERNAL',
+          message: errorMessage,
+        },
+      });
+      return;
+    }
+
+    logger.info(`Emails de prueba enviados exitosamente a ${recipientEmail}.`);
     res.status(200).json({
       result: {
         success: true,
-        message: `Emails de prueba encolados para ${recipientEmail}.`,
+        message: `Email de prueba enviado exitosamente a ${recipientEmail}.`,
       },
     });
   } catch (error) {
-    logger.error('Error al procesar y encolar emails de prueba:', error);
+    logger.error('Error al procesar y enviar emails de prueba:', error);
     res.status(500).json({
       error: {
         status: 'INTERNAL',

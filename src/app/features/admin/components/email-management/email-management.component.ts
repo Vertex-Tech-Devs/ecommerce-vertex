@@ -41,6 +41,9 @@ export class EmailManagementComponent implements OnInit {
   isSubmitting = false;
   isLoading = true;
   isSendingAdvancedTest = false;
+  testSendSuccess = false;
+  testSendSuccessMessage = '';
+  testSendError = '';
   isTestModalVisible = false;
   mobileActiveSection: number = 1;
 
@@ -176,6 +179,9 @@ export class EmailManagementComponent implements OnInit {
   openTestModal(): void {
     const currentAdminEmail = this.emailForm.get('storeOwnerEmail')?.value;
     this.testEmailModalForm.get('recipientEmail')?.setValue(currentAdminEmail);
+    this.testSendSuccess = false;
+    this.testSendSuccessMessage = '';
+    this.testSendError = '';
     this.isTestModalVisible = true;
     this.cdr.detectChanges();
     setTimeout(() => {
@@ -185,6 +191,8 @@ export class EmailManagementComponent implements OnInit {
 
   closeTestModal(): void {
     this.isTestModalVisible = false;
+    this.testSendSuccess = false;
+    this.testSendError = '';
   }
 
   insertPlaceholder(placeholder: string, editorComponent: QuillEditorComponent): void {
@@ -246,7 +254,9 @@ export class EmailManagementComponent implements OnInit {
     }
 
     this.isSendingAdvancedTest = true;
-    this.sweetAlertService.loading('Enviando prueba...');
+    this.testSendSuccess = false;
+    this.testSendSuccessMessage = '';
+    this.testSendError = '';
 
     testData.totalAmount = String(testData.totalAmount);
 
@@ -264,17 +274,29 @@ export class EmailManagementComponent implements OnInit {
     }
 
     try {
-      this.closeTestModal();
       await this.emailSettingsService.sendAdvancedTestEmail(payload);
+      this.testSendSuccess = true;
+      this.testSendSuccessMessage = `✓ ¡Email de prueba enviado exitosamente a ${recipientEmail}! Revisá tu bandeja de entrada o spam.`;
       this.sweetAlertService.success(
-        'Prueba Enviada',
-        `El email de prueba ha sido encolado para ser enviado a ${recipientEmail}. Revisa tu bandeja de entrada o spam.`,
+        '¡Email Enviado!',
+        `El correo de prueba ha sido entregado exitosamente a ${recipientEmail}.`,
       );
-    } catch (error) {
+      this.cdr.detectChanges();
+      setTimeout(() => {
+        if (this.testSendSuccess && this.isTestModalVisible) {
+          this.closeTestModal();
+        }
+      }, 3000);
+    } catch (error: unknown) {
       console.error('Error sending advanced test email:', error);
-      this.sweetAlertService.error('Error', 'No se pudo enviar el email de prueba.');
+      const msg = error instanceof Error ? error.message : String(error);
+      this.testSendError =
+        msg || 'No se pudo enviar el email de prueba. Verificá las credenciales del servidor.';
+      this.sweetAlertService.error('Error de Envío', this.testSendError);
+      this.cdr.detectChanges();
     } finally {
       this.isSendingAdvancedTest = false;
+      this.cdr.detectChanges();
     }
   }
 
