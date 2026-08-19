@@ -11,10 +11,12 @@ import { AuthService } from '@core/services/auth.service';
 import type { StoreConfig } from '@core/models/store-config.model';
 import { resolveTenantId } from '@core/utils/tenant';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-store-config',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './store-config.component.html',
   styleUrl: './store-config.component.scss',
 })

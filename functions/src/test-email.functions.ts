@@ -3,6 +3,7 @@ import * as logger from 'firebase-functions/logger';
 import { getFirestore } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { COLLECTIONS, DOCS, singletonDoc } from './core/config';
+import { getSuperAdminEmails } from './role.functions';
 const db = getFirestore();
 // Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
 function envSiteUrl(): string {
@@ -60,13 +61,26 @@ function buildTestEmailHtml(
 }
 
 export const sendAdvancedTestEmail = onCall({ cors: true, invoker: 'public' }, async (request) => {
-  if (!request.auth || !request.auth.token.admin) {
-    logger.error("Unauthorized attempt to call 'sendAdvancedTestEmail'", {
-      uid: request.auth?.uid,
-    });
+  if (!request.auth) {
+    logger.error("Unauthenticated attempt to call 'sendAdvancedTestEmail'");
     throw new HttpsError(
       'unauthenticated',
-      'This function can only be called by an authenticated admin.',
+      'Debe estar autenticado para enviar emails de prueba.',
+    );
+  }
+
+  const email = String(request.auth.token['email'] || '').trim().toLowerCase();
+  const isAdminClaim = Boolean(request.auth.token['admin']);
+  const isSuperAdmin = getSuperAdminEmails().includes(email);
+
+  if (!isAdminClaim && !isSuperAdmin) {
+    logger.error("Unauthorized attempt to call 'sendAdvancedTestEmail'", {
+      uid: request.auth.uid,
+      email,
+    });
+    throw new HttpsError(
+      'permission-denied',
+      'Esta función solo puede ser ejecutada por administradores.',
     );
   }
 

@@ -17,7 +17,7 @@ const DEFAULT_DEV_EMAILS = [
   'vertex.tech.dev@gmail.com',
 ];
 
-function getSuperAdminEmails(): string[] {
+export function getSuperAdminEmails(): string[] {
   const envSuperAdmins = process.env.PROTECTED_SUPER_ADMINS;
   if (envSuperAdmins) {
     return envSuperAdmins
