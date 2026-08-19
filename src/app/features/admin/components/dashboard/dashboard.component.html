@@ -117,6 +117,15 @@
                       <a routerLink="/admin/orders" class="btn-view-more">Ver todos</a>
                     </div>
                   }
+                } @else {
+                  <ul class="list-group list-group-flush list-group--skeleton" aria-busy="true">
+                    @for (_ of [1, 2, 3]; track $index) {
+                      <li class="list-group-item bg-transparent d-flex align-items-center gap-2 py-2">
+                        <div class="skeleton-box" style="width: 140px; height: 16px;"></div>
+                        <div class="skeleton-box ms-auto" style="width: 65px; height: 22px; border-radius: 999px;"></div>
+                      </li>
+                    }
+                  </ul>
                 }
               </div>
             </div>
@@ -152,6 +161,15 @@
                       <a routerLink="/admin/products" class="btn-view-more">Ver inventario</a>
                     </div>
                   }
+                } @else {
+                  <ul class="list-group list-group-flush list-group--skeleton" aria-busy="true">
+                    @for (_ of [1, 2, 3]; track $index) {
+                      <li class="list-group-item bg-transparent d-flex align-items-center gap-2 py-2">
+                        <div class="skeleton-box" style="width: 130px; height: 16px;"></div>
+                        <div class="skeleton-box ms-auto" style="width: 60px; height: 22px; border-radius: 999px;"></div>
+                      </li>
+                    }
+                  </ul>
                 }
               </div>
             </div>
@@ -159,22 +177,37 @@
         </div>
       </section>
 
-      <section aria-label="Actividad reciente">
-        <h2 class="dashboard__section-title">Actividad Reciente</h2>
-
-        <div class="activity-picker d-md-none">
-          <button [class.active-orders]="activeTab() === 'orders'" (click)="setTab('orders')">
+      <section>
+        <div
+          class="d-flex justify-content-around mb-3 d-md-none glass-panel p-1 rounded-pill nav-tabs-mobile"
+        >
+          <button
+            class="btn btn-sm rounded-pill flex-fill"
+            [class.btn-primary]="activeTab() === 'orders'"
+            [class.btn-ghost]="activeTab() !== 'orders'"
+            (click)="activeTab.set('orders')"
+          >
             Pedidos
           </button>
-          <button [class.active-clients]="activeTab() === 'clients'" (click)="setTab('clients')">
+          <button
+            class="btn btn-sm rounded-pill flex-fill"
+            [class.btn-primary]="activeTab() === 'clients'"
+            [class.btn-ghost]="activeTab() !== 'clients'"
+            (click)="activeTab.set('clients')"
+          >
             Clientes
           </button>
-          <button [class.active-products]="activeTab() === 'products'" (click)="setTab('products')">
+          <button
+            class="btn btn-sm rounded-pill flex-fill"
+            [class.btn-primary]="activeTab() === 'products'"
+            [class.btn-ghost]="activeTab() !== 'products'"
+            (click)="activeTab.set('products')"
+          >
             Productos
           </button>
         </div>
 
-        <div class="row g-4 activity-container">
+        <div class="row g-4">
           <div
             class="col-12 col-md-6 col-xl-4"
             [class.d-none]="isMobile() && activeTab() !== 'orders'"
@@ -206,6 +239,15 @@
                   <div class="card-footer-action">
                     <a routerLink="/admin/orders" class="btn-view-more">Ver historial</a>
                   </div>
+                } @else {
+                  <ul class="list-group list-group-flush list-group--skeleton" aria-busy="true">
+                    @for (_ of [1, 2, 3]; track $index) {
+                      <li class="list-group-item bg-transparent d-flex align-items-center gap-2 py-2">
+                        <div class="skeleton-box" style="width: 150px; height: 16px;"></div>
+                        <div class="skeleton-box ms-auto" style="width: 32px; height: 32px; border-radius: 50%;"></div>
+                      </li>
+                    }
+                  </ul>
                 }
               </div>
             </div>
@@ -239,6 +281,15 @@
                   <div class="card-footer-action">
                     <a routerLink="/admin/customers" class="btn-view-more">Ver base</a>
                   </div>
+                } @else {
+                  <ul class="list-group list-group-flush list-group--skeleton" aria-busy="true">
+                    @for (_ of [1, 2, 3]; track $index) {
+                      <li class="list-group-item bg-transparent d-flex align-items-center gap-2 py-2">
+                        <div class="skeleton-box" style="width: 140px; height: 16px;"></div>
+                        <div class="skeleton-box ms-auto" style="width: 32px; height: 32px; border-radius: 50%;"></div>
+                      </li>
+                    }
+                  </ul>
                 }
               </div>
             </div>
@@ -274,6 +325,15 @@
                   <div class="card-footer-action">
                     <a routerLink="/admin/products" class="btn-view-more">Ver catálogo</a>
                   </div>
+                } @else {
+                  <ul class="list-group list-group-flush list-group--skeleton" aria-busy="true">
+                    @for (_ of [1, 2, 3]; track $index) {
+                      <li class="list-group-item bg-transparent d-flex align-items-center gap-2 py-2">
+                        <div class="skeleton-box" style="width: 140px; height: 16px;"></div>
+                        <div class="skeleton-box ms-auto" style="width: 32px; height: 32px; border-radius: 50%;"></div>
+                      </li>
+                    }
+                  </ul>
                 }
               </div>
             </div>

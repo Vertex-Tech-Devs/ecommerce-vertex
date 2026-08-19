@@ -17,9 +17,6 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      returnFocus: false,
-      heightAuto: false,
-      scrollbarPadding: false,
     });
   }
 
@@ -34,9 +31,6 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      returnFocus: false,
-      heightAuto: false,
-      scrollbarPadding: false,
     });
   }
 
@@ -51,9 +45,6 @@ export class SweetAlertService {
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
-      returnFocus: false,
-      heightAuto: false,
-      scrollbarPadding: false,
     });
   }
 

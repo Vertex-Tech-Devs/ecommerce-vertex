@@ -16,6 +16,41 @@
 
     <div class="glass-card card-form mb-0 mb-md-4">
       <div class="card-body p-3 p-md-5">
+        @if (isLoadingProduct()) {
+          <div class="product-create-skeleton" aria-busy="true" aria-label="Cargando datos del producto">
+            <div class="row g-3 g-md-4 mb-4">
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+            </div>
+            <div class="row g-3 g-md-4 mb-4">
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+              <div class="col-md-6">
+                <div class="skeleton-box skeleton-box--label mb-2"></div>
+                <div class="skeleton-box skeleton-box--input"></div>
+              </div>
+            </div>
+            <div class="mb-4">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--textarea"></div>
+            </div>
+            <div class="mb-4">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="d-flex gap-3">
+                <div class="skeleton-box skeleton-box--thumb"></div>
+                <div class="skeleton-box skeleton-box--thumb"></div>
+              </div>
+            </div>
+          </div>
+        } @else {
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()" novalidate>
           <div class="row g-3 g-md-4 mb-3 mb-md-4">
             <div class="col-md-6">
@@ -345,42 +380,28 @@
                 <div class="variant-attributes-container" formGroupName="attributes">
                   @if (attributes$ | async; as attributes) {
                     @for (attr of attributes; track attr.id) {
-                      @if (attr.id && variantAttributes.value.includes(attr.id)) {
+                      @if (
+                        attr.id &&
+                        variantAttributes.value.includes(attr.id) &&
+                        variantGroup.get('attributes.' + attr.id)
+                      ) {
                         <div class="variant-attribute-item">
                           <label class="form-label">{{ attr.name }}</label>
-                          @if (attr.id === getFirstActiveAttributeId(attributes)) {
-                            <select
-                              #variantSelect
-                              class="form-select glass-input hardware-accelerated"
-                              [formControlName]="attr.id"
-                              [ngClass]="{
-                                'is-invalid':
-                                  variantGroup.get('attributes.' + attr.id)?.invalid &&
-                                  variantGroup.get('attributes.' + attr.id)?.touched,
-                              }"
-                            >
-                              <option [ngValue]="null" disabled>Seleccionar...</option>
-                              @for (val of attr.values; track val) {
-                                <option [value]="val">{{ val }}</option>
-                              }
-                            </select>
-                          } @else {
-                            <select
-                              #variantSelect
-                              class="form-select glass-input hardware-accelerated"
-                              [formControlName]="attr.id"
-                              [ngClass]="{
-                                'is-invalid':
-                                  variantGroup.get('attributes.' + attr.id)?.invalid &&
-                                  variantGroup.get('attributes.' + attr.id)?.touched,
-                              }"
-                            >
-                              <option [ngValue]="null" disabled>Seleccionar...</option>
-                              @for (val of attr.values; track val) {
-                                <option [value]="val">{{ val }}</option>
-                              }
-                            </select>
-                          }
+                          <select
+                            #variantSelect
+                            class="form-select glass-input hardware-accelerated"
+                            [formControlName]="attr.id"
+                            [ngClass]="{
+                              'is-invalid':
+                                variantGroup.get('attributes.' + attr.id)?.invalid &&
+                                variantGroup.get('attributes.' + attr.id)?.touched,
+                            }"
+                          >
+                            <option [ngValue]="null" disabled>Seleccionar...</option>
+                            @for (val of attr.values; track val) {
+                              <option [value]="val">{{ val }}</option>
+                            }
+                          </select>
                         </div>
                       }
                     }
@@ -475,6 +496,7 @@
             </button>
           </div>
         </form>
+        }
       </div>
     </div>
   </div>
