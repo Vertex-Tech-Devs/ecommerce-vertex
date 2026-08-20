@@ -98,7 +98,6 @@ export class CheckoutComponent implements OnInit {
       const paymentResult = await this.paymentService.initiatePayment(cart.items, orderId, payer);
 
       if (paymentResult.success && paymentResult.init_point) {
-        this.cartService.clearCart();
         window.location.href = paymentResult.init_point;
       } else {
         throw new Error(paymentResult.error ?? 'No se pudo obtener la URL de pago.');

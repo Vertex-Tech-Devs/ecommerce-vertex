@@ -1,7 +1,9 @@
+import type { OnInit } from '@angular/core';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { CartItem } from '@core/models/cart.model';
 
 @Component({
@@ -12,11 +14,34 @@ import type { CartItem } from '@core/models/cart.model';
   styleUrl: './cart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CartComponent {
+export class CartComponent implements OnInit {
   cartService = inject(CartService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private sweetAlertService = inject(SweetAlertService);
 
   cart = this.cartService.cart;
+
+  ngOnInit(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const hasPaymentRef = params.has('preference_id') || params.has('external_reference');
+    const status = params.get('status') ?? params.get('collection_status');
+
+    if (hasPaymentRef) {
+      if (status === 'null' || !status || status === 'rejected' || status === 'cancelled') {
+        this.sweetAlertService.warning(
+          'Pago no completado',
+          'El proceso de pago fue cancelado o no se completó. Tus productos continúan guardados en el carrito.',
+        );
+      }
+      // Clean query parameters from URL for clean navigation
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {},
+        replaceUrl: true,
+      });
+    }
+  }
 
   goToCheckout(): void {
     void this.router.navigate(['/shop/checkout']);

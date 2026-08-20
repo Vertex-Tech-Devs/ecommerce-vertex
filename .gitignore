@@ -113,6 +113,16 @@ emulator-data/
 .cache/
 .local/
 settings.json
+firestore-debug.log
+ui-debug.log
+scratch/
+**/scratch/
+
+# Agent/IDE configurations & logs
+.antigravitycli/
+.gemini/
+.claude/
+.cursor/
 
 # Operational tracking files
 task.md

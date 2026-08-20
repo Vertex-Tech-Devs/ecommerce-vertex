@@ -226,12 +226,22 @@ Cada comando hace automáticamente: bump de `package.json` + commit + tag + push
 5. La plataforma abre un **PR automático** para actualizar `CURRENT_TEMPLATE_VERSION`
 6. Un admin de plataforma revisa y mergea el PR (paso manual intencional)
 
-### Versión actual: `v0.2.0` (desarrollo)
+### Versión actual: `v0.3.0` (desarrollo)
 
 La versión del template vive en `CURRENT_TEMPLATE_VERSION` (platform) y `version` en los
 `package.json` de ambos repos. El panel del platform la muestra por tienda
 (`appVersion`, `targetChannel`, `lastDeployedAt` en `stores/{storeId}`) y permite
 seleccionar la versión a desplegar individualmente.
+
+---
+
+## 💳 Arquitectura del Flujo de Checkout y Gestión de Inventario
+
+1. **Preservación del Carrito:** Los artículos en `localStorage` se mantienen al redirigir a Mercado Pago y solo se eliminan al cargar `/shop/order-confirmation/:id`. Si el comprador cancela o vuelve atrás, el carrito sigue intacto en `/shop/cart`.
+2. **Reserva Atómica de Stock:** `createPaymentPreference` decrementa el inventario de la variante inmediatamente (`FieldValue.increment(-quantity)`) para evitar sobreventas concurrentes.
+3. **Reconciliación por Webhooks:** `mercadoPagoWebhookHandler` valida la firma criptográfica HMAC `x-signature`. Ante pagos aprobados finaliza la orden; ante pagos rechazados/cancelados invoca `revertStockOnFailure` para restituir el stock al catálogo.
+4. **Barrido de Órdenes Expiradas:** La función programada `cleanupExpiredOrders` (cada 60 min) detecta compras abandonadas sin pago aprobado y devuelve el stock automáticamente.
+5. **Logs de Terceros en Consola:** Los avisos de consola emitidos por `TrackBuilder`, `Armor` o directivas CSP en dominios de Mercado Pago son propios de su infraestructura antifraude y cumplen normativas **PCI-DSS**.
 
 ---
 
