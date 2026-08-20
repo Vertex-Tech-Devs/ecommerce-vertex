@@ -226,7 +226,7 @@ Cada comando hace automáticamente: bump de `package.json` + commit + tag + push
 5. La plataforma abre un **PR automático** para actualizar `CURRENT_TEMPLATE_VERSION`
 6. Un admin de plataforma revisa y mergea el PR (paso manual intencional)
 
-### Versión actual: `v0.3.0` (desarrollo)
+### Versión actual: `v0.4.0` (desarrollo)
 
 La versión del template vive en `CURRENT_TEMPLATE_VERSION` (platform) y `version` en los
 `package.json` de ambos repos. El panel del platform la muestra por tienda

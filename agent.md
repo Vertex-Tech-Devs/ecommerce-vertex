@@ -59,7 +59,7 @@ npm run release:major      # 0.1.0 → 1.0.0
 ## 🔢 Versionado del Template
 
 El storefront es el **template de tienda** versionado semánticamente (Semver).
-Versión actual: `0.3.0`
+Versión actual: `0.4.0`
 
 | Tipo de cambio                     | Comando                 |
 | ---------------------------------- | ----------------------- |
