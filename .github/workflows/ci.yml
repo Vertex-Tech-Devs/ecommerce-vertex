@@ -98,11 +98,14 @@ jobs:
 
       - run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - name: Generate stub environment file for build check
-        run: cp src/environments/environment.example.ts src/environments/environment.prod.ts
-
-      - name: Build production
-        run: npm run build
+      - name: Build storefront
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npm run build:dev-template
+          else
+            cp src/environments/environment.example.ts src/environments/environment.prod.ts
+            npm run build
+          fi
 
       - name: Check bundle size
         run: |
