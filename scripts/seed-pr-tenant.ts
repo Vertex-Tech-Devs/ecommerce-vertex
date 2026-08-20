@@ -44,6 +44,38 @@ async function main(): Promise<void> {
     }
   }
 
+interface AttributeItem {
+  id: string;
+  name: string;
+  values: string[];
+}
+
+function generateVariantCombinations(
+  attributes: AttributeItem[],
+  variantAttrIds: string[],
+): Record<string, string>[] {
+  const selectedAttrs = attributes.filter(
+    (a): a is AttributeItem & { id: string } => Boolean(a.id) && variantAttrIds.includes(a.id),
+  );
+  if (selectedAttrs.length === 0) {
+    return [];
+  }
+
+  let result: Record<string, string>[] = [{}];
+
+  selectedAttrs.forEach((attr) => {
+    const newResult: Record<string, string>[] = [];
+    result.forEach((existing) => {
+      attr.values.forEach((value) => {
+        newResult.push({ ...existing, [attr.id]: value });
+      });
+    });
+    result = newResult;
+  });
+
+  return result;
+}
+
   // 1. Seed Attributes
   const attributesList = [
     { name: 'Talle (ropa)', values: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
@@ -56,11 +88,23 @@ async function main(): Promise<void> {
     { name: 'Material', values: ['Algodón', 'Poliéster', 'Lino', 'Cuero', 'Denim', 'Lana'] },
   ];
 
+  const allAttrs: AttributeItem[] = [];
+  const attrNameToId: Record<string, string> = {};
+
   for (const attr of attributesList) {
-    await db.collection('attributes').add({
+    const ref = await db.collection('attributes').add({
       ...attr,
       storeId: tenantId,
     });
+    const attrItem = { id: ref.id, name: attr.name, values: attr.values };
+    allAttrs.push(attrItem);
+    attrNameToId[attr.name] = ref.id;
+    if (attr.name.includes('(')) {
+      const slug = attr.name.split('(')[0].trim().toLowerCase();
+      attrNameToId[slug] = ref.id;
+    } else {
+      attrNameToId[attr.name.trim().toLowerCase()] = ref.id;
+    }
   }
 
   // 2. Seed Categories
@@ -91,13 +135,18 @@ async function main(): Promise<void> {
     const catInfo = catMap[catGroup.slug];
     if (!catInfo) continue;
 
-    for (const item of catGroup.items) {
+    const itemsToSeed = catGroup.items.slice(0, 3);
+    for (const item of itemsToSeed) {
       const mainImg = u(item.imgs[0] || '1521572163474-6864f9cf17ab', 800, 800);
       const extraImgs = item.imgs.slice(1).map((id) => u(id, 800, 800));
       const fp =
         item.discount > 0 ? Math.round(item.price * (1 - item.discount / 100)) : item.price;
 
-      await db.collection('products').add({
+      const variantAttrIds = catGroup.variants
+        .map((v) => attrNameToId[v.toLowerCase()] || attrNameToId[v])
+        .filter(Boolean);
+
+      const productRef = await db.collection('products').add({
         name: item.name,
         description: item.desc,
         price: item.price,
@@ -111,15 +160,44 @@ async function main(): Promise<void> {
         categoryId: catInfo.id,
         categoryName: catInfo.name,
         stock: 50,
-        totalStock: 50,
-        inStockAttributes: { talle: ['S', 'M', 'L'], color: ['Negro', 'Blanco'] },
-        variantAttributes: catGroup.variants,
+        totalStock: 0,
+        inStockAttributes: {},
+        variantAttributes: variantAttrIds,
         featured: item.featured,
         active: true,
         isActive: true,
         storeId: tenantId,
         createdAt: new Date(),
       });
+
+      if (variantAttrIds.length > 0) {
+        const combinations = generateVariantCombinations(allAttrs, variantAttrIds);
+        let totalStock = 0;
+        const inStockAttributes: Record<string, string[]> = {};
+
+        for (const combo of combinations) {
+          const stock = Math.floor(Math.random() * 80) + 5;
+          totalStock += stock;
+
+          Object.entries(combo).forEach(([attrId, value]) => {
+            if (!inStockAttributes[attrId]) {
+              inStockAttributes[attrId] = [];
+            }
+            if (!inStockAttributes[attrId].includes(value)) {
+              inStockAttributes[attrId].push(value);
+            }
+          });
+
+          await productRef.collection('variants').add({
+            attributes: combo,
+            stock,
+            productId: productRef.id,
+            storeId: tenantId,
+          });
+        }
+
+        await productRef.update({ totalStock, inStockAttributes });
+      }
     }
   }
 
