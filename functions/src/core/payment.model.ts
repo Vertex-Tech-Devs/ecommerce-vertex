@@ -18,6 +18,7 @@ export const PaymentRequestSchema = z.object({
   external_reference: z.string().min(1, 'La referencia externa (orderId) es requerida.'),
   // Proyecto del shard donde viven los datos de la tienda (orden/catálogo).
   projectId: z.string().optional(),
+  siteUrl: z.string().optional(),
   payer: PayerSchema.optional(),
   items: z
     .array(
