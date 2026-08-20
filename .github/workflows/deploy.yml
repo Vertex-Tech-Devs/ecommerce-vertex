@@ -491,4 +491,4 @@ jobs:
           curl -s -X POST \
             "https://us-central1-${{ github.event.client_payload.platform_project_id }}.cloudfunctions.net/$ENDPOINT" \
             -H "Content-Type: application/json" \
-            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"idToken\": \"$ID_TOKEN\", \"commitSha\": \"$COMMIT_SHA\", \"commitMessage\": \"$COMMIT_MSG\", \"ref\": \"$REF_NAME\", \"version\": \"$VERSION\"}}"
+            -d "{\"data\": {\"storeId\": \"${{ github.event.client_payload.store_id }}\", \"success\": ${{ job.status == 'success' }}, \"idToken\": \"$ID_TOKEN\", \"deployToken\": \"${{ github.event.client_payload.deploy_token }}\", \"commitSha\": \"$COMMIT_SHA\", \"commitMessage\": \"$COMMIT_MSG\", \"ref\": \"$REF_NAME\", \"version\": \"$VERSION\"}}"
