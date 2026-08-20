@@ -85,4 +85,3 @@ export class SweetAlertService {
     Swal.close();
   }
 }
-
