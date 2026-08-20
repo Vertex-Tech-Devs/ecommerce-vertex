@@ -6,6 +6,7 @@ import type { Observable } from 'rxjs';
 import { switchMap, of, combineLatest, map } from 'rxjs';
 import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
+import { CartService } from '@core/services/cart.service';
 
 interface ConfirmationData {
   order: Order | undefined;
@@ -22,10 +23,13 @@ interface ConfirmationData {
 export class OrderConfirmationComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private orderService = inject(OrderService);
+  private cartService = inject(CartService);
 
   data$!: Observable<ConfirmationData>;
 
   ngOnInit(): void {
+    // Clear cart upon arriving at order confirmation page
+    this.cartService.clearCart();
     const order$ = this.route.paramMap.pipe(
       switchMap((params) => {
         const orderId = params.get('id');
