@@ -174,3 +174,45 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 // .btn-close — use default Bootstrap styling for light modals
+
+// ============================================
+// SWEETALERT2 TOAST NOTIFICATIONS (Cart / Shop)
+// ============================================
+.swal2-container.swal2-top-end {
+  top: calc(var(--header-height, 70px) + 12px) !important;
+  right: 16px !important;
+  z-index: 995 !important;
+}
+
+.vtx-toast-popup {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+  border-radius: var(--radius-md, 8px) !important;
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 0.75rem 1rem !important;
+
+  .swal2-title {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+  }
+
+  .swal2-html-container {
+    color: #475569 !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+.vtx-toast-close-btn {
+  color: #94a3b8 !important;
+  font-size: 1.25rem !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: color 0.15s ease !important;
+
+  &:hover {
+    color: #0f172a !important;
+  }
+}
+

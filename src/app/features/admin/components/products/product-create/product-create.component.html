@@ -338,21 +338,13 @@
               </h4>
               <div class="d-flex gap-2 justify-content-end">
                 <button
-                  (click)="generateVariantCombinations()"
-                  type="button"
-                  class="btn-glass-secondary btn-sm"
-                  [disabled]="variantAttributes.length === 0"
-                >
-                  <i class="bi bi-stars me-1" aria-hidden="true"></i> Generar
-                </button>
-                <button
                   id="btn-add-variant-manual"
                   (click)="addVariant()"
                   type="button"
                   class="btn-glass-success btn-sm"
                   [disabled]="variantAttributes.length === 0"
                 >
-                  <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> Manual
+                  <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> + Agregar Variante
                 </button>
               </div>
             </div>

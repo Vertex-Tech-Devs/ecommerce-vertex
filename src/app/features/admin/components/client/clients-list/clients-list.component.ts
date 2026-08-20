@@ -18,10 +18,13 @@ import {
   of,
 } from 'rxjs';
 
+import { AdminSearchBarComponent } from '@shared/components/admin-search-bar/admin-search-bar.component';
+import { AdminPaginationComponent } from '@shared/components/admin-pagination/admin-pagination.component';
+
 @Component({
   selector: 'app-clients-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, AdminSearchBarComponent, AdminPaginationComponent],
   templateUrl: './clients-list.component.html',
   styleUrl: './clients-list.component.scss',
 })
@@ -85,7 +88,7 @@ export class ClientsListComponent implements OnInit {
     this.currentPageSubject.next(1);
   }
 
-  onItemsPerPageChange(newValue: string): void {
+  onItemsPerPageChange(newValue: number | string): void {
     this.itemsPerPageSubject.next(Number(newValue));
     this.currentPageSubject.next(1);
   }

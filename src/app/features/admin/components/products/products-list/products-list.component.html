@@ -5,16 +5,11 @@
 
       <div class="row g-3 align-items-center">
         <div class="col-lg-8 col-md-12">
-          <div class="search-input-wrapper">
-            <i class="bi bi-search search-icon"></i>
-            <input
-              type="text"
-              class="form-control glass-input"
-              placeholder="Buscar por nombre o descripción..."
-              [ngModel]="searchTermSubject.value"
-              (ngModelChange)="onSearchChange($event)"
-            />
-          </div>
+          <app-admin-search-bar
+            [placeholder]="'Buscar por nombre o descripción...'"
+            [initialValue]="searchTermSubject.value"
+            (searchChange)="onSearchChange($event)"
+          ></app-admin-search-bar>
         </div>
         <div class="col-lg-4 col-md-12">
           <select
@@ -122,39 +117,16 @@
       </div>
     }
 
-    @if ((products$ | async)?.length && totalProducts > 0 && totalPages > 1) {
-      <div class="d-flex justify-content-center mt-5">
-        <nav aria-label="Paginación de productos">
-          <ul class="pagination glass-pagination">
-            <li class="page-item" [class.disabled]="currentPageSubject.value === 1">
-              <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
-            </li>
-            <li class="page-item" [class.disabled]="currentPageSubject.value === 1">
-              <a
-                class="page-link"
-                (click)="goToPage(currentPageSubject.value - 1)"
-                aria-label="Anterior"
-                >&lsaquo;</a
-              >
-            </li>
-            @for (page of [].constructor(totalPages); track i; let i = $index) {
-              <li class="page-item" [class.active]="currentPageSubject.value === i + 1">
-                <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
-              </li>
-            }
-            <li class="page-item" [class.disabled]="currentPageSubject.value === totalPages">
-              <a
-                class="page-link"
-                (click)="goToPage(currentPageSubject.value + 1)"
-                aria-label="Siguiente"
-                >&rsaquo;</a
-              >
-            </li>
-            <li class="page-item" [class.disabled]="currentPageSubject.value === totalPages">
-              <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última">&raquo;</a>
-            </li>
-          </ul>
-        </nav>
+    @if ((products$ | async)?.length && totalProducts > 0) {
+      <div class="mt-4">
+        <app-admin-pagination
+          [totalItems]="totalProducts"
+          [currentPage]="currentPageSubject.value"
+          [pageSize]="itemsPerPageSubject.value"
+          [pageSizeOptions]="[12, 24, 48]"
+          (pageChange)="goToPage($event)"
+          (pageSizeChange)="onPageSizeChange($event)"
+        ></app-admin-pagination>
       </div>
     } @else {
       <div class="products__grid" aria-busy="true" aria-label="Cargando productos">

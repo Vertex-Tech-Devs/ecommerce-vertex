@@ -147,7 +147,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     const orderRaw = afterSnap.data() as Record<string, unknown>;
     const status = orderRaw['status'] as string | undefined;
 
-    if (status !== 'processing' && status !== 'approved') {
+    if (status !== 'processing' && status !== 'approved' && status !== 'paid') {
       return;
     }
 

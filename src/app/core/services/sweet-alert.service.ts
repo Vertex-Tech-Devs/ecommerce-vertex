@@ -12,11 +12,16 @@ export class SweetAlertService {
       title,
       text: message,
       confirmButtonText: 'Ok',
-      timer: 3000,
+      timer: 2500,
       timerProgressBar: true,
       toast: true,
       position: 'top-end',
       showConfirmButton: false,
+      showCloseButton: true,
+      customClass: {
+        popup: 'vtx-toast-popup',
+        closeButton: 'vtx-toast-close-btn',
+      },
     });
   }
 

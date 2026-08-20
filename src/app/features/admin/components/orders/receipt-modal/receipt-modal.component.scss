@@ -1,2 +1,89 @@
-/* Receipt modal uses Bootstrap modal-header/modal-body/modal-footer classes.
-   Additional receipt-specific styles are in the component's parent overlay. */
+.receipt-modal-body {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.receipt-paper {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 2.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.store-logo-image {
+  max-height: 48px;
+  max-width: 140px;
+  object-fit: contain;
+}
+
+.store-logo-placeholder {
+  width: 48px;
+  height: 48px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+}
+
+/* ─── Media Print Styles ─── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .d-print-none,
+  .modal-header,
+  .modal-footer,
+  .btn-close,
+  .modal-overlay,
+  .admin-shell,
+  .header,
+  .fab-button {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+
+  #printable-receipt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    z-index: 99999;
+  }
+
+  .receipt-table {
+    border-collapse: collapse;
+    width: 100%;
+
+    th,
+    td {
+      border-color: #e2e8f0 !important;
+      color: #000000 !important;
+    }
+  }
+
+  .badge {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    background: transparent !important;
+  }
+}

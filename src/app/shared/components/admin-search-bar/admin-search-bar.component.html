@@ -1,0 +1,22 @@
+<div class="admin-search-bar input-group">
+  <span class="input-group-text admin-search-bar__icon">
+    <i class="bi bi-search" aria-hidden="true"></i>
+  </span>
+  <input
+    type="text"
+    class="form-control admin-search-bar__input"
+    [formControl]="searchControl"
+    [placeholder]="placeholder()"
+    [attr.aria-label]="ariaLabel()"
+  />
+  @if (searchControl.value) {
+    <button
+      type="button"
+      class="btn admin-search-bar__clear"
+      (click)="clearSearch()"
+      aria-label="Limpiar búsqueda"
+    >
+      <i class="bi bi-x-lg" aria-hidden="true"></i>
+    </button>
+  }
+</div>

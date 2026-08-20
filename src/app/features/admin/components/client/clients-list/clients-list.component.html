@@ -9,25 +9,12 @@
     <div class="glass-card mb-4 mb-md-5">
       <div class="card-body p-3 p-md-4">
         <div class="row g-3 mb-4 align-items-center">
-          <div class="col-12 col-lg-8">
-            <input
-              type="text"
-              class="form-control glass-input"
-              placeholder="Buscar por nombre o email..."
-              [ngModel]="searchTermSubject | async"
-              (ngModelChange)="onSearchChange($event)"
-            />
-          </div>
-          <div class="col-12 col-lg-4">
-            <select
-              class="form-select glass-input"
-              [ngModel]="itemsPerPageSubject | async"
-              (ngModelChange)="onItemsPerPageChange($event)"
-            >
-              @for (option of itemsPerPageOptions; track option) {
-                <option [value]="option">{{ option }} por página</option>
-              }
-            </select>
+          <div class="col-12">
+            <app-admin-search-bar
+              [placeholder]="'Buscar por nombre o email...'"
+              [initialValue]="searchTermSubject.value"
+              (searchChange)="onSearchChange($event)"
+            ></app-admin-search-bar>
           </div>
         </div>
 
@@ -119,38 +106,17 @@
           </table>
         </div>
 
-        @if (totalClients > 0 && totalPages > 1) {
-          @if (currentPageSubject | async; as currentPage) {
-            <div class="d-flex justify-content-center mt-4 pagination-wrapper">
-              <nav aria-label="Paginación de clientes">
-                <ul class="pagination glass-pagination">
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior"
-                      >&lsaquo;</a
-                    >
-                  </li>
-                  @for (page of [].constructor(totalPages); track i; let i = $index) {
-                    <li class="page-item" [class.active]="currentPage === i + 1">
-                      <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
-                    </li>
-                  }
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente"
-                      >&rsaquo;</a
-                    >
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última"
-                      >&raquo;</a
-                    >
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          }
+        @if (totalClients > 0) {
+          <div class="mt-4">
+            <app-admin-pagination
+              [totalItems]="totalClients"
+              [currentPage]="currentPageSubject.value"
+              [pageSize]="itemsPerPageSubject.value"
+              [pageSizeOptions]="itemsPerPageOptions"
+              (pageChange)="goToPage($event)"
+              (pageSizeChange)="onItemsPerPageChange($event)"
+            ></app-admin-pagination>
+          </div>
         }
       </div>
     </div>

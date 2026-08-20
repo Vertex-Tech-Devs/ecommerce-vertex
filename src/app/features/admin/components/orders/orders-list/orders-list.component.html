@@ -5,14 +5,12 @@
         <h2 class="card-title text-center mb-4">Lista de Pedidos</h2>
 
         <div class="row g-3 mb-4 align-items-center">
-          <div class="col-12 col-lg-4">
-            <input
-              type="text"
-              class="form-control glass-input"
-              placeholder="Buscar por ID, Cliente o Estado..."
-              [ngModel]="searchTermSubject | async"
-              (ngModelChange)="onSearchTermChange($event)"
-            />
+          <div class="col-12 col-lg-5">
+            <app-admin-search-bar
+              [placeholder]="'Buscar por ID, Cliente o Estado...'"
+              [initialValue]="searchTermSubject.value"
+              (searchChange)="onSearchTermChange($event)"
+            ></app-admin-search-bar>
           </div>
           <div class="col-12 col-sm-4 col-lg-3">
             <select
@@ -235,38 +233,17 @@
           </table>
         </div>
 
-        @if (totalOrders > 0 && totalPages > 1) {
-          @if (currentPageSubject | async; as currentPage) {
-            <div class="d-flex justify-content-center mt-4 pagination-wrapper">
-              <nav aria-label="Paginación de pedidos">
-                <ul class="pagination glass-pagination">
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="goToPage(1)" aria-label="Primera">&laquo;</a>
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === 1">
-                    <a class="page-link" (click)="goToPage(currentPage - 1)" aria-label="Anterior"
-                      >&lsaquo;</a
-                    >
-                  </li>
-                  @for (page of [].constructor(totalPages); track i; let i = $index) {
-                    <li class="page-item" [class.active]="currentPage === i + 1">
-                      <a class="page-link" (click)="goToPage(i + 1)">{{ i + 1 }}</a>
-                    </li>
-                  }
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="goToPage(currentPage + 1)" aria-label="Siguiente"
-                      >&rsaquo;</a
-                    >
-                  </li>
-                  <li class="page-item" [class.disabled]="currentPage === totalPages">
-                    <a class="page-link" (click)="goToPage(totalPages)" aria-label="Última"
-                      >&raquo;</a
-                    >
-                  </li>
-                </ul>
-              </nav>
-            </div>
-          }
+        @if (totalOrders > 0) {
+          <div class="mt-4">
+            <app-admin-pagination
+              [totalItems]="totalOrders"
+              [currentPage]="currentPageSubject.value"
+              [pageSize]="itemsPerPageSubject.value"
+              [pageSizeOptions]="[5, 10, 20, 50]"
+              (pageChange)="goToPage($event)"
+              (pageSizeChange)="onItemsPerPageChange($event)"
+            ></app-admin-pagination>
+          </div>
         }
       </div>
     </div>

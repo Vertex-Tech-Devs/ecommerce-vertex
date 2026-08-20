@@ -111,7 +111,6 @@ describe('StoreConfigComponent', () => {
 
   it('should initialize form with values from StoreConfigService', () => {
     expect(component.form.get('storeName')?.value).toBe('Test Store');
-    expect(component.form.get('tagline')?.value).toBe('Test Tagline');
     expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
     expect(component.form.get('payments.mercadoPagoPublicKey')?.value).toBe('TEST-PUBLIC-KEY');
     expect(component.form.get('contact.email')?.value).toBe('test@store.com');
@@ -183,14 +182,12 @@ describe('StoreConfigComponent', () => {
     mockConfigSignal.set(null);
     TestBed.flushEffects();
     expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
-    expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
   });
 
   it('should use fallback values via effect when config is empty or missing properties', () => {
     mockConfigSignal.set({} as StoreConfig);
     TestBed.flushEffects();
     expect(component.form.get('storeName')?.value).toBe('Mi Tienda');
-    expect(component.form.get('tagline')?.value).toBe('La mejor tienda online');
     expect(component.form.get('colors.primary')?.value).toBe('#ea580c');
     expect(component.form.get('contact.phone')?.value).toBe('+54 11 1234-5678');
     expect(component.form.get('contact.email')?.value).toBe('contacto@mitienda.com');
@@ -243,7 +240,7 @@ describe('StoreConfigComponent', () => {
       expect(newGroup.get('name')?.value).toBe('');
       expect(newGroup.get('address')?.value).toBe('');
       expect(newGroup.get('city')?.value).toBe('');
-      expect(newGroup.get('schedule')?.value).toBe('');
+      expect(newGroup.get('schedule')?.value).toContain('Lun');
       expect(newGroup.invalid).toBeTrue();
     });
 

@@ -10,6 +10,8 @@ import { collectionData, Firestore } from '@angular/fire/firestore';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
 
+import { switchMap } from 'rxjs/operators';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -21,12 +23,39 @@ export class ClientService {
   private readonly ordersCollectionName = 'orders';
 
   getClients(): Observable<Client[]> {
-    return this.firestoreService.getAll(this.clientsCollectionName);
+    return this.firestoreService.getAll(this.clientsCollectionName).pipe(
+      map((clients) =>
+        [...clients].sort((a, b) => {
+          const dateA = a.lastOrderDate ?? a.firstOrderDate ?? 0;
+          const dateB = b.lastOrderDate ?? b.firstOrderDate ?? 0;
+          const timeA = dateA instanceof Date ? dateA.getTime() : (new Date(dateA).getTime() || 0);
+          const timeB = dateB instanceof Date ? dateB.getTime() : (new Date(dateB).getTime() || 0);
+          return timeB - timeA;
+        }),
+      ),
+    );
   }
 
   getClientByEmail(email: string): Observable<Client | undefined> {
-    // Client docs are keyed {storeId}_{email} to avoid collisions across stores on shared shards.
-    return this.firestoreService.get(this.clientsCollectionName, `${resolveTenantId()}_${email}`);
+    const cleanEmail = email.trim();
+    const compositeId = `${resolveTenantId()}_${cleanEmail}`;
+    return this.firestoreService.get(this.clientsCollectionName, compositeId).pipe(
+      switchMap((client) => {
+        if (client) {
+return of(client);
+}
+        return this.firestoreService.get(this.clientsCollectionName, cleanEmail).pipe(
+          switchMap((directClient) => {
+            if (directClient) {
+return of(directClient);
+}
+            return this.getClients().pipe(
+              map((all) => all.find((c) => c.email.toLowerCase() === cleanEmail.toLowerCase())),
+            );
+          }),
+        );
+      }),
+    );
   }
 
   getOrdersByClientEmail(email: string): Observable<Order[]> {

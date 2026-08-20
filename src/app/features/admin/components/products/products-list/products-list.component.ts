@@ -12,12 +12,23 @@ import { FormsModule } from '@angular/forms';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { CategoryService } from '@core/services/category.service';
 import type { Category } from '@core/models/category.model';
+import { AdminSearchBarComponent } from '@shared/components/admin-search-bar/admin-search-bar.component';
+import { AdminPaginationComponent } from '@shared/components/admin-pagination/admin-pagination.component';
 
 @Component({
   selector: 'app-products-list',
   templateUrl: './products-list.component.html',
   styleUrl: './products-list.component.scss',
-  imports: [CommonModule, RouterModule, CurrencyPipe, FormsModule, TitleCasePipe, TruncatePipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    CurrencyPipe,
+    FormsModule,
+    TitleCasePipe,
+    TruncatePipe,
+    AdminSearchBarComponent,
+    AdminPaginationComponent,
+  ],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -104,6 +115,11 @@ export class ProductsListComponent implements OnInit {
 
   onFilterCategoryChange(newValue: string): void {
     this.filterCategorySubject.next(newValue);
+    this.currentPageSubject.next(1);
+  }
+
+  onPageSizeChange(newSize: number): void {
+    this.itemsPerPageSubject.next(newSize);
     this.currentPageSubject.next(1);
   }
 

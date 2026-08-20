@@ -24,6 +24,8 @@ import {
 } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { AdminSearchBarComponent } from '@shared/components/admin-search-bar/admin-search-bar.component';
+import { AdminPaginationComponent } from '@shared/components/admin-pagination/admin-pagination.component';
 
 @Component({
   selector: 'app-orders-list',
@@ -31,7 +33,16 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
   styleUrl: './orders-list.component.scss',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule, FormsModule, CurrencyPipe, DatePipe, TitleCasePipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    CurrencyPipe,
+    DatePipe,
+    TitleCasePipe,
+    AdminSearchBarComponent,
+    AdminPaginationComponent,
+  ],
 })
 export class OrdersListComponent implements OnInit {
   private _orderService = inject(OrderService);

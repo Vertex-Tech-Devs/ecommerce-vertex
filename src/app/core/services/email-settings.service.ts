@@ -72,9 +72,12 @@ export class EmailSettingsService {
   }
 
   saveEmailSettings(settings: EmailSettings): Promise<void> {
+    const storeId = resolveTenantId();
+    const cleanData = JSON.parse(JSON.stringify(settings));
     return this.setDocData(this.docRef, {
-      ...(settings as unknown as Record<string, unknown>),
-      storeId: resolveTenantId(),
+      ...cleanData,
+      storeId,
+      updatedAt: new Date(),
     });
   }
 

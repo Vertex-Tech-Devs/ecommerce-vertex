@@ -86,7 +86,7 @@ export class AboutUsManagementComponent implements OnInit {
 
   private initFeatureCards(data: AboutUsData | null): void {
     if (data?.featureCards && data.featureCards.length > 0) {
-      data.featureCards.forEach((card) => this.addFeatureCard(card));
+      data.featureCards.slice(0, 3).forEach((card) => this.addFeatureCard(card));
     }
     while (this.featureCards.length < 2) {
       this.addFeatureCard();
