@@ -8,11 +8,7 @@
 
   <div class="header__container">
     <a routerLink="/shop" class="header__brand" aria-label="Ir al inicio">
-      @if (logoUrl()) {
-        <img [src]="logoUrl()" [alt]="storeName() || 'Logo de tienda'" class="header__brand-logo" />
-      } @else {
-        {{ storeName() }}
-      }
+      ESTA ES UNA PRUEBA DE INSTANCIA DE PR
     </a>
 
     <button
