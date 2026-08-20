@@ -1,14 +1,24 @@
-import { Component, inject, signal, DestroyRef, effect } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  DestroyRef,
+  effect,
+  ViewChildren,
+  ElementRef,
+  type QueryList,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import type { FormGroup } from '@angular/forms';
+import type { FormGroup, FormArray } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
-import type { StoreConfig } from '@core/models/store-config.model';
+import type { StoreConfig, StorePickupLocation } from '@core/models/store-config.model';
+import { DEFAULT_DELIVERY_METHOD_CONFIG } from '@core/models/store-config.model';
 import { resolveTenantId } from '@core/utils/tenant';
 
 import { RouterModule } from '@angular/router';
@@ -27,6 +37,9 @@ export class StoreConfigComponent {
   private sweetAlert = inject(SweetAlertService);
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
+
+  @ViewChildren('locationNameInput', { read: ElementRef })
+  locationNameInputs!: QueryList<ElementRef>;
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   readonly isLoading = this.storeConfigService.isLoading;
@@ -66,12 +79,70 @@ export class StoreConfigComponent {
     notificationEmail: [''],
     emailSenderName: [''],
     emailSignature: [''],
+    deliveryMethods: this.fb.group({
+      enableHomeDelivery: [true],
+      enableStorePickup: [false],
+      homeDeliveryDescription: ['Coordinamos el envío y costo por WhatsApp'],
+      pickupLocations: this.fb.array([]),
+    }),
   });
+
+  get deliveryMethodsGroup(): FormGroup {
+    return this.form.get('deliveryMethods') as FormGroup;
+  }
+
+  get pickupLocationsArray(): FormArray {
+    return this.deliveryMethodsGroup.get('pickupLocations') as FormArray;
+  }
+
+  createPickupLocationGroup(location?: Partial<StorePickupLocation>): FormGroup {
+    return this.fb.group({
+      id: [
+        location?.id ??
+          (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : Date.now().toString()),
+      ],
+      name: [location?.name ?? '', Validators.required],
+      address: [location?.address ?? '', Validators.required],
+      city: [location?.city ?? '', Validators.required],
+      schedule: [location?.schedule ?? '', Validators.required],
+      notes: [location?.notes ?? ''],
+      enabled: [location?.enabled ?? true],
+    });
+  }
+
+  addPickupLocation(): void {
+    this.pickupLocationsArray.push(this.createPickupLocationGroup());
+    this.form.markAsDirty();
+    setTimeout(() => {
+      this.locationNameInputs.last?.nativeElement.focus();
+    }, 50);
+  }
+
+  removePickupLocation(index: number): void {
+    this.pickupLocationsArray.removeAt(index);
+    this.form.markAsDirty();
+  }
+
+  togglePickupLocationStatus(index: number): void {
+    const group = this.pickupLocationsArray.at(index) as FormGroup;
+    if (group) {
+      const enabledControl = group.get('enabled');
+      if (enabledControl) {
+        enabledControl.setValue(!enabledControl.value);
+        enabledControl.markAsDirty();
+        this.form.markAsDirty();
+      }
+    }
+  }
 
   constructor() {
     effect(() => {
       const cfg = this.storeConfigService.storeConfig();
       const currentTenant = resolveTenantId();
+      const deliveryConfig = cfg?.deliveryMethods ?? DEFAULT_DELIVERY_METHOD_CONFIG;
+
       if (cfg) {
         this.form.patchValue({
           tenantId: cfg.tenantId || currentTenant,
@@ -103,6 +174,18 @@ export class StoreConfigComponent {
           notificationEmail: cfg.notificationEmail ?? '',
           emailSenderName: cfg.emailSenderName ?? '',
           emailSignature: cfg.emailSignature ?? '',
+          deliveryMethods: {
+            enableHomeDelivery: deliveryConfig.enableHomeDelivery ?? true,
+            enableStorePickup: deliveryConfig.enableStorePickup ?? false,
+            homeDeliveryDescription:
+              deliveryConfig.homeDeliveryDescription ?? 'Coordinamos el envío y costo por WhatsApp',
+          },
+        });
+
+        this.pickupLocationsArray.clear();
+        const locations = deliveryConfig.pickupLocations ?? [];
+        locations.forEach((loc) => {
+          this.pickupLocationsArray.push(this.createPickupLocationGroup(loc));
         });
       } else {
         this.form.patchValue({
@@ -131,6 +214,16 @@ export class StoreConfigComponent {
             metaDescription: 'Bienvenidos a mi tienda virtual.',
           },
           setupCompleted: true,
+          deliveryMethods: {
+            enableHomeDelivery: DEFAULT_DELIVERY_METHOD_CONFIG.enableHomeDelivery,
+            enableStorePickup: DEFAULT_DELIVERY_METHOD_CONFIG.enableStorePickup,
+            homeDeliveryDescription: DEFAULT_DELIVERY_METHOD_CONFIG.homeDeliveryDescription,
+          },
+        });
+
+        this.pickupLocationsArray.clear();
+        (DEFAULT_DELIVERY_METHOD_CONFIG.pickupLocations ?? []).forEach((loc) => {
+          this.pickupLocationsArray.push(this.createPickupLocationGroup(loc));
         });
       }
     });

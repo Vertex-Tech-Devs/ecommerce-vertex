@@ -65,6 +65,7 @@ export class PaymentService {
               // El proyecto del shard donde viven los datos de la tienda (orden/catálogo).
               // Las functions del master resuelven el Firestore de ese proyecto.
               projectId: environment.firebaseConfig.projectId,
+              siteUrl: typeof window !== 'undefined' ? window.location.origin : undefined,
               payer,
             },
           }),

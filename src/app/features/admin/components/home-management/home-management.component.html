@@ -6,7 +6,11 @@
     </header>
 
     @if (isLoading()) {
-      <div class="home-management-skeleton" aria-busy="true" aria-label="Cargando contenido de inicio">
+      <div
+        class="home-management-skeleton"
+        aria-busy="true"
+        aria-label="Cargando contenido de inicio"
+      >
         <div class="glass-card mb-5 card-skeleton">
           <div class="card-header border-0 text-center py-3">
             <div class="skeleton-box skeleton-box--header mx-auto"></div>
@@ -25,206 +29,208 @@
         </div>
       </div>
     } @else {
-    <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
-      <div class="glass-card mb-5 card-hero">
-        <div class="card-header border-0 text-center fw-bold">
-          <i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero
-        </div>
-        <div class="card-body">
-          <input
-            #heroImagesInput
-            type="file"
-            class="d-none"
-            (change)="onHeroImagesSelected($event)"
-            accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
-            multiple
-            [disabled]="heroImages.length >= 5"
-          />
-
-          <div
-            class="hero-drop-zone"
-            [class.drag-over]="isDragOver"
-            [class.drop-zone--full]="heroImages.length >= 5"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave()"
-            (drop)="onDrop($event)"
-            (click)="heroImages.length < 5 && heroImagesInput.click()"
-          >
-            @if (isAnyHeroUploading) {
-              <div class="d-flex flex-column align-items-center justify-content-center h-100 py-2">
-                <div class="drop-zone-icon-wrap mb-2">
-                  <span
-                    class="spinner-border text-accent"
-                    style="width: 2rem; height: 2rem"
-                    role="status"
-                  ></span>
-                </div>
-                <p class="drop-title m-0">Subiendo imágenes al carrusel...</p>
-                <p class="drop-subtitle m-0 mt-1">Por favor, espera.</p>
-              </div>
-            } @else {
-              <div class="drop-zone-icon-wrap">
-                <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
-              </div>
-              <p class="drop-title">
-                @if (heroImages.length < 5) {
-                  Arrastra imágenes aquí&ensp;·&ensp;<span class="text-accent">haz clic</span>
-                } @else {
-                  <span class="text-soft">Límite alcanzado</span>
-                }
-              </p>
-              <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB</p>
-              @if (heroImages.length > 0) {
-                <span class="drop-badge">{{ heroImages.length }}/5</span>
-              }
-            }
+      <form [formGroup]="bannerForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="glass-card mb-5 card-hero">
+          <div class="card-header border-0 text-center fw-bold">
+            <i class="bi bi-images me-2" aria-hidden="true"></i>Carrusel Hero
           </div>
+          <div class="card-body">
+            <input
+              #heroImagesInput
+              type="file"
+              class="d-none"
+              (change)="onHeroImagesSelected($event)"
+              accept=".webp,.jpg,.jpeg,.png,image/webp,image/jpeg,image/png"
+              multiple
+              [disabled]="heroImages.length >= 5"
+            />
 
-          @if (heroImagePreviews.length > 0) {
-            <div class="hero-slots-wrapper mt-4">
-              @for (preview of heroImagePreviews; track $index; let i = $index) {
-                <div class="hero-slot hero-slot--filled">
-                  <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image" />
-
-                  @if (heroUploadProgress.get(heroImages[i].imageUrl) !== undefined) {
-                    <div
-                      class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-                      style="
-                        background: rgba(15, 23, 42, 0.85);
-                        backdrop-filter: blur(4px);
-                        z-index: 10;
-                      "
-                    >
-                      <span
-                        class="spinner-border text-light mb-2"
-                        role="status"
-                        style="width: 1.5rem; height: 1.5rem"
-                      ></span>
-                      <span class="text-white fs-7 font-monospace"
-                        >{{ heroUploadProgress.get(heroImages[i].imageUrl) }}%</span
-                      >
-                    </div>
-                  }
-
-                  <div class="slot-overlay">
-                    <button
-                      type="button"
-                      class="slot-nav-btn slot-nav-btn--prev"
-                      (click)="moveHeroImageUp(i)"
-                      [disabled]="i === 0"
-                    >
-                      <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                    </button>
-
-                    <div class="slot-actions-group">
-                      <button
-                        type="button"
-                        class="slot-btn slot-btn--info"
-                        (click)="openLinkModal(i)"
-                      >
-                        <i class="bi bi-link-45deg" aria-hidden="true"></i>
-                      </button>
-                      <button
-                        type="button"
-                        class="slot-btn slot-btn--danger"
-                        (click)="removeHeroImage(i)"
-                      >
-                        <i class="bi bi-trash3" aria-hidden="true"></i>
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      class="slot-nav-btn slot-nav-btn--next"
-                      (click)="moveHeroImageDown(i)"
-                      [disabled]="i === heroImages.length - 1"
-                    >
-                      <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                    </button>
+            <div
+              class="hero-drop-zone"
+              [class.drag-over]="isDragOver"
+              [class.drop-zone--full]="heroImages.length >= 5"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave()"
+              (drop)="onDrop($event)"
+              (click)="heroImages.length < 5 && heroImagesInput.click()"
+            >
+              @if (isAnyHeroUploading) {
+                <div
+                  class="d-flex flex-column align-items-center justify-content-center h-100 py-2"
+                >
+                  <div class="drop-zone-icon-wrap mb-2">
+                    <span
+                      class="spinner-border text-accent"
+                      style="width: 2rem; height: 2rem"
+                      role="status"
+                    ></span>
                   </div>
-                  <span class="slot-badge">
-                    {{ i + 1 }}
-                    @if (heroImages[i].linkType && heroImages[i].linkType !== 'none') {
-                      <i class="bi bi-link-45deg ms-1" style="font-size: 0.9rem"></i>
-                    }
-                  </span>
+                  <p class="drop-title m-0">Subiendo imágenes al carrusel...</p>
+                  <p class="drop-subtitle m-0 mt-1">Por favor, espera.</p>
                 </div>
-              }
-              @for (_ of emptySlots; track $index) {
-                <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
-                  <i class="bi bi-plus-lg" aria-hidden="true"></i>
+              } @else {
+                <div class="drop-zone-icon-wrap">
+                  <i class="bi bi-cloud-arrow-up drop-icon" aria-hidden="true"></i>
                 </div>
+                <p class="drop-title">
+                  @if (heroImages.length < 5) {
+                    Arrastra imágenes aquí&ensp;·&ensp;<span class="text-accent">haz clic</span>
+                  } @else {
+                    <span class="text-soft">Límite alcanzado</span>
+                  }
+                </p>
+                <p class="drop-subtitle">WebP · JPG · PNG &nbsp;·&nbsp; Máx. 2 MB</p>
+                @if (heroImages.length > 0) {
+                  <span class="drop-badge">{{ heroImages.length }}/5</span>
+                }
               }
             </div>
-          }
 
-          <div class="glass-inner-card mt-4" formGroupName="carouselSettings">
-            <h6 class="section-subtitle-sm mb-4 text-white">
-              <i class="bi bi-sliders me-2" aria-hidden="true"></i>Ajustes del Carrusel
-            </h6>
-            <div class="row g-4 align-items-center">
-              <div class="col-12 col-md-6">
-                <label for="carouselInterval" class="form-label text-label">Intervalo (ms)</label>
-                <input
-                  type="number"
-                  id="carouselInterval"
-                  class="form-control glass-input"
-                  formControlName="interval"
-                  min="1000"
-                  max="10000"
-                  step="500"
-                />
+            @if (heroImagePreviews.length > 0) {
+              <div class="hero-slots-wrapper mt-4">
+                @for (preview of heroImagePreviews; track $index; let i = $index) {
+                  <div class="hero-slot hero-slot--filled">
+                    <img [src]="preview" [alt]="'Imagen ' + (i + 1)" class="slot-image" />
+
+                    @if (heroUploadProgress.get(heroImages[i].imageUrl) !== undefined) {
+                      <div
+                        class="position-absolute start-0 top-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                        style="
+                          background: rgba(15, 23, 42, 0.85);
+                          backdrop-filter: blur(4px);
+                          z-index: 10;
+                        "
+                      >
+                        <span
+                          class="spinner-border text-light mb-2"
+                          role="status"
+                          style="width: 1.5rem; height: 1.5rem"
+                        ></span>
+                        <span class="text-white fs-7 font-monospace"
+                          >{{ heroUploadProgress.get(heroImages[i].imageUrl) }}%</span
+                        >
+                      </div>
+                    }
+
+                    <div class="slot-overlay">
+                      <button
+                        type="button"
+                        class="slot-nav-btn slot-nav-btn--prev"
+                        (click)="moveHeroImageUp(i)"
+                        [disabled]="i === 0"
+                      >
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                      </button>
+
+                      <div class="slot-actions-group">
+                        <button
+                          type="button"
+                          class="slot-btn slot-btn--info"
+                          (click)="openLinkModal(i)"
+                        >
+                          <i class="bi bi-link-45deg" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          class="slot-btn slot-btn--danger"
+                          (click)="removeHeroImage(i)"
+                        >
+                          <i class="bi bi-trash3" aria-hidden="true"></i>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        class="slot-nav-btn slot-nav-btn--next"
+                        (click)="moveHeroImageDown(i)"
+                        [disabled]="i === heroImages.length - 1"
+                      >
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                    <span class="slot-badge">
+                      {{ i + 1 }}
+                      @if (heroImages[i].linkType && heroImages[i].linkType !== 'none') {
+                        <i class="bi bi-link-45deg ms-1" style="font-size: 0.9rem"></i>
+                      }
+                    </span>
+                  </div>
+                }
+                @for (_ of emptySlots; track $index) {
+                  <div class="hero-slot hero-slot--empty" (click)="heroImagesInput.click()">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                  </div>
+                }
               </div>
-              <div class="col-12 col-md-6">
-                <div class="form-check form-switch custom-switch d-flex align-items-center p-0">
+            }
+
+            <div class="glass-inner-card mt-4" formGroupName="carouselSettings">
+              <h6 class="section-subtitle-sm mb-4 text-white">
+                <i class="bi bi-sliders me-2" aria-hidden="true"></i>Ajustes del Carrusel
+              </h6>
+              <div class="row g-4 align-items-center">
+                <div class="col-12 col-md-6">
+                  <label for="carouselInterval" class="form-label text-label">Intervalo (ms)</label>
                   <input
-                    class="form-check-input m-0 me-3"
-                    type="checkbox"
-                    id="showIndicators"
-                    formControlName="showIndicators"
-                    style="width: 3rem; height: 1.5rem"
+                    type="number"
+                    id="carouselInterval"
+                    class="form-control glass-input"
+                    formControlName="interval"
+                    min="1000"
+                    max="10000"
+                    step="500"
                   />
-                  <label class="form-check-label text-soft fw-bold" for="showIndicators">
-                    Mostrar indicadores
-                  </label>
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="form-check form-switch custom-switch d-flex align-items-center p-0">
+                    <input
+                      class="form-check-input m-0 me-3"
+                      type="checkbox"
+                      id="showIndicators"
+                      formControlName="showIndicators"
+                      style="width: 3rem; height: 1.5rem"
+                    />
+                    <label class="form-check-label text-soft fw-bold" for="showIndicators">
+                      Mostrar indicadores
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="position-relative">
-        <app-featured-categories
-          [formArray]="featuredCategories"
-          [categories]="(categories$ | async) ?? []"
-          [previewUrls]="categoryPreviewUrls"
-          (add)="addFeaturedCategory()"
-          (remove)="removeFeaturedCategory($event)"
-          (categoryChange)="onCategorySelectionChange($event.index, $event.event)"
-        ></app-featured-categories>
-      </div>
+        <div class="position-relative">
+          <app-featured-categories
+            [formArray]="featuredCategories"
+            [categories]="(categories$ | async) ?? []"
+            [previewUrls]="categoryPreviewUrls"
+            (add)="addFeaturedCategory()"
+            (remove)="removeFeaturedCategory($event)"
+            (categoryChange)="onCategorySelectionChange($event.index, $event.event)"
+          ></app-featured-categories>
+        </div>
 
-      <div class="d-flex justify-content-center justify-content-md-end mb-5 pb-4">
-        <button
-          type="submit"
-          class="btn-save-primary"
-          [disabled]="
-            isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0
-          "
-        >
-          @if (isSubmitting) {
-            <span
-              class="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-          }
-          <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
-          {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
-        </button>
-      </div>
-    </form>
+        <div class="d-flex justify-content-center justify-content-md-end mb-5 pb-4">
+          <button
+            type="submit"
+            class="btn-save-primary"
+            [disabled]="
+              isSubmitting || bannerForm.invalid || !bannerForm.dirty || heroImages.length === 0
+            "
+          >
+            @if (isSubmitting) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            }
+            <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
+            {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+          </button>
+        </div>
+      </form>
     }
   </div>
 </section>

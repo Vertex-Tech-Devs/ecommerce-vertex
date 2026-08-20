@@ -1,3 +1,27 @@
+export interface StorePickupLocation {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  schedule: string; // Ej: "Lun a Vie 09:00 a 18:00 hs"
+  notes?: string; // Ej: "Presentar DNI y número de pedido"
+  enabled: boolean;
+}
+
+export interface DeliveryMethodConfig {
+  enableStorePickup: boolean;
+  enableHomeDelivery: boolean;
+  homeDeliveryDescription?: string; // Ej: "Coordinamos el envío y costo por WhatsApp"
+  pickupLocations: StorePickupLocation[];
+}
+
+export const DEFAULT_DELIVERY_METHOD_CONFIG: DeliveryMethodConfig = {
+  enableStorePickup: false,
+  enableHomeDelivery: true,
+  homeDeliveryDescription: 'Coordinamos el envío y costo por WhatsApp',
+  pickupLocations: [],
+};
+
 export interface StoreConfig {
   readonly tenantId: string;
   storeId: string;
@@ -31,6 +55,9 @@ export interface StoreConfig {
     metaDescription: string;
   };
   setupCompleted: boolean;
+
+  // Métodos de entrega
+  deliveryMethods?: DeliveryMethodConfig;
 
   // Configuración de emails (editable desde /admin/store-config)
   storeOwnerEmail?: string;
@@ -73,4 +100,5 @@ export const DEFAULT_STORE_CONFIG: StoreConfig = {
     metaDescription: 'Bienvenido a nuestra tienda online.',
   },
   setupCompleted: false,
+  deliveryMethods: DEFAULT_DELIVERY_METHOD_CONFIG,
 };

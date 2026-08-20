@@ -139,6 +139,261 @@
               </div>
             </div>
 
+            <!-- Métodos de Entrega -->
+            <div class="glass-card card-delivery card mb-4" formGroupName="deliveryMethods">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-truck me-2"></i> Métodos de Entrega
+              </div>
+              <div class="card-body">
+                <div class="glass-switches-container d-flex flex-column gap-4">
+                  <!-- Envío a Domicilio (A Coordinar) -->
+                  <div>
+                    <div
+                      class="form-check form-switch custom-glass-switch d-flex align-items-center gap-3 ps-0 mb-2"
+                    >
+                      <input
+                        class="form-check-input ms-0"
+                        type="checkbox"
+                        role="switch"
+                        id="enableHomeDelivery"
+                        formControlName="enableHomeDelivery"
+                      />
+                      <label
+                        class="form-check-label fw-bold text-white fs-6 cursor-pointer"
+                        for="enableHomeDelivery"
+                      >
+                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A
+                        Coordinar)
+                      </label>
+                    </div>
+
+                    @if (deliveryMethodsGroup.get('enableHomeDelivery')?.value) {
+                      <div class="ms-md-5 mt-3">
+                        <label class="form-label text-label" for="homeDeliveryDescription">
+                          Descripción / Instrucciones de Envío
+                        </label>
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                          <input
+                            id="homeDeliveryDescription"
+                            formControlName="homeDeliveryDescription"
+                            type="text"
+                            class="form-control glass-input"
+                            placeholder="Coordinamos el envío y costo por WhatsApp"
+                          />
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <hr class="border-secondary border-opacity-25 my-1" />
+
+                  <!-- Retiro en el Local (Store Pickup) -->
+                  <div>
+                    <div
+                      class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"
+                    >
+                      <div
+                        class="form-check form-switch custom-glass-switch d-flex align-items-center gap-3 ps-0 mb-0"
+                      >
+                        <input
+                          class="form-check-input ms-0"
+                          type="checkbox"
+                          role="switch"
+                          id="enableStorePickup"
+                          formControlName="enableStorePickup"
+                        />
+                        <label
+                          class="form-check-label fw-bold text-white fs-6 cursor-pointer"
+                          for="enableStorePickup"
+                        >
+                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en el Local
+                          (Store Pickup)
+                        </label>
+                      </div>
+
+                      @if (deliveryMethodsGroup.get('enableStorePickup')?.value) {
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold"
+                          (click)="addPickupLocation()"
+                        >
+                          <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
+                        </button>
+                      }
+                    </div>
+
+                    @if (deliveryMethodsGroup.get('enableStorePickup')?.value) {
+                      <div class="ms-md-5 mt-3" formArrayName="pickupLocations">
+                        @if (pickupLocationsArray.length === 0) {
+                          <div
+                            class="text-center p-4 border border-dashed rounded-3 border-secondary border-opacity-25 bg-dark bg-opacity-25"
+                          >
+                            <i class="bi bi-geo-alt fs-3 text-secondary d-block mb-2"></i>
+                            <p class="text-soft mb-2">
+                              No tenés sucursales registradas para retiro.
+                            </p>
+                            <button
+                              type="button"
+                              class="btn btn-outline-primary btn-sm"
+                              (click)="addPickupLocation()"
+                            >
+                              <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="d-flex flex-column gap-3">
+                            @for (
+                              locGroup of pickupLocationsArray.controls;
+                              track locGroup.value.id || $index;
+                              let i = $index
+                            ) {
+                              <div
+                                [formGroupName]="i"
+                                class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 shadow-sm"
+                              >
+                                <!-- Fila 1: Nombre de la sucursal (#locationNameInput), Ciudad -->
+                                <div class="row g-3 mb-2">
+                                  <div class="col-md-6">
+                                    <label class="form-label text-label"
+                                      >Nombre de la sucursal
+                                      <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-building"></i
+                                      ></span>
+                                      <input
+                                        #locationNameInput
+                                        type="text"
+                                        formControlName="name"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Sucursal Palermo"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label text-label"
+                                      >Ciudad <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-geo-alt"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="city"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Buenos Aires"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 2: Dirección física completa, Horarios de atención -->
+                                <div class="row g-3 mb-2">
+                                  <div class="col-md-6">
+                                    <label class="form-label text-label"
+                                      >Dirección física completa
+                                      <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-pin-map"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="address"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Av. Corrientes 1234"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label text-label"
+                                      >Horarios de atención
+                                      <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-clock"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="schedule"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Lun a Vie 09:00 a 18:00 hs"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 3: Instrucciones / Notas especiales de retiro -->
+                                <div class="row g-3 mb-3">
+                                  <div class="col-12">
+                                    <label class="form-label text-label"
+                                      >Instrucciones / Notas especiales de retiro</label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-info-circle"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="notes"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Presentar DNI y número de pedido"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Controls: Switch Activo/Inactivo & Botón Eliminar -->
+                                <div
+                                  class="d-flex align-items-center justify-content-between pt-2 border-top border-secondary border-opacity-25"
+                                >
+                                  <div
+                                    class="form-check form-switch custom-glass-switch d-flex align-items-center gap-2 mb-0"
+                                  >
+                                    <input
+                                      class="form-check-input ms-0"
+                                      type="checkbox"
+                                      role="switch"
+                                      [id]="'pickupEnabled_' + i"
+                                      formControlName="enabled"
+                                    />
+                                    <label
+                                      class="form-check-label small text-soft cursor-pointer"
+                                      [for]="'pickupEnabled_' + i"
+                                    >
+                                      {{
+                                        locGroup.get('enabled')?.value
+                                          ? 'Sucursal activa'
+                                          : 'Sucursal inactiva'
+                                      }}
+                                    </label>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm px-3 py-1"
+                                    (click)="removePickupLocation(i)"
+                                    title="Eliminar sucursal"
+                                  >
+                                    <i class="bi bi-trash me-1"></i> Eliminar
+                                  </button>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Acceso directo a Gestión de Emails -->
             <div
               class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3 mb-4"
@@ -150,8 +405,8 @@
                     Gestión de Correos Transaccionales y Notificaciones
                   </h6>
                   <small class="text-soft">
-                    Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba desde
-                    la sección centralizada.
+                    Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba
+                    desde la sección centralizada.
                   </small>
                 </div>
                 <a

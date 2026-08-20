@@ -59,6 +59,7 @@ npm run release:major      # 0.1.0 → 1.0.0
 ## 🔢 Versionado del Template
 
 El storefront es el **template de tienda** versionado semánticamente (Semver).
+Versión actual: `0.4.0`
 
 | Tipo de cambio                     | Comando                 |
 | ---------------------------------- | ----------------------- |
@@ -71,6 +72,54 @@ El storefront es el **template de tienda** versionado semánticamente (Semver).
 1. `npm run release:minor` → bump, commit, tag, push automático
 2. CI `release.yml` crea GitHub Release y notifica a `vertex-platform`
 3. `vertex-platform` abre PR automático para actualizar `CURRENT_TEMPLATE_VERSION`
+
+---
+
+## 📖 Regla de Oro: Mantenimiento Obligatorio de Documentación
+
+**Toda tarea, bugfix, cambio de infraestructura o evolución arquitectónica DEBE mantener la documentación sincronizada antes de darse por finalizada.**
+
+1. **Actualización Inmediata**: Al modificar flujos, reglas, modelos o CI/CD, actualizar de inmediato los documentos correspondientes (`agent.md`, `README.md`, y `.agents/AGENTS.md` en la raíz).
+2. **Cero Desincronización**: Las versiones en la documentación deben coincidir con `package.json`.
+3. **Documentación como Criterio de Aceptación (DoD)**: Un PR o desarrollo NO se considera terminado si no incluye la actualización de su respectiva documentación técnica y operacional.
+
+---
+
+## 💳 Flujo de Pagos, Carrito y Gestión de Stock (Mercado Pago)
+
+### 1. Preservación del Carrito
+- El carrito en `localStorage` **NO se vacía** al redirigir al checkout de Mercado Pago.
+- Se vacía **únicamente** cuando el cliente navega a la pantalla de confirmación exitosa (`/shop/order-confirmation/:id`).
+- Si el usuario cancela o regresa desde Mercado Pago sin pagar, el storefront lo redirige a `/shop/cart`, detecta el retorno sin pago, muestra una notificación informativa y **mantiene los productos en el carrito** para que no pierda su selección.
+
+### 2. Ciclo de Vida del Stock
+- **Reserva Inicial**: Al invocar `createPaymentPreference`, la Cloud Function decrementa de forma atómica el stock de la variante (`FieldValue.increment(-quantity)`) y registra `stockDecremented: true` en la orden (`status: 'processing'`).
+- **Pago Aprobado**: El webhook `mercadoPagoWebhookHandler` recibe `status: 'approved'`, confirma el pago y la orden pasa a procesarse definitivamente.
+- **Pago Cancelado o Rechazado**: El webhook ejecuta `revertStockOnFailure(orderId)`, revirtiendo mediante transacción el stock exacto a cada variante y marcando la orden como `cancelled`.
+- **Abandono / Expiración de Pago**: La Cloud Function programada `cleanupExpiredOrders` corre cada 60 minutos, busca órdenes `processing` expiradas (`mercadopago_expiration_date <= now`) sin pago confirmado y devuelve el stock al inventario automáticamente.
+
+### 3. Logs de Consola de Terceros en Checkout (Mercado Pago)
+- Al interactuar con el iframe o la redirección de Mercado Pago, la consola del navegador puede registrar eventos de `TrackBuilder`, `Armor` (sistema antifraude de Mercado Libre), o avisos internos de CSP (`script-src 'nonce...'`) emitidos por el dominio `mercadopago.com.ar` / `mercadolibre.com`.
+- Estos logs provienen de los scripts de la pasarela y cumplen con el estándar **PCI-DSS**. No exponen credenciales ni interfieren con el correcto funcionamiento de Vertex.
+
+---
+
+## 🚀 Ciclo de Vida de Canales de Preview Efímeros (PR Previews)
+
+- **Despliegue y Sembrado Automático**: Cada PR hacia `develop` compila contra el shard de desarrollo (`build:dev-template`), despliega un canal efímero en Firebase Hosting y ejecuta `scripts/seed-pr-tenant.ts` generando productos con catálogo, imágenes, combinaciones completas de variantes (talles/colores) y stock real.
+- **Retorno Dinámico**: Las URLs de retorno (`back_urls`) de Mercado Pago se calculan dinámicamente usando el origen de la preview activa (`https://ecommerce-vertex-dev--pr-XXX.web.app`).
+- **Destrucción y Notificación Automática**: Al cerrar o mergear el PR, `preview-cleanup.yml`:
+  1. Elimina el canal en Firebase Hosting (devuelve 404).
+  2. Borra los documentos generados en Firestore (`vtx-pr-XXX`).
+  3. Publica un comentario en el PR (`🗑️ Instancia de Preview Eliminada`).
+  4. Elimina automáticamente la rama remota de GitHub.
+
+---
+
+## 🧹 Política de Higiene del Repositorio (Clean Repo Policy)
+
+- **Archivos Prohibidos en Git**: No commitear carpetas locales de IDEs (`.antigravitycli/`, `.gemini/`, `.claude/`, `.cursor/`), logs (`firestore-debug.log`, `firebase-debug.log`, `*.log`), credenciales `.env`, ni datos locales de emuladores (`emulator-data/`).
+- **Verificación**: Siempre verificar con `git status` y `.gitignore` antes de hacer commit.
 
 ---
 

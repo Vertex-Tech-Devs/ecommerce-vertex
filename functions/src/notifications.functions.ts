@@ -7,22 +7,20 @@ import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 import { sendEmail, getNotificationEmail } from './core/email.service';
 
 const db = getFirestore();
-// Leído con process.env para que el deploy a shards no exija env vars (ver mercadopago.service.ts).
+
 function envSiteUrl(): string {
   return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
 }
 
 async function getEmailConfig(storeId: string) {
   const db = getFirestore();
-  // Fuente primaria: settings/emailTemplates (configuración avanzada por tienda).
+
   const configDoc = await db
     .doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES))
     .get();
   const base = configDoc.exists ? configDoc.data() : {};
 
-  // Fuente secundaria: configuracion/store_{storeId} — el doc público que edita
-  // /admin/store-config (pestaña Emails). Los campos del panel tienen prioridad
-  // solo si están presentes (el doc primario manda).
+
   const publicSnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
   if (publicSnap.exists) {
     const pub = publicSnap.data();
@@ -93,13 +91,35 @@ function buildEmailHtml(
     })
     .join('');
 
+  const deliverySectionHtml =
+    order.deliverySelection?.type === 'store_pickup'
+      ? `<tr>
+           <td style="padding: 10px; border-bottom: 1px solid #eee;">
+             <strong>Método de Entrega:</strong> Retiro en el Local<br/>
+             <strong>Punto de Retiro:</strong> ${escapeHtml(order.deliverySelection.pickupAddressFormatted || 'Local Comercial')}<br/>
+             ${order.deliverySelection.notes ? `<em>Instrucciones: ${escapeHtml(order.deliverySelection.notes)}</em>` : ''}
+           </td>
+         </tr>`
+      : `<tr>
+           <td style="padding: 10px; border-bottom: 1px solid #eee;">
+             <strong>Método de Entrega:</strong> Envío a Domicilio (A Coordinar)
+           </td>
+         </tr>`;
+
+  const deliveryTable = `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">${deliverySectionHtml}</table>`;
+
   let emailBody = template
     .replace(/{orderId}/g, escapeHtml(orderId))
     .replace(/{clientName}/g, escapeHtml(order.clientName))
     .replace(/{clientEmail}/g, escapeHtml(order.clientEmail || 'N/A'))
     .replace(/{clientPhone}/g, escapeHtml(order.clientPhone || 'N/A'))
     .replace(/{itemsList}/g, `<ul>${itemsHtml}</ul>`)
+    .replace(/{deliverySection}/g, deliveryTable)
     .replace(/{totalAmount}/g, order.total.toFixed(2));
+
+  if (!template.includes('{deliverySection}')) {
+    emailBody += deliveryTable;
+  }
 
   const buttonStyle = `style="display: inline-block; padding: 12px 24px; margin: 10px 10px 10px 0; font-size: 16px; color: #ffffff; background-color: #007bff; border-radius: 5px; text-decoration: none;"`;
 
@@ -127,12 +147,10 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     const orderRaw = afterSnap.data() as Record<string, unknown>;
     const status = orderRaw['status'] as string | undefined;
 
-    // Solo notificar cuando el pedido fue pagado/aprobado
     if (status !== 'processing' && status !== 'approved') {
       return;
     }
 
-    // Idempotencia: evitar re-envíos si las notificaciones ya fueron marcadas como enviadas
     if (orderRaw['notificationsSent'] === true) {
       return;
     }
@@ -221,9 +239,16 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
         showWhatsappButton: true,
       };
 
+      const isPickup = orderData.deliverySelection?.type === 'store_pickup';
+      const customerWaMsg = encodeURIComponent(
+        isPickup
+          ? `Hola! Hice el pedido #${orderId} para retirar por el local (${orderData.deliverySelection?.pickupAddressFormatted || 'Sucursal seleccionada'}). ¿Cuándo puedo pasar a buscarlo?`
+          : `Hola! Hice el pedido #${orderId} y quisiera coordinar el envío a domicilio.`,
+      );
+      const cleanStoreWa = (config?.storeWhatsappNumber || '').replace(/[^0-9]/g, '');
       const whatsappUrl =
-        customerConfig.showWhatsappButton && config?.storeWhatsappNumber
-          ? `https://wa.me/${config.storeWhatsappNumber}`
+        customerConfig.showWhatsappButton && cleanStoreWa
+          ? `https://wa.me/${cleanStoreWa}?text=${customerWaMsg}`
           : null;
 
       const customerHtml =

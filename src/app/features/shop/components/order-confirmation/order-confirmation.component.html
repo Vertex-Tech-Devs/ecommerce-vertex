@@ -50,6 +50,52 @@
           </div>
         </div>
 
+        <div class="confirmation__delivery">
+          <h2 class="confirmation__delivery-title">Método de Entrega</h2>
+          @if (data.order.deliverySelection?.type === 'store_pickup') {
+            <div class="confirmation__delivery-badge confirmation__delivery-badge--pickup">
+              <i class="bi bi-shop me-1" aria-hidden="true"></i> Retiro en Local
+            </div>
+            <div class="confirmation__delivery-details">
+              <p class="confirmation__delivery-address">
+                <strong>Punto de Retiro:</strong>
+                {{
+                  data.order.deliverySelection?.pickupAddressFormatted || 'Sucursal Seleccionada'
+                }}
+              </p>
+              @if (data.order.deliverySelection?.notes) {
+                <p class="confirmation__delivery-notes">
+                  <strong>Instrucciones:</strong> {{ data.order.deliverySelection?.notes }}
+                </p>
+              } @else {
+                <p class="confirmation__delivery-notes">
+                  Te avisaremos cuando tu pedido esté listo para ser retirado por el local.
+                </p>
+              }
+            </div>
+          } @else {
+            <div class="confirmation__delivery-badge confirmation__delivery-badge--shipping">
+              <i class="bi bi-truck me-1" aria-hidden="true"></i> Envío a Coordinar
+            </div>
+            <div class="confirmation__delivery-details">
+              <p class="confirmation__delivery-notes">
+                Nos pondremos en contacto contigo para coordinar la entrega a domicilio y detalles
+                del envío post-compra.
+              </p>
+            </div>
+          }
+          <div class="confirmation__delivery-actions">
+            <a
+              [href]="getWhatsappUrl(data.order)"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="confirmation__whatsapp-btn"
+            >
+              <i class="bi bi-whatsapp me-2" aria-hidden="true"></i> Contactar por WhatsApp
+            </a>
+          </div>
+        </div>
+
         @if (data.paymentStatus === 'approved') {
           <p class="confirmation__email">
             Te hemos enviado un correo de confirmación a
