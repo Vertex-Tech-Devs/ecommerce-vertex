@@ -1,6 +1,13 @@
 /* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  ViewChildren,
+  DestroyRef,
+  ChangeDetectorRef,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';

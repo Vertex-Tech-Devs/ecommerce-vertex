@@ -39,7 +39,14 @@ export class OrderDetailComponent implements OnInit {
   pageTitle: string = 'Detalles del Pedido';
 
   currentStatus: OrderStatus = 'pending';
-  statusOptions: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+  statusOptions: OrderStatus[] = [
+    'pending',
+    'processing',
+    'ready_for_pickup',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ];
 
   ngOnInit(): void {
     this.order$ = this.route.paramMap.pipe(
@@ -85,6 +92,10 @@ export class OrderDetailComponent implements OnInit {
 
   getItemSubtotal(item: OrderItem): number {
     return item.quantity * item.price;
+  }
+
+  isStorePickup(order: Order): boolean {
+    return order.deliverySelection?.type === 'store_pickup';
   }
 
   generateReceipt(order: Order): void {

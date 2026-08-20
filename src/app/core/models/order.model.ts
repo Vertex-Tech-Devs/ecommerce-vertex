@@ -1,4 +1,14 @@
-export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  'pending' | 'processing' | 'shipped' | 'ready_for_pickup' | 'delivered' | 'cancelled';
+
+export type DeliveryType = 'home_delivery' | 'store_pickup';
+
+export interface OrderDeliverySelection {
+  type: DeliveryType;
+  pickupLocationId?: string;
+  pickupAddressFormatted?: string;
+  notes?: string;
+}
 
 export interface OrderItem {
   productId: string;
@@ -39,6 +49,7 @@ export interface Order {
   shippingAddress: ShippingAddress;
   billingAddress?: ShippingAddress;
   paymentDetails?: PaymentDetails;
+  deliverySelection?: OrderDeliverySelection;
   mercadopago_preference_id?: string;
   mercadopago_init_point?: string;
   mercadopago_expiration_date?: Date;

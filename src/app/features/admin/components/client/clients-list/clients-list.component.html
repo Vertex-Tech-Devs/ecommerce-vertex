@@ -99,9 +99,13 @@
               } @else {
                 @for (_ of [1, 2, 3, 4, 5]; track $index) {
                   <tr class="table-row--skeleton">
-                    <td data-label="Nombre Completo"><div class="skeleton-box skeleton-box--name"></div></td>
+                    <td data-label="Nombre Completo">
+                      <div class="skeleton-box skeleton-box--name"></div>
+                    </td>
                     <td data-label="Email"><div class="skeleton-box skeleton-box--email"></div></td>
-                    <td data-label="Teléfono"><div class="skeleton-box skeleton-box--phone"></div></td>
+                    <td data-label="Teléfono">
+                      <div class="skeleton-box skeleton-box--phone"></div>
+                    </td>
                     <td data-label="N.º Pedidos" class="text-center">
                       <div class="skeleton-box skeleton-box--orders mx-auto"></div>
                     </td>

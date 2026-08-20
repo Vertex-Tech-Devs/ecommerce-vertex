@@ -1,11 +1,18 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject, DestroyRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  DestroyRef,
+  signal,
+  Injector,
+} from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import type { Order } from '@core/models/order.model';
+import type { Order, OrderStatus, DeliveryType } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import type { Observable } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, from, of } from 'rxjs';
 import {
   map,
@@ -31,16 +38,26 @@ export class OrdersListComponent implements OnInit {
   private _router = inject(Router);
   private _sweetAlertService = inject(SweetAlertService);
   private destroyRef = inject(DestroyRef);
+  private injector = inject(Injector);
 
   currentPageSubject = new BehaviorSubject<number>(1);
   itemsPerPageSubject = new BehaviorSubject<number>(10);
   searchTermSubject = new BehaviorSubject<string>('');
   filterStatusSubject = new BehaviorSubject<string>('all');
+  deliveryFilter = signal<'all' | DeliveryType>('all');
 
   private refreshTrigger = new BehaviorSubject<void>(undefined);
 
   itemsPerPageOptions = [5, 10, 20, 50];
-  statusOptions = ['all', 'pending', 'shipped', 'delivered', 'cancelled'];
+  statusOptions: (OrderStatus | 'all')[] = [
+    'all',
+    'pending',
+    'processing',
+    'ready_for_pickup',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ];
 
   totalOrders = 0;
   totalPages = 0;
@@ -62,10 +79,11 @@ export class OrdersListComponent implements OnInit {
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterStatusSubject,
+      toObservable(this.deliveryFilter, { injector: this.injector }),
       this.currentPageSubject,
       this.itemsPerPageSubject,
     ]).pipe(
-      map(([orders, searchTerm, filterStatus, currentPage, itemsPerPage]) => {
+      map(([orders, searchTerm, filterStatus, deliveryFilter, currentPage, itemsPerPage]) => {
         let filteredOrders = orders;
 
         if (searchTerm) {
@@ -80,6 +98,13 @@ export class OrdersListComponent implements OnInit {
 
         if (filterStatus !== 'all') {
           filteredOrders = filteredOrders.filter((order) => order.status === filterStatus);
+        }
+
+        if (deliveryFilter !== 'all') {
+          filteredOrders = filteredOrders.filter((order) => {
+            const type = order.deliverySelection?.type ?? 'home_delivery';
+            return type === deliveryFilter;
+          });
         }
 
         this.totalOrders = filteredOrders.length;
@@ -119,6 +144,49 @@ export class OrdersListComponent implements OnInit {
   onFilterStatusChange(newValue: string): void {
     this.filterStatusSubject.next(newValue);
     this.currentPageSubject.next(1);
+  }
+
+  onDeliveryFilterChange(newValue: string): void {
+    this.deliveryFilter.set(newValue as 'all' | DeliveryType);
+    this.currentPageSubject.next(1);
+  }
+
+  getDeliveryBadge(order: Order): {
+    icon: string;
+    cssClass: string;
+    label: string;
+    summary?: string;
+  } {
+    if (order.deliverySelection?.type === 'store_pickup') {
+      return {
+        icon: 'bi-shop',
+        cssClass: 'badge bg-info-subtle text-info border border-info-subtle',
+        label: 'Retiro en Local',
+        summary: order.deliverySelection.pickupAddressFormatted ?? 'Sucursal',
+      };
+    }
+    return {
+      icon: 'bi-truck',
+      cssClass: 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
+      label: 'Envío a Domicilio',
+      summary: order.shippingAddress
+        ? `${order.shippingAddress.city}, ${order.shippingAddress.state}`
+        : '',
+    };
+  }
+
+  updateOrderStatus(order: Order, newStatus: OrderStatus): void {
+    if (order.status === newStatus) {
+      return;
+    }
+    this._orderService
+      .updateOrder(order.id, { status: newStatus })
+      .then(() => {
+        this.refreshTrigger.next();
+      })
+      .catch((error: unknown) => {
+        console.error('Error al actualizar el estado del pedido:', error);
+      });
   }
 
   editOrder(order: Order): void {

@@ -54,6 +54,9 @@
                             @case ('processing') {
                               Procesando
                             }
+                            @case ('ready_for_pickup') {
+                              Listo para Retirar
+                            }
                             @case ('shipped') {
                               Enviado
                             }
@@ -77,8 +80,12 @@
 
             <div class="glass-panel p-3 p-md-4 mb-4">
               <h5 class="section-subtitle mb-3">
-                <i class="bi bi-truck me-2" aria-hidden="true"></i>
-                Información del Cliente y Envío
+                <i
+                  class="bi me-2"
+                  [ngClass]="isStorePickup(order) ? 'bi-shop' : 'bi-truck'"
+                  aria-hidden="true"
+                ></i>
+                Información de Entrega y Cliente
               </h5>
               <div class="row g-3">
                 <div class="col-md-6">
@@ -88,13 +95,47 @@
                   <p class="mb-0 text-soft">{{ order.clientPhone || 'N/A' }}</p>
                 </div>
                 <div class="col-md-6">
-                  <h6 class="text-label mb-2 fw-semibold">Dirección de Envío</h6>
-                  <address class="mb-0 text-soft">
-                    {{ order.shippingAddress.street }}<br />
-                    {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }}
-                    {{ order.shippingAddress.zipCode }}<br />
-                    {{ order.shippingAddress.country }}
-                  </address>
+                  @if (isStorePickup(order)) {
+                    <div
+                      class="p-3 rounded border border-info-subtle bg-info-subtle bg-opacity-10 text-white"
+                    >
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-info text-dark font-monospace">
+                          <i class="bi bi-shop me-1"></i> Retiro en Local
+                        </span>
+                      </div>
+                      @if (order.deliverySelection?.pickupLocationId) {
+                        <p class="mb-1 text-soft">
+                          <strong class="text-label me-1">Sucursal:</strong>
+                          <span class="text-strong fw-semibold">{{
+                            order.deliverySelection?.pickupLocationId
+                          }}</span>
+                        </p>
+                      }
+                      <p class="mb-2 text-soft">
+                        <strong class="text-label d-block">Dirección de Retiro:</strong>
+                        <span class="text-strong">{{
+                          order.deliverySelection?.pickupAddressFormatted || 'Sucursal Principal'
+                        }}</span>
+                      </p>
+                      @if (order.deliverySelection?.notes) {
+                        <p class="mb-0 text-soft border-top border-white-10 pt-2 mt-2">
+                          <strong class="text-label d-block">Notas de Retiro:</strong>
+                          <span class="fst-italic text-strong">{{
+                            order.deliverySelection?.notes
+                          }}</span>
+                        </p>
+                      }
+                    </div>
+                  } @else {
+                    <h6 class="text-label mb-2 fw-semibold">Dirección de Envío</h6>
+                    <address class="mb-0 text-soft">
+                      {{ order.shippingAddress.street }}<br />
+                      {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }}
+                      {{ order.shippingAddress.zipCode }}<br />
+                      {{ order.shippingAddress.country }}
+                    </address>
+                  }
                 </div>
               </div>
             </div>
@@ -201,17 +242,21 @@
             </div>
           </div>
         } @else {
-          <div class="order-detail--skeleton" aria-busy="true" aria-label="Cargando detalles del pedido">
+          <div
+            class="order-detail--skeleton"
+            aria-busy="true"
+            aria-label="Cargando detalles del pedido"
+          >
             <div class="glass-panel p-3 p-md-4 mb-4">
               <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="skeleton-box skeleton-box--line mb-2"></div>
-                  <div class="skeleton-box skeleton-box--line" style="width: 70%;"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 70%"></div>
                 </div>
                 <div class="col-md-6">
                   <div class="skeleton-box skeleton-box--line mb-2"></div>
-                  <div class="skeleton-box skeleton-box--line" style="width: 50%;"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 50%"></div>
                 </div>
               </div>
             </div>
@@ -221,11 +266,11 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <div class="skeleton-box skeleton-box--line mb-2"></div>
-                  <div class="skeleton-box skeleton-box--line" style="width: 60%;"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 60%"></div>
                 </div>
                 <div class="col-md-6">
                   <div class="skeleton-box skeleton-box--line mb-2"></div>
-                  <div class="skeleton-box skeleton-box--line" style="width: 80%;"></div>
+                  <div class="skeleton-box skeleton-box--line" style="width: 80%"></div>
                 </div>
               </div>
             </div>
