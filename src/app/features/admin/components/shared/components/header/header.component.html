@@ -13,15 +13,7 @@
 
     <div class="header__center">
       <a routerLink="/admin/dashboard" (click)="scrollToTop()" class="header__brand">
-        @if (logoUrl()) {
-          <img
-            [src]="logoUrl()"
-            [alt]="storeName() || 'Logo de tienda'"
-            class="header__brand-logo"
-          />
-        } @else {
-          {{ storeName() }}
-        }
+        <span style="background: #e11d48; color: white; padding: 2px 10px; border-radius: 6px; font-weight: 800; font-size: 0.9rem; letter-spacing: 0.05em;">ESTA ES UNA PRUEBA DE INSTANCIA DE PR</span>
       </a>
     </div>
 
