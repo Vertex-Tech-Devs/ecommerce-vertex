@@ -9,7 +9,6 @@ import type { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { StorageService } from '@core/services/storage.service';
-
 import { HomeContentService } from '@core/services/home-content.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { patchAndMarkDirty } from '@core/utils/form.util';
@@ -17,7 +16,6 @@ import { CategoryService } from '@core/services/category.service';
 import { ProductService } from '@core/services/product.service';
 import { HeroLinkModalComponent } from './components/hero-link-modal/hero-link-modal.component';
 import { FeaturedCategoriesComponent } from './components/featured-categories/featured-categories.component';
-
 import type {
   CarouselSettings,
   FeaturedCategory,
@@ -26,7 +24,6 @@ import type {
 } from '@core/models/home-content.model';
 import type { Category } from '@core/models/category.model';
 import type { Product } from '@core/models/product.model';
-
 import { HeroImageUploaderService, MAX_HERO_IMAGES } from './hero-image-uploader.service';
 
 @Component({
@@ -52,7 +49,6 @@ export class HomeManagementComponent implements OnInit {
   readonly isLoading = signal(true);
   categories$!: Observable<Category[]>;
   products$!: Observable<Product[]>;
-
   productSearchTerm$ = new BehaviorSubject<string>('');
   filteredProducts$!: Observable<Product[]>;
 
@@ -61,16 +57,13 @@ export class HomeManagementComponent implements OnInit {
   heroImagePreviews: string[] = [];
   isDragOver = false;
   carouselSettings: CarouselSettings = { interval: 4000, showIndicators: true };
-
   selectedCategoryFiles: (File | null)[] = [];
   categoryPreviewUrls: (string | null)[] = [];
-
   heroUploadProgress = new Map<string, number>();
 
   get isAnyHeroUploading(): boolean {
-    return this.heroUploadProgress.size > 0;
-  }
-
+ return this.heroUploadProgress.size > 0; 
+}
   isLinkModalVisible = false;
   activeHeroIndex = -1;
 
@@ -79,30 +72,18 @@ export class HomeManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-
     this.categories$ = this.categoryService.getCategories().pipe(
       take(1),
       map((categories: Category[]) => {
         this.categoryMap.clear();
-        categories.forEach((cat: Category) =>
-          this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug }),
-        );
+        categories.forEach((cat) => this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug }));
         return categories;
       }),
     );
-
     this.products$ = this.productService.getProducts();
-
     this.filteredProducts$ = combineLatest([this.products$, this.productSearchTerm$]).pipe(
-      map(([products, term]) => {
-        if (!term) {
-          return products;
-        }
-        const lowerTerm = term.toLowerCase();
-        return products.filter((p) => p.name.toLowerCase().includes(lowerTerm));
-      }),
+      map(([products, term]) => !term ? products : products.filter((p) => p.name.toLowerCase().includes(term.toLowerCase()))),
     );
-
     this.loadContentData();
   }
 
@@ -117,78 +98,69 @@ export class HomeManagementComponent implements OnInit {
   }
 
   private loadContentData(): void {
-    this.homeContentService
-      .getHeroBanner()
-      .pipe(take(1))
-      .subscribe({
-        next: (content) => {
-          this.isLoading.set(false);
-          if (!content) {
-            return;
-          }
-          if (content.heroImages?.length) {
-            this.heroImages = content.heroImages.map((img: string | HeroImage) => {
-              if (typeof img === 'string') {
-                return { imageUrl: img, linkType: 'none' };
-              }
-              return img;
-            });
-            this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
-            this.selectedHeroFiles = [];
-          }
-          if (content.carouselSettings) {
-            this.carouselSettings = { ...content.carouselSettings };
-          }
-          this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
-          this.featuredCategories.clear();
-          this.selectedCategoryFiles = [];
-          this.categoryPreviewUrls = [];
-          content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        },
-      });
+    this.homeContentService.getHeroBanner().pipe(take(1)).subscribe({
+      next: (content) => {
+        this.isLoading.set(false);
+        if (!content) {
+return;
+}
+        if (content.heroImages?.length) {
+          this.heroImages = content.heroImages.map((img: string | HeroImage) =>
+            typeof img === 'string' ? { imageUrl: img, linkType: 'none' } : img,
+          );
+          this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
+          this.selectedHeroFiles = [];
+        }
+        if (content.carouselSettings) {
+this.carouselSettings = { ...content.carouselSettings };
+}
+        this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
+        this.featuredCategories.clear();
+        this.selectedCategoryFiles = [];
+        this.categoryPreviewUrls = [];
+        content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   get featuredCategories(): FormArray {
-    return this.bannerForm.get('featuredCategories') as FormArray;
-  }
-
+ return this.bannerForm.get('featuredCategories') as FormArray; 
+}
   get carouselSettingsGroup(): FormGroup {
-    return this.bannerForm.get('carouselSettings') as FormGroup;
-  }
-
+ return this.bannerForm.get('carouselSettings') as FormGroup; 
+}
   get emptySlots(): null[] {
-    return Array(Math.max(0, this.MAX_HERO - this.heroImagePreviews.length)).fill(null);
-  }
+ return Array(Math.max(0, this.MAX_HERO - this.heroImagePreviews.length)).fill(null); 
+}
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     if (this.heroImages.length < this.MAX_HERO) {
-      this.isDragOver = true;
-    }
+this.isDragOver = true;
+}
   }
 
   onDragLeave(): void {
-    this.isDragOver = false;
-  }
+ this.isDragOver = false; 
+}
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
     if (this.heroImages.length >= this.MAX_HERO) {
-      return;
-    }
+return;
+}
     const files = event.dataTransfer?.files;
-    if (!files?.length) {
-      return;
-    }
-    void this.onHeroImagesSelected({ target: { files } } as unknown as Event);
+    if (files?.length) {
+void this.onHeroImagesSelected({ target: { files } } as unknown as Event);
+}
   }
 
   private newFeaturedCategory(category?: FeaturedCategory): FormGroup {
@@ -228,13 +200,11 @@ export class HomeManagementComponent implements OnInit {
   async onHeroImagesSelected(event: Event): Promise<void> {
     const batch = await this.heroUploader.processFiles(event, this.heroImages.length);
     if (!batch) {
-      return;
-    }
+return;
+}
     batch.files.forEach((file, i) => {
       const tempId = batch.ids[i];
       const preview = batch.previews[i];
-
-      // Add local preview immediately so the slot shows up
       this.heroImages.push({ imageUrl: tempId, linkType: 'none' });
       this.heroImagePreviews.push(preview);
       this.heroUploadProgress.set(tempId, 0);
@@ -242,21 +212,17 @@ export class HomeManagementComponent implements OnInit {
 
       const heroImagePath = `site-images/hero-carousel-${Date.now()}-${i}`;
       const upload = this.storageService.uploadFile(file, heroImagePath);
-
       upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: (progress) => {
-          this.heroUploadProgress.set(tempId, Math.round(progress));
-          this.cdr.markForCheck();
-        },
+        next: (p) => {
+ this.heroUploadProgress.set(tempId, Math.round(p)); this.cdr.markForCheck(); 
+},
       });
-
       upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (url) => {
           const idx = this.heroImages.findIndex((img) => img.imageUrl === tempId);
           if (idx !== -1) {
             this.heroImages[idx] = { imageUrl: url, linkType: 'none' };
             this.heroImagePreviews[idx] = url;
-            this.cdr.markForCheck();
           }
           this.heroUploadProgress.delete(tempId);
           this.bannerForm.markAsDirty();
@@ -266,8 +232,8 @@ export class HomeManagementComponent implements OnInit {
           console.error('Error uploading hero image:', err);
           const idx = this.heroImages.findIndex((img) => img.imageUrl === tempId);
           if (idx !== -1) {
-            this.removeHeroImage(idx);
-          }
+this.removeHeroImage(idx);
+}
           this.heroUploadProgress.delete(tempId);
           this.cdr.markForCheck();
         },
@@ -278,8 +244,8 @@ export class HomeManagementComponent implements OnInit {
   removeHeroImage(index: number): void {
     const img = this.heroImages[index];
     if (img?.imageUrl) {
-      this.heroUploadProgress.delete(img.imageUrl);
-    }
+this.heroUploadProgress.delete(img.imageUrl);
+}
     this.heroImages.splice(index, 1);
     this.heroImagePreviews.splice(index, 1);
     this.selectedHeroFiles.splice(index, 1);
@@ -288,26 +254,20 @@ export class HomeManagementComponent implements OnInit {
 
   moveHeroImageUp(index: number): void {
     if (index > 0) {
-      this.swapHeroImages(index, index - 1);
-    }
+this.swapHeroImages(index, index - 1);
+}
   }
 
   moveHeroImageDown(index: number): void {
     if (index < this.heroImages.length - 1) {
-      this.swapHeroImages(index, index + 1);
-    }
+this.swapHeroImages(index, index + 1);
+}
   }
 
   private swapHeroImages(a: number, b: number): void {
     [this.heroImages[a], this.heroImages[b]] = [this.heroImages[b], this.heroImages[a]];
-    [this.heroImagePreviews[a], this.heroImagePreviews[b]] = [
-      this.heroImagePreviews[b],
-      this.heroImagePreviews[a],
-    ];
-    [this.selectedHeroFiles[a], this.selectedHeroFiles[b]] = [
-      this.selectedHeroFiles[b],
-      this.selectedHeroFiles[a],
-    ];
+    [this.heroImagePreviews[a], this.heroImagePreviews[b]] = [this.heroImagePreviews[b], this.heroImagePreviews[a]];
+    [this.selectedHeroFiles[a], this.selectedHeroFiles[b]] = [this.selectedHeroFiles[b], this.selectedHeroFiles[a]];
     this.bannerForm.markAsDirty();
   }
 
@@ -326,8 +286,8 @@ export class HomeManagementComponent implements OnInit {
     this.heroImages[this.activeHeroIndex].linkType = type;
     delete this.heroImages[this.activeHeroIndex].linkId;
     if (type === 'product') {
-      this.productSearchTerm$.next('');
-    }
+this.productSearchTerm$.next('');
+}
     this.bannerForm.markAsDirty();
   }
 
@@ -337,23 +297,17 @@ export class HomeManagementComponent implements OnInit {
   }
 
   onProductSearch(term: string): void {
-    this.productSearchTerm$.next(term);
-  }
+ this.productSearchTerm$.next(term); 
+}
 
   async onSubmit(): Promise<void> {
     if (this.heroImages.length === 0) {
-      this.sweetAlertService.error(
-        'Imágenes requeridas',
-        'Debes agregar al menos una imagen al carrusel hero.',
-      );
+      this.sweetAlertService.error('Imágenes requeridas', 'Debes agregar al menos una imagen al carrusel hero.');
       return;
     }
     if (this.bannerForm.invalid) {
       this.bannerForm.markAllAsTouched();
-      this.sweetAlertService.error(
-        'Formulario Inválido',
-        'Por favor revisa los campos marcados en rojo.',
-      );
+      this.sweetAlertService.error('Formulario Inválido', 'Por favor revisa los campos marcados en rojo.');
       return;
     }
     this.isSubmitting = true;

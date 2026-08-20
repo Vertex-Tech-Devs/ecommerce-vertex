@@ -1,9 +1,9 @@
 <section class="config-management-wrapper" aria-label="Configuración de la tienda">
   <div class="container-fluid my-4">
     <header class="dashboard__header text-center mb-5">
-      <h1 class="dashboard__title">Identidad de la Marca</h1>
+      <h1 class="dashboard__title">Identidad de la Marca y Sucursales</h1>
       <p class="text-soft mt-2">
-        Personalizá el nombre de tu comercio y la imagen representativa de tu pestaña web.
+        Personalizá los datos de tu comercio, favicon corporativo y la logística de retiro en local.
       </p>
       <hr />
     </header>
@@ -23,36 +23,27 @@
             </div>
           </div>
         </div>
-
-        <div class="glass-card mb-4 p-4">
-          <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
-          <div class="row g-4 align-items-center">
-            <div class="col-md-8">
-              <div class="skeleton-box skeleton-box--label mb-2"></div>
-              <div class="skeleton-box skeleton-box--input"></div>
-            </div>
-            <div class="col-md-4 text-center">
-              <div class="skeleton-box skeleton-box--preview mx-auto"></div>
-            </div>
-          </div>
-        </div>
       </div>
     } @else {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
         <div class="tab-content custom-tab-content mb-4">
-          <!-- Identidad Corporativa -->
           <div class="tab-pane active" role="tabpanel">
+            <!-- 1. Identidad Corporativa & Favicon -->
             <div class="glass-card card-identity mb-4">
               <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-shop me-2"></i> Identidad Corporativa
+                <i class="bi bi-shop me-2 text-primary"></i> Identidad Corporativa
               </div>
               <div class="card-body">
-                <div class="row g-4">
+                <div class="row g-4 align-items-center">
+                  <!-- Nombre del comercio -->
                   <div class="col-md-6">
-                    <label class="form-label text-label">Nombre del comercio</label>
+                    <label class="form-label text-label" for="storeNameInput">
+                      Nombre del comercio <span class="text-danger">*</span>
+                    </label>
                     <div class="input-group">
                       <span class="input-group-text"><i class="bi bi-building"></i></span>
                       <input
+                        id="storeNameInput"
                         formControlName="storeName"
                         type="text"
                         class="form-control glass-input"
@@ -60,57 +51,61 @@
                       />
                     </div>
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label text-label">Eslogan / Frase representativa</label>
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-chat-quote"></i></span>
-                      <input
-                        formControlName="tagline"
-                        type="text"
-                        class="form-control glass-input"
-                        placeholder="Tu tienda de confianza"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Favicon & Logo -->
-            <div class="glass-card card-branding mb-4">
-              <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-image me-2"></i> Favicon e Isotipo (Pestaña Web)
-              </div>
-              <div class="card-body">
-                <div class="row g-4 align-items-center">
-                  <div class="col-md-8">
-                    <label class="form-label text-label">URL del Favicon (.ico / .png)</label>
-                    <div class="input-group">
-                      <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
-                      <input
-                        formControlName="faviconUrl"
-                        type="url"
-                        class="form-control glass-input"
-                        placeholder="https://..."
-                      />
-                      <input
-                        type="file"
-                        #faviconFileInput
-                        (change)="onFaviconUpload($event)"
-                        accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
-                        style="display: none"
-                      />
-                      <button
-                        type="button"
-                        class="btn btn-outline-secondary glass-btn"
-                        (click)="faviconFileInput.click()"
-                        [disabled]="faviconUploading()"
-                      >
-                        <i class="bi bi-upload"></i> Subir
-                      </button>
+                  <!-- Favicon e Isotipo (Reubicado en lugar del eslogan) -->
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Favicon e Isotipo (Pestaña Web)</label>
+                    <div class="d-flex align-items-center gap-3">
+                      <!-- Visual preview box -->
+                      <div class="favicon-preview-avatar">
+                        @if (form.get('faviconUrl')?.value) {
+                          <img
+                            [src]="form.get('faviconUrl')?.value"
+                            alt="Favicon preview"
+                            class="favicon-thumb"
+                          />
+                        } @else {
+                          <i class="bi bi-browser-chrome text-muted fs-4"></i>
+                        }
+                      </div>
+
+                      <div class="d-flex flex-column gap-1 flex-grow-1">
+                        <input
+                          type="file"
+                          #faviconFileInput
+                          (change)="onFaviconUpload($event)"
+                          accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
+                          style="display: none"
+                        />
+                        <div class="d-flex align-items-center gap-2">
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                            (click)="faviconFileInput.click()"
+                            [disabled]="faviconUploading()"
+                          >
+                            <i class="bi bi-upload me-1"></i>
+                            {{ form.get('faviconUrl')?.value ? 'Cambiar icono' : 'Subir Favicon' }}
+                          </button>
+
+                          @if (form.get('faviconUrl')?.value) {
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm rounded-pill px-2"
+                              (click)="removeFavicon()"
+                              title="Eliminar favicon"
+                              aria-label="Eliminar favicon"
+                            >
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          }
+                        </div>
+                        <span class="text-muted text-xs">Recomendado: 32x32 o 64x64 px (.png o .ico)</span>
+                      </div>
                     </div>
+
                     @if (faviconUploading()) {
-                      <div class="progress mt-2" style="height: 6px">
+                      <div class="progress mt-2" style="height: 4px">
                         <div
                           class="progress-bar progress-bar-striped progress-bar-animated bg-success"
                           role="progressbar"
@@ -119,34 +114,18 @@
                       </div>
                     }
                   </div>
-                  <div class="col-md-4 text-center">
-                    <div class="favicon-preview-box">
-                      @if (form.get('faviconUrl')?.value) {
-                        <img
-                          [src]="form.get('faviconUrl')?.value"
-                          alt="Favicon preview"
-                          class="img-fluid favicon-img"
-                        />
-                      } @else {
-                        <div class="favicon-placeholder">
-                          <i class="bi bi-browser-chrome"></i>
-                          <span>Sin icono</span>
-                        </div>
-                      }
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
 
-            <!-- Métodos de Entrega -->
+            <!-- 2. Métodos de Entrega & Sucursales -->
             <div class="glass-card card-delivery card mb-4" formGroupName="deliveryMethods">
               <div class="card-header border-0 fw-bold d-flex align-items-center">
-                <i class="bi bi-truck me-2"></i> Métodos de Entrega
+                <i class="bi bi-truck me-2 text-info"></i> Métodos de Entrega y Logística
               </div>
               <div class="card-body">
                 <div class="glass-switches-container d-flex flex-column gap-4">
-                  <!-- Envío a Domicilio (A Coordinar) -->
+                  <!-- Envío a Domicilio -->
                   <div>
                     <div
                       class="form-check form-switch custom-glass-switch d-flex align-items-center gap-3 ps-0 mb-2"
@@ -162,8 +141,7 @@
                         class="form-check-label fw-bold text-white fs-6 cursor-pointer"
                         for="enableHomeDelivery"
                       >
-                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A
-                        Coordinar)
+                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A Coordinar)
                       </label>
                     </div>
 
@@ -207,8 +185,7 @@
                           class="form-check-label fw-bold text-white fs-6 cursor-pointer"
                           for="enableStorePickup"
                         >
-                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en el Local
-                          (Store Pickup)
+                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en Sucursal / Local
                         </label>
                       </div>
 
@@ -224,7 +201,7 @@
                     </div>
 
                     @if (deliveryMethodsGroup.get('enableStorePickup')?.value) {
-                      <div class="ms-md-5 mt-3" formArrayName="pickupLocations">
+                      <div class="ms-md-4 mt-3" formArrayName="pickupLocations">
                         @if (pickupLocationsArray.length === 0) {
                           <div
                             class="text-center p-4 border border-dashed rounded-3 border-secondary border-opacity-25 bg-dark bg-opacity-25"
@@ -235,7 +212,7 @@
                             </p>
                             <button
                               type="button"
-                              class="btn btn-outline-primary btn-sm"
+                              class="btn btn-outline-primary btn-sm rounded-pill"
                               (click)="addPickupLocation()"
                             >
                               <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
@@ -250,25 +227,22 @@
                             ) {
                               <div
                                 [formGroupName]="i"
-                                class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 shadow-sm"
+                                class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 p-md-4 shadow-sm"
                               >
-                                <!-- Fila 1: Nombre de la sucursal (#locationNameInput), Ciudad -->
-                                <div class="row g-3 mb-2">
+                                <!-- Fila 1: Nombre de la sucursal, Ciudad -->
+                                <div class="row g-3 mb-3">
                                   <div class="col-md-6">
                                     <label class="form-label text-label"
-                                      >Nombre de la sucursal
-                                      <span class="text-danger">*</span></label
+                                      >Nombre de la sucursal <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"
-                                        ><i class="bi bi-building"></i
-                                      ></span>
+                                      <span class="input-group-text"><i class="bi bi-building"></i></span>
                                       <input
                                         #locationNameInput
                                         type="text"
                                         formControlName="name"
                                         class="form-control glass-input"
-                                        placeholder="Ej: Sucursal Palermo"
+                                        placeholder="Ej: Casa Central Palermo"
                                       />
                                     </div>
                                   </div>
@@ -277,9 +251,7 @@
                                       >Ciudad <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"
-                                        ><i class="bi bi-geo-alt"></i
-                                      ></span>
+                                      <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
                                       <input
                                         type="text"
                                         formControlName="city"
@@ -290,59 +262,152 @@
                                   </div>
                                 </div>
 
-                                <!-- Fila 2: Dirección física completa, Horarios de atención -->
-                                <div class="row g-3 mb-2">
-                                  <div class="col-md-6">
+                                <!-- Fila 2: Dirección física completa -->
+                                <div class="row g-3 mb-3">
+                                  <div class="col-12">
                                     <label class="form-label text-label"
-                                      >Dirección física completa
-                                      <span class="text-danger">*</span></label
+                                      >Dirección física completa <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"
-                                        ><i class="bi bi-pin-map"></i
-                                      ></span>
+                                      <span class="input-group-text"><i class="bi bi-pin-map"></i></span>
                                       <input
                                         type="text"
                                         formControlName="address"
                                         class="form-control glass-input"
-                                        placeholder="Ej: Av. Corrientes 1234"
-                                      />
-                                    </div>
-                                  </div>
-                                  <div class="col-md-6">
-                                    <label class="form-label text-label"
-                                      >Horarios de atención
-                                      <span class="text-danger">*</span></label
-                                    >
-                                    <div class="input-group">
-                                      <span class="input-group-text"
-                                        ><i class="bi bi-clock"></i
-                                      ></span>
-                                      <input
-                                        type="text"
-                                        formControlName="schedule"
-                                        class="form-control glass-input"
-                                        placeholder="Ej: Lun a Vie 09:00 a 18:00 hs"
+                                        placeholder="Ej: Av. Corrientes 1234, Local 5"
                                       />
                                     </div>
                                   </div>
                                 </div>
 
-                                <!-- Fila 3: Instrucciones / Notas especiales de retiro -->
+                                <!-- Fila 3: Días de Atención (Pill buttons selector) -->
+                                <div class="mb-3">
+                                  <label class="form-label text-label d-block">
+                                    Días de atención para retiro <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="d-flex flex-wrap gap-2">
+                                    @for (day of weekDays; track day) {
+                                      <button
+                                        type="button"
+                                        class="btn btn-sm day-pill-btn"
+                                        [class.day-pill-btn--active]="isDaySelected(i, day)"
+                                        (click)="toggleDay(i, day)"
+                                      >
+                                        {{ day }}
+                                      </button>
+                                    }
+                                  </div>
+                                </div>
+
+                                <!-- Fila 4: Franjas horarias con intervalos de 30 min -->
+                                <div class="p-3 rounded-2 bg-black bg-opacity-25 border border-secondary border-opacity-10 mb-3">
+                                  <div class="row g-3 align-items-center mb-2">
+                                    <div class="col-12 col-md-3">
+                                      <span class="small fw-semibold text-white">
+                                        <i class="bi bi-clock me-1 text-primary"></i> Horario de atención:
+                                      </span>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                      <div class="input-group input-group-sm">
+                                        <span class="input-group-text">De</span>
+                                        <select
+                                          formControlName="timeFrom1"
+                                          class="form-select glass-input text-white"
+                                          (change)="syncSchedule(i)"
+                                        >
+                                          @for (slot of timeSlots; track slot) {
+                                            <option [value]="slot">{{ slot }}</option>
+                                          }
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div class="col-6 col-md-4">
+                                      <div class="input-group input-group-sm">
+                                        <span class="input-group-text">A</span>
+                                        <select
+                                          formControlName="timeTo1"
+                                          class="form-select glass-input text-white"
+                                          (change)="syncSchedule(i)"
+                                        >
+                                          @for (slot of timeSlots; track slot) {
+                                            <option [value]="slot">{{ slot }}</option>
+                                          }
+                                        </select>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Switch Horario Cortado / Turno Partido -->
+                                  <div class="form-check form-switch custom-glass-switch mt-2 mb-2">
+                                    <input
+                                      class="form-check-input"
+                                      type="checkbox"
+                                      role="switch"
+                                      [id]="'splitSwitch_' + i"
+                                      formControlName="hasSplitSchedule"
+                                      (change)="syncSchedule(i)"
+                                    />
+                                    <label class="form-check-label small text-soft cursor-pointer" [for]="'splitSwitch_' + i">
+                                      ¿Horario cortado / Turno partido?
+                                    </label>
+                                  </div>
+
+                                  @if (locGroup.get('hasSplitSchedule')?.value) {
+                                    <div class="row g-3 align-items-center mt-1 pt-2 border-top border-secondary border-opacity-10">
+                                      <div class="col-12 col-md-3">
+                                        <span class="small fw-semibold text-warning">
+                                          <i class="bi bi-sun me-1"></i> Segundo turno (Tarde):
+                                        </span>
+                                      </div>
+                                      <div class="col-6 col-md-4">
+                                        <div class="input-group input-group-sm">
+                                          <span class="input-group-text">De</span>
+                                          <select
+                                            formControlName="timeFrom2"
+                                            class="form-select glass-input text-white"
+                                            (change)="syncSchedule(i)"
+                                          >
+                                            @for (slot of timeSlots; track slot) {
+                                              <option [value]="slot">{{ slot }}</option>
+                                            }
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <div class="col-6 col-md-4">
+                                        <div class="input-group input-group-sm">
+                                          <span class="input-group-text">A</span>
+                                          <select
+                                            formControlName="timeTo2"
+                                            class="form-select glass-input text-white"
+                                            (change)="syncSchedule(i)"
+                                          >
+                                            @for (slot of timeSlots; track slot) {
+                                              <option [value]="slot">{{ slot }}</option>
+                                            }
+                                          </select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  }
+
+                                  <div class="mt-2 text-xs text-muted">
+                                    Formato resultante: <em>{{ locGroup.get('schedule')?.value }}</em>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 5: Notas especiales -->
                                 <div class="row g-3 mb-3">
                                   <div class="col-12">
-                                    <label class="form-label text-label"
-                                      >Instrucciones / Notas especiales de retiro</label
-                                    >
+                                    <label class="form-label text-label">
+                                      Instrucciones / Notas especiales de retiro
+                                    </label>
                                     <div class="input-group">
-                                      <span class="input-group-text"
-                                        ><i class="bi bi-info-circle"></i
-                                      ></span>
+                                      <span class="input-group-text"><i class="bi bi-info-circle"></i></span>
                                       <input
                                         type="text"
                                         formControlName="notes"
                                         class="form-control glass-input"
-                                        placeholder="Ej: Presentar DNI y número de pedido"
+                                        placeholder="Ej: Presentar DNI y número de orden"
                                       />
                                     </div>
                                   </div>
@@ -391,30 +456,6 @@
                     }
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Acceso directo a Gestión de Emails -->
-            <div
-              class="glass-card p-4 border border-info border-opacity-25 bg-dark bg-opacity-50 rounded-3 mb-4"
-            >
-              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div>
-                  <h6 class="mb-1 text-white d-flex align-items-center">
-                    <i class="bi bi-envelope-paper-fill me-2 text-info fs-5"></i>
-                    Gestión de Correos Transaccionales y Notificaciones
-                  </h6>
-                  <small class="text-soft">
-                    Configurá el remitente, plantillas HTML avanzadas y realizá envíos de prueba
-                    desde la sección centralizada.
-                  </small>
-                </div>
-                <a
-                  routerLink="/admin/email-management"
-                  class="btn btn-outline-info btn-sm px-3 py-2 fw-semibold"
-                >
-                  <i class="bi bi-envelope-paper-fill me-1"></i> Ir a Gestión de Emails →
-                </a>
               </div>
             </div>
           </div>

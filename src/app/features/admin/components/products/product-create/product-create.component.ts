@@ -1,21 +1,12 @@
-/* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import {
-  Component,
-  inject,
-  ViewChildren,
-  DestroyRef,
-  ChangeDetectorRef,
-  signal,
-} from '@angular/core';
+import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { Observable } from 'rxjs';
 import { startWith, take, BehaviorSubject } from 'rxjs';
-
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
 import type { ProductVariant } from '@core/models/product.model';
@@ -23,8 +14,7 @@ import type { Category } from '@core/models/category.model';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AttributeService } from '@core/services/attribute.service';
 import type { Attribute } from '@core/models/attribute.model';
-import { ProductVariantFormService } from './product-variant-form.service';
-import type { ProductFormValue } from './product-variant-form.service';
+import { ProductVariantFormService, type ProductFormValue } from './product-variant-form.service';
 import { ProductMediaService } from './product-media.service';
 
 @Component({
@@ -78,18 +68,12 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     const query = (this.variantSearchControl.value ?? '').trim().toLowerCase();
     const allControls = this.variants.controls;
     if (!query) {
-      return allControls;
-    }
+return allControls;
+}
     return allControls.filter((group) => {
-      const rawVal = group.value as {
-        id?: string;
-        stock?: number;
-        attributes?: Record<string, string>;
-      };
+      const rawVal = group.value as { id?: string; stock?: number; attributes?: Record<string, string> };
       const stockStr = String(rawVal.stock ?? '');
-      const attrValues = Object.values(rawVal.attributes ?? {})
-        .join(' ')
-        .toLowerCase();
+      const attrValues = Object.values(rawVal.attributes ?? {}).join(' ').toLowerCase();
       const idStr = String(rawVal.id ?? '').toLowerCase();
       return stockStr.includes(query) || attrValues.includes(query) || idStr.includes(query);
     });
@@ -101,88 +85,72 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   get pages(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
-
   get paginatedVariantsControls(): AbstractControl[] {
-    const filtered = this.filteredVariantsControls;
     const start = (this.currentPage - 1) * this.pageSize;
-    return filtered.slice(start, start + this.pageSize);
+    return this.filteredVariantsControls.slice(start, start + this.pageSize);
   }
-
   getVariantRealIndex(control: AbstractControl): number {
     return this.variants.controls.indexOf(control);
   }
 
+  get name(): AbstractControl {
+ return this.productForm.get('name')!; 
+}
+  get price(): AbstractControl {
+ return this.productForm.get('price')!; 
+}
+  get categoryId(): AbstractControl {
+ return this.productForm.get('categoryId')!; 
+}
+  get image(): AbstractControl {
+ return this.productForm.get('image')!; 
+}
+  get variants(): FormArray {
+ return this.productForm.get('variants') as FormArray; 
+}
+  get images(): FormArray {
+ return this.productForm.get('images') as FormArray; 
+}
+  get variantAttributes(): FormArray {
+ return this.productForm.get('variantAttributes') as FormArray; 
+}
+
   ngOnInit(): void {
     this.categories$ = this.categoryService.getCategories();
-    this.attributeService
-      .getAttributes()
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe((attrs) => {
-        this.attributesSubject.next(attrs);
-        this.cdr.markForCheck();
-      });
-    this.variantSearchControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        this.currentPage = 1;
-        this.cdr.markForCheck();
-      });
-    this.initializeForm();
+    this.attributeService.getAttributes().pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((attrs) => {
+      this.attributesSubject.next(attrs);
+      this.cdr.markForCheck();
+    });
+    this.variantSearchControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.currentPage = 1;
+      this.cdr.markForCheck();
+    });
+    this.productForm = this.variantFormService.createProductForm();
+    this.onAttributeSelectionChange();
     this.checkEditMode();
   }
 
   ngAfterViewInit(): void {
-    this.galleryInputs.changes
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
-        if (this.focusNewImage && queryList.last) {
-          queryList.last.nativeElement.focus();
-          this.focusNewImage = false;
-          this.cdr.markForCheck();
-        }
-      });
-
-    this.variantSelects.changes
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((queryList: QueryList<ElementRef<HTMLSelectElement>>) => {
-        if (!this.focusNewVariant) {
-          return;
-        }
-        const attrCount = this.variantAttributes.length;
-        const arr = queryList.toArray();
-        const targetIdx = arr.length - attrCount;
-        if (targetIdx >= 0 && arr[targetIdx]) {
-          arr[targetIdx].nativeElement.focus();
-        } else if (this.variantStocks.last) {
-          this.variantStocks.last.nativeElement.focus();
-        }
-        this.focusNewVariant = false;
+    this.galleryInputs.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((ql: QueryList<ElementRef<HTMLInputElement>>) => {
+      if (this.focusNewImage && ql.last) {
+        ql.last.nativeElement.focus();
+        this.focusNewImage = false;
         this.cdr.markForCheck();
-      });
-
-    this.variantStocks.changes
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((queryList: QueryList<ElementRef<HTMLInputElement>>) => {
-        if (this.focusNewVariant && this.variantSelects.length === 0 && queryList.last) {
-          queryList.last.nativeElement.focus();
-          this.focusNewVariant = false;
-          this.cdr.markForCheck();
-        }
-      });
-  }
-
-  private initializeForm(): void {
-    this.productForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      description: ['', [Validators.required, Validators.maxLength(500)]],
-      price: [null, [Validators.required, Validators.min(0.01)]],
-      categoryId: [null, Validators.required],
-      image: ['', [Validators.required]],
-      images: this.fb.array([]),
-      variantAttributes: this.fb.array([], Validators.required),
-      variants: this.fb.array([], Validators.required),
+      }
     });
-    this.onAttributeSelectionChange();
+    this.variantSelects.changes.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((ql: QueryList<ElementRef<HTMLSelectElement>>) => {
+      if (!this.focusNewVariant) {
+return;
+}
+      const targetIdx = ql.toArray().length - this.variantAttributes.length;
+      if (targetIdx >= 0 && ql.toArray()[targetIdx]) {
+        ql.toArray()[targetIdx].nativeElement.focus();
+      } else if (this.variantStocks.last) {
+        this.variantStocks.last.nativeElement.focus();
+      }
+      this.focusNewVariant = false;
+      this.cdr.markForCheck();
+    });
   }
 
   private checkEditMode(): void {
@@ -195,129 +163,48 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
   private loadProductForEdit(id: string): void {
     this.isLoadingProduct.set(true);
-    this.productService
-      .getProductWithVariants(id)
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (data) => {
-          this.isLoadingProduct.set(false);
-          if (!data) {
-            this.sweetAlertService.error('Error', 'Producto no encontrado.');
-            void this.router.navigate(['/admin/products']);
-            return;
-          }
-          const { product, variants } = data;
-          this.initialVariants = variants;
-          this.pageTitle = `Editar: ${product.name}`;
-          this.productForm.patchValue({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            categoryId: product.categoryId,
-            image: product.image,
-          });
-          const imageControls = (product.images ?? []).map((img) =>
-            this.fb.control(img, [Validators.required, Validators.pattern('https?://.+')]),
-          );
-          this.productForm.setControl('images', this.fb.array(imageControls));
-
-          const attributeControls = (product.variantAttributes ?? []).map((attrId) =>
-            this.fb.control(attrId),
-          );
-          this.productForm.setControl('variantAttributes', this.fb.array(attributeControls), {
-            emitEvent: false,
-          });
-
-          const variantControls = variants.map((v) =>
-            this.variantFormService.createVariantGroup(product.variantAttributes ?? [], v),
-          );
-          this.productForm.setControl('variants', this.fb.array(variantControls), {
-            emitEvent: false,
-          });
-
-          this.productForm.updateValueAndValidity();
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.isLoadingProduct.set(false);
-          this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
+    this.productService.getProductWithVariants(id).pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (data) => {
+        this.isLoadingProduct.set(false);
+        if (!data) {
+          this.sweetAlertService.error('Error', 'Producto no encontrado.');
           void this.router.navigate(['/admin/products']);
-        },
-      });
-  }
-
-  get name(): AbstractControl {
-    return this.productForm.get('name')!;
-  }
-  get price(): AbstractControl {
-    return this.productForm.get('price')!;
-  }
-  get categoryId(): AbstractControl {
-    return this.productForm.get('categoryId')!;
-  }
-  get image(): AbstractControl {
-    return this.productForm.get('image')!;
-  }
-  get variants(): FormArray {
-    return this.productForm.get('variants') as FormArray;
-  }
-  get images(): FormArray {
-    return this.productForm.get('images') as FormArray;
-  }
-  get variantAttributes(): FormArray {
-    return this.productForm.get('variantAttributes') as FormArray;
+          return;
+        }
+        this.initialVariants = data.variants;
+        this.pageTitle = `Editar: ${data.product.name}`;
+        this.variantFormService.populateEditForm(this.productForm, data.product, data.variants);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.isLoadingProduct.set(false);
+        this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
+        void this.router.navigate(['/admin/products']);
+      },
+    });
   }
 
   onAttributeSelectionChange(): void {
     this.variantAttributes.valueChanges
-      .pipe(
-        startWith(this.variantAttributes.value as string[]),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(startWith(this.variantAttributes.value as string[]), takeUntilDestroyed(this.destroyRef))
       .subscribe((selectedIds: string[] | null) => {
-        const ids = selectedIds ?? [];
-        this.variants.controls.forEach((control) => {
-          const attributesGroup = control.get('attributes') as FormGroup | null;
-          if (!attributesGroup?.controls) {
-            return;
-          }
-          const currentIds = Object.keys(attributesGroup.controls);
-          currentIds
-            .filter((id) => !ids.includes(id))
-            .forEach((id) => attributesGroup.removeControl(id));
-          ids
-            .filter((id) => !currentIds.includes(id))
-            .forEach((id) => {
-              attributesGroup.addControl(id, this.fb.control(null, Validators.required));
-            });
-        });
+        this.variantFormService.syncVariantAttributes(this.variants.controls as FormGroup[], selectedIds ?? []);
         this.cdr.markForCheck();
       });
   }
 
   onAttributeCheckboxChange(event: Event, attrId: string): void {
     const isChecked = (event.target as HTMLInputElement).checked;
+    const current = (this.variantAttributes.value as string[]) ?? [];
     if (isChecked) {
-      if (!(this.variantAttributes.value as string[]).includes(attrId)) {
+      if (!current.includes(attrId)) {
         this.variantAttributes.push(this.fb.control(attrId));
       }
-      this.variants.controls.forEach((control) => {
-        const attributesGroup = control.get('attributes') as FormGroup | null;
-        if (attributesGroup && !attributesGroup.contains(attrId)) {
-          attributesGroup.addControl(attrId, this.fb.control(null, Validators.required));
-        }
-      });
-      return;
-    }
-    const index = (this.variantAttributes.value as string[]).indexOf(attrId);
-    if (index > -1) {
-      this.variantAttributes.removeAt(index);
-      this.variants.controls.forEach((control) => {
-        const attributesGroup = control.get('attributes') as FormGroup | null;
-        if (attributesGroup?.contains(attrId)) {
-          attributesGroup.removeControl(attrId);
-        }
-      });
+    } else {
+      const idx = current.indexOf(attrId);
+      if (idx > -1) {
+        this.variantAttributes.removeAt(idx);
+      }
     }
   }
 
@@ -329,10 +216,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   async createAttribute(): Promise<void> {
     const name = this.newAttributeName.trim();
     if (!name || name.length < 2) {
-      this.sweetAlertService.warning(
-        'Aviso',
-        'El nombre del atributo debe tener al menos 2 caracteres.',
-      );
+      this.sweetAlertService.warning('Aviso', 'El nombre del atributo debe tener al menos 2 caracteres.');
       return;
     }
     try {
@@ -340,13 +224,10 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       this.sweetAlertService.success('¡Éxito!', 'Atributo creado.');
       this.newAttributeName = '';
       this.showAttributeForm = false;
-      this.attributeService
-        .getAttributes()
-        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-        .subscribe((a) => {
-          this.attributesSubject.next(a);
-          this.cdr.markForCheck();
-        });
+      this.attributeService.getAttributes().pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe((a) => {
+        this.attributesSubject.next(a);
+        this.cdr.markForCheck();
+      });
     } catch {
       this.sweetAlertService.error('Error', 'No se pudo crear el atributo.');
     }
@@ -354,123 +235,35 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
   getFirstActiveAttributeId(attributes: Attribute[]): string | null {
     const selectedIds = this.variantAttributes.value as string[];
-    const firstSelected = attributes.find((a) => a.id && selectedIds.includes(a.id));
-    return firstSelected?.id ?? null;
+    return attributes.find((a) => a.id && selectedIds.includes(a.id))?.id ?? null;
   }
 
   addVariant(variant?: ProductVariant): void {
     this.focusNewVariant = true;
-    this.variants.push(
-      this.variantFormService.createVariantGroup(this.variantAttributes.value, variant),
-    );
+    this.variants.push(this.variantFormService.createVariantGroup(this.variantAttributes.value, variant));
     this.currentPage = this.totalPages;
     this.cdr.markForCheck();
   }
 
   async removeVariant(index: number, event?: Event): Promise<void> {
     if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    // Guardar posición exacta del scroll
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-
-    const isConfirmed = await this.sweetAlertService.confirm(
-      '¿Estás seguro?',
-      '¿Estás seguro de eliminar la variante?',
-    );
+ event.preventDefault(); event.stopPropagation(); 
+}
+    const isConfirmed = await this.sweetAlertService.confirm('¿Estás seguro?', '¿Estás seguro de eliminar la variante?');
     if (!isConfirmed) {
-      return;
-    }
-
+return;
+}
     this.variants.removeAt(index);
     if (this.currentPage > this.totalPages) {
-      this.currentPage = Math.max(1, this.totalPages);
-    }
+this.currentPage = Math.max(1, this.totalPages);
+}
     this.cdr.detectChanges();
-
-    // Restaurar el scroll de inmediato y colocar el foco en la variante continua o botón manual
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-      const targetIndex = Math.min(index, this.variants.length - 1);
-      if (targetIndex >= 0) {
-        const targetRow = document.getElementById(`variant-row-${targetIndex}`);
-        const focusable = targetRow?.querySelector<HTMLElement>('input, select, button');
-        if (focusable) {
-          focusable.focus({ preventScroll: true });
-        } else if (targetRow) {
-          targetRow.focus({ preventScroll: true });
-        }
-      } else {
-        const manualBtn = document.getElementById('btn-add-variant-manual');
-        manualBtn?.focus({ preventScroll: true });
-      }
-      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
-    });
-  }
-
-  generateVariantCombinations(): void {
-    this.attributes$
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe((allAttributes) => {
-        const selectedIds = this.variantAttributes.value as string[];
-        if (!selectedIds.length) {
-          this.sweetAlertService.warning('Aviso', 'Selecciona al menos un atributo primero.');
-          return;
-        }
-        const selectedAttrs = allAttributes.filter((a) => a.id && selectedIds.includes(a.id));
-        if (!selectedAttrs.length) {
-          this.sweetAlertService.error('Error', 'No se encontraron los atributos seleccionados.');
-          return;
-        }
-        const combos = this.variantFormService.generateCombinations(selectedAttrs);
-        if (!combos.length) {
-          this.sweetAlertService.warning(
-            'Aviso',
-            'No se pueden generar combinaciones con los atributos seleccionados.',
-          );
-          return;
-        }
-        const limitedCombos = combos.slice(0, 20);
-        this.variants.clear();
-        this.currentPage = 1;
-        limitedCombos.forEach((combo) => {
-          const attributesGroup = this.fb.group({});
-          Object.entries(combo).forEach(([id, val]) => {
-            attributesGroup.addControl(id, this.fb.control(val ?? null, Validators.required));
-          });
-          this.variants.push(
-            this.fb.group({
-              id: [null],
-              attributes: attributesGroup,
-              stock: [0, [Validators.required, Validators.min(0)]],
-            }),
-          );
-        });
-        this.sweetAlertService.success(
-          '¡Éxito!',
-          `Se generaron ${limitedCombos.length} variantes.`,
-        );
-        this.cdr.markForCheck();
-        setTimeout(() => {
-          const firstSelect = this.variantSelects.first;
-          if (firstSelect) {
-            firstSelect.nativeElement.focus();
-          }
-        });
-      });
   }
 
   addImage(imageUrl: string = ''): void {
-    if (this.images.length > 0) {
-      const lastControl = this.images.at(this.images.length - 1);
-      if (!lastControl.value) {
-        this.sweetAlertService.warning(
-          'Advertencia',
-          'Debes cargar la imagen actual antes de solicitar otra.',
-        );
-        return;
-      }
+    if (this.images.length > 0 && !this.images.at(this.images.length - 1).value) {
+      this.sweetAlertService.warning('Advertencia', 'Debes cargar la imagen actual antes de solicitar otra.');
+      return;
     }
     this.focusNewImage = true;
     this.images.push(this.mediaService.createImageControl(this.fb, imageUrl));
@@ -478,75 +271,46 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   async removeImage(index: number): Promise<void> {
-    const removed = await this.mediaService.confirmRemoveImage(this.images, index);
-    if (removed) {
-      this.cdr.markForCheck();
-    }
+    if (await this.mediaService.confirmRemoveImage(this.images, index)) {
+this.cdr.markForCheck();
+}
   }
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) {
-      return;
-    }
+return;
+}
     this.uploadProgress = 0;
     this.cdr.markForCheck();
-    this.mediaService
-      .uploadMainImage(
-        file,
-        this.productId ?? 'new',
-        (p) => {
-          this.uploadProgress = p;
-          this.cdr.markForCheck();
-        },
-        (url) => {
-          this.productForm.get('image')?.setValue(url);
-          this.uploadProgress = null;
-          this.cdr.markForCheck();
-        },
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        // Si el upload falla (permisos/red), limpiar el estado para no dejar
-        // el "Subiendo (0%)..." colgado ni bloquear el guardado.
-        error: () => {
-          this.uploadProgress = null;
-          this.cdr.markForCheck();
-        },
-      });
+    this.mediaService.uploadMainImage(file, this.productId ?? 'new', (p) => {
+ this.uploadProgress = p; this.cdr.markForCheck(); 
+}, (url) => {
+      this.productForm.get('image')?.setValue(url);
+      this.uploadProgress = null;
+      this.cdr.markForCheck();
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
+ this.uploadProgress = null; this.cdr.markForCheck(); 
+} });
   }
 
   onGalleryFileSelected(event: Event, index: number): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     const control = this.images.at(index);
     if (!file || !control) {
-      return;
-    }
+return;
+}
     this.galleryUploadProgress[index] = 0;
     this.cdr.markForCheck();
-    this.mediaService
-      .uploadGalleryImage(
-        file,
-        this.productId ?? 'new',
-        index,
-        (idx, p) => {
-          this.galleryUploadProgress[idx] = p;
-          this.cdr.markForCheck();
-        },
-        (url) => {
-          control.setValue(url);
-          this.galleryUploadProgress[index] = null;
-          this.cdr.markForCheck();
-        },
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        // Limpiar el progreso de la galería si el upload falla.
-        error: () => {
-          this.galleryUploadProgress[index] = null;
-          this.cdr.markForCheck();
-        },
-      });
+    this.mediaService.uploadGalleryImage(file, this.productId ?? 'new', index, (idx, p) => {
+ this.galleryUploadProgress[idx] = p; this.cdr.markForCheck(); 
+}, (url) => {
+      control.setValue(url);
+      this.galleryUploadProgress[index] = null;
+      this.cdr.markForCheck();
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ error: () => {
+ this.galleryUploadProgress[index] = null; this.cdr.markForCheck(); 
+} });
   }
 
   async onSubmit(): Promise<void> {
@@ -559,31 +323,15 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
     const formValue = this.productForm.value as ProductFormValue;
     try {
       if (this.isEditMode && this.productId) {
-        const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(
-          formValue.variants,
-          this.initialVariants,
-        );
-        const { name, description, price, categoryId, image, images, variantAttributes } =
-          formValue;
-        await this.productService.updateProductWithVariants(
-          this.productId,
-          { name, description, price, categoryId, image, images, variantAttributes },
-          toUpdate,
-          toAdd,
-          toDelete,
-        );
+        const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(formValue.variants, this.initialVariants);
+        const { name, description, price, categoryId, image, images, variantAttributes } = formValue;
+        await this.productService.updateProductWithVariants(this.productId, { name, description, price, categoryId, image, images, variantAttributes }, toUpdate, toAdd, toDelete);
         this.sweetAlertService.success('¡Éxito!', 'Producto actualizado.');
         void this.router.navigate(['/admin/products', this.productId]);
       } else {
         const productData = this.variantFormService.buildProductData(formValue);
-        const variantsData = formValue.variants.map((v) => ({
-          attributes: v.attributes,
-          stock: v.stock,
-        }));
-        const newId = await this.productService.createProductWithVariants(
-          productData,
-          variantsData,
-        );
+        const variantsData = formValue.variants.map((v) => ({ attributes: v.attributes, stock: v.stock }));
+        const newId = await this.productService.createProductWithVariants(productData, variantsData);
         this.sweetAlertService.success('¡Éxito!', 'Producto creado.');
         void this.router.navigate(['/admin/products', newId]);
       }
@@ -597,8 +345,6 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   onCancel(): void {
-    void this.router.navigate(
-      this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products'],
-    );
+    void this.router.navigate(this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products']);
   }
 }

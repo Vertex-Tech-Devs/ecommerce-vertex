@@ -36,7 +36,7 @@
       <section class="about__section" aria-label="Misión y Visión">
         <h2 class="about__section-title">{{ pageData.cardsSectionTitle }}</h2>
         <div class="about__cards-grid">
-          @for (card of pageData.featureCards; track $index; let i = $index) {
+          @for (card of pageData.featureCards.slice(0, 3); track $index; let i = $index) {
             <article class="about-card">
               <i
                 [class]="

@@ -23,6 +23,7 @@ import {
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
+import { generateShortId } from '@core/utils/id-generator';
 import { StorageService } from './storage.service';
 import { shareReplay } from 'rxjs/operators';
 
@@ -53,6 +54,22 @@ export class ProductService {
       const data$ = (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
         shareReplay({ bufferSize: 1, refCount: true }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
+        map((products) =>
+          [...products].sort((a, b) => {
+            const dateA =
+              a.createdAt instanceof Date
+                ? a.createdAt.getTime()
+                : new Date(a.createdAt).getTime() || 0;
+            const dateB =
+              b.createdAt instanceof Date
+                ? b.createdAt.getTime()
+                : new Date(b.createdAt).getTime() || 0;
+            if (dateA && dateB) {
+return dateB - dateA;
+}
+            return (a.name || '').localeCompare(b.name || '');
+          }),
+        ),
         catchError((err) => {
           console.warn('Unable to load products:', err);
           return of([]);
@@ -135,7 +152,8 @@ export class ProductService {
     variants: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[],
   ): Promise<string> {
     const batch = writeBatch(this.firestore);
-    const newProductRef = doc(this.collectionRef);
+    const productId = generateShortId(8);
+    const newProductRef = doc(this.collectionRef, productId);
 
     batch.set(newProductRef, {
       ...(product as Record<string, unknown>),
@@ -143,7 +161,8 @@ export class ProductService {
     } as unknown as WithFieldValue<Omit<Product, 'id'>>);
 
     variants.forEach((variantData) => {
-      const newVariantRef = doc(collection(newProductRef, 'variants'));
+      const variantId = generateShortId(8);
+      const newVariantRef = doc(collection(newProductRef, 'variants'), variantId);
       const variantWithId = {
         ...variantData,
         productId: newProductRef.id,
@@ -176,7 +195,8 @@ export class ProductService {
     });
 
     variantsToAdd.forEach((variantData) => {
-      const newVariantRef = doc(variantsCollectionRef);
+      const variantId = generateShortId(8);
+      const newVariantRef = doc(variantsCollectionRef, variantId);
       const variantWithId = {
         ...variantData,
         productId,
@@ -229,7 +249,7 @@ export class ProductService {
       const q = query(
         this.collectionRef,
         storeIdFilter(),
-        where('totalStock', '>', 0),
+        where('totalStock', '>=', 0),
         where('totalStock', '<=', threshold),
         orderBy('totalStock', 'asc'),
       );

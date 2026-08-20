@@ -1,10 +1,10 @@
 import type { OnInit, OnDestroy } from '@angular/core';
-import { Component, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import type { Subscription } from 'rxjs';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import type { Subscription , Observable} from 'rxjs';
+import { of } from 'rxjs';
+import { map, catchError, shareReplay } from 'rxjs/operators';
 
 import { ClientService } from '../../../../../core/services/client.service';
 import type { Client } from '../../../../../core/models/client.model';
@@ -13,69 +13,61 @@ import type { Order } from '../../../../../core/models/order.model';
 @Component({
   selector: 'app-client-details',
   standalone: true,
-  imports: [CommonModule, RouterModule, DatePipe],
+  imports: [CommonModule, RouterModule, DatePipe, CurrencyPipe],
   templateUrl: './client-details.component.html',
   styleUrl: './client-details.component.scss',
 })
 export class ClientDetailsComponent implements OnInit, OnDestroy {
   clientEmail: string | null = null;
-  clientDetails: Client | undefined;
+  client$!: Observable<Client | undefined>;
   clientOrders$!: Observable<Order[]>;
+  totalSpent$!: Observable<number>;
+  isLoading = signal(true);
 
   private routeSubscription: Subscription | undefined;
-  private clientSubscription: Subscription | undefined;
-
   private _route = inject(ActivatedRoute);
   private _router = inject(Router);
   private _clientService = inject(ClientService);
 
   ngOnInit(): void {
-    this.routeSubscription = this._route.paramMap
-      .pipe(
-        switchMap((params) => {
-          this.clientEmail = params.get('email');
-          if (this.clientEmail) {
-            this.loadClientDetails(this.clientEmail);
-            return this._clientService.getOrdersByClientEmail(this.clientEmail);
-          } else {
-            console.warn('No se encontró el email del cliente en la URL.');
-            void this._router.navigate(['/admin/customers']);
-            return new Observable<Order[]>();
-          }
-        }),
-      )
-      .subscribe(
-        (orders) => {
-          this.clientOrders$ = new Observable((observer) => {
-            observer.next(orders);
-            observer.complete();
-          });
-        },
-        (error) => console.error('Error al cargar los pedidos del cliente:', error),
-      );
-  }
+    this.routeSubscription = this._route.paramMap.subscribe((params) => {
+      this.clientEmail = params.get('email');
+      if (this.clientEmail) {
+        this.isLoading.set(true);
+        this.client$ = this._clientService.getClientByEmail(this.clientEmail).pipe(
+          shareReplay({ bufferSize: 1, refCount: true }),
+          catchError((err) => {
+            console.error('Error loading client:', err);
+            return of(undefined);
+          }),
+        );
 
-  loadClientDetails(email: string): void {
-    this.clientSubscription = this._clientService.getClients().subscribe({
-      next: (clients) => {
-        this.clientDetails = clients.find((client) => client.email === email);
-        if (!this.clientDetails) {
-          console.warn(`Cliente con email ${email} no encontrado.`);
-          void this._router.navigate(['/admin/customers']);
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar detalles del cliente:', err);
-      },
+        this.clientOrders$ = this._clientService.getOrdersByClientEmail(this.clientEmail).pipe(
+          shareReplay({ bufferSize: 1, refCount: true }),
+          catchError((err) => {
+            console.error('Error loading client orders:', err);
+            return of([]);
+          }),
+        );
+
+        this.totalSpent$ = this.clientOrders$.pipe(
+          map((orders) => orders.reduce((sum, o) => sum + (o.total || 0), 0)),
+        );
+
+        this.isLoading.set(false);
+      } else {
+        console.warn('No se encontró el email del cliente en la URL.');
+        void this._router.navigate(['/admin/customers']);
+      }
     });
   }
 
   ngOnDestroy(): void {
     this.routeSubscription?.unsubscribe();
-    this.clientSubscription?.unsubscribe();
   }
 
   goBackToList(): void {
     void this._router.navigate(['/admin/customers']);
   }
 }
+

@@ -29,7 +29,21 @@ export class OrderService {
   }
 
   getOrders(): Observable<Order[]> {
-    return this.firestoreService.getAll(this.collectionName);
+    return this.firestoreService.getAll(this.collectionName).pipe(
+      map((orders) =>
+        [...orders].sort((a, b) => {
+          const dateA =
+            a.orderDate instanceof Date
+              ? a.orderDate.getTime()
+              : new Date(a.orderDate).getTime() || 0;
+          const dateB =
+            b.orderDate instanceof Date
+              ? b.orderDate.getTime()
+              : new Date(b.orderDate).getTime() || 0;
+          return dateB - dateA;
+        }),
+      ),
+    );
   }
 
   getOrderById(id: string): Observable<Order | undefined> {
@@ -98,15 +112,21 @@ export class OrderService {
       const q = query(
         this.collectionRef,
         storeIdFilter(),
-        where('status', 'in', ['pending', 'processing']),
+        where('status', 'in', ['pending', 'processing', 'paid', 'ready_for_pickup']),
       );
       return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
         map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
         map((orders) =>
           orders.sort((a, b) => {
-            const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : 0;
-            const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : 0;
-            return dateA - dateB;
+            const dateA =
+              a.orderDate instanceof Date
+                ? a.orderDate.getTime()
+                : new Date(a.orderDate).getTime() || 0;
+            const dateB =
+              b.orderDate instanceof Date
+                ? b.orderDate.getTime()
+                : new Date(b.orderDate).getTime() || 0;
+            return dateB - dateA;
           }),
         ),
         catchError((err) => {

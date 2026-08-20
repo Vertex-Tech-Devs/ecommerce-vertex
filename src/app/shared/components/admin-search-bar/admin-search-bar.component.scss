@@ -1,0 +1,46 @@
+.admin-search-bar {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  &__icon {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding-left: 0.85rem;
+    padding-right: 0.4rem;
+  }
+
+  &__input {
+    background: transparent;
+    border: none;
+    color: #f8fafc;
+    font-size: 0.925rem;
+    padding-left: 0.25rem;
+    box-shadow: none !important;
+
+    &::placeholder {
+      color: #64748b;
+    }
+  }
+
+  &__clear {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 0.375rem 0.75rem;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: #f1f5f9;
+    }
+  }
+}
