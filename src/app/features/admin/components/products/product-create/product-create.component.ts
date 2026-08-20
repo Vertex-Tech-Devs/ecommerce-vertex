@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
@@ -58,6 +58,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   isEditMode = false;
   productId: string | null = null;
   pageTitle = 'Crear Nuevo Producto';
+  readonly isLoadingProduct = signal(false);
   uploadProgress: number | null = null;
   galleryUploadProgress: Record<number, number | null> = {};
   private initialVariants: ProductVariant[] = [];
@@ -186,11 +187,13 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   }
 
   private loadProductForEdit(id: string): void {
+    this.isLoadingProduct.set(true);
     this.productService
       .getProductWithVariants(id)
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
+          this.isLoadingProduct.set(false);
           if (!data) {
             this.sweetAlertService.error('Error', 'Producto no encontrado.');
             void this.router.navigate(['/admin/products']);
@@ -229,6 +232,7 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
           this.cdr.markForCheck();
         },
         error: () => {
+          this.isLoadingProduct.set(false);
           this.sweetAlertService.error('Error', 'No se pudo cargar el producto.');
           void this.router.navigate(['/admin/products']);
         },
@@ -263,14 +267,18 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         startWith(this.variantAttributes.value as string[]),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((selectedIds: string[]) => {
+      .subscribe((selectedIds: string[] | null) => {
+        const ids = selectedIds ?? [];
         this.variants.controls.forEach((control) => {
-          const attributesGroup = control.get('attributes') as FormGroup;
+          const attributesGroup = control.get('attributes') as FormGroup | null;
+          if (!attributesGroup?.controls) {
+            return;
+          }
           const currentIds = Object.keys(attributesGroup.controls);
           currentIds
-            .filter((id) => !selectedIds.includes(id))
+            .filter((id) => !ids.includes(id))
             .forEach((id) => attributesGroup.removeControl(id));
-          selectedIds
+          ids
             .filter((id) => !currentIds.includes(id))
             .forEach((id) => {
               attributesGroup.addControl(id, this.fb.control(null, Validators.required));
@@ -283,12 +291,26 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
   onAttributeCheckboxChange(event: Event, attrId: string): void {
     const isChecked = (event.target as HTMLInputElement).checked;
     if (isChecked) {
-      this.variantAttributes.push(this.fb.control(attrId));
+      if (!(this.variantAttributes.value as string[]).includes(attrId)) {
+        this.variantAttributes.push(this.fb.control(attrId));
+      }
+      this.variants.controls.forEach((control) => {
+        const attributesGroup = control.get('attributes') as FormGroup | null;
+        if (attributesGroup && !attributesGroup.contains(attrId)) {
+          attributesGroup.addControl(attrId, this.fb.control(null, Validators.required));
+        }
+      });
       return;
     }
     const index = (this.variantAttributes.value as string[]).indexOf(attrId);
     if (index > -1) {
       this.variantAttributes.removeAt(index);
+      this.variants.controls.forEach((control) => {
+        const attributesGroup = control.get('attributes') as FormGroup | null;
+        if (attributesGroup?.contains(attrId)) {
+          attributesGroup.removeControl(attrId);
+        }
+      });
     }
   }
 
@@ -343,14 +365,8 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
       event.preventDefault();
       event.stopPropagation();
     }
-    // Grabar posición real de la sección de variantes antes de abrir el modal SweetAlert
-    const targetElement = event?.target as HTMLElement | null;
-    const variantRow =
-      targetElement?.closest('.variant-action-item') ??
-      targetElement?.closest('.glass-card-subtle');
-    const targetScrollY = variantRow
-      ? variantRow.getBoundingClientRect().top + window.scrollY - 100
-      : window.scrollY;
+    // Guardar posición exacta del scroll
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
 
     const isConfirmed = await this.sweetAlertService.confirm(
       '¿Estás seguro?',
@@ -362,19 +378,28 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
 
     this.variants.removeAt(index);
     if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages;
+      this.currentPage = Math.max(1, this.totalPages);
     }
-    this.cdr.markForCheck();
+    this.cdr.detectChanges();
 
-    // Restaurar el scroll y el foco de teclado tras el cierre del modal SweetAlert
-    setTimeout(() => {
-      window.scrollTo({ top: Math.max(0, targetScrollY), behavior: 'instant' as ScrollBehavior });
-      const targetId = `variant-row-${Math.max(0, index - 1)}`;
-      const targetEl = document.getElementById(targetId);
-      if (targetEl) {
-        (targetEl as HTMLElement).focus({ preventScroll: true });
+    // Restaurar el scroll de inmediato y colocar el foco en la variante continua o botón manual
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+      const targetIndex = Math.min(index, this.variants.length - 1);
+      if (targetIndex >= 0) {
+        const targetRow = document.getElementById(`variant-row-${targetIndex}`);
+        const focusable = targetRow?.querySelector<HTMLElement>('input, select, button');
+        if (focusable) {
+          focusable.focus({ preventScroll: true });
+        } else if (targetRow) {
+          targetRow.focus({ preventScroll: true });
+        }
+      } else {
+        const manualBtn = document.getElementById('btn-add-variant-manual');
+        manualBtn?.focus({ preventScroll: true });
       }
-    }, 60);
+      window.scrollTo({ top: scrollY, behavior: 'instant' as ScrollBehavior });
+    });
   }
 
   generateVariantCombinations(): void {
@@ -403,10 +428,14 @@ export class ProductCreateComponent implements OnInit, AfterViewInit {
         this.variants.clear();
         this.currentPage = 1;
         limitedCombos.forEach((combo) => {
+          const attributesGroup = this.fb.group({});
+          Object.entries(combo).forEach(([id, val]) => {
+            attributesGroup.addControl(id, this.fb.control(val ?? null, Validators.required));
+          });
           this.variants.push(
             this.fb.group({
               id: [null],
-              attributes: this.fb.group(combo, Validators.required),
+              attributes: attributesGroup,
               stock: [0, [Validators.required, Validators.min(0)]],
             }),
           );

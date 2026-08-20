@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { OrderConfirmationComponent } from './order-confirmation.component';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
+import { CartService } from '@core/services/cart.service';
 import type { Order } from '@core/models/order.model';
 import type { StoreConfig } from '@core/models/store-config.model';
 
@@ -15,6 +16,7 @@ describe('OrderConfirmationComponent', () => {
   let fixture: ComponentFixture<OrderConfirmationComponent>;
   let orderServiceSpy: jasmine.SpyObj<OrderService>;
   let storeConfigServiceSpy: jasmine.SpyObj<StoreConfigService>;
+  let cartServiceSpy: jasmine.SpyObj<CartService>;
   let mockStoreConfigSignal: WritableSignal<StoreConfig | null>;
 
   const mockConfig: StoreConfig = {
@@ -96,6 +98,7 @@ describe('OrderConfirmationComponent', () => {
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {
       storeConfig: mockStoreConfigSignal,
     });
+    cartServiceSpy = jasmine.createSpyObj('CartService', ['clearCart']);
 
     orderServiceSpy.getOrderById.and.returnValue(of(mockOrderPickup));
 
@@ -104,6 +107,7 @@ describe('OrderConfirmationComponent', () => {
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: StoreConfigService, useValue: storeConfigServiceSpy },
+        { provide: CartService, useValue: cartServiceSpy },
         {
           provide: ActivatedRoute,
           useValue: {

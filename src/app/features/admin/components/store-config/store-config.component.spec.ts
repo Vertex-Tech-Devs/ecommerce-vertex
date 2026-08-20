@@ -68,6 +68,7 @@ describe('StoreConfigComponent', () => {
     const mockStoreNameSignal = signal<string>('Test Store');
     const mockLogoUrlSignal = signal<string>('http://example.com/logo.png');
     const mockIsFirstRunSignal = signal<boolean>(false);
+    const mockIsLoadingSignal = signal<boolean>(false);
 
     Object.defineProperty(storeConfigServiceSpy, 'storeConfig', {
       value: mockConfigSignal.asReadonly(),
@@ -83,6 +84,10 @@ describe('StoreConfigComponent', () => {
     });
     Object.defineProperty(storeConfigServiceSpy, 'isFirstRun', {
       value: mockIsFirstRunSignal.asReadonly(),
+      configurable: true,
+    });
+    Object.defineProperty(storeConfigServiceSpy, 'isLoading', {
+      value: mockIsLoadingSignal.asReadonly(),
       configurable: true,
     });
 

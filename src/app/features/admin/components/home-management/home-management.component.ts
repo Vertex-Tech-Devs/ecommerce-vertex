@@ -1,5 +1,5 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, DestroyRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormArray, FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -49,6 +49,7 @@ export class HomeManagementComponent implements OnInit {
 
   bannerForm!: FormGroup;
   isSubmitting = false;
+  readonly isLoading = signal(true);
   categories$!: Observable<Category[]>;
   products$!: Observable<Product[]>;
 
@@ -119,29 +120,36 @@ export class HomeManagementComponent implements OnInit {
     this.homeContentService
       .getHeroBanner()
       .pipe(take(1))
-      .subscribe((content) => {
-        if (!content) {
-          return;
-        }
-        if (content.heroImages?.length) {
-          this.heroImages = content.heroImages.map((img: string | HeroImage) => {
-            if (typeof img === 'string') {
-              return { imageUrl: img, linkType: 'none' };
-            }
-            return img;
-          });
-          this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
-          this.selectedHeroFiles = [];
-        }
-        if (content.carouselSettings) {
-          this.carouselSettings = { ...content.carouselSettings };
-        }
-        this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
-        this.featuredCategories.clear();
-        this.selectedCategoryFiles = [];
-        this.categoryPreviewUrls = [];
-        content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
-        this.cdr.markForCheck();
+      .subscribe({
+        next: (content) => {
+          this.isLoading.set(false);
+          if (!content) {
+            return;
+          }
+          if (content.heroImages?.length) {
+            this.heroImages = content.heroImages.map((img: string | HeroImage) => {
+              if (typeof img === 'string') {
+                return { imageUrl: img, linkType: 'none' };
+              }
+              return img;
+            });
+            this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
+            this.selectedHeroFiles = [];
+          }
+          if (content.carouselSettings) {
+            this.carouselSettings = { ...content.carouselSettings };
+          }
+          this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
+          this.featuredCategories.clear();
+          this.selectedCategoryFiles = [];
+          this.categoryPreviewUrls = [];
+          content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        },
       });
   }
 

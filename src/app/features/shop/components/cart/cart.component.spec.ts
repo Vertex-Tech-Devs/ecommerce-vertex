@@ -4,6 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { signal } from '@angular/core';
 import { CartComponent } from './cart.component';
 import { CartService } from '@core/services/cart.service';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { Cart, CartItem } from '@core/models/cart.model';
 
 const makeCartItem = (overrides: Partial<CartItem> = {}): CartItem => ({
@@ -23,6 +24,7 @@ describe('CartComponent', () => {
   let component: CartComponent;
   let fixture: ComponentFixture<CartComponent>;
   let cartServiceSpy: jasmine.SpyObj<CartService>;
+  let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
   let router: Router;
 
   let cartSignal: ReturnType<typeof signal<Cart>>;
@@ -33,10 +35,15 @@ describe('CartComponent', () => {
     cartServiceSpy = jasmine.createSpyObj('CartService', ['updateQuantity', 'removeItem'], {
       cart: cartSignal,
     });
+    sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['warning', 'error', 'success']);
 
     await TestBed.configureTestingModule({
       imports: [CartComponent],
-      providers: [provideRouter([]), { provide: CartService, useValue: cartServiceSpy }],
+      providers: [
+        provideRouter([]),
+        { provide: CartService, useValue: cartServiceSpy },
+        { provide: SweetAlertService, useValue: sweetAlertSpy },
+      ],
     }).compileComponents();
 
     router = TestBed.inject(Router);

@@ -49,9 +49,18 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
   }
 }
 
-function resolveStoreBaseUrl(tenantId?: string, mpConfig?: Record<string, any>): string {
+function resolveStoreBaseUrl(
+  tenantId?: string,
+  mpConfig?: Record<string, any>,
+  clientSiteUrl?: string,
+): string {
   if (process.env.FUNCTIONS_EMULATOR === 'true') {
     return 'http://localhost:4201';
+  }
+
+  // 1. Si el cliente envió su origin / siteUrl explícito (ej: canal de PR o custom domain), usarlo
+  if (clientSiteUrl && /^https?:\/\//i.test(clientSiteUrl)) {
+    return clientSiteUrl.replace(/\/+$/, '');
   }
 
   const customDomain = String(mpConfig?.['siteUrl'] || mpConfig?.['customDomain'] || '').trim();
@@ -63,7 +72,12 @@ function resolveStoreBaseUrl(tenantId?: string, mpConfig?: Record<string, any>):
   }
 
   if (tenantId && tenantId !== 'ecommerce-vertex-dev' && tenantId !== 'store') {
-    return `https://vtx-${tenantId}.web.app`;
+    if (tenantId.startsWith('vtx-pr-')) {
+      const prNum = tenantId.replace('vtx-pr-', '');
+      return `https://ecommerce-vertex-dev--pr-${prNum}.web.app`;
+    }
+    const siteSlug = tenantId.startsWith('vtx-') ? tenantId : `vtx-${tenantId}`;
+    return `https://${siteSlug}.web.app`;
   }
 
   return envSiteUrl().replace(/\/+$/, '');
@@ -71,6 +85,7 @@ function resolveStoreBaseUrl(tenantId?: string, mpConfig?: Record<string, any>):
 
 async function getMercadoPagoRuntimeConfig(
   storeId?: string,
+  clientSiteUrl?: string,
 ): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
   const db = getFirestore();
 
@@ -112,7 +127,7 @@ async function getMercadoPagoRuntimeConfig(
   }
   const accessToken = tokenFromSecret.trim();
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
-  const baseUrl = resolveStoreBaseUrl(storeId, mpConfig);
+  const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
   if (!accessToken) {
     throw new Error('Mercado Pago no está configurado: falta access token.');
@@ -136,7 +151,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     };
   }
 
-  const runtime = await getMercadoPagoRuntimeConfig(tenantId);
+  const runtime = await getMercadoPagoRuntimeConfig(tenantId, data.siteUrl);
 
   const tokenPrefix = runtime.accessToken.slice(0, 8);
   const isSandbox =
