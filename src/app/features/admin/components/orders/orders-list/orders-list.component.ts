@@ -1,5 +1,12 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject, DestroyRef, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  DestroyRef,
+  signal,
+  Injector,
+} from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import type { Order, OrderStatus, DeliveryType } from '@core/models/order.model';
@@ -31,6 +38,7 @@ export class OrdersListComponent implements OnInit {
   private _router = inject(Router);
   private _sweetAlertService = inject(SweetAlertService);
   private destroyRef = inject(DestroyRef);
+  private injector = inject(Injector);
 
   currentPageSubject = new BehaviorSubject<number>(1);
   itemsPerPageSubject = new BehaviorSubject<number>(10);
@@ -71,7 +79,7 @@ export class OrdersListComponent implements OnInit {
       ),
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterStatusSubject,
-      toObservable(this.deliveryFilter),
+      toObservable(this.deliveryFilter, { injector: this.injector }),
       this.currentPageSubject,
       this.itemsPerPageSubject,
     ]).pipe(
