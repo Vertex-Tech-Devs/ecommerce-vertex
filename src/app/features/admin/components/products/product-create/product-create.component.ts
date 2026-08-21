@@ -1,12 +1,9 @@
-import type { OnInit, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef, signal } from '@angular/core';
+import { Component, inject, ViewChildren, DestroyRef, ChangeDetectorRef, signal, type OnInit, type QueryList, type ElementRef, type AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import type { FormGroup, FormArray, AbstractControl } from '@angular/forms';
-import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule, type FormGroup, type FormArray, type AbstractControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import type { Observable } from 'rxjs';
-import { startWith, take, BehaviorSubject } from 'rxjs';
+import { startWith, take, BehaviorSubject, type Observable } from 'rxjs';
 import { ProductService } from '@core/services/product.service';
 import { CategoryService } from '@core/services/category.service';
 import type { ProductVariant } from '@core/models/product.model';
