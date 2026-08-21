@@ -9,7 +9,7 @@ import { RouterModule } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterModule],
 })
-export class SidebarComponent {
+export class Sidebar {
   @Input() isOpen: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
 
