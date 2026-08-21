@@ -62,8 +62,8 @@ export class HomeManagement implements OnInit {
   heroUploadProgress = new Map<string, number>();
 
   get isAnyHeroUploading(): boolean {
- return this.heroUploadProgress.size > 0; 
-}
+    return this.heroUploadProgress.size > 0;
+  }
   isLinkModalVisible = false;
   activeHeroIndex = -1;
 
@@ -76,13 +76,19 @@ export class HomeManagement implements OnInit {
       take(1),
       map((categories: Category[]) => {
         this.categoryMap.clear();
-        categories.forEach((cat) => this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug }));
+        categories.forEach((cat) =>
+          this.categoryMap.set(cat.id!, { name: cat.name, slug: cat.slug }),
+        );
         return categories;
       }),
     );
     this.products$ = this.productService.getProducts();
     this.filteredProducts$ = combineLatest([this.products$, this.productSearchTerm$]).pipe(
-      map(([products, term]) => !term ? products : products.filter((p) => p.name.toLowerCase().includes(term.toLowerCase()))),
+      map(([products, term]) =>
+        !term
+          ? products
+          : products.filter((p) => p.name.toLowerCase().includes(term.toLowerCase())),
+      ),
     );
     this.loadContentData();
   }
@@ -98,69 +104,72 @@ export class HomeManagement implements OnInit {
   }
 
   private loadContentData(): void {
-    this.homeContentService.getHeroBanner().pipe(take(1)).subscribe({
-      next: (content) => {
-        this.isLoading.set(false);
-        if (!content) {
-return;
-}
-        if (content.heroImages?.length) {
-          this.heroImages = content.heroImages.map((img: string | HeroImage) =>
-            typeof img === 'string' ? { imageUrl: img, linkType: 'none' } : img,
-          );
-          this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
-          this.selectedHeroFiles = [];
-        }
-        if (content.carouselSettings) {
-this.carouselSettings = { ...content.carouselSettings };
-}
-        this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
-        this.featuredCategories.clear();
-        this.selectedCategoryFiles = [];
-        this.categoryPreviewUrls = [];
-        content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      },
-    });
+    this.homeContentService
+      .getHeroBanner()
+      .pipe(take(1))
+      .subscribe({
+        next: (content) => {
+          this.isLoading.set(false);
+          if (!content) {
+            return;
+          }
+          if (content.heroImages?.length) {
+            this.heroImages = content.heroImages.map((img: string | HeroImage) =>
+              typeof img === 'string' ? { imageUrl: img, linkType: 'none' } : img,
+            );
+            this.heroImagePreviews = this.heroImages.map((h) => h.imageUrl);
+            this.selectedHeroFiles = [];
+          }
+          if (content.carouselSettings) {
+            this.carouselSettings = { ...content.carouselSettings };
+          }
+          this.bannerForm.patchValue({ carouselSettings: this.carouselSettings });
+          this.featuredCategories.clear();
+          this.selectedCategoryFiles = [];
+          this.categoryPreviewUrls = [];
+          content.featuredCategories?.forEach((cat) => this.addFeaturedCategory(cat));
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   get featuredCategories(): FormArray {
- return this.bannerForm.get('featuredCategories') as FormArray; 
-}
+    return this.bannerForm.get('featuredCategories') as FormArray;
+  }
   get carouselSettingsGroup(): FormGroup {
- return this.bannerForm.get('carouselSettings') as FormGroup; 
-}
+    return this.bannerForm.get('carouselSettings') as FormGroup;
+  }
   get emptySlots(): null[] {
- return Array(Math.max(0, this.MAX_HERO - this.heroImagePreviews.length)).fill(null); 
-}
+    return Array(Math.max(0, this.MAX_HERO - this.heroImagePreviews.length)).fill(null);
+  }
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     if (this.heroImages.length < this.MAX_HERO) {
-this.isDragOver = true;
-}
+      this.isDragOver = true;
+    }
   }
 
   onDragLeave(): void {
- this.isDragOver = false; 
-}
+    this.isDragOver = false;
+  }
 
   onDrop(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
     this.isDragOver = false;
     if (this.heroImages.length >= this.MAX_HERO) {
-return;
-}
+      return;
+    }
     const files = event.dataTransfer?.files;
     if (files?.length) {
-void this.onHeroImagesSelected({ target: { files } } as unknown as Event);
-}
+      void this.onHeroImagesSelected({ target: { files } } as unknown as Event);
+    }
   }
 
   private newFeaturedCategory(category?: FeaturedCategory): FormGroup {
@@ -200,8 +209,8 @@ void this.onHeroImagesSelected({ target: { files } } as unknown as Event);
   async onHeroImagesSelected(event: Event): Promise<void> {
     const batch = await this.heroUploader.processFiles(event, this.heroImages.length);
     if (!batch) {
-return;
-}
+      return;
+    }
     batch.files.forEach((file, i) => {
       const tempId = batch.ids[i];
       const preview = batch.previews[i];
@@ -214,8 +223,9 @@ return;
       const upload = this.storageService.uploadFile(file, heroImagePath);
       upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (p) => {
- this.heroUploadProgress.set(tempId, Math.round(p)); this.cdr.markForCheck(); 
-},
+          this.heroUploadProgress.set(tempId, Math.round(p));
+          this.cdr.markForCheck();
+        },
       });
       upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (url) => {
@@ -232,8 +242,8 @@ return;
           console.error('Error uploading hero image:', err);
           const idx = this.heroImages.findIndex((img) => img.imageUrl === tempId);
           if (idx !== -1) {
-this.removeHeroImage(idx);
-}
+            this.removeHeroImage(idx);
+          }
           this.heroUploadProgress.delete(tempId);
           this.cdr.markForCheck();
         },
@@ -244,8 +254,8 @@ this.removeHeroImage(idx);
   removeHeroImage(index: number): void {
     const img = this.heroImages[index];
     if (img?.imageUrl) {
-this.heroUploadProgress.delete(img.imageUrl);
-}
+      this.heroUploadProgress.delete(img.imageUrl);
+    }
     this.heroImages.splice(index, 1);
     this.heroImagePreviews.splice(index, 1);
     this.selectedHeroFiles.splice(index, 1);
@@ -254,20 +264,26 @@ this.heroUploadProgress.delete(img.imageUrl);
 
   moveHeroImageUp(index: number): void {
     if (index > 0) {
-this.swapHeroImages(index, index - 1);
-}
+      this.swapHeroImages(index, index - 1);
+    }
   }
 
   moveHeroImageDown(index: number): void {
     if (index < this.heroImages.length - 1) {
-this.swapHeroImages(index, index + 1);
-}
+      this.swapHeroImages(index, index + 1);
+    }
   }
 
   private swapHeroImages(a: number, b: number): void {
     [this.heroImages[a], this.heroImages[b]] = [this.heroImages[b], this.heroImages[a]];
-    [this.heroImagePreviews[a], this.heroImagePreviews[b]] = [this.heroImagePreviews[b], this.heroImagePreviews[a]];
-    [this.selectedHeroFiles[a], this.selectedHeroFiles[b]] = [this.selectedHeroFiles[b], this.selectedHeroFiles[a]];
+    [this.heroImagePreviews[a], this.heroImagePreviews[b]] = [
+      this.heroImagePreviews[b],
+      this.heroImagePreviews[a],
+    ];
+    [this.selectedHeroFiles[a], this.selectedHeroFiles[b]] = [
+      this.selectedHeroFiles[b],
+      this.selectedHeroFiles[a],
+    ];
     this.bannerForm.markAsDirty();
   }
 
@@ -286,8 +302,8 @@ this.swapHeroImages(index, index + 1);
     this.heroImages[this.activeHeroIndex].linkType = type;
     delete this.heroImages[this.activeHeroIndex].linkId;
     if (type === 'product') {
-this.productSearchTerm$.next('');
-}
+      this.productSearchTerm$.next('');
+    }
     this.bannerForm.markAsDirty();
   }
 
@@ -297,17 +313,23 @@ this.productSearchTerm$.next('');
   }
 
   onProductSearch(term: string): void {
- this.productSearchTerm$.next(term); 
-}
+    this.productSearchTerm$.next(term);
+  }
 
   async onSubmit(): Promise<void> {
     if (this.heroImages.length === 0) {
-      this.sweetAlertService.error('Imágenes requeridas', 'Debes agregar al menos una imagen al carrusel hero.');
+      this.sweetAlertService.error(
+        'Imágenes requeridas',
+        'Debes agregar al menos una imagen al carrusel hero.',
+      );
       return;
     }
     if (this.bannerForm.invalid) {
       this.bannerForm.markAllAsTouched();
-      this.sweetAlertService.error('Formulario Inválido', 'Por favor revisa los campos marcados en rojo.');
+      this.sweetAlertService.error(
+        'Formulario Inválido',
+        'Por favor revisa los campos marcados en rojo.',
+      );
       return;
     }
     this.isSubmitting = true;

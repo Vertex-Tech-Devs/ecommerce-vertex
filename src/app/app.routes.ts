@@ -16,8 +16,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
-        loadComponent: () =>
-          import('./features/admin/components/login/login').then((m) => m.Login),
+        loadComponent: () => import('./features/admin/components/login/login').then((m) => m.Login),
       },
       {
         path: '',
@@ -28,7 +27,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    loadComponent: () =>
-      import('./features/shared/not-found/not-found').then((m) => m.NotFound),
+    loadComponent: () => import('./features/shared/not-found/not-found').then((m) => m.NotFound),
   },
 ];

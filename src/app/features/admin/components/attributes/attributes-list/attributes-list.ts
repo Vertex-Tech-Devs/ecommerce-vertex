@@ -15,13 +15,7 @@ import { AdminPagination } from '@shared/components/admin-pagination/admin-pagin
 @Component({
   selector: 'app-attributes-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    AttributeFormModal,
-    AdminSearchBar,
-    AdminPagination,
-  ],
+  imports: [CommonModule, FormsModule, AttributeFormModal, AdminSearchBar, AdminPagination],
   templateUrl: './attributes-list.html',
   styleUrl: './attributes-list.scss',
 })

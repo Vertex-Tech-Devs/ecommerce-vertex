@@ -25,8 +25,8 @@ export class AdminPagination {
 
   readonly startItem = computed(() => {
     if (this.totalItems() === 0) {
-return 0;
-}
+      return 0;
+    }
     return (this.currentPage() - 1) * this.pageSize() + 1;
   });
 
@@ -41,8 +41,8 @@ return 0;
 
     if (total <= 7) {
       for (let i = 1; i <= total; i++) {
-pages.push(i);
-}
+        pages.push(i);
+      }
       return pages;
     }
 
@@ -67,7 +67,12 @@ pages.push(i);
   });
 
   onPageClick(page: number | string): void {
-    if (typeof page === 'number' && page >= 1 && page <= this.totalPages() && page !== this.currentPage()) {
+    if (
+      typeof page === 'number' &&
+      page >= 1 &&
+      page <= this.totalPages() &&
+      page !== this.currentPage()
+    ) {
       this.pageChange.emit(page);
     }
   }

@@ -10,16 +10,13 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'dashboard',
         title: 'Dashboard',
-        loadComponent: () =>
-          import('./components/dashboard/dashboard').then((m) => m.Dashboard),
+        loadComponent: () => import('./components/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
         path: 'products',
         title: 'Productos',
         loadComponent: () =>
-          import('./components/products/products-list/products-list').then(
-            (m) => m.ProductsList,
-          ),
+          import('./components/products/products-list/products-list').then((m) => m.ProductsList),
       },
       {
         path: 'products/create',
@@ -64,39 +61,29 @@ export const ADMIN_ROUTES: Routes = [
         path: 'orders',
         title: 'Pedidos',
         loadComponent: () =>
-          import('./components/orders/orders-list/orders-list').then(
-            (m) => m.OrdersList,
-          ),
+          import('./components/orders/orders-list/orders-list').then((m) => m.OrdersList),
       },
       {
         path: 'orders/:id',
         loadComponent: () =>
-          import('./components/orders/order-detail/order-detail').then(
-            (m) => m.OrderDetail,
-          ),
+          import('./components/orders/order-detail/order-detail').then((m) => m.OrderDetail),
       },
       {
         path: 'customers',
         title: 'Clientes',
         loadComponent: () =>
-          import('./components/client/clients-list/clients-list').then(
-            (m) => m.ClientsList,
-          ),
+          import('./components/client/clients-list/clients-list').then((m) => m.ClientsList),
       },
       {
         path: 'customers/:email',
         loadComponent: () =>
-          import('./components/client/client-details/client-details').then(
-            (m) => m.ClientDetails,
-          ),
+          import('./components/client/client-details/client-details').then((m) => m.ClientDetails),
       },
       {
         path: 'home-management',
         title: 'Gestión Home',
         loadComponent: () =>
-          import('./components/home-management/home-management').then(
-            (m) => m.HomeManagement,
-          ),
+          import('./components/home-management/home-management').then((m) => m.HomeManagement),
       },
       {
         path: 'about-management',
@@ -118,24 +105,19 @@ export const ADMIN_ROUTES: Routes = [
         path: 'email-management',
         title: 'Gestión de Emails',
         loadComponent: () =>
-          import('./components/email-management/email-management').then(
-            (m) => m.EmailManagement,
-          ),
+          import('./components/email-management/email-management').then((m) => m.EmailManagement),
       },
       {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>
-          import('./components/store-config/store-config').then(
-            (m) => m.StoreConfig,
-          ),
+          import('./components/store-config/store-config').then((m) => m.StoreConfig),
       },
       {
         path: '_dev',
         title: 'Desarrollo',
         canActivate: [DevGuard],
-        loadComponent: () =>
-          import('./components/dev-panel/dev-panel').then((m) => m.DevPanel),
+        loadComponent: () => import('./components/dev-panel/dev-panel').then((m) => m.DevPanel),
       },
       {
         path: '',

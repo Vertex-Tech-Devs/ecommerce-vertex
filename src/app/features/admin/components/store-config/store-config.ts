@@ -16,7 +16,10 @@ import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
-import type { StoreConfig as StoreConfigData, StorePickupLocation } from '@core/models/store-config.model';
+import type {
+  StoreConfig as StoreConfigData,
+  StorePickupLocation,
+} from '@core/models/store-config.model';
 import {
   DEFAULT_DELIVERY_METHOD_CONFIG,
   WEEK_DAYS,
@@ -65,7 +68,13 @@ export class StoreConfig {
       background: ['#ffffff', Validators.required],
     }),
     payments: this.fb.group({ mercadoPagoPublicKey: [''] }),
-    contact: this.fb.group({ phone: [''], email: [''], whatsApp: [''], instagram: [''], facebook: [''] }),
+    contact: this.fb.group({
+      phone: [''],
+      email: [''],
+      whatsApp: [''],
+      instagram: [''],
+      facebook: [''],
+    }),
     seo: this.fb.group({ metaDescription: [''] }),
     setupCompleted: [true],
     storeOwnerEmail: [''],
@@ -95,10 +104,17 @@ export class StoreConfig {
     const hasSplit = location?.hasSplitSchedule ?? false;
     const timeFrom2 = location?.timeFrom2 ?? '16:30';
     const timeTo2 = location?.timeTo2 ?? '20:30';
-    const initialSchedule = location?.schedule ?? this.formatSchedule(days, timeFrom1, timeTo1, hasSplit, timeFrom2, timeTo2);
+    const initialSchedule =
+      location?.schedule ??
+      this.formatSchedule(days, timeFrom1, timeTo1, hasSplit, timeFrom2, timeTo2);
 
     return this.fb.group({
-      id: [location?.id ?? (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString())],
+      id: [
+        location?.id ??
+          (typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : Date.now().toString()),
+      ],
       name: [location?.name ?? '', Validators.required],
       address: [location?.address ?? '', Validators.required],
       city: [location?.city ?? '', Validators.required],
@@ -114,7 +130,14 @@ export class StoreConfig {
     });
   }
 
-  formatSchedule(days: string[], from1: string, to1: string, hasSplit: boolean, from2: string, to2: string): string {
+  formatSchedule(
+    days: string[],
+    from1: string,
+    to1: string,
+    hasSplit: boolean,
+    from2: string,
+    to2: string,
+  ): string {
     const daysStr = days.length > 0 ? days.join(', ') : 'Lun a Vie';
     if (hasSplit && from2 && to2) {
       return `${daysStr}: ${from1} a ${to1} y ${from2} a ${to2} hs`;
@@ -127,8 +150,19 @@ export class StoreConfig {
     if (!group) {
       return;
     }
-    const { days = [], timeFrom1 = '09:00', timeTo1 = '18:00', hasSplitSchedule = false, timeFrom2 = '16:30', timeTo2 = '20:30' } = group.value;
-    group.get('schedule')?.setValue(this.formatSchedule(days, timeFrom1, timeTo1, hasSplitSchedule, timeFrom2, timeTo2));
+    const {
+      days = [],
+      timeFrom1 = '09:00',
+      timeTo1 = '18:00',
+      hasSplitSchedule = false,
+      timeFrom2 = '16:30',
+      timeTo2 = '20:30',
+    } = group.value;
+    group
+      .get('schedule')
+      ?.setValue(
+        this.formatSchedule(days, timeFrom1, timeTo1, hasSplitSchedule, timeFrom2, timeTo2),
+      );
     group.markAsDirty();
     this.form.markAsDirty();
   }
@@ -234,7 +268,8 @@ export class StoreConfig {
       deliveryMethods: {
         enableHomeDelivery: delivery.enableHomeDelivery ?? true,
         enableStorePickup: delivery.enableStorePickup ?? false,
-        homeDeliveryDescription: delivery.homeDeliveryDescription ?? 'Coordinamos el envío y costo por WhatsApp',
+        homeDeliveryDescription:
+          delivery.homeDeliveryDescription ?? 'Coordinamos el envío y costo por WhatsApp',
       },
     });
 
@@ -250,9 +285,18 @@ export class StoreConfig {
       return;
     }
     const file = input.files[0];
-    const allowed = ['image/x-icon', 'image/vnd.microsoft.icon', 'image/png', 'image/svg+xml', 'image/jpeg'];
+    const allowed = [
+      'image/x-icon',
+      'image/vnd.microsoft.icon',
+      'image/png',
+      'image/svg+xml',
+      'image/jpeg',
+    ];
     if (!allowed.includes(file.type) && !file.name.endsWith('.ico')) {
-      this.sweetAlert.error('Formato no válido', 'Selecciona un archivo válido (.ico, .png, .svg, .jpg).');
+      this.sweetAlert.error(
+        'Formato no válido',
+        'Selecciona un archivo válido (.ico, .png, .svg, .jpg).',
+      );
       return;
     }
 
@@ -261,7 +305,9 @@ export class StoreConfig {
     this.faviconProgress.set(0);
 
     const upload = this.storageService.uploadFile(file, `tenants/${storeId}/branding/favicon`);
-    upload.progress$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((p) => this.faviconProgress.set(Math.round(p)));
+    upload.progress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((p) => this.faviconProgress.set(Math.round(p)));
     upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (url) => {
         this.form.patchValue({ faviconUrl: url });
@@ -274,7 +320,10 @@ export class StoreConfig {
         }
         link.href = url;
         this.faviconUploading.set(false);
-        this.sweetAlert.success('Favicon subido', 'El favicon corporativo fue cargado exitosamente.');
+        this.sweetAlert.success(
+          'Favicon subido',
+          'El favicon corporativo fue cargado exitosamente.',
+        );
       },
       error: () => {
         this.faviconUploading.set(false);
@@ -291,7 +340,9 @@ export class StoreConfig {
     }
     this.isSubmitting.set(true);
     try {
-      await this.storeConfigService.saveConfig(this.form.getRawValue() as unknown as StoreConfigData);
+      await this.storeConfigService.saveConfig(
+        this.form.getRawValue() as unknown as StoreConfigData,
+      );
       await this.storeConfigService.loadConfig();
       this.form.markAsPristine();
       this.sweetAlert.success('¡Listo!', 'La configuración fue guardada con éxito.');

@@ -2,7 +2,7 @@ import type { OnInit, OnDestroy } from '@angular/core';
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import type { Subscription , Observable} from 'rxjs';
+import type { Subscription, Observable } from 'rxjs';
 import { of } from 'rxjs';
 import { map, catchError, shareReplay } from 'rxjs/operators';
 
@@ -70,4 +70,3 @@ export class ClientDetails implements OnInit, OnDestroy {
     void this._router.navigate(['/admin/customers']);
   }
 }
-

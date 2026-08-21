@@ -12,7 +12,9 @@
   <div class="modal-body p-0 custom-scrollbar receipt-modal-body">
     <div class="receipt-paper" id="printable-receipt">
       <!-- 1. Encabezado de Tienda y Recibo -->
-      <div class="receipt-header d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom border-2">
+      <div
+        class="receipt-header d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom border-2"
+      >
         <div class="store-info d-flex align-items-center gap-3">
           @if (logoUrl()) {
             <img
@@ -26,7 +28,9 @@
             </div>
           }
           <div>
-            <h2 class="store-name mb-0 fw-bold fs-4 text-dark">{{ storeName() || 'Vertex Store' }}</h2>
+            <h2 class="store-name mb-0 fw-bold fs-4 text-dark">
+              {{ storeName() || 'Vertex Store' }}
+            </h2>
             <span class="text-muted small">Comprobante de Pedido</span>
           </div>
         </div>
@@ -37,9 +41,10 @@
               class="badge text-uppercase px-2 py-1"
               [ngClass]="{
                 'bg-success text-white': order.status === 'delivered' || order.status === 'shipped',
-                'bg-primary text-white': order.status === 'processing' || order.status === 'ready_for_pickup',
+                'bg-primary text-white':
+                  order.status === 'processing' || order.status === 'ready_for_pickup',
                 'bg-warning text-dark': order.status === 'pending',
-                'bg-danger text-white': order.status === 'cancelled'
+                'bg-danger text-white': order.status === 'cancelled',
               }"
             >
               Estado: {{ order.status }}
@@ -49,7 +54,8 @@
             <strong class="text-dark">N.º de Orden:</strong> {{ order.id }}
           </p>
           <p class="mb-0 small text-muted">
-            <strong class="text-dark">Fecha:</strong> {{ order.orderDate | date: 'dd/MM/yyyy HH:mm' }}
+            <strong class="text-dark">Fecha:</strong>
+            {{ order.orderDate | date: 'dd/MM/yyyy HH:mm' }}
           </p>
         </div>
       </div>
@@ -92,7 +98,10 @@
             </h6>
             <address class="mb-0 text-secondary small">
               <span class="d-block fw-semibold text-dark">{{ order.shippingAddress.street }}</span>
-              <span class="d-block">{{ order.shippingAddress.city }}, {{ order.shippingAddress.state }} (CP {{ order.shippingAddress.zipCode }})</span>
+              <span class="d-block"
+                >{{ order.shippingAddress.city }}, {{ order.shippingAddress.state }} (CP
+                {{ order.shippingAddress.zipCode }})</span
+              >
               <span class="d-block">{{ order.shippingAddress.country }}</span>
             </address>
           }
@@ -150,7 +159,10 @@
                 <tr>
                   <td class="text-muted">Costo de Envío:</td>
                   <td class="text-end fw-semibold text-dark">
-                    {{ order.paymentDetails?.shippingCost | currency: currencyCode() : currencySymbol() }}
+                    {{
+                      order.paymentDetails?.shippingCost
+                        | currency: currencyCode() : currencySymbol()
+                    }}
                   </td>
                 </tr>
               }
@@ -158,7 +170,9 @@
                 <tr>
                   <td class="text-muted">Impuestos:</td>
                   <td class="text-end fw-semibold text-dark">
-                    {{ order.paymentDetails?.taxAmount | currency: currencyCode() : currencySymbol() }}
+                    {{
+                      order.paymentDetails?.taxAmount | currency: currencyCode() : currencySymbol()
+                    }}
                   </td>
                 </tr>
               }
@@ -184,7 +198,8 @@
       <!-- 5. Pie del Comprobante -->
       <div class="receipt-footer text-center pt-3 mt-4 border-top border-light-subtle">
         <p class="mb-1 text-muted small">
-          ¡Muchas gracias por elegir a <strong>{{ storeName() || 'nosotros' }}</strong>!
+          ¡Muchas gracias por elegir a <strong>{{ storeName() || 'nosotros' }}</strong
+          >!
         </p>
         <span class="text-xs text-muted">Documento no válido como factura fiscal.</span>
       </div>

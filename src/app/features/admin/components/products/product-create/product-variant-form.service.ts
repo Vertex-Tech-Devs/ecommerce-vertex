@@ -107,7 +107,9 @@ export class ProductVariantFormService {
       }
       const curIds = Object.keys(ag.controls);
       curIds.filter((id) => !ids.includes(id)).forEach((id) => ag.removeControl(id));
-      ids.filter((id) => !curIds.includes(id)).forEach((id) => ag.addControl(id, this.fb.control(null, Validators.required)));
+      ids
+        .filter((id) => !curIds.includes(id))
+        .forEach((id) => ag.addControl(id, this.fb.control(null, Validators.required)));
     });
   }
 
@@ -119,14 +121,16 @@ export class ProductVariantFormService {
       categoryId: product.categoryId,
       image: product.image,
     });
-    const imgControls = (product.images ?? []).map((img) => this.fb.control(img, [Validators.required, Validators.pattern('https?://.+')]));
+    const imgControls = (product.images ?? []).map((img) =>
+      this.fb.control(img, [Validators.required, Validators.pattern('https?://.+')]),
+    );
     form.setControl('images', this.fb.array(imgControls));
     const attrControls = (product.variantAttributes ?? []).map((attrId) => this.fb.control(attrId));
     form.setControl('variantAttributes', this.fb.array(attrControls), { emitEvent: false });
-    const vControls = variants.map((v) => this.createVariantGroup(product.variantAttributes ?? [], v));
+    const vControls = variants.map((v) =>
+      this.createVariantGroup(product.variantAttributes ?? [], v),
+    );
     form.setControl('variants', this.fb.array(vControls), { emitEvent: false });
     form.updateValueAndValidity();
   }
 }
-
-

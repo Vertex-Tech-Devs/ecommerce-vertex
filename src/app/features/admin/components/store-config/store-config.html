@@ -100,7 +100,9 @@
                             </button>
                           }
                         </div>
-                        <span class="text-muted text-xs">Recomendado: 32x32 o 64x64 px (.png o .ico)</span>
+                        <span class="text-muted text-xs"
+                          >Recomendado: 32x32 o 64x64 px (.png o .ico)</span
+                        >
                       </div>
                     </div>
 
@@ -141,7 +143,8 @@
                         class="form-check-label fw-bold text-white fs-6 cursor-pointer"
                         for="enableHomeDelivery"
                       >
-                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A Coordinar)
+                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A
+                        Coordinar)
                       </label>
                     </div>
 
@@ -185,7 +188,8 @@
                           class="form-check-label fw-bold text-white fs-6 cursor-pointer"
                           for="enableStorePickup"
                         >
-                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en Sucursal / Local
+                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en Sucursal /
+                          Local
                         </label>
                       </div>
 
@@ -233,10 +237,13 @@
                                 <div class="row g-3 mb-3">
                                   <div class="col-md-6">
                                     <label class="form-label text-label"
-                                      >Nombre de la sucursal <span class="text-danger">*</span></label
+                                      >Nombre de la sucursal
+                                      <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-building"></i
+                                      ></span>
                                       <input
                                         #locationNameInput
                                         type="text"
@@ -251,7 +258,9 @@
                                       >Ciudad <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-geo-alt"></i
+                                      ></span>
                                       <input
                                         type="text"
                                         formControlName="city"
@@ -266,10 +275,13 @@
                                 <div class="row g-3 mb-3">
                                   <div class="col-12">
                                     <label class="form-label text-label"
-                                      >Dirección física completa <span class="text-danger">*</span></label
+                                      >Dirección física completa
+                                      <span class="text-danger">*</span></label
                                     >
                                     <div class="input-group">
-                                      <span class="input-group-text"><i class="bi bi-pin-map"></i></span>
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-pin-map"></i
+                                      ></span>
                                       <input
                                         type="text"
                                         formControlName="address"
@@ -300,11 +312,14 @@
                                 </div>
 
                                 <!-- Fila 4: Franjas horarias con intervalos de 30 min -->
-                                <div class="p-3 rounded-2 bg-black bg-opacity-25 border border-secondary border-opacity-10 mb-3">
+                                <div
+                                  class="p-3 rounded-2 bg-black bg-opacity-25 border border-secondary border-opacity-10 mb-3"
+                                >
                                   <div class="row g-3 align-items-center mb-2">
                                     <div class="col-12 col-md-3">
                                       <span class="small fw-semibold text-white">
-                                        <i class="bi bi-clock me-1 text-primary"></i> Horario de atención:
+                                        <i class="bi bi-clock me-1 text-primary"></i> Horario de
+                                        atención:
                                       </span>
                                     </div>
                                     <div class="col-6 col-md-4">
@@ -347,13 +362,18 @@
                                       formControlName="hasSplitSchedule"
                                       (change)="syncSchedule(i)"
                                     />
-                                    <label class="form-check-label small text-soft cursor-pointer" [for]="'splitSwitch_' + i">
+                                    <label
+                                      class="form-check-label small text-soft cursor-pointer"
+                                      [for]="'splitSwitch_' + i"
+                                    >
                                       ¿Horario cortado / Turno partido?
                                     </label>
                                   </div>
 
                                   @if (locGroup.get('hasSplitSchedule')?.value) {
-                                    <div class="row g-3 align-items-center mt-1 pt-2 border-top border-secondary border-opacity-10">
+                                    <div
+                                      class="row g-3 align-items-center mt-1 pt-2 border-top border-secondary border-opacity-10"
+                                    >
                                       <div class="col-12 col-md-3">
                                         <span class="small fw-semibold text-warning">
                                           <i class="bi bi-sun me-1"></i> Segundo turno (Tarde):
@@ -391,7 +411,8 @@
                                   }
 
                                   <div class="mt-2 text-xs text-muted">
-                                    Formato resultante: <em>{{ locGroup.get('schedule')?.value }}</em>
+                                    Formato resultante:
+                                    <em>{{ locGroup.get('schedule')?.value }}</em>
                                   </div>
                                 </div>
 
@@ -402,7 +423,9 @@
                                       Instrucciones / Notas especiales de retiro
                                     </label>
                                     <div class="input-group">
-                                      <span class="input-group-text"><i class="bi bi-info-circle"></i></span>
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-info-circle"></i
+                                      ></span>
                                       <input
                                         type="text"
                                         formControlName="notes"

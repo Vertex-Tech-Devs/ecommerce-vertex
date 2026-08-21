@@ -15,13 +15,7 @@ import { AdminPagination } from '@shared/components/admin-pagination/admin-pagin
 @Component({
   selector: 'app-categories-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    CategoryFormModal,
-    AdminSearchBar,
-    AdminPagination,
-  ],
+  imports: [CommonModule, FormsModule, CategoryFormModal, AdminSearchBar, AdminPagination],
   templateUrl: './categories-list.html',
   styleUrl: './categories-list.scss',
 })

@@ -20,8 +20,8 @@ export class AttributeService {
           const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
           const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
           if (dateA && dateB) {
-return dateB - dateA;
-}
+            return dateB - dateA;
+          }
           return (a.name ?? '').localeCompare(b.name ?? '');
         }),
       ),
