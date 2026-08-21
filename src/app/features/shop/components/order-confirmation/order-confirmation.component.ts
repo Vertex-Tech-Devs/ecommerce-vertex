@@ -29,7 +29,7 @@ export class OrderConfirmationComponent implements OnInit {
   private orderService = inject(OrderService);
   private storeConfigService = inject(StoreConfigService);
   private cartService = inject(CartService);
-  private functions = inject(Functions);
+  private functions = inject(Functions, { optional: true });
 
   data$!: Observable<ConfirmationData>;
 
@@ -56,6 +56,9 @@ export class OrderConfirmationComponent implements OnInit {
   }
 
   private async triggerConfirmationEmail(orderId: string): Promise<void> {
+    if (!this.functions) {
+      return;
+    }
     try {
       const fn = httpsCallable(this.functions, 'notifyOrderConfirmation');
       await fn({ orderId, tenantId: resolveTenantId() });
