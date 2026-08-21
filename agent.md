@@ -155,6 +155,21 @@ Versión actual: `0.5.0`
 
 ---
 
+---
+
+## 📧 Notificaciones por Email y Comprobantes de Compra (Receipt Voucher)
+
+### 1. Despacho Multi-Tenant de Emails (`notifyOrderConfirmation`)
+- **Trigger HTTPS Público**: La Cloud Function `notifyOrderConfirmation` opera como endpoint HTTPS (`onRequest({ cors: true, invoker: 'public' })`) para evitar errores `401 Unauthorized` derivados del chequeo automático de audience de Firebase Auth (`aud: <shard-id>` vs `<platform-id>`) al invocar funciones centrales desde shards dedicados.
+- **Resolución Automática de Shards**: Si la petición proviene de un shard o storefront, la función resuelve la base de datos de Firestore correspondiente mediante `resolveTenantDb(tenantProjectId)` o buscando el tenant en la colección global `stores`.
+- **Doble Notificación**: Despacha emails transaccionales tanto al comprador (`clientEmail`) como al administrador/dueño de la tienda configurado en Firestore o en la colección `admin_roles`.
+
+### 2. Generación e Impresión de Comprobante / Recibo
+- El componente `OrderConfirmation` (`/shop/order-confirmation/:id`) incluye un toolbar de acciones con botón de **Imprimir / Descargar Comprobante** (`printReceipt()`), invocando `window.print()`.
+- Incorpora un voucher imprimible semántico (`#printable-receipt`) con reglas `@media print` dedicadas que ocultan headers, navegaciones y fondos web, formateando una factura/recibo limpia y lista para ser guardada como PDF o impresa físicamente.
+
+---
+
 ## ⚠️ Errores comunes y soluciones
 
 | Error                                                  | Causa                                          | Solución                                      |
@@ -162,5 +177,6 @@ Versión actual: `0.5.0`
 | `auth/operation-not-allowed`                           | Google OAuth no habilitado en Firebase Console | Habilitar en Authentication > Sign-in methods |
 | `auth/popup-closed-by-user`                            | COOP header omitido o desconfigurado           | Garantizar `Cross-Origin-Opener-Policy: same-origin-allow-popups` en `firebase.json` |
 | `7 PERMISSION_DENIED` en `createPaymentPreference`     | SA de Cloud Run 2da Gen sin rol datastore.user | `ensureShardProjectIam` asigna automáticamente `roles/datastore.user` a la SA del Compute Engine en el shard |
+| `notifyOrderConfirmation 401 (Unauthorized)`           | Funciones `onCall` verificando token contra el proyecto central en vez del shard | Usar `onRequest({ cors: true, invoker: 'public' })` y despachar petición HTTP desacoplada de Auth header |
 | `permission-denied` en Firestore                       | Email no en `admin_roles`                      | Agregar vía Cloud Function o plataforma       |
 | `Cannot read properties of undefined (hasOwnProperty)` | Problema de DI en Angular con lazy loading     | Revisar barrel imports y providers            |
