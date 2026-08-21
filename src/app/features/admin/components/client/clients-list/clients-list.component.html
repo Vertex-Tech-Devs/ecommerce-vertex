@@ -18,72 +18,19 @@
           </div>
         </div>
 
-        <div class="table-responsive">
-          <table class="table align-middle glass-table mb-0 client-table">
-            <thead>
-              <tr>
-                <th scope="col">Nombre Completo</th>
-                <th scope="col">Email</th>
-                <th scope="col">Teléfono</th>
-                <th scope="col" class="text-center">N.º Pedidos</th>
-                <th scope="col" class="text-end">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (clients$ | async; as clients) {
-                @for (client of clients; track client.id) {
-                  <tr>
-                    <td data-label="Nombre Completo" class="client-name fw-bold text-strong">
-                      {{ client.fullName }}
-                    </td>
-                    <td data-label="Email" class="client-email text-soft">{{ client.email }}</td>
-                    <td
-                      data-label="Teléfono"
-                      class="client-phone text-soft border-bottom-mobile mb-mobile"
-                    >
-                      {{ client.phone || 'N/A' }}
-                    </td>
-                    <td data-label="N.º Pedidos" class="text-center client-orders">
-                      <span class="badge glass-badge badge-info count-badge">{{
-                        client.numberOfOrders
-                      }}</span>
-                    </td>
-                    <td data-label="Acciones" class="text-end action-cell">
-                      <div
-                        class="action-wrapper d-flex justify-content-end align-items-center gap-2 flex-nowrap"
-                      >
-                        <button
-                          class="btn-glass-primary m-0"
-                          (click)="viewClientHistory(client.email)"
-                          title="Ver Historial de Pedidos"
-                        >
-                          <i class="bi bi-eye" aria-hidden="true"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                } @empty {
-                  <tr>
-                    <td colspan="5" class="text-center py-5 empty-state">
-                      @if (searchTermSubject | async) {
-                        <div>
-                          <i class="bi bi-search empty-icon mb-3" aria-hidden="true"></i>
-                          <p class="lead fw-bold text-strong mb-1">
-                            No se encontraron clientes que coincidan.
-                          </p>
-                        </div>
-                      } @else {
-                        <div>
-                          <i class="bi bi-person-x empty-icon mb-3" aria-hidden="true"></i>
-                          <p class="lead fw-bold text-strong mb-1">
-                            Aún no hay clientes para mostrar.
-                          </p>
-                        </div>
-                      }
-                    </td>
-                  </tr>
-                }
-              } @else {
+        @if (isLoading()) {
+          <div class="table-responsive" aria-busy="true" aria-label="Cargando clientes">
+            <table class="table align-middle glass-table mb-0 client-table">
+              <thead>
+                <tr>
+                  <th scope="col">Nombre Completo</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Teléfono</th>
+                  <th scope="col" class="text-center">N.º Pedidos</th>
+                  <th scope="col" class="text-end">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
                 @for (_ of [1, 2, 3, 4, 5]; track $index) {
                   <tr class="table-row--skeleton">
                     <td data-label="Nombre Completo">
@@ -101,22 +48,92 @@
                     </td>
                   </tr>
                 }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        @if (totalClients > 0) {
-          <div class="mt-4">
-            <app-admin-pagination
-              [totalItems]="totalClients"
-              [currentPage]="currentPageSubject.value"
-              [pageSize]="itemsPerPageSubject.value"
-              [pageSizeOptions]="itemsPerPageOptions"
-              (pageChange)="goToPage($event)"
-              (pageSizeChange)="onItemsPerPageChange($event)"
-            ></app-admin-pagination>
+              </tbody>
+            </table>
           </div>
+        } @else if (clients$ | async; as clients) {
+          @if (clients.length === 0) {
+            <div class="empty-state-card text-center py-5 glass-card">
+              <div class="empty-state-icon mb-3">
+                <i class="bi bi-people fs-1 text-muted"></i>
+              </div>
+              <h5 class="fw-semibold text-secondary">
+                @if (searchTermSubject.value) {
+                  No se encontraron clientes
+                } @else {
+                  No hay clientes registrados aún
+                }
+              </h5>
+              <p class="text-muted small mb-3">
+                @if (searchTermSubject.value) {
+                  Probá ajustando el término de búsqueda.
+                } @else {
+                  Los clientes que se registren o compren en la tienda se listarán aquí.
+                }
+              </p>
+            </div>
+          } @else {
+            <div class="table-responsive">
+              <table class="table align-middle glass-table mb-0 client-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Nombre Completo</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Teléfono</th>
+                    <th scope="col" class="text-center">N.º Pedidos</th>
+                    <th scope="col" class="text-end">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (client of clients; track client.id) {
+                    <tr>
+                      <td data-label="Nombre Completo" class="client-name fw-bold text-strong">
+                        {{ client.fullName }}
+                      </td>
+                      <td data-label="Email" class="client-email text-soft">{{ client.email }}</td>
+                      <td
+                        data-label="Teléfono"
+                        class="client-phone text-soft border-bottom-mobile mb-mobile"
+                      >
+                        {{ client.phone || 'N/A' }}
+                      </td>
+                      <td data-label="N.º Pedidos" class="text-center client-orders">
+                        <span class="badge glass-badge badge-info count-badge">{{
+                          client.numberOfOrders
+                        }}</span>
+                      </td>
+                      <td data-label="Acciones" class="text-end action-cell">
+                        <div
+                          class="action-wrapper d-flex justify-content-end align-items-center gap-2 flex-nowrap"
+                        >
+                          <button
+                            class="btn-glass-primary m-0"
+                            (click)="viewClientHistory(client.email)"
+                            title="Ver Historial de Pedidos"
+                          >
+                            <i class="bi bi-eye" aria-hidden="true"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            @if (totalClients > 0) {
+              <div class="mt-4">
+                <app-admin-pagination
+                  [totalItems]="totalClients"
+                  [currentPage]="currentPageSubject.value"
+                  [pageSize]="itemsPerPageSubject.value"
+                  [pageSizeOptions]="itemsPerPageOptions"
+                  (pageChange)="goToPage($event)"
+                  (pageSizeChange)="onItemsPerPageChange($event)"
+                ></app-admin-pagination>
+              </div>
+            }
+          }
         }
       </div>
     </div>

@@ -20,7 +20,7 @@ import {
   distinctUntilChanged,
   switchMap,
   catchError,
-  startWith,
+  tap,
 } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -73,16 +73,18 @@ export class OrdersListComponent implements OnInit {
   totalOrders = 0;
   totalPages = 0;
 
+  readonly isLoading = signal<boolean>(true);
   orders$!: Observable<Order[]>;
 
   ngOnInit(): void {
     this.orders$ = combineLatest([
       this.refreshTrigger.pipe(
-        switchMap(() =>
+        switchMap((): Observable<Order[]> =>
           this._orderService.getOrders().pipe(
-            startWith([] as Order[]),
-            catchError((err) => {
+            tap(() => this.isLoading.set(false)),
+            catchError((err: unknown) => {
               console.error('Error al cargar los pedidos:', err);
+              this.isLoading.set(false);
               return of([] as Order[]);
             }),
           ),

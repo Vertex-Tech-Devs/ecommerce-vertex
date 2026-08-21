@@ -1,10 +1,10 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import type { Observable } from 'rxjs';
-import { BehaviorSubject, combineLatest } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { map, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { Category } from '@core/models/category.model';
 import { CategoryService } from '@core/services/category.service';
@@ -39,6 +39,7 @@ export class CategoriesListComponent implements OnInit {
   totalCategories = 0;
   totalPages = 0;
 
+  readonly isLoading = signal<boolean>(true);
   categories$!: Observable<Category[]>;
   private rawCategories$ = new BehaviorSubject<Category[]>([]);
 
@@ -75,9 +76,18 @@ export class CategoriesListComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.categoryService.getCategories().subscribe((cats) => {
-      this.rawCategories$.next(cats);
-    });
+    this.categoryService
+      .getCategories()
+      .pipe(
+        catchError((err) => {
+          console.error('Error al cargar categorías:', err);
+          return of([]);
+        }),
+      )
+      .subscribe((cats) => {
+        this.rawCategories$.next(cats);
+        this.isLoading.set(false);
+      });
   }
 
   onSearchChange(newValue: string): void {

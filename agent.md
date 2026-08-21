@@ -130,6 +130,12 @@ Versión actual: `0.4.0`
 - **Signals**: exponer como `asReadonly()`, mutar solo desde métodos explícitos
 - **Errores**: degradar con `SweetAlertService`, nunca silenciar ni crashear el layout
 - **Confirmación destructiva**: toda acción de eliminación debe usar el modal de confirmación existente
+- **Patrón de Estados de Carga & Empty States en Admin**:
+  * Prohibido emitir arrays vacíos prematuramente (`startWith([])` o `BehaviorSubject([])`) que causan parpadeos (flashing) de 100ms.
+  * Usar `isLoading = signal(true)` manejado mediante operadores `tap` / `finalize` / `catchError` en el stream observable.
+  * Los templates del panel de administración deben usar control flow mutuamente excluyente:
+    `@if (isLoading()) { <skeleton> } @else if (items$ | async; as items) { @if (items.length === 0) { <empty-state> } @else { <table/grid> <pagination> } }`
+  * Prohibido superponer loading spinners y skeletons simultáneamente.
 
 ---
 
