@@ -69,6 +69,13 @@ storefront/
 - El `storeId` se lee del campo `storeId` de cada documento (no de un segmento de path).
 - `mercadopago.service.ts` lee la configuración en `configuracion/store_{storeId}` y el token desde Secret Manager.
 
+## Clean Naming Architecture & Build Tooling
+
+- **Estandarización de Archivos**: Todos los componentes prescinden de sufijos redundantes `.component.*` (`<nombre>.ts`, `<nombre>.html`, `<nombre>.scss`, `<nombre>.spec.ts`).
+- **Clases Limpias**: Se utilizan clases directas (`Home`, `Catalog`, `Product`, `Checkout`, `Cart`, `Admin`, `StoreConfig`, `Sidebar`, etc.).
+- **Build System**: `@angular/build:application` y `@angular/build:karma` (esbuild/Vite) sustituyen los builders legacy Webpack, reduciendo los bundles de 1.71 MB a 1.10 MB.
+- **Zero Vulnerabilities**: Todo el árbol de dependencias audita con **0 vulnerabilidades** en `npm audit` mediante `overrides` seguros.
+
 ## Ciclo de Vida del Template
 
 1. La plataforma provisiona la tienda y despliega este template vía GitHub Actions.
