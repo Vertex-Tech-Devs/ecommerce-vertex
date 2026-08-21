@@ -1,6 +1,11 @@
 import type { ApplicationConfig } from '@angular/core';
 import { ErrorHandler, APP_INITIALIZER, inject } from '@angular/core';
-import { provideRouter, withComponentInputBinding, TitleStrategy } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  TitleStrategy,
+} from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FirebaseApp } from '@angular/fire/app';
 import type { FirebaseOptions } from 'firebase/app';
@@ -65,7 +70,11 @@ export function createAppConfig(firebaseConfig: FirebaseOptions): ApplicationCon
 
   return {
     providers: [
-      provideRouter(routes, withComponentInputBinding()),
+      provideRouter(
+        routes,
+        withComponentInputBinding(),
+        withInMemoryScrolling({ scrollPositionRestoration: 'top', anchorScrolling: 'enabled' }),
+      ),
       provideAnimations(),
       provideHttpClient(withInterceptors([loadingInterceptor, httpErrorInterceptor])),
 
