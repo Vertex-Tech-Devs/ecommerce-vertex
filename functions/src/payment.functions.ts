@@ -626,7 +626,7 @@ export const mercadoPagoWebhookHandler = onRequest(
           if (updatedOrderDoc.exists) {
             const rawData = updatedOrderDoc.data();
             if (rawData && !rawData['notificationsSent']) {
-              const parsed = OrderSchema.safeParse(rawData);
+              const parsed = OrderSchema.safeParse({ id: orderId, ...rawData });
               if (parsed.success) {
                 await sendOrderNotificationEmailsDirect(
                   orderId,

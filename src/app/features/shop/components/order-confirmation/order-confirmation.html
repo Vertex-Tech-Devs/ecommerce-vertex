@@ -109,12 +109,62 @@
         }
       </article>
     } @else {
-      <div class="confirmation__loading" role="status">
-        <div class="spinner-border">
-          <span class="visually-hidden">Cargando...</span>
+      <article class="confirmation__card">
+        @if (data.paymentStatus === 'approved') {
+          <div class="confirmation__icon confirmation__icon--success" aria-hidden="true">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h1 class="confirmation__title">¡Gracias por tu compra!</h1>
+          <p class="confirmation__subtitle">
+            Tu pago ha sido aprobado exitosamente y el pedido está en preparación.
+          </p>
+        } @else if (data.paymentStatus === 'pending' || data.paymentStatus === 'in_process') {
+          <div class="confirmation__icon confirmation__icon--pending" aria-hidden="true">
+            <i class="bi bi-clock-history"></i>
+          </div>
+          <h1 class="confirmation__title">Tu pago está pendiente</h1>
+          <p class="confirmation__subtitle">
+            Estamos esperando la confirmación de Mercado Pago. Te avisaremos cuando se apruebe.
+          </p>
+        } @else {
+          <div class="confirmation__icon confirmation__icon--error" aria-hidden="true">
+            <i class="bi bi-x-circle-fill"></i>
+          </div>
+          <h1 class="confirmation__title">El pago fue rechazado</h1>
+          <p class="confirmation__subtitle">
+            No se pudo procesar tu pago. Por favor, inténtalo de nuevo desde el carrito.
+          </p>
+        }
+
+        <div class="confirmation__summary">
+          <h2 class="confirmation__summary-title">Resumen de tu Pedido</h2>
+          @if (data.orderId) {
+            <p class="confirmation__order-id">
+              <strong>Número de Pedido:</strong> {{ data.orderId }}
+            </p>
+          }
+          <p class="confirmation__delivery-notes mt-2">
+            Hemos registrado tu pedido y estamos procesando los detalles de entrega.
+          </p>
         </div>
-        <p>Cargando los detalles de tu pedido...</p>
-      </div>
+
+        <div class="confirmation__delivery-actions mt-4">
+          <a
+            [href]="getWhatsappUrl(undefined, data.orderId)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="confirmation__whatsapp-btn"
+          >
+            <i class="bi bi-whatsapp me-2" aria-hidden="true"></i> Contactar por WhatsApp
+          </a>
+        </div>
+
+        @if (data.paymentStatus === 'approved') {
+          <a routerLink="/shop/catalog" class="confirmation__action mt-4">Seguir Comprando</a>
+        } @else {
+          <a routerLink="/shop/cart" class="confirmation__action mt-4">Volver al Carrito</a>
+        }
+      </article>
     }
   } @else {
     <div class="confirmation__loading" role="status">

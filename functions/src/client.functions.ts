@@ -27,7 +27,10 @@ export const onOrderWrittenUpdateClients = onDocumentWritten(
       return;
     }
 
-    const validationResult = OrderSchema.safeParse(afterSnap.data());
+    const validationResult = OrderSchema.safeParse({
+      id: event.params.orderId,
+      ...afterSnap.data(),
+    });
     if (!validationResult.success) {
       logger.error(
         `Datos de la orden ${event.params.orderId} son inválidos y no se procesará el cliente.`,

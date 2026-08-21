@@ -51,8 +51,9 @@ export const PaymentDetailsSchema = z.object({
 export type PaymentDetails = z.infer<typeof PaymentDetailsSchema>;
 
 export const OrderSchema = z.object({
-  id: z.string(),
-  userId: z.string(),
+  id: z.string().optional(),
+  userId: z.string().optional(),
+  storeId: z.string().optional(),
   clientName: z.string(),
   clientEmail: z.string().optional(),
   clientPhone: z.string().optional(),

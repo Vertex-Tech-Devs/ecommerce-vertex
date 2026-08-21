@@ -160,7 +160,9 @@ export async function sendOrderNotificationEmailsDirect(
 ): Promise<{ success: boolean; adminSent: boolean; customerSent: boolean; error?: string }> {
   try {
     const effectiveStoreId =
-      storeId || ((orderData as unknown as Record<string, unknown>)['storeId'] as string) || 'store';
+      storeId ||
+      ((orderData as unknown as Record<string, unknown>)['storeId'] as string) ||
+      'store';
     logger.info(
       `[OrderNotifications] Enviando emails para pedido #${orderId} (store: ${effectiveStoreId}, shard: ${tenantProjectId || 'default'})...`,
     );
@@ -319,7 +321,10 @@ export async function sendOrderNotificationEmailsDirect(
     return { success: adminSent || customerSent, adminSent, customerSent };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    logger.error(`[OrderNotifications] Error enviando notificaciones para pedido #${orderId}:`, err);
+    logger.error(
+      `[OrderNotifications] Error enviando notificaciones para pedido #${orderId}:`,
+      err,
+    );
     return { success: false, adminSent: false, customerSent: false, error: errorMsg };
   }
 }
@@ -349,7 +354,7 @@ export const notifyOrderConfirmation = onCall<{
     return { success: true, alreadySent: true };
   }
 
-  const parsed = OrderSchema.safeParse(rawData);
+  const parsed = OrderSchema.safeParse({ id: orderId, ...rawData });
   if (!parsed.success) {
     throw new HttpsError('invalid-argument', 'Estructura de pedido inválida.');
   }
@@ -376,7 +381,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     if (status !== 'processing' && status !== 'approved' && status !== 'paid') return;
     if (orderRaw['notificationsSent'] === true) return;
 
-    const validationResult = OrderSchema.safeParse(afterSnap.data());
+    const validationResult = OrderSchema.safeParse({ id: orderId, ...afterSnap.data() });
     if (!validationResult.success) {
       logger.error(`Datos del pedido ${orderId} son inválidos.`, {
         errors: validationResult.error.flatten(),
