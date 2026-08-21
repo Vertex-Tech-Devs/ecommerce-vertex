@@ -210,5 +210,8 @@
     "webpack-dev-server": ">=5.2.5",
     "js-yaml": ">=4.3.0"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "private": true
 }
