@@ -41,7 +41,7 @@ export class OrderConfirmation implements OnInit {
 
     const orderId$ = this.route.paramMap.pipe(map((params) => params.get('id')));
     const paymentStatus$ = this.route.queryParamMap.pipe(
-      map((params) => params.get('status') || params.get('collection_status') || 'approved'),
+      map((params) => params.get('status') ?? params.get('collection_status') ?? 'approved'),
     );
 
     const order$ = orderId$.pipe(
@@ -90,7 +90,7 @@ export class OrderConfirmation implements OnInit {
     ).trim();
     const cleanPhone = storeWhatsapp.replace(/[^0-9]/g, '');
 
-    const id = order?.id || fallbackOrderId || 'Pendiente';
+    const id = order?.id ?? fallbackOrderId ?? 'Pendiente';
     const isPickup = order?.deliverySelection?.type === 'store_pickup';
     let messageText = '';
 
