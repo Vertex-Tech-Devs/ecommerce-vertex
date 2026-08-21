@@ -179,9 +179,9 @@ body::-webkit-scrollbar-thumb:hover {
 // SWEETALERT2 TOAST NOTIFICATIONS (Cart / Shop)
 // ============================================
 .swal2-container.swal2-top-end {
-  top: calc(var(--header-height, 70px) + 12px) !important;
+  top: 80px !important;
   right: 16px !important;
-  z-index: 995 !important;
+  z-index: 1060 !important;
 }
 
 .vtx-toast-popup {
