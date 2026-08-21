@@ -23,6 +23,13 @@ echo "================================================================="
 echo "🚀 [$(date +%H:%M:%S)] Iniciando despliegue de Functions Storefront ($PROJECT)..."
 echo "================================================================="
 
+GCP_PROJECT_ID="$PROJECT"
+if [ "$PROJECT" = "production" ]; then
+  GCP_PROJECT_ID="ecommerce-vertex"
+elif [ "$PROJECT" = "development" ] || [ "$PROJECT" = "default" ]; then
+  GCP_PROJECT_ID="ecommerce-vertex-dev"
+fi
+
 if [ -n "$SPECIFIC" ]; then
   TARGET="functions:$SPECIFIC"
 else
@@ -37,6 +44,25 @@ if npx firebase-tools deploy --only "$TARGET" --project "$PROJECT" --non-interac
   echo "✅ [$(date +%H:%M:%S)] TODAS las funciones fueron desplegadas con éxito en 1 solo paso!"
   echo "================================================================="
   exit 0
+fi
+
+# Verificar si el fallo se debe a cambio de tipo de trigger (callable -> HTTPS o viceversa)
+if grep -q "Changing from a callable function" "$TMP_LOG" || grep -q "Please delete your function and create a new one instead" "$TMP_LOG"; then
+  echo ""
+  echo "⚠️ [$(date +%H:%M:%S)] Detectado cambio de trigger en Cloud Function. Eliminando función anterior para recrearla..."
+  FNS_TO_DELETE=$(grep -oE '\[[a-zA-Z0-9_]+\(us-central1\)\]' "$TMP_LOG" | tr -d '[]' | sed 's/(us-central1)//' | sort -u || true)
+  for fn in $FNS_TO_DELETE; do
+    echo "🗑️ Eliminando función previa $fn en $GCP_PROJECT_ID..."
+    gcloud functions delete "$fn" --region=us-central1 --project="$GCP_PROJECT_ID" --gen2 --quiet || true
+  done
+  echo "🔄 Reintentando despliegue tras limpiar triggers obsoletos..."
+  if npx firebase-tools deploy --only "$TARGET" --project "$PROJECT" --non-interactive --force 2>&1 | tee "$TMP_LOG"; then
+    echo ""
+    echo "================================================================="
+    echo "✅ [$(date +%H:%M:%S)] TODAS las funciones fueron desplegadas con éxito tras resolver el cambio de trigger!"
+    echo "================================================================="
+    exit 0
+  fi
 fi
 
 # Verificar si el fallo se debe a saturación de la cola GCP (Error 409)
@@ -91,6 +117,16 @@ deploy_batch() {
       return 0
     fi
     
+    if grep -q "Changing from a callable function" "$TMP_LOG" || grep -q "Please delete your function and create a new one instead" "$TMP_LOG"; then
+      echo "⚠️ Lote $batch_idx/$TOTAL_BATCHES: Detectado cambio de trigger. Eliminando función obsoleta..."
+      FNS_TO_DELETE=$(grep -oE '\[[a-zA-Z0-9_]+\(us-central1\)\]' "$TMP_LOG" | tr -d '[]' | sed 's/(us-central1)//' | sort -u || true)
+      for fn in $FNS_TO_DELETE; do
+        echo "🗑️ Eliminando función previa $fn en $GCP_PROJECT_ID..."
+        gcloud functions delete "$fn" --region=us-central1 --project="$GCP_PROJECT_ID" --gen2 --quiet || true
+      done
+      continue
+    fi
+
     if grep -qE "409|unable to queue" "$TMP_LOG"; then
       local wait=$((30 * attempt))
       echo "⌛ Lote $batch_idx/$TOTAL_BATCHES: Cola saturada (409). Reintentando en ${wait}s..."
@@ -103,7 +139,7 @@ deploy_batch() {
     return 1
   done
 
-  echo "💥 ABORTADO Lote $batch_idx/$TOTAL_BATCHES tras $MAX_ATTEMPTS intentos con 409."
+  echo "💥 ABORTADO Lote $batch_idx/$TOTAL_BATCHES tras $MAX_ATTEMPTS intentos."
   return 1
 }
 
