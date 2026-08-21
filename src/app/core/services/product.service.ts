@@ -17,8 +17,6 @@ import {
   writeBatch,
   query,
   where,
-  orderBy,
-  limit,
 } from '@angular/fire/firestore';
 import type { Product, ProductVariant } from '../models/product.model';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
@@ -65,8 +63,8 @@ export class ProductService {
                 ? b.createdAt.getTime()
                 : new Date(b.createdAt).getTime() || 0;
             if (dateA && dateB) {
-return dateB - dateA;
-}
+              return dateB - dateA;
+            }
             return (a.name || '').localeCompare(b.name || '');
           }),
         ),
@@ -245,40 +243,27 @@ return dateB - dateA;
   }
 
   getProductsLowInStock(threshold: number = 5): Observable<Product[]> {
-    return runInInjectionContext(this.injector, () => {
-      const q = query(
-        this.collectionRef,
-        storeIdFilter(),
-        where('totalStock', '>=', 0),
-        where('totalStock', '<=', threshold),
-        orderBy('totalStock', 'asc'),
-      );
-      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
-        catchError((err) => {
-          console.warn('Unable to load products low in stock:', err);
-          return of([]);
-        }),
-      );
-    });
+    return this.getProducts().pipe(
+      map((products) =>
+        products
+          .filter((p) => (p.totalStock ?? 0) >= 0 && (p.totalStock ?? 0) <= threshold)
+          .sort((a, b) => (a.totalStock ?? 0) - (b.totalStock ?? 0)),
+      ),
+      catchError((err) => {
+        console.warn('Unable to load products low in stock:', err);
+        return of([]);
+      }),
+    );
   }
 
   getLatestProducts(count: number = 10): Observable<Product[]> {
-    return runInInjectionContext(this.injector, () => {
-      const q = query(
-        this.collectionRef,
-        storeIdFilter(),
-        orderBy('createdAt', 'desc'),
-        limit(count),
-      );
-      return (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
-        catchError((err) => {
-          console.warn('Unable to load latest products:', err);
-          return of([]);
-        }),
-      );
-    });
+    return this.getProducts().pipe(
+      map((products) => products.slice(0, count)),
+      catchError((err) => {
+        console.warn('Unable to load latest products:', err);
+        return of([]);
+      }),
+    );
   }
 
   checkStockAvailability(
