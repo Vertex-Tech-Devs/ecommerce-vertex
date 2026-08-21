@@ -1,37 +1,18 @@
 import { onCall, HttpsError, onRequest } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
-import { initializeApp, getApps } from 'firebase-admin/app';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { PaymentRequestSchema } from './core/payment.model';
 import { createPreference, getPaymentDetails } from './core/mercadopago.service';
 import { COLLECTIONS, collectionPath } from './core/config';
-import { OrderItemSchema } from './core/order.model';
+import { OrderItemSchema, OrderSchema } from './core/order.model';
+import { resolveTenantDb } from './core/tenant-db';
+import { sendOrderNotificationEmailsDirect } from './notifications.functions';
 import * as crypto from 'crypto';
 
 const db = getFirestore();
 const secretsClient = new SecretManagerServiceClient();
 const secretCache = new Map<string, string>();
-
-/**
- * Resuelve el Firestore del proyecto correcto.
- * - Sin projectId (o igual al del entorno): el Firestore local (master).
- * - Con un projectId de shard: una app dedicada (usa las credenciales del default app;
- *   la SA del ecommerce debe tener roles/datastore.user en el shard).
- * Así la orden y el catálogo de cada tienda se leen del shard donde realmente viven.
- */
-function resolveTenantDb(projectId?: string): ReturnType<typeof getFirestore> {
-  const ownProject = process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT'] || '';
-  if (!projectId || projectId === ownProject) {
-    return db;
-  }
-  const appName = `shard-${projectId}`;
-  let app = getApps().find((a) => a.name === appName);
-  if (!app) {
-    app = initializeApp({ projectId }, appName);
-  }
-  return getFirestore(app);
-}
 
 function resolveProjectId(): string {
   return process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT'] || '';
@@ -637,6 +618,31 @@ export const mercadoPagoWebhookHandler = onRequest(
             'paymentDetails.paymentId': paymentId,
             status: 'processing',
           });
+        }
+
+        // Enviar notificaciones por email al comprador y vendedor
+        try {
+          const updatedOrderDoc = await orderRef.get();
+          if (updatedOrderDoc.exists) {
+            const rawData = updatedOrderDoc.data();
+            if (rawData && !rawData['notificationsSent']) {
+              const parsed = OrderSchema.safeParse(rawData);
+              if (parsed.success) {
+                await sendOrderNotificationEmailsDirect(
+                  orderId,
+                  parsed.data,
+                  tenantDb,
+                  tenantFromQuery || String(rawData['storeId'] || ''),
+                  tenantProjectId,
+                );
+              }
+            }
+          }
+        } catch (emailErr) {
+          logger.warn(
+            `[Webhook] No se pudieron enviar emails para pedido #${orderId} de forma directa:`,
+            emailErr,
+          );
         }
       } else if (paymentStatus === 'cancelled' || paymentStatus === 'rejected') {
         logger.warn(

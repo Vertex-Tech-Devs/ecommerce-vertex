@@ -32,27 +32,45 @@ export async function resolveSmtpPassword(): Promise<string> {
     (process.env.GCLOUD_PROJECT || '').trim() ||
     (process.env.FIREBASE_CONFIG ? JSON.parse(process.env.FIREBASE_CONFIG).projectId : '');
 
-  const candidateProjects = [currentProject, 'vertex-platform-dev', 'vertex-platform-app'].filter(
-    Boolean,
+  const candidateProjects = Array.from(
+    new Set(
+      [
+        currentProject,
+        'ecommerce-vertex-dev',
+        'ecommerce-vertex',
+        'vertex-platform-dev',
+        'vertex-platform-app',
+      ].filter(Boolean),
+    ),
   );
+
+  const secretNames = [
+    'ext-firestore-send-email-SMTP_PASSWORD',
+    'SMTP_PASSWORD',
+    'SMTP_PASS',
+    'smtp-password',
+    'smtp-pass',
+  ];
 
   const client = getSecretsClient();
 
   for (const proj of candidateProjects) {
-    try {
-      const [version] = await client.accessSecretVersion({
-        name: `projects/${proj}/secrets/ext-firestore-send-email-SMTP_PASSWORD/versions/latest`,
-      });
-      const pass = version.payload?.data?.toString()?.trim();
-      if (pass) {
-        cachedSmtpPassword = pass;
-        logger.info(
-          `[EmailService] SMTP password successfully resolved from secret in project ${proj}`,
-        );
-        return cachedSmtpPassword;
+    for (const secName of secretNames) {
+      try {
+        const [version] = await client.accessSecretVersion({
+          name: `projects/${proj}/secrets/${secName}/versions/latest`,
+        });
+        const pass = version.payload?.data?.toString()?.trim();
+        if (pass) {
+          cachedSmtpPassword = pass;
+          logger.info(
+            `[EmailService] SMTP password successfully resolved from secret ${secName} in project ${proj}`,
+          );
+          return cachedSmtpPassword;
+        }
+      } catch {
+        // Intentar con el siguiente nombre de secreto o proyecto
       }
-    } catch {
-      // Intentar con el siguiente proyecto candidato
     }
   }
 
