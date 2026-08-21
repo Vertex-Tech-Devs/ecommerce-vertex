@@ -175,16 +175,25 @@ function generateVariantCombinations(
         let totalStock = 0;
         const inStockAttributes: Record<string, string[]> = {};
 
+        let comboIndex = 0;
         for (const combo of combinations) {
-          const stock = Math.floor(Math.random() * 80) + 5;
+          // Generar una mezcla de stock normal, stock bajo (1-3) y agotado (0)
+          let stock = Math.floor(Math.random() * 40) + 10;
+          if (comboIndex === 0) stock = 2; // Stock bajo
+          else if (comboIndex === 1) stock = 1; // Última unidad
+          else if (comboIndex === combinations.length - 1 && combinations.length > 3) stock = 0; // Sin stock
+          comboIndex++;
+
           totalStock += stock;
 
           Object.entries(combo).forEach(([attrId, value]) => {
-            if (!inStockAttributes[attrId]) {
-              inStockAttributes[attrId] = [];
-            }
-            if (!inStockAttributes[attrId].includes(value)) {
-              inStockAttributes[attrId].push(value);
+            if (stock > 0) {
+              if (!inStockAttributes[attrId]) {
+                inStockAttributes[attrId] = [];
+              }
+              if (!inStockAttributes[attrId].includes(value)) {
+                inStockAttributes[attrId].push(value);
+              }
             }
           });
 
