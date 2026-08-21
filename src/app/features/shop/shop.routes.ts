@@ -1,29 +1,29 @@
 import type { Routes } from '@angular/router';
-import { ShopComponent } from './layout/shop/shop.component';
+import { Shop } from './layout/shop/shop';
 import { checkoutGuard } from '@core/guards/checkout.guard';
 
 export const SHOP_ROUTES: Routes = [
   {
     path: '',
-    component: ShopComponent,
+    component: Shop,
     children: [
       {
         path: '',
         pathMatch: 'full',
         loadComponent: () =>
-          import('./components/home/home.component').then((m) => m.HomeComponent),
+          import('./components/home/home').then((m) => m.Home),
       },
       {
         path: 'catalog',
         title: 'Catálogo',
         loadComponent: () =>
-          import('./components/catalog/catalog.component').then((m) => m.CatalogComponent),
+          import('./components/catalog/catalog').then((m) => m.Catalog),
       },
       {
         path: 'about',
         title: 'Quiénes Somos',
         loadComponent: () =>
-          import('./components/about/about.component').then((m) => m.AboutComponent),
+          import('./components/about/about').then((m) => m.About),
       },
       {
         path: 'product',
@@ -34,21 +34,21 @@ export const SHOP_ROUTES: Routes = [
         path: 'cart',
         title: 'Carrito',
         loadComponent: () =>
-          import('./components/cart/cart.component').then((m) => m.CartComponent),
+          import('./components/cart/cart').then((m) => m.Cart),
       },
       {
         path: 'checkout',
         title: 'Checkout',
         canActivate: [checkoutGuard],
         loadComponent: () =>
-          import('./components/checkout/checkout.component').then((m) => m.CheckoutComponent),
+          import('./components/checkout/checkout').then((m) => m.Checkout),
       },
       {
         path: 'order-confirmation/:id',
         title: 'Confirmación de pedido',
         loadComponent: () =>
-          import('./components/order-confirmation/order-confirmation.component').then(
-            (m) => m.OrderConfirmationComponent,
+          import('./components/order-confirmation/order-confirmation').then(
+            (m) => m.OrderConfirmation,
           ),
       },
     ],

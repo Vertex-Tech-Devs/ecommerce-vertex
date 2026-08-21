@@ -1,0 +1,353 @@
+import type { ComponentFixture } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { of, throwError } from 'rxjs';
+import { OrdersList } from './orders-list';
+import { OrderService } from '@core/services/order.service';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
+import type { Order } from '@core/models/order.model';
+
+describe('OrdersList', () => {
+  let component: OrdersList;
+  let fixture: ComponentFixture<OrdersList>;
+  let orderServiceSpy: jasmine.SpyObj<OrderService>;
+  let sweetAlertServiceSpy: jasmine.SpyObj<SweetAlertService>;
+  let router: Router;
+
+  const mockOrders: Order[] = [
+    {
+      id: 'ORD-001',
+      userId: 'user-1',
+      clientName: 'Alice Smith',
+      clientEmail: 'alice@example.com',
+      clientPhone: '11111111',
+      orderDate: new Date('2026-01-01'),
+      total: 1000,
+      status: 'pending',
+      items: [],
+      shippingAddress: {
+        street: 'Calle 1',
+        city: 'Buenos Aires',
+        state: 'CABA',
+        zipCode: '1000',
+        country: 'Argentina',
+      },
+      paymentDetails: {
+        paymentMethod: 'Mercado Pago',
+        subtotal: 1000,
+        shippingCost: 0,
+        taxAmount: 0,
+      },
+      deliverySelection: {
+        type: 'store_pickup',
+        pickupLocationId: 'loc-1',
+        pickupAddressFormatted: 'Sucursal Centro - Calle 123',
+      },
+    },
+    {
+      id: 'ORD-002',
+      userId: 'user-2',
+      clientName: 'Bob Jones',
+      clientEmail: 'bob@example.com',
+      clientPhone: '22222222',
+      orderDate: new Date('2026-01-02'),
+      total: 2000,
+      status: 'processing',
+      items: [],
+      shippingAddress: {
+        street: 'Calle 2',
+        city: 'Cordoba',
+        state: 'Cordoba',
+        zipCode: '5000',
+        country: 'Argentina',
+      },
+      paymentDetails: {
+        paymentMethod: 'Mercado Pago',
+        subtotal: 2000,
+        shippingCost: 0,
+        taxAmount: 0,
+      },
+      deliverySelection: {
+        type: 'home_delivery',
+      },
+    },
+    {
+      id: 'ORD-003',
+      userId: 'user-3',
+      clientName: 'Charlie Brown',
+      clientEmail: 'charlie@example.com',
+      clientPhone: '33333333',
+      orderDate: new Date('2026-01-03'),
+      total: 3000,
+      status: 'ready_for_pickup',
+      items: [],
+      shippingAddress: {
+        street: 'Calle 3',
+        city: 'Mendoza',
+        state: 'Mendoza',
+        zipCode: '5500',
+        country: 'Argentina',
+      },
+      paymentDetails: {
+        paymentMethod: 'Mercado Pago',
+        subtotal: 3000,
+        shippingCost: 0,
+        taxAmount: 0,
+      },
+    },
+  ];
+
+  beforeEach(async () => {
+    orderServiceSpy = jasmine.createSpyObj('OrderService', [
+      'getOrders',
+      'updateOrder',
+      'deleteOrder',
+    ]);
+    sweetAlertServiceSpy = jasmine.createSpyObj('SweetAlertService', ['confirm']);
+
+    orderServiceSpy.getOrders.and.returnValue(of(mockOrders));
+    orderServiceSpy.updateOrder.and.returnValue(Promise.resolve());
+    orderServiceSpy.deleteOrder.and.returnValue(Promise.resolve());
+
+    await TestBed.configureTestingModule({
+      imports: [OrdersList],
+      providers: [
+        provideRouter([]),
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: SweetAlertService, useValue: sweetAlertServiceSpy },
+      ],
+    }).compileComponents();
+
+    router = TestBed.inject(Router);
+    fixture = TestBed.createComponent(OrdersList);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  describe('deliveryFilter', () => {
+    it('should filter orders when deliveryFilter is set to store_pickup', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      expect(result.length).toBe(3);
+
+      component.onDeliveryFilterChange('store_pickup');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-001');
+      expect(result[0].deliverySelection?.type).toBe('store_pickup');
+    }));
+
+    it('should filter orders when deliveryFilter is set to home_delivery including legacy orders', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onDeliveryFilterChange('home_delivery');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(2);
+      expect(result.map((o) => o.id)).toEqual(['ORD-002', 'ORD-003']);
+    }));
+
+    it('should show all orders when deliveryFilter is reset to all', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onDeliveryFilterChange('store_pickup');
+      fixture.detectChanges();
+      tick(300);
+      expect(result.length).toBe(1);
+
+      component.onDeliveryFilterChange('all');
+      fixture.detectChanges();
+      tick(300);
+      expect(result.length).toBe(3);
+    }));
+  });
+
+  describe('getDeliveryBadge', () => {
+    it('should return store pickup badge info when deliveryType is store_pickup with address', () => {
+      const badge = component.getDeliveryBadge(mockOrders[0]);
+      expect(badge.icon).toBe('bi-shop');
+      expect(badge.cssClass).toContain('bg-info-subtle');
+      expect(badge.label).toBe('Retiro en Local');
+      expect(badge.summary).toBe('Sucursal Centro - Calle 123');
+    });
+
+    it('should fallback to "Sucursal" for store_pickup order missing pickupAddressFormatted', () => {
+      const orderNoAddress: Order = {
+        ...mockOrders[0],
+        deliverySelection: {
+          type: 'store_pickup',
+          pickupLocationId: 'loc-1',
+        },
+      };
+      const badge = component.getDeliveryBadge(orderNoAddress);
+      expect(badge.summary).toBe('Sucursal');
+    });
+
+    it('should return home delivery badge info for home_delivery order', () => {
+      const badge = component.getDeliveryBadge(mockOrders[1]);
+      expect(badge.icon).toBe('bi-truck');
+      expect(badge.cssClass).toContain('bg-secondary-subtle');
+      expect(badge.label).toBe('Envío a Domicilio');
+      expect(badge.summary).toBe('Cordoba, Cordoba');
+    });
+
+    it('should return home delivery badge info for legacy order without deliverySelection', () => {
+      const badge = component.getDeliveryBadge(mockOrders[2]);
+      expect(badge.icon).toBe('bi-truck');
+      expect(badge.cssClass).toContain('bg-secondary-subtle');
+      expect(badge.label).toBe('Envío a Domicilio');
+      expect(badge.summary).toBe('Mendoza, Mendoza');
+    });
+
+    it('should return empty summary if home delivery order has no shippingAddress', () => {
+      const orderNoShipping: Order = {
+        ...mockOrders[1],
+        shippingAddress: undefined as unknown as Order['shippingAddress'],
+      };
+      const badge = component.getDeliveryBadge(orderNoShipping);
+      expect(badge.summary).toBe('');
+    });
+  });
+
+  describe('updateOrderStatus', () => {
+    it('should update order status to ready_for_pickup and trigger refresh', fakeAsync(() => {
+      component.updateOrderStatus(mockOrders[0], 'ready_for_pickup');
+      tick();
+
+      expect(orderServiceSpy.updateOrder).toHaveBeenCalledWith('ORD-001', {
+        status: 'ready_for_pickup',
+      });
+    }));
+
+    it('should not call updateOrder if target status is identical to current status', () => {
+      component.updateOrderStatus(mockOrders[0], 'pending');
+      expect(orderServiceSpy.updateOrder).not.toHaveBeenCalled();
+    });
+
+    it('should catch error when updateOrder fails', fakeAsync(() => {
+      const spyError = spyOn(console, 'error');
+      orderServiceSpy.updateOrder.and.returnValue(Promise.reject(new Error('Update failed')));
+
+      component.updateOrderStatus(mockOrders[0], 'ready_for_pickup');
+      tick();
+
+      expect(spyError).toHaveBeenCalledWith(
+        'Error al actualizar el estado del pedido:',
+        jasmine.any(Error),
+      );
+    }));
+  });
+
+  describe('Additional Controls & Filtering', () => {
+    it('should filter orders by search term', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onSearchTermChange('Bob');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].clientName).toBe('Bob Jones');
+    }));
+
+    it('should filter orders by status option', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onFilterStatusChange('ready_for_pickup');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-003');
+    }));
+
+    it('should handle pagination controls correctly', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onItemsPerPageChange(1);
+      fixture.detectChanges();
+      tick(300);
+
+      expect(component.totalPages).toBe(3);
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-001');
+
+      component.goToPage(2);
+      fixture.detectChanges();
+      tick(300);
+      expect(result[0].id).toBe('ORD-002');
+    }));
+
+    it('should navigate on editOrder', () => {
+      const navigateSpy = spyOn(router, 'navigate');
+      component.editOrder(mockOrders[0]);
+      expect(navigateSpy).toHaveBeenCalledWith(['/admin/orders', 'ORD-001']);
+    });
+
+    it('should delete order when confirmed', fakeAsync(() => {
+      sweetAlertServiceSpy.confirm.and.returnValue(Promise.resolve(true));
+
+      component.deleteOrder(mockOrders[0]);
+      tick();
+
+      expect(sweetAlertServiceSpy.confirm).toHaveBeenCalled();
+      expect(orderServiceSpy.deleteOrder).toHaveBeenCalledWith('ORD-001');
+    }));
+
+    it('should not delete order when cancelled in confirmation', fakeAsync(() => {
+      sweetAlertServiceSpy.confirm.and.returnValue(Promise.resolve(false));
+
+      component.deleteOrder(mockOrders[0]);
+      tick();
+
+      expect(sweetAlertServiceSpy.confirm).toHaveBeenCalled();
+      expect(orderServiceSpy.deleteOrder).not.toHaveBeenCalled();
+    }));
+
+    it('should catch error when getOrders fails', fakeAsync(() => {
+      const spyError = spyOn(console, 'error');
+      orderServiceSpy.getOrders.and.returnValue(throwError(() => new Error('Load failed')));
+
+      component.ngOnInit();
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      expect(spyError).toHaveBeenCalled();
+      expect(result).toEqual([]);
+    }));
+  });
+});

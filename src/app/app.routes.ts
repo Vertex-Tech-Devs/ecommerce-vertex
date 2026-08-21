@@ -17,7 +17,7 @@ export const routes: Routes = [
       {
         path: 'login',
         loadComponent: () =>
-          import('./features/admin/components/login/login.component').then((m) => m.LoginComponent),
+          import('./features/admin/components/login/login').then((m) => m.Login),
       },
       {
         path: '',
@@ -29,6 +29,6 @@ export const routes: Routes = [
   {
     path: '**',
     loadComponent: () =>
-      import('./features/shared/not-found/not-found.component').then((m) => m.NotFoundComponent),
+      import('./features/shared/not-found/not-found').then((m) => m.NotFound),
   },
 ];
