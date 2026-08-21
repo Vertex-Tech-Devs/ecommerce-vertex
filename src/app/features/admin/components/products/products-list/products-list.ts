@@ -1,5 +1,6 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, CurrencyPipe, TitleCasePipe, ViewportScroller } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
@@ -7,7 +8,7 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { Observable } from 'rxjs';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import type { Product } from '@core/models/product.model';
-import { debounceTime, distinctUntilChanged, map, tap, catchError } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { CategoryService } from '@core/services/category.service';
@@ -34,12 +35,14 @@ import { AdminPagination } from '@shared/components/admin-pagination/admin-pagin
 })
 export class ProductsList implements OnInit {
   products$!: Observable<Product[]>;
+  private rawProducts$ = new BehaviorSubject<Product[]>([]);
   readonly isLoading = signal<boolean>(true);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
   private sweetAlertService = inject(SweetAlertService);
   private viewportScroller = inject(ViewportScroller);
+  private destroyRef = inject(DestroyRef);
 
   searchTermSubject = new BehaviorSubject<string>('');
   filterCategorySubject = new BehaviorSubject<string>('all');
@@ -62,14 +65,10 @@ export class ProductsList implements OnInit {
       catchError(() => of([])),
     );
 
+    this.loadProducts();
+
     this.products$ = combineLatest([
-      this.productService.getProducts().pipe(
-        tap(() => this.isLoading.set(false)),
-        catchError(() => {
-          this.isLoading.set(false);
-          return of([]);
-        }),
-      ),
+      this.rawProducts$,
       this.categories$,
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterCategorySubject,
@@ -146,6 +145,23 @@ export class ProductsList implements OnInit {
     }
   }
 
+  loadProducts(): void {
+    this.isLoading.set(true);
+    this.productService
+      .getProducts()
+      .pipe(
+        catchError((err) => {
+          console.error('Error al cargar productos:', err);
+          return of([]);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((products) => {
+        this.rawProducts$.next(products);
+        this.isLoading.set(false);
+      });
+  }
+
   async confirmDelete(product: Product): Promise<void> {
     const isConfirmed = await this.sweetAlertService.confirm(
       'Confirmar Eliminación de Producto',
@@ -155,6 +171,7 @@ export class ProductsList implements OnInit {
       try {
         await this.productService.deleteProduct(product.id);
         this.sweetAlertService.success('Eliminado', 'El producto ha sido eliminado.');
+        this.loadProducts();
       } catch {
         this.sweetAlertService.error('Error', 'Hubo un problema al eliminar el producto.');
       }

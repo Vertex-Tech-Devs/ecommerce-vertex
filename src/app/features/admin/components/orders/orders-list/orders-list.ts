@@ -14,14 +14,7 @@ import { OrderService } from '@core/services/order.service';
 import type { Observable } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, from, of } from 'rxjs';
-import {
-  map,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  catchError,
-  tap,
-} from 'rxjs/operators';
+import { map, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AdminSearchBar } from '@shared/components/admin-search-bar/admin-search-bar';
@@ -75,21 +68,13 @@ export class OrdersList implements OnInit {
 
   readonly isLoading = signal<boolean>(true);
   orders$!: Observable<Order[]>;
+  private rawOrders$ = new BehaviorSubject<Order[]>([]);
 
   ngOnInit(): void {
+    this.loadOrders();
+
     this.orders$ = combineLatest([
-      this.refreshTrigger.pipe(
-        switchMap((): Observable<Order[]> =>
-          this._orderService.getOrders().pipe(
-            tap(() => this.isLoading.set(false)),
-            catchError((err: unknown) => {
-              console.error('Error al cargar los pedidos:', err);
-              this.isLoading.set(false);
-              return of([] as Order[]);
-            }),
-          ),
-        ),
-      ),
+      this.rawOrders$,
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterStatusSubject,
       toObservable(this.deliveryFilter, { injector: this.injector }),
@@ -188,6 +173,23 @@ export class OrdersList implements OnInit {
     };
   }
 
+  loadOrders(): void {
+    this.isLoading.set(true);
+    this._orderService
+      .getOrders()
+      .pipe(
+        catchError((err: unknown) => {
+          console.error('Error al cargar pedidos:', err);
+          return of([] as Order[]);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((orders) => {
+        this.rawOrders$.next(orders);
+        this.isLoading.set(false);
+      });
+  }
+
   updateOrderStatus(order: Order, newStatus: OrderStatus): void {
     if (order.status === newStatus) {
       return;
@@ -195,7 +197,7 @@ export class OrdersList implements OnInit {
     this._orderService
       .updateOrder(order.id, { status: newStatus })
       .then(() => {
-        this.refreshTrigger.next();
+        this.loadOrders();
       })
       .catch((error: unknown) => {
         console.error('Error al actualizar el estado del pedido:', error);
@@ -215,7 +217,7 @@ export class OrdersList implements OnInit {
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
-                this.refreshTrigger.next();
+                this.loadOrders();
               },
               error: (error: unknown) => {
                 console.error('Error al eliminar el pedido:', error);

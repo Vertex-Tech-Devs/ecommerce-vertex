@@ -12,8 +12,8 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { FormGroup, FormControl } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import type { Observable } from 'rxjs';
-import { take } from 'rxjs';
-import { startWith, debounceTime } from 'rxjs/operators';
+import { take, of } from 'rxjs';
+import { startWith, debounceTime, catchError } from 'rxjs/operators';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import type { Product } from '@core/models/product.model';
@@ -113,7 +113,7 @@ export class Catalog implements OnInit {
 
       if (hasDynamicFilter) {
         const match = Object.entries(dynamicFilters).every(([attrId, values]) => {
-          const productAttributeValues = product.inStockAttributes[attrId];
+          const productAttributeValues = product.inStockAttributes?.[attrId];
           if (!productAttributeValues) {
             return false;
           }
@@ -129,24 +129,26 @@ export class Catalog implements OnInit {
   });
 
   readonly sortedProducts = computed(() => {
-    const products = this.filteredProducts();
-    const sort = this.sort();
-    const sorted = [...products];
-    if (sort === 'priceAsc') {
-      sorted.sort((a, b) => a.price - b.price);
-    } else if (sort === 'priceDesc') {
-      sorted.sort((a, b) => b.price - a.price);
-    } else if (sort === 'newest') {
-      sorted.sort((a, b) => {
-        const dateA = a.createdAt instanceof Date ? a.createdAt.getTime() : 0;
-        const dateB = b.createdAt instanceof Date ? b.createdAt.getTime() : 0;
-        return dateB - dateA;
-      });
+    const products = [...this.filteredProducts()];
+    const sortOption = this.sort();
+
+    switch (sortOption) {
+      case 'price-asc':
+        return products.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+      case 'price-desc':
+        return products.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+      case 'name-asc':
+        return products.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc':
+        return products.sort((a, b) => b.name.localeCompare(a.name));
+      default:
+        return products;
     }
-    return sorted;
   });
 
-  readonly paginatedProductsSignal = computed(() => {
+  totalProductsCount = computed(() => this.sortedProducts().length);
+
+  paginatedProductsSignal = computed(() => {
     const products = this.sortedProducts();
     const page = this.page();
     const itemsPerPageValue = this.itemsPerPage();
@@ -175,30 +177,38 @@ export class Catalog implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadInitialDataAndInitializeForm();
+    this.setupFormListeners();
+    this.loadInitialData();
+    this.applyInitialCategoryFilter();
   }
 
-  private loadInitialDataAndInitializeForm(): void {
+  private loadInitialData(): void {
     this.categoryService
       .getCategories()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        catchError(() => of([])),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((categories) => {
         const categoryMap = new Map<string, Category>();
         categories.forEach((cat) => categoryMap.set(cat.id!, cat));
         this.allCategories.set(categoryMap);
         this.categoriesSignal.set(categories);
+        this.updateActiveFilters(this.selectedCategoryId() ?? null);
       });
 
     this.attributeService
       .getAttributes()
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        catchError(() => of([])),
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((attrs) => {
         this.allAttributes.set(attrs);
-        this.activeAttributes.set([]);
-
         const dynamicGroup = this.filterForm.get('dynamicAttributes') as FormGroup;
         attrs.forEach((attr) => {
-          if (attr.id) {
+          if (attr.id && !dynamicGroup.contains(attr.id)) {
             const controls = attr.values.reduce(
               (acc, val) => {
                 acc[val] = this.fb.control(false);
@@ -206,12 +216,10 @@ export class Catalog implements OnInit {
               },
               {} as { [key: string]: FormControl },
             );
-            dynamicGroup.addControl(attr.id, this.fb.group(controls));
+            dynamicGroup.addControl(attr.id, this.fb.group(controls), { emitEvent: false });
           }
         });
-
-        this.setupFormListeners();
-        this.applyInitialCategoryFilter();
+        this.updateActiveFilters(this.selectedCategoryId() ?? null);
       });
   }
 
@@ -234,9 +242,16 @@ export class Catalog implements OnInit {
           this.page.set(1);
           this.updateActiveFilters(rawCategory);
 
+          this.isLoading.set(true);
           this.productService
             .getProductsByQuery(newCatId)
-            .pipe(takeUntilDestroyed(this.destroyRef))
+            .pipe(
+              catchError((err) => {
+                console.error('Error al cargar productos del catálogo:', err);
+                return of([]);
+              }),
+              takeUntilDestroyed(this.destroyRef),
+            )
             .subscribe((products) => {
               this.productsFromQuery.set(products);
               this.isLoading.set(false);

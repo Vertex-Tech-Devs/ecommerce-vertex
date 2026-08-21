@@ -1,5 +1,6 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +16,6 @@ import {
   distinctUntilChanged,
   catchError,
   of,
-  tap,
 } from 'rxjs';
 
 import { AdminSearchBar } from '@shared/components/admin-search-bar/admin-search-bar';
@@ -40,20 +40,17 @@ export class ClientsList implements OnInit {
 
   readonly isLoading = signal<boolean>(true);
   clients$!: Observable<Client[]>;
+  private rawClients$ = new BehaviorSubject<Client[]>([]);
 
   private _clientService = inject(ClientService);
   private _router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
+    this.loadClients();
+
     this.clients$ = combineLatest([
-      this._clientService.getClients().pipe(
-        tap(() => this.isLoading.set(false)),
-        catchError((err) => {
-          console.error('Error al cargar la lista de clientes:', err);
-          this.isLoading.set(false);
-          return of([] as Client[]);
-        }),
-      ),
+      this.rawClients$,
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.currentPageSubject,
       this.itemsPerPageSubject,
@@ -83,6 +80,23 @@ export class ClientsList implements OnInit {
         return filteredClients.slice(startIndex, startIndex + itemsPerPage);
       }),
     );
+  }
+
+  loadClients(): void {
+    this.isLoading.set(true);
+    this._clientService
+      .getClients()
+      .pipe(
+        catchError((err) => {
+          console.error('Error al cargar la lista de clientes:', err);
+          return of([] as Client[]);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((clients) => {
+        this.rawClients$.next(clients);
+        this.isLoading.set(false);
+      });
   }
 
   onSearchChange(newValue: string): void {

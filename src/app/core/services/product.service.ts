@@ -50,7 +50,6 @@ export class ProductService {
     return runInInjectionContext(this.injector, () => {
       const q = query(this.collectionRef, storeIdFilter());
       const data$ = (collectionData(q, { idField: 'id' }) as Observable<Product[]>).pipe(
-        shareReplay({ bufferSize: 1, refCount: true }),
         map((items) => items.map((item) => convertTimestampsToDates(item) as Product)),
         map((products) =>
           [...products].sort((a, b) => {
@@ -72,6 +71,7 @@ export class ProductService {
           console.warn('Unable to load products:', err);
           return of([]);
         }),
+        shareReplay({ bufferSize: 1, refCount: true }),
       );
       return data$;
     });
