@@ -84,23 +84,27 @@
               </p>
             </div>
           }
-          <div class="confirmation__delivery-actions">
-            <a
-              [href]="getWhatsappUrl(data.order)"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="confirmation__whatsapp-btn"
-            >
-              <i class="bi bi-whatsapp me-2" aria-hidden="true"></i> Contactar por WhatsApp
-            </a>
-          </div>
+        </div>
+
+        <!-- Receipt Print and Action Toolbar -->
+        <div class="confirmation__receipt-actions">
+          <button type="button" class="confirmation__btn-receipt" (click)="printReceipt()">
+            <i class="bi bi-printer me-2" aria-hidden="true"></i> Imprimir / Descargar Comprobante
+          </button>
+          <a
+            [href]="getWhatsappUrl(data.order)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="confirmation__whatsapp-btn"
+          >
+            <i class="bi bi-whatsapp me-2" aria-hidden="true"></i> Contactar por WhatsApp
+          </a>
         </div>
 
         @if (data.paymentStatus === 'approved') {
           <p class="confirmation__email">
             Te hemos enviado un correo de confirmación a
-            <strong>{{ data.order.clientEmail }}</strong
-            >.
+            <strong>{{ data.order.clientEmail }}</strong>.
           </p>
           <a routerLink="/shop/catalog" class="confirmation__action">Seguir Comprando</a>
         } @else {
@@ -108,6 +112,73 @@
           <a routerLink="/shop/cart" class="confirmation__action">Volver al Carrito</a>
         }
       </article>
+
+      <!-- Printable Receipt Voucher for window.print() and PDF generation -->
+      <section class="confirmation__printable-receipt" id="printable-receipt" aria-hidden="true">
+        <header class="receipt-header">
+          <h2 class="receipt-store-name">{{ storeConfig()?.storeName || 'Comprobante de Compra' }}</h2>
+          <p class="receipt-meta">Comprobante Oficial de Pedido</p>
+          <p class="receipt-meta">Fecha: {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+        </header>
+
+        <div class="receipt-info-grid">
+          <div class="receipt-info-block">
+            <h3>Detalle del Pedido</h3>
+            <p><strong>Pedido #:</strong> {{ data.order.id }}</p>
+            <p><strong>Estado:</strong> {{ data.paymentStatus === 'approved' ? 'Aprobado / Pagado' : 'Pendiente de Aprobación' }}</p>
+            <p><strong>Método:</strong> Mercado Pago</p>
+          </div>
+          <div class="receipt-info-block">
+            <h3>Datos del Comprador</h3>
+            <p><strong>Nombre:</strong> {{ data.order.clientName }}</p>
+            <p><strong>Email:</strong> {{ data.order.clientEmail }}</p>
+            <p><strong>Teléfono:</strong> {{ data.order.clientPhone || '-' }}</p>
+          </div>
+        </div>
+
+        <div class="receipt-delivery-block">
+          <h3>Entrega</h3>
+          <p>
+            <strong>Modalidad:</strong>
+            {{ data.order.deliverySelection?.type === 'store_pickup' ? 'Retiro en Local' : 'Envío a Domicilio' }}
+          </p>
+          @if (data.order.deliverySelection?.type === 'store_pickup') {
+            <p><strong>Punto de Retiro:</strong> {{ data.order.deliverySelection?.pickupAddressFormatted || 'Sucursal Seleccionada' }}</p>
+          }
+        </div>
+
+        <table class="receipt-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th class="text-center">Cant.</th>
+              <th class="text-end">Precio Unit.</th>
+              <th class="text-end">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data.order.items; track item.variantId) {
+              <tr>
+                <td>{{ item.productName }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-end">{{ item.price | currency: 'ARS' : '$' }}</td>
+                <td class="text-end">{{ item.price * item.quantity | currency: 'ARS' : '$' }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="3" class="text-end">Total Abonado:</th>
+              <th class="text-end">{{ data.order.total | currency: 'ARS' : '$' }}</th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <footer class="receipt-footer">
+          <p>¡Gracias por confiar en {{ storeConfig()?.storeName || 'nuestra tienda' }}!</p>
+          <p class="text-muted small">Este documento sirve como constancia y recibo de pedido.</p>
+        </footer>
+      </section>
     } @else {
       <article class="confirmation__card">
         @if (data.paymentStatus === 'approved') {
@@ -148,7 +219,10 @@
           </p>
         </div>
 
-        <div class="confirmation__delivery-actions mt-4">
+        <div class="confirmation__receipt-actions mt-4">
+          <button type="button" class="confirmation__btn-receipt" (click)="printReceipt()">
+            <i class="bi bi-printer me-2" aria-hidden="true"></i> Imprimir / Descargar Comprobante
+          </button>
           <a
             [href]="getWhatsappUrl(undefined, data.orderId)"
             target="_blank"

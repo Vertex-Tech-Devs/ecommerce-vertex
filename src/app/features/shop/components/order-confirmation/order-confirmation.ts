@@ -4,13 +4,14 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { switchMap, of, combineLatest, map } from 'rxjs';
-import { Functions } from '@angular/fire/functions';
-import { httpsCallable } from 'firebase/functions';
 import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { CartService } from '@core/services/cart.service';
 import { resolveTenantId } from '@core/utils/tenant';
+
+import { environment } from '../../../../../environments/environment';
+import { FirebaseApp } from '@angular/fire/app';
 
 interface ConfirmationData {
   order: Order | undefined;
@@ -31,7 +32,10 @@ export class OrderConfirmation implements OnInit {
   private orderService = inject(OrderService);
   private storeConfigService = inject(StoreConfigService);
   private cartService = inject(CartService);
-  private functions = inject(Functions, { optional: true });
+  private firebaseApp = inject(FirebaseApp, { optional: true });
+
+  readonly storeConfig = this.storeConfigService.storeConfig;
+  readonly currentDate = new Date();
 
   data$!: Observable<ConfirmationData>;
 
@@ -68,15 +72,31 @@ export class OrderConfirmation implements OnInit {
     );
   }
 
-  private async triggerConfirmationEmail(orderId: string): Promise<void> {
-    if (!this.functions) {
-      return;
+  printReceipt(): void {
+    if (typeof window !== 'undefined') {
+      window.print();
     }
+  }
+
+  private async triggerConfirmationEmail(orderId: string): Promise<void> {
     try {
-      const fn = httpsCallable(this.functions, 'notifyOrderConfirmation');
-      await fn({ orderId, tenantId: resolveTenantId() });
+      const baseUrl =
+        environment.api?.cloudFunctionsUrl && environment.api.cloudFunctionsUrl.trim() !== ''
+          ? environment.api.cloudFunctionsUrl.trim()
+          : 'https://us-central1-ecommerce-vertex-dev.cloudfunctions.net';
+      const endpoint = `${baseUrl}/notifyOrderConfirmation`;
+      const tenantProjectId = this.firebaseApp?.options?.projectId;
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          tenantId: resolveTenantId(),
+          tenantProjectId,
+        }),
+      });
     } catch {
-      // Ignorar fallas secundarias, webhook de Mercado Pago es el canal principal
+      // Ignorar fallas de red secundarias
     }
   }
 

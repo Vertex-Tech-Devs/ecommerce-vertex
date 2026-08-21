@@ -1,5 +1,5 @@
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import { OrderSchema } from './core/order.model';
@@ -329,44 +329,110 @@ export async function sendOrderNotificationEmailsDirect(
   }
 }
 
-export const notifyOrderConfirmation = onCall<{
-  orderId: string;
-  tenantId?: string;
-  tenantProjectId?: string;
-}>({ cors: true, invoker: 'public' }, async (request) => {
-  const { orderId, tenantId, tenantProjectId } = request.data;
-  if (!orderId) {
-    throw new HttpsError('invalid-argument', 'orderId es requerido.');
-  }
+export const notifyOrderConfirmation = onRequest(
+  { cors: true, invoker: 'public' },
+  async (request, response) => {
+    try {
+      if (request.method === 'OPTIONS') {
+        response.status(204).send('');
+        return;
+      }
 
-  const tenantDb = resolveTenantDb(tenantProjectId);
-  const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
-  const orderSnap = await orderRef.get();
-  if (!orderSnap.exists) {
-    throw new HttpsError('not-found', `Pedido #${orderId} no encontrado.`);
-  }
+      let payload: Record<string, unknown> = {};
+      if (typeof request.body === 'object' && request.body !== null) {
+        payload = request.body as Record<string, unknown>;
+      } else if (typeof request.body === 'string') {
+        try {
+          payload = JSON.parse(request.body) as Record<string, unknown>;
+        } catch {
+          payload = {};
+        }
+      }
 
-  const rawData = orderSnap.data() as Record<string, unknown>;
-  if (rawData['notificationsSent'] === true) {
-    logger.info(
-      `[notifyOrderConfirmation] Pedido #${orderId} ya tiene notificationsSent=true. Omitiendo.`,
-    );
-    return { success: true, alreadySent: true };
-  }
+      const orderId = String(payload['orderId'] || request.query['orderId'] || '').trim();
+      const tenantId = String(payload['tenantId'] || request.query['tenantId'] || '').trim();
+      let tenantProjectId = String(
+        payload['tenantProjectId'] || request.query['tenantProjectId'] || '',
+      ).trim();
 
-  const parsed = OrderSchema.safeParse({ id: orderId, ...rawData });
-  if (!parsed.success) {
-    throw new HttpsError('invalid-argument', 'Estructura de pedido inválida.');
-  }
+      if (!orderId) {
+        response.status(400).json({ error: 'orderId es requerido.' });
+        return;
+      }
 
-  return await sendOrderNotificationEmailsDirect(
-    orderId,
-    parsed.data,
-    tenantDb,
-    tenantId || String(rawData['storeId'] || ''),
-    tenantProjectId,
-  );
-});
+      let tenantDb = resolveTenantDb(tenantProjectId || undefined);
+      let orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+      let orderSnap = await orderRef.get();
+
+      // Si no se encuentra en el proyecto indicado o por defecto, intentar buscar el proyecto en la colección stores de la plataforma
+      if (!orderSnap.exists && tenantId) {
+        try {
+          const defaultFirestore = getFirestore();
+          const storesSnap = await defaultFirestore
+            .collection('stores')
+            .where('slug', '==', tenantId)
+            .limit(1)
+            .get();
+          if (!storesSnap.empty) {
+            const storeData = storesSnap.docs[0].data();
+            if (storeData['firebaseProjectId']) {
+              tenantProjectId = String(storeData['firebaseProjectId']);
+              tenantDb = resolveTenantDb(tenantProjectId);
+              orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+              orderSnap = await orderRef.get();
+            }
+          }
+        } catch (lookupErr) {
+          logger.warn(
+            `[notifyOrderConfirmation] Falló búsqueda de shard para tenantId ${tenantId}:`,
+            lookupErr,
+          );
+        }
+      }
+
+      if (!orderSnap.exists) {
+        logger.warn(
+          `[notifyOrderConfirmation] Pedido #${orderId} no encontrado en proyecto ${tenantProjectId || 'default'}.`,
+        );
+        response.status(404).json({ error: `Pedido #${orderId} no encontrado.` });
+        return;
+      }
+
+      const rawData = orderSnap.data() as Record<string, unknown>;
+      if (rawData['notificationsSent'] === true) {
+        logger.info(
+          `[notifyOrderConfirmation] Pedido #${orderId} ya tiene notificationsSent=true. Omitiendo.`,
+        );
+        response.status(200).json({ success: true, alreadySent: true });
+        return;
+      }
+
+      const parsed = OrderSchema.safeParse({ id: orderId, ...rawData });
+      if (!parsed.success) {
+        logger.error(
+          `[notifyOrderConfirmation] Estructura de pedido inválida para #${orderId}:`,
+          parsed.error.flatten(),
+        );
+        response.status(400).json({ error: 'Estructura de pedido inválida.' });
+        return;
+      }
+
+      const result = await sendOrderNotificationEmailsDirect(
+        orderId,
+        parsed.data,
+        tenantDb,
+        tenantId || String(rawData['storeId'] || ''),
+        tenantProjectId || undefined,
+      );
+
+      response.status(200).json(result);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      logger.error(`[notifyOrderConfirmation] Error inesperado procesando pedido:`, err);
+      response.status(500).json({ success: false, error: errorMsg });
+    }
+  },
+);
 
 export const onOrderWrittenSendNotifications = onDocumentWritten(
   `${COLLECTIONS.ORDERS}/{orderId}`,
