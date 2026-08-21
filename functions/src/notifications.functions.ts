@@ -309,6 +309,7 @@ export async function sendOrderNotificationEmailsDirect(
     try {
       await tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId).update({
         notificationsSent: true,
+        emailDirectSent: adminSent || customerSent,
         notificationsSentAt: new Date(),
       });
     } catch (updateErr) {
@@ -399,9 +400,10 @@ export const notifyOrderConfirmation = onRequest(
       }
 
       const rawData = orderSnap.data() as Record<string, unknown>;
-      if (rawData['notificationsSent'] === true) {
+      const force = Boolean(payload['force'] || request.query['force']);
+      if (!force && rawData['emailDirectSent'] === true) {
         logger.info(
-          `[notifyOrderConfirmation] Pedido #${orderId} ya tiene notificationsSent=true. Omitiendo.`,
+          `[notifyOrderConfirmation] Pedido #${orderId} ya tiene emailDirectSent=true. Omitiendo.`,
         );
         response.status(200).json({ success: true, alreadySent: true });
         return;
@@ -445,7 +447,7 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
     const status = orderRaw['status'] as string | undefined;
 
     if (status !== 'processing' && status !== 'approved' && status !== 'paid') return;
-    if (orderRaw['notificationsSent'] === true) return;
+    if (orderRaw['emailDirectSent'] === true) return;
 
     const validationResult = OrderSchema.safeParse({ id: orderId, ...afterSnap.data() });
     if (!validationResult.success) {
