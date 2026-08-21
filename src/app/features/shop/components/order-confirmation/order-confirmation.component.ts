@@ -4,10 +4,13 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
 import { switchMap, of, combineLatest, map } from 'rxjs';
+import { Functions } from '@angular/fire/functions';
+import { httpsCallable } from 'firebase/functions';
 import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { CartService } from '@core/services/cart.service';
+import { resolveTenantId } from '@core/utils/tenant';
 
 interface ConfirmationData {
   order: Order | undefined;
@@ -26,6 +29,7 @@ export class OrderConfirmationComponent implements OnInit {
   private orderService = inject(OrderService);
   private storeConfigService = inject(StoreConfigService);
   private cartService = inject(CartService);
+  private functions = inject(Functions);
 
   data$!: Observable<ConfirmationData>;
 
@@ -36,6 +40,7 @@ export class OrderConfirmationComponent implements OnInit {
       switchMap((params) => {
         const orderId = params.get('id');
         if (orderId) {
+          void this.triggerConfirmationEmail(orderId);
           return this.orderService.getOrderById(orderId);
         }
         return of(undefined);
@@ -48,6 +53,15 @@ export class OrderConfirmationComponent implements OnInit {
       order: order$,
       paymentStatus: paymentStatus$,
     });
+  }
+
+  private async triggerConfirmationEmail(orderId: string): Promise<void> {
+    try {
+      const fn = httpsCallable(this.functions, 'notifyOrderConfirmation');
+      await fn({ orderId, tenantId: resolveTenantId() });
+    } catch {
+      // Ignorar fallas secundarias, webhook de Mercado Pago es el canal principal
+    }
   }
 
   getWhatsappUrl(order: Order): string {

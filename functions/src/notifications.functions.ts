@@ -1,29 +1,35 @@
-import { onDocumentWritten, onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
-import { getFirestore } from 'firebase-admin/firestore';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import { OrderSchema } from './core/order.model';
 import type { Order } from './core/order.model';
 import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 import { sendEmail, getNotificationEmail } from './core/email.service';
+import { resolveTenantDb } from './core/tenant-db';
 
-const db = getFirestore();
+const defaultDb = getFirestore();
 
 function envSiteUrl(): string {
   return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
 }
 
-async function getEmailConfig(storeId: string) {
-  const db = getFirestore();
-
-  const configDoc = await db
+async function getEmailConfig(storeId: string, tenantDb: Firestore) {
+  let configDoc = await tenantDb
     .doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES))
     .get();
-  const base = configDoc.exists ? configDoc.data() : {};
+  if (!configDoc.exists) {
+    configDoc = await tenantDb.doc(`${COLLECTIONS.SETTINGS}/${DOCS.EMAIL_TEMPLATES}`).get();
+  }
+  const base = configDoc.exists ? (configDoc.data() as Record<string, unknown>) : {};
 
+  let publicSnap = await tenantDb.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
+  if (!publicSnap.exists) {
+    publicSnap = await tenantDb.doc('configuracion/store').get();
+  }
 
-  const publicSnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
   if (publicSnap.exists) {
-    const pub = publicSnap.data();
+    const pub = publicSnap.data() as Record<string, unknown>;
     const merged: Record<string, unknown> = { ...base };
     if (pub) {
       if (!merged['storeName'] && pub['storeName']) merged['storeName'] = pub['storeName'];
@@ -31,16 +37,26 @@ async function getEmailConfig(storeId: string) {
       if (pub['notificationEmail']) merged['notificationEmail'] = pub['notificationEmail'];
       if (pub['emailSenderName']) merged['emailSenderName'] = pub['emailSenderName'];
       if (pub['emailSignature']) merged['emailSignature'] = pub['emailSignature'];
+      if (pub['storeWhatsappNumber']) merged['storeWhatsappNumber'] = pub['storeWhatsappNumber'];
+      if (pub['contact'] && typeof pub['contact'] === 'object') {
+        const contact = pub['contact'] as Record<string, unknown>;
+        if (contact['email'] && !merged['storeOwnerEmail']) {
+          merged['storeOwnerEmail'] = contact['email'];
+        }
+        if (contact['whatsApp'] && !merged['storeWhatsappNumber']) {
+          merged['storeWhatsappNumber'] = contact['whatsApp'];
+        }
+      }
     }
     return merged;
   }
   return configDoc.exists ? base : null;
 }
 
-async function getAttributeMap(storeId: string): Promise<Map<string, string>> {
+async function getAttributeMap(storeId: string, tenantDb: Firestore): Promise<Map<string, string>> {
   const attributeMap = new Map<string, string>();
   try {
-    const attributesSnapshot = await db
+    const attributesSnapshot = await tenantDb
       .collection(collectionPath(COLLECTIONS.ATTRIBUTES))
       .where('storeId', '==', storeId)
       .get();
@@ -135,66 +151,52 @@ function buildEmailHtml(
   return emailBody + buttonsHtml;
 }
 
-export const onOrderWrittenSendNotifications = onDocumentWritten(
-  `${COLLECTIONS.ORDERS}/{orderId}`,
-  async (event) => {
-    const afterSnap = event.data?.after;
-    const orderId = event.params.orderId;
-    if (!afterSnap || !afterSnap.exists) {
-      return;
-    }
-
-    const orderRaw = afterSnap.data() as Record<string, unknown>;
-    const status = orderRaw['status'] as string | undefined;
-
-    if (status !== 'processing' && status !== 'approved' && status !== 'paid') {
-      return;
-    }
-
-    if (orderRaw['notificationsSent'] === true) {
-      return;
-    }
-
-    const validationResult = OrderSchema.safeParse(afterSnap.data());
-    if (!validationResult.success) {
-      logger.error(`Datos del pedido ${orderId} son inválidos.`, {
-        errors: validationResult.error.flatten(),
-      });
-      return;
-    }
-    const orderData = validationResult.data;
-    const storeId = orderRaw['storeId'] as string | undefined;
-    if (!storeId) {
-      logger.warn(`Pedido ${orderId} sin storeId. No se enviarán notificaciones.`);
-      return;
-    }
+export async function sendOrderNotificationEmailsDirect(
+  orderId: string,
+  orderData: Order,
+  tenantDb: Firestore,
+  storeId?: string,
+  tenantProjectId?: string,
+): Promise<{ success: boolean; adminSent: boolean; customerSent: boolean; error?: string }> {
+  try {
+    const effectiveStoreId =
+      storeId || ((orderData as unknown as Record<string, unknown>)['storeId'] as string) || 'store';
     logger.info(
-      `Pedido pagado #${orderId} válido (store: ${storeId}). Obteniendo plantillas de email...`,
+      `[OrderNotifications] Enviando emails para pedido #${orderId} (store: ${effectiveStoreId}, shard: ${tenantProjectId || 'default'})...`,
     );
 
-    const config = await getEmailConfig(storeId);
-    const attributeMap = await getAttributeMap(storeId);
-    const mailCreationPromises = [];
+    const config = await getEmailConfig(effectiveStoreId, tenantDb);
+    const attributeMap = await getAttributeMap(effectiveStoreId, tenantDb);
 
-    const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const projectId = process.env.GCLOUD_PROJECT || 'vertex-platform-dev';
+    const projectId = tenantProjectId || process.env.GCLOUD_PROJECT || 'vertex-platform-dev';
     const defaultFromDomain = projectId.includes('vertex-platform-app')
       ? 'vertex-platform-app.web.app'
       : 'vertex-platform-dev.firebaseapp.com';
     const defaultFromEmail = `no-reply@${defaultFromDomain}`;
-    const storeName = config?.storeName || 'Vertex Store';
-    // Remitente dinámico desde /admin/store-config (emailSenderName) o el nombre de la tienda.
-    const senderName = config?.emailSenderName || storeName;
+    const storeName = (config?.['storeName'] as string) || 'Vertex Store';
+    const senderName = (config?.['emailSenderName'] as string) || storeName;
     const fromAddress = `${senderName} <${defaultFromEmail}>`;
-    const emailSignature = (config?.emailSignature || '').trim();
+    const emailSignature = ((config?.['emailSignature'] as string) || '').trim();
 
-    const adminEmail =
-      config?.storeOwnerEmail || config?.notificationEmail || getNotificationEmail();
+    let adminSent = false;
+    let customerSent = false;
+
+    // 1. Email al Administrador / Vendedor
+    const adminEmail = (
+      (config?.['storeOwnerEmail'] as string) ||
+      (config?.['notificationEmail'] as string) ||
+      getNotificationEmail()
+    )?.trim();
 
     if (adminEmail) {
-      const adminConfig = config?.adminNotification || {
+      const adminConfig = (config?.['adminNotification'] as {
+        subject?: string;
+        template?: string;
+        showManageButton?: boolean;
+        showWhatsappButton?: boolean;
+      }) || {
         subject: `Nueva venta aprobada #${orderId}`,
-        template: `<p>Has recibido una nueva venta aprobada para el pedido #{orderId} de {clientName}.</p><p>Total: ${orderData.total}</p>{itemsList}`,
+        template: `<p>Has recibido una nueva venta aprobada para el pedido #{orderId} de {clientName}.</p><p>Total: $${orderData.total}</p>{itemsList}`,
         showManageButton: true,
         showWhatsappButton: true,
       };
@@ -205,35 +207,52 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
       const whatsappMessage = encodeURIComponent(
         `Hola ${orderData.clientName}, te contacto sobre tu pedido #${orderId}.`,
       );
-      const whatsappUrl = adminConfig.showWhatsappButton
-        ? `https://wa.me/${orderData.clientPhone}?text=${whatsappMessage}`
-        : null;
+      const whatsappUrl =
+        adminConfig.showWhatsappButton && orderData.clientPhone
+          ? `https://wa.me/${orderData.clientPhone.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`
+          : null;
 
       const adminHtml =
-        buildEmailHtml(adminConfig.template, orderData, orderId, attributeMap, {
-          manageButtonUrl,
-          whatsappUrl,
-        }) +
+        buildEmailHtml(
+          adminConfig.template || `<p>Nueva venta #{orderId}</p>{itemsList}`,
+          orderData,
+          orderId,
+          attributeMap,
+          { manageButtonUrl, whatsappUrl },
+        ) +
         (emailSignature
           ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
           : '');
 
-      mailCreationPromises.push(
-        db.collection(collectionPath(COLLECTIONS.MAIL)).add({
-          storeId,
-          to: [adminEmail],
-          from: fromAddress,
-          message: {
-            subject: adminConfig.subject.replace(/{orderId}/g, orderId),
-            html: adminHtml,
-          },
-          expireAt: expirationDate,
-        }),
+      const adminSubject = (adminConfig.subject || `Nueva venta aprobada #${orderId}`).replace(
+        /{orderId}/g,
+        orderId,
+      );
+
+      const adminResult = await sendEmail({
+        to: adminEmail,
+        from: fromAddress,
+        subject: adminSubject,
+        html: adminHtml,
+      });
+
+      adminSent = adminResult.success;
+      logger.info(
+        `[OrderNotifications] Email a vendedor (${adminEmail}): ${adminResult.success ? 'ENVIADO' : 'FALLÓ'}`,
+      );
+    } else {
+      logger.warn(
+        `[OrderNotifications] No se encontró email de vendedor configurado para tienda ${effectiveStoreId}.`,
       );
     }
 
+    // 2. Email al Comprador / Cliente
     if (orderData.clientEmail) {
-      const customerConfig = config?.customerConfirmation || {
+      const customerConfig = (config?.['customerConfirmation'] as {
+        subject?: string;
+        template?: string;
+        showWhatsappButton?: boolean;
+      }) || {
         subject: `Confirmación de tu compra #${orderId}`,
         template: `<p>¡Hola {clientName}! Gracias por tu compra.</p><p>Tu pedido #{orderId} fue recibido y se está procesando.</p>{itemsList}`,
         showWhatsappButton: true,
@@ -245,78 +264,131 @@ export const onOrderWrittenSendNotifications = onDocumentWritten(
           ? `Hola! Hice el pedido #${orderId} para retirar por el local (${orderData.deliverySelection?.pickupAddressFormatted || 'Sucursal seleccionada'}). ¿Cuándo puedo pasar a buscarlo?`
           : `Hola! Hice el pedido #${orderId} y quisiera coordinar el envío a domicilio.`,
       );
-      const cleanStoreWa = (config?.storeWhatsappNumber || '').replace(/[^0-9]/g, '');
+      const cleanStoreWa = ((config?.['storeWhatsappNumber'] as string) || '').replace(
+        /[^0-9]/g,
+        '',
+      );
       const whatsappUrl =
         customerConfig.showWhatsappButton && cleanStoreWa
           ? `https://wa.me/${cleanStoreWa}?text=${customerWaMsg}`
           : null;
 
       const customerHtml =
-        buildEmailHtml(customerConfig.template, orderData, orderId, attributeMap, { whatsappUrl }) +
+        buildEmailHtml(
+          customerConfig.template || `<p>¡Gracias por tu compra #{orderId}!</p>{itemsList}`,
+          orderData,
+          orderId,
+          attributeMap,
+          { whatsappUrl },
+        ) +
         (emailSignature
           ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
           : '');
 
-      mailCreationPromises.push(
-        db.collection(collectionPath(COLLECTIONS.MAIL)).add({
-          storeId,
-          to: [orderData.clientEmail],
-          from: fromAddress,
-          message: {
-            subject: customerConfig.subject.replace(/{orderId}/g, orderId),
-            html: customerHtml,
-          },
-          expireAt: expirationDate,
-        }),
+      const customerSubject = (
+        customerConfig.subject || `Confirmación de tu compra #${orderId}`
+      ).replace(/{orderId}/g, orderId);
+
+      const custResult = await sendEmail({
+        to: orderData.clientEmail,
+        from: fromAddress,
+        subject: customerSubject,
+        html: customerHtml,
+      });
+
+      customerSent = custResult.success;
+      logger.info(
+        `[OrderNotifications] Email a comprador (${orderData.clientEmail}): ${custResult.success ? 'ENVIADO' : 'FALLÓ'}`,
+      );
+    } else {
+      logger.warn(`[OrderNotifications] El pedido #${orderId} no tiene clientEmail.`);
+    }
+
+    try {
+      await tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId).update({
+        notificationsSent: true,
+        notificationsSentAt: new Date(),
+      });
+    } catch (updateErr) {
+      logger.warn(
+        `[OrderNotifications] No se pudo actualizar notificationsSent en pedido #${orderId}:`,
+        updateErr,
       );
     }
 
-    try {
-      await Promise.all(mailCreationPromises);
-      await afterSnap.ref.update({ notificationsSent: true });
-      logger.info(`Correos para el pedido ${orderId} encolados exitosamente.`);
-    } catch (error) {
-      logger.error(`Error al encolar los correos para el pedido ${orderId}`, { error });
-    }
-  },
-);
+    return { success: adminSent || customerSent, adminSent, customerSent };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    logger.error(`[OrderNotifications] Error enviando notificaciones para pedido #${orderId}:`, err);
+    return { success: false, adminSent: false, customerSent: false, error: errorMsg };
+  }
+}
 
-export const onMailCreatedSendEmail = onDocumentCreated(
-  `${COLLECTIONS.MAIL}/{mailId}`,
+export const notifyOrderConfirmation = onCall<{
+  orderId: string;
+  tenantId?: string;
+  tenantProjectId?: string;
+}>({ cors: true, invoker: 'public' }, async (request) => {
+  const { orderId, tenantId, tenantProjectId } = request.data;
+  if (!orderId) {
+    throw new HttpsError('invalid-argument', 'orderId es requerido.');
+  }
+
+  const tenantDb = resolveTenantDb(tenantProjectId);
+  const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+  const orderSnap = await orderRef.get();
+  if (!orderSnap.exists) {
+    throw new HttpsError('not-found', `Pedido #${orderId} no encontrado.`);
+  }
+
+  const rawData = orderSnap.data() as Record<string, unknown>;
+  if (rawData['notificationsSent'] === true) {
+    logger.info(
+      `[notifyOrderConfirmation] Pedido #${orderId} ya tiene notificationsSent=true. Omitiendo.`,
+    );
+    return { success: true, alreadySent: true };
+  }
+
+  const parsed = OrderSchema.safeParse(rawData);
+  if (!parsed.success) {
+    throw new HttpsError('invalid-argument', 'Estructura de pedido inválida.');
+  }
+
+  return await sendOrderNotificationEmailsDirect(
+    orderId,
+    parsed.data,
+    tenantDb,
+    tenantId || String(rawData['storeId'] || ''),
+    tenantProjectId,
+  );
+});
+
+export const onOrderWrittenSendNotifications = onDocumentWritten(
+  `${COLLECTIONS.ORDERS}/{orderId}`,
   async (event) => {
-    const snap = event.data;
-    if (!snap) return;
+    const afterSnap = event.data?.after;
+    const orderId = event.params.orderId;
+    if (!afterSnap || !afterSnap.exists) return;
 
-    const mailData = snap.data() as {
-      to?: string | string[];
-      from?: string;
-      message?: { subject?: string; html?: string };
-      status?: string;
-    };
+    const orderRaw = afterSnap.data() as Record<string, unknown>;
+    const status = orderRaw['status'] as string | undefined;
 
-    if (mailData.status === 'sent' || mailData.status === 'skipped') {
-      return;
-    }
+    if (status !== 'processing' && status !== 'approved' && status !== 'paid') return;
+    if (orderRaw['notificationsSent'] === true) return;
 
-    const to = mailData.to;
-    if (!to) {
-      logger.warn(`Documento de email ${event.params.mailId} no tiene destinatario ('to').`);
-      return;
-    }
-
-    const from = mailData.from;
-    const subject = mailData.message?.subject || 'Notificación de compra';
-    const html = mailData.message?.html || '';
-
-    try {
-      const result = await sendEmail({ to, from, subject, html });
-      await snap.ref.update({
-        status: result.success ? 'sent' : result.skipped ? 'skipped' : 'failed',
-        sentAt: new Date(),
+    const validationResult = OrderSchema.safeParse(afterSnap.data());
+    if (!validationResult.success) {
+      logger.error(`Datos del pedido ${orderId} son inválidos.`, {
+        errors: validationResult.error.flatten(),
       });
-    } catch (err) {
-      logger.error(`[EmailService] Error al procesar el mail ${event.params.mailId}:`, err);
-      await snap.ref.update({ status: 'failed', error: String(err) });
+      return;
     }
+
+    await sendOrderNotificationEmailsDirect(
+      orderId,
+      validationResult.data,
+      defaultDb,
+      orderRaw['storeId'] as string,
+    );
   },
 );
