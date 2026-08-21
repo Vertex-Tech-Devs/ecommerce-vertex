@@ -5,7 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import type { Client } from '../models/client.model';
 import type { Order } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
-import { collection, query, where, orderBy, limit } from '@angular/fire/firestore';
+import { collection, query, where } from '@angular/fire/firestore';
 import { collectionData, Firestore } from '@angular/fire/firestore';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
@@ -28,8 +28,8 @@ export class ClientService {
         [...clients].sort((a, b) => {
           const dateA = a.lastOrderDate ?? a.firstOrderDate ?? 0;
           const dateB = b.lastOrderDate ?? b.firstOrderDate ?? 0;
-          const timeA = dateA instanceof Date ? dateA.getTime() : (new Date(dateA).getTime() || 0);
-          const timeB = dateB instanceof Date ? dateB.getTime() : (new Date(dateB).getTime() || 0);
+          const timeA = dateA instanceof Date ? dateA.getTime() : new Date(dateA).getTime() || 0;
+          const timeB = dateB instanceof Date ? dateB.getTime() : new Date(dateB).getTime() || 0;
           return timeB - timeA;
         }),
       ),
@@ -42,13 +42,13 @@ export class ClientService {
     return this.firestoreService.get(this.clientsCollectionName, compositeId).pipe(
       switchMap((client) => {
         if (client) {
-return of(client);
-}
+          return of(client);
+        }
         return this.firestoreService.get(this.clientsCollectionName, cleanEmail).pipe(
           switchMap((directClient) => {
             if (directClient) {
-return of(directClient);
-}
+              return of(directClient);
+            }
             return this.getClients().pipe(
               map((all) => all.find((c) => c.email.toLowerCase() === cleanEmail.toLowerCase())),
             );
@@ -101,21 +101,20 @@ return of(directClient);
   }
 
   getLatestClients(count: number = 10): Observable<Client[]> {
-    return runInInjectionContext(this.injector, () => {
-      const collectionRef = collection(this.firestore, tenantPath(this.clientsCollectionName));
-      const q = query(
-        collectionRef,
-        storeIdFilter(),
-        orderBy('lastOrderDate', 'desc'),
-        limit(count),
-      );
-      return (collectionData(q, { idField: 'id' }) as Observable<Client[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Client)),
-        catchError((err) => {
-          console.warn('Unable to load latest clients:', err);
-          return of([]);
-        }),
-      );
-    });
+    return this.getClients().pipe(
+      map((clients) =>
+        [...clients]
+          .sort((a, b) => {
+            const dateA = a.lastOrderDate ? new Date(a.lastOrderDate).getTime() : 0;
+            const dateB = b.lastOrderDate ? new Date(b.lastOrderDate).getTime() : 0;
+            return dateB - dateA;
+          })
+          .slice(0, count),
+      ),
+      catchError((err) => {
+        console.warn('Unable to load latest clients:', err);
+        return of([]);
+      }),
+    );
   }
 }

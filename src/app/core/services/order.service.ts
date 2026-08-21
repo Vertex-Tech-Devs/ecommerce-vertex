@@ -9,7 +9,7 @@ import type {
   CollectionReference,
   DocumentData,
 } from '@angular/fire/firestore';
-import { collection, query, where, orderBy, limit } from '@angular/fire/firestore';
+import { collection, query, where } from '@angular/fire/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
@@ -138,20 +138,12 @@ export class OrderService {
   }
 
   getLatestOrders(count: number = 10): Observable<Order[]> {
-    return runInInjectionContext(this.injector, () => {
-      const q = query(
-        this.collectionRef,
-        storeIdFilter(),
-        orderBy('orderDate', 'desc'),
-        limit(count),
-      );
-      return (collectionData(q, { idField: 'id' }) as Observable<Order[]>).pipe(
-        map((items) => items.map((item) => convertTimestampsToDates(item) as Order)),
-        catchError((err) => {
-          console.warn('Unable to load latest orders:', err);
-          return of([]);
-        }),
-      );
-    });
+    return this.getOrders().pipe(
+      map((orders) => orders.slice(0, count)),
+      catchError((err) => {
+        console.warn('Unable to load latest orders:', err);
+        return of([]);
+      }),
+    );
   }
 }
