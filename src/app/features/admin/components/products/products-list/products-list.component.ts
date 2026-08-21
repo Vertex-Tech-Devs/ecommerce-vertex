@@ -1,13 +1,13 @@
 import type { OnInit } from '@angular/core';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe, TitleCasePipe, ViewportScroller } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '@core/services/product.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { Observable } from 'rxjs';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import type { Product } from '@core/models/product.model';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, tap, catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { TruncatePipe } from '../../shared/pipes/truncate.pipe';
 import { CategoryService } from '@core/services/category.service';
@@ -34,6 +34,7 @@ import { AdminPaginationComponent } from '@shared/components/admin-pagination/ad
 })
 export class ProductsListComponent implements OnInit {
   products$!: Observable<Product[]>;
+  readonly isLoading = signal<boolean>(true);
   private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
   private router = inject(Router);
@@ -58,10 +59,17 @@ export class ProductsListComponent implements OnInit {
         categories.forEach((cat) => this.categoriesMap.set(cat.id!, cat.name));
         return categories;
       }),
+      catchError(() => of([])),
     );
 
     this.products$ = combineLatest([
-      this.productService.getProducts(),
+      this.productService.getProducts().pipe(
+        tap(() => this.isLoading.set(false)),
+        catchError(() => {
+          this.isLoading.set(false);
+          return of([]);
+        }),
+      ),
       this.categories$,
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
       this.filterCategorySubject,

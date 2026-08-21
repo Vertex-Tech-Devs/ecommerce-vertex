@@ -1,10 +1,10 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import type { Observable } from 'rxjs';
-import { BehaviorSubject, combineLatest } from 'rxjs';
-import { map, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { map, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import type { Attribute } from '@core/models/attribute.model';
 import { AttributeService } from '@core/services/attribute.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -39,12 +39,17 @@ export class AttributesListComponent implements OnInit {
   totalAttributes = 0;
   totalPages = 0;
 
+  readonly isLoading = signal<boolean>(true);
   attributes$!: Observable<Attribute[]>;
   private rawAttributes$ = new BehaviorSubject<Attribute[]>([]);
 
   ngOnInit(): void {
     this.loadAttributes();
 
+    this.categories_or_attrs();
+  }
+
+  private categories_or_attrs(): void {
     this.attributes$ = combineLatest([
       this.rawAttributes$,
       this.searchTermSubject.pipe(debounceTime(300), distinctUntilChanged()),
@@ -75,9 +80,18 @@ export class AttributesListComponent implements OnInit {
   }
 
   loadAttributes(): void {
-    this.attributeService.getAttributes().subscribe((attrs) => {
-      this.rawAttributes$.next(attrs);
-    });
+    this.attributeService
+      .getAttributes()
+      .pipe(
+        catchError((err) => {
+          console.error('Error al cargar atributos:', err);
+          return of([]);
+        }),
+      )
+      .subscribe((attrs) => {
+        this.rawAttributes$.next(attrs);
+        this.isLoading.set(false);
+      });
   }
 
   onSearchChange(newValue: string): void {

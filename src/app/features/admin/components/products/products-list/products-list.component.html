@@ -28,15 +28,33 @@
       </div>
     </header>
 
-    @if (products$ | async; as products) {
+    @if (isLoading()) {
+      <div class="products__grid" aria-busy="true" aria-label="Cargando productos">
+        @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
+          <div class="glass-card product-card product-card--skeleton">
+            <div class="product-card__image-wrapper skeleton-box skeleton-box--img"></div>
+            <div class="card-body">
+              <div class="skeleton-box skeleton-box--title mb-2"></div>
+              <div class="skeleton-box skeleton-box--category mb-3"></div>
+              <div class="skeleton-box skeleton-box--price"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (products$ | async; as products) {
       @if (products.length === 0) {
-        <div class="empty-state glass-card">
+        <div class="empty-state glass-card text-center py-5">
           @if (searchTermSubject.value || filterCategorySubject.value !== 'all') {
-            <i class="bi bi-search empty-icon"></i>
-            <p>No se encontraron productos que coincidan con tu búsqueda.</p>
+            <i class="bi bi-search empty-icon mb-3"></i>
+            <h5 class="fw-semibold text-secondary">No se encontraron productos</h5>
+            <p class="text-muted small mb-3">Probá ajustando los términos de búsqueda o filtros.</p>
           } @else {
-            <i class="bi bi-box2-heart empty-icon"></i>
-            <p>Aún no hay productos en el catálogo.</p>
+            <i class="bi bi-box2-heart empty-icon mb-3"></i>
+            <h5 class="fw-semibold text-secondary">No hay productos cargados aún</h5>
+            <p class="text-muted small mb-3">Comenzá agregando tu primer producto al catálogo.</p>
+            <button class="btn btn-primary btn-sm" (click)="newProduct()">
+              <i class="bi bi-plus-lg me-1"></i> Agregar Producto
+            </button>
           }
         </div>
       } @else {
@@ -108,39 +126,20 @@
             </div>
           }
         </div>
-      }
-    } @else {
-      <div class="text-center p-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando productos...</span>
-        </div>
-      </div>
-    }
 
-    @if ((products$ | async)?.length && totalProducts > 0) {
-      <div class="mt-4">
-        <app-admin-pagination
-          [totalItems]="totalProducts"
-          [currentPage]="currentPageSubject.value"
-          [pageSize]="itemsPerPageSubject.value"
-          [pageSizeOptions]="[12, 24, 48]"
-          (pageChange)="goToPage($event)"
-          (pageSizeChange)="onPageSizeChange($event)"
-        ></app-admin-pagination>
-      </div>
-    } @else {
-      <div class="products__grid" aria-busy="true" aria-label="Cargando productos">
-        @for (_ of [1, 2, 3, 4, 5, 6]; track $index) {
-          <div class="glass-card product-card product-card--skeleton">
-            <div class="product-card__image-wrapper skeleton-box skeleton-box--img"></div>
-            <div class="card-body">
-              <div class="skeleton-box skeleton-box--title mb-2"></div>
-              <div class="skeleton-box skeleton-box--category mb-3"></div>
-              <div class="skeleton-box skeleton-box--price"></div>
-            </div>
+        @if (totalProducts > 0) {
+          <div class="mt-4">
+            <app-admin-pagination
+              [totalItems]="totalProducts"
+              [currentPage]="currentPageSubject.value"
+              [pageSize]="itemsPerPageSubject.value"
+              [pageSizeOptions]="[12, 24, 48]"
+              (pageChange)="goToPage($event)"
+              (pageSizeChange)="onPageSizeChange($event)"
+            ></app-admin-pagination>
           </div>
         }
-      </div>
+      }
     }
   </div>
 </section>

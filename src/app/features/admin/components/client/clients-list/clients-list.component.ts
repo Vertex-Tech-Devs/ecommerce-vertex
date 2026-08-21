@@ -1,5 +1,5 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -13,9 +13,9 @@ import {
   map,
   debounceTime,
   distinctUntilChanged,
-  startWith,
   catchError,
   of,
+  tap,
 } from 'rxjs';
 
 import { AdminSearchBarComponent } from '@shared/components/admin-search-bar/admin-search-bar.component';
@@ -38,6 +38,7 @@ export class ClientsListComponent implements OnInit {
   totalClients = 0;
   totalPages = 0;
 
+  readonly isLoading = signal<boolean>(true);
   clients$!: Observable<Client[]>;
 
   private _clientService = inject(ClientService);
@@ -46,9 +47,10 @@ export class ClientsListComponent implements OnInit {
   ngOnInit(): void {
     this.clients$ = combineLatest([
       this._clientService.getClients().pipe(
-        startWith([] as Client[]),
+        tap(() => this.isLoading.set(false)),
         catchError((err) => {
           console.error('Error al cargar la lista de clientes:', err);
+          this.isLoading.set(false);
           return of([] as Client[]);
         }),
       ),
