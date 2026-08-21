@@ -52,7 +52,7 @@ Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 2. **Instalar dependencias y vincular contratos:**
 
    ```bash
-   npm install --legacy-peer-deps
+   npm install
    ```
 
 3. **Iniciar el servidor local de desarrollo:**
@@ -71,7 +71,7 @@ Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 ## 📁 Estructura del Proyecto
 
-- **`src/app`**: Componentes Angular de la tienda (`shop/`) y del panel de administración (`admin/`), servicios del core y utilidades compartidas.
+- **`src/app`**: Componentes Angular de la tienda (`shop/`) y del panel de administración (`admin/`) bajo **Clean Naming Architecture** (sin sufijos `.component.*`), servicios del core y utilidades compartidas.
 - **`functions/src`**: Funciones backend de Firebase (TypeScript), tales como la integración con pasarelas de pago y webhooks.
 - **`cypress`**: Suite de pruebas de integración de punta a punta (E2E).
 - **`integration-tests`**: Pruebas que validan la continuidad del ciclo de vida en conjunto con la plataforma principal.
@@ -80,10 +80,11 @@ Si prefieres ejecutar el Storefront en tu host localmente, sigue estos pasos:
 
 ## 🛠️ Tecnologías Principales
 
-- **Frontend**: Angular 22, señales (Signals), componentes independientes (Standalone) y SCSS.
+- **Frontend**: Angular 22, Clean Naming Architecture, `@angular/build` (esbuild/Vite), señales (Signals), componentes independientes (Standalone) y SCSS.
 - **Backend**: Firebase Cloud Functions v2 (TypeScript).
 - **Base de datos e Integraciones**: Cloud Firestore, Firebase Authentication y Firebase Storage.
-- **Pruebas y QA**: Vitest (pruebas unitarias), Cypress y Playwright (pruebas de integración).
+- **Pruebas y QA**: Jasmine/Karma (`@angular/build:karma`), Cypress y Playwright.
+- **Seguridad**: Política de **0 vulnerabilidades** auditadas en `npm audit` mediante overrides seguros.
 - **CI/CD**: GitHub Actions.
 
 ---

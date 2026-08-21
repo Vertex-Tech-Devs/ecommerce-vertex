@@ -6,7 +6,7 @@ This file contains instructions for AI agents and developers working on the Stor
 
 ## 🏗️ Arquitectura
 
-- **Framework**: Angular 20+ (Standalone components, Signals)
+- **Framework**: Angular 22+ (Standalone components, Signals, Clean Naming architecture, `@angular/build`)
 - **Backend**: Firebase Cloud Functions v2 (TypeScript)
 - **DB**: Cloud Firestore (multi-tenant, un proyecto Firebase por tienda)
 - **Auth**: Firebase Auth — Google OAuth únicamente en `/admin`
@@ -30,16 +30,16 @@ This file contains instructions for AI agents and developers working on the Stor
 npm start                  # Dev server en puerto 4201
 npm run lint               # ESLint
 npm run typecheck          # TypeScript strict check
-npm run test:ci            # Tests unitarios headless
-npm run build              # Build producción
+npm run test:ci            # Tests unitarios headless (280 specs)
+npm run build              # Build producción (@angular/build)
 npm run build:dev          # Build desarrollo
 npm run e2e                # Cypress headless
 npm run e2e:open           # Cypress interactivo
 
 # Versioning (ejecutar en main o develop antes del merge a main)
-npm run release:patch      # 0.1.0 → 0.1.1
-npm run release:minor      # 0.1.0 → 0.2.0
-npm run release:major      # 0.1.0 → 1.0.0
+npm run release:patch      # 0.5.0 → 0.5.1
+npm run release:minor      # 0.5.0 → 0.6.0
+npm run release:major      # 0.5.0 → 1.0.0
 ```
 
 ---
@@ -59,7 +59,7 @@ npm run release:major      # 0.1.0 → 1.0.0
 ## 🔢 Versionado del Template
 
 El storefront es el **template de tienda** versionado semánticamente (Semver).
-Versión actual: `0.4.0`
+Versión actual: `0.5.0`
 
 | Tipo de cambio                     | Comando                 |
 | ---------------------------------- | ----------------------- |
@@ -136,6 +136,13 @@ Versión actual: `0.4.0`
   * Los templates del panel de administración deben usar control flow mutuamente excluyente:
     `@if (isLoading()) { <skeleton> } @else if (items$ | async; as items) { @if (items.length === 0) { <empty-state> } @else { <table/grid> <pagination> } }`
   * Prohibido superponer loading spinners y skeletons simultáneamente.
+- **Clean Naming Architecture**:
+  * Nombres de archivos directos sin sufijo `.component` (`home.ts`, `catalog.ts`, `cart.ts`, etc.).
+  * Clases de componentes limpias (`Home`, `Catalog`, `Cart`, `Checkout`, `StoreConfig`, etc.).
+  * Modelos de datos aliasados limpiamente en caso de colisión (`ProductModel`, `StoreConfigData`, `CartModel`).
+- **Zero Vulnerabilities & Safe Overrides**:
+  * Todo el árbol de dependencias debe mantener `npm audit: 0 vulnerabilities`.
+  * Toda vulnerabilidad transitiva se mitiga mediante la sección `overrides` en `package.json`.
 
 ---
 

@@ -1,5 +1,6 @@
 # Build & Dist
 dist/
+dist-scripts/
 .angular/
 .sass-cache/
 coverage/
