@@ -185,7 +185,7 @@ describe('OrdersList', () => {
     it('should return store pickup badge info when deliveryType is store_pickup with address', () => {
       const badge = component.getDeliveryBadge(mockOrders[0]);
       expect(badge.icon).toBe('bi-shop');
-      expect(badge.cssClass).toContain('bg-info-subtle');
+      expect(badge.cssClass).toContain('badge-delivery-pickup');
       expect(badge.label).toBe('Retiro en Local');
       expect(badge.summary).toBe('Sucursal Centro - Calle 123');
     });
@@ -205,7 +205,7 @@ describe('OrdersList', () => {
     it('should return home delivery badge info for home_delivery order', () => {
       const badge = component.getDeliveryBadge(mockOrders[1]);
       expect(badge.icon).toBe('bi-truck');
-      expect(badge.cssClass).toContain('bg-secondary-subtle');
+      expect(badge.cssClass).toContain('badge-delivery-home');
       expect(badge.label).toBe('Envío a Domicilio');
       expect(badge.summary).toBe('Cordoba, Cordoba');
     });
@@ -213,7 +213,7 @@ describe('OrdersList', () => {
     it('should return home delivery badge info for legacy order without deliverySelection', () => {
       const badge = component.getDeliveryBadge(mockOrders[2]);
       expect(badge.icon).toBe('bi-truck');
-      expect(badge.cssClass).toContain('bg-secondary-subtle');
+      expect(badge.cssClass).toContain('badge-delivery-home');
       expect(badge.label).toBe('Envío a Domicilio');
       expect(badge.summary).toBe('Mendoza, Mendoza');
     });
