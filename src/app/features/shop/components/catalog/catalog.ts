@@ -48,7 +48,7 @@ export class Catalog implements OnInit {
   readonly sort = signal<string>('newest');
   readonly page = signal<number>(1);
   readonly itemsPerPage = signal<number>(8);
-  readonly productsFromQuery = signal<Product[]>([]);
+  readonly allProducts = signal<Product[]>([]);
   readonly isLoading = signal<boolean>(true);
 
   // Signals for form values to keep computed pipeline pure
@@ -67,11 +67,12 @@ export class Catalog implements OnInit {
 
   // Computed properties
   readonly filteredProducts = computed(() => {
-    const products = this.productsFromQuery();
+    const products = this.allProducts();
     const minPrice = this.minPrice();
     const maxPrice = this.maxPrice();
     const dynamicAttributes = this.dynamicAttributesFilter();
     const search = this.searchTerm().trim().toLowerCase();
+    const selectedCategory = this.selectedCategoryId();
 
     const dynamicFilters: { [key: string]: string[] } = {};
     for (const attrId in dynamicAttributes) {
@@ -84,20 +85,36 @@ export class Catalog implements OnInit {
       }
     }
 
+    const hasCategoryFilter = Boolean(selectedCategory && selectedCategory !== 'all');
     const hasPriceFilter =
       (minPrice !== null && minPrice !== undefined) ||
       (maxPrice !== null && maxPrice !== undefined && maxPrice > 0);
     const hasDynamicFilter = Object.keys(dynamicFilters).length > 0;
 
     return products.filter((product) => {
-      if (product.totalStock <= 0) {
+      const stock =
+        product.totalStock ?? (product as unknown as Record<string, unknown>)['stock'] ?? 0;
+      if (typeof stock === 'number' && stock <= 0) {
         return false;
+      }
+
+      if (hasCategoryFilter) {
+        const prodCat = product.categoryId;
+        const prodSlug = (product as unknown as Record<string, unknown>)['categorySlug'];
+        const matchesCategory =
+          prodCat === selectedCategory ||
+          prodSlug === selectedCategory ||
+          (typeof prodCat === 'string' && prodCat.endsWith(`-cat-${selectedCategory}`));
+        if (!matchesCategory) {
+          return false;
+        }
       }
 
       if (search) {
         const titleVal = (product as unknown as Record<string, unknown>)['title'];
         const name = product.name ?? (typeof titleVal === 'string' ? titleVal : '');
-        if (!name.toLowerCase().includes(search)) {
+        const desc = product.description ?? '';
+        if (!name.toLowerCase().includes(search) && !desc.toLowerCase().includes(search)) {
           return false;
         }
       }
@@ -133,14 +150,18 @@ export class Catalog implements OnInit {
     const sortOption = this.sort();
 
     switch (sortOption) {
+      case 'priceAsc':
       case 'price-asc':
         return products.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+      case 'priceDesc':
       case 'price-desc':
         return products.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+      case 'nameAsc':
       case 'name-asc':
-        return products.sort((a, b) => a.name.localeCompare(b.name));
+        return products.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'nameDesc':
       case 'name-desc':
-        return products.sort((a, b) => b.name.localeCompare(a.name));
+        return products.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
       default:
         return products;
     }
@@ -183,6 +204,17 @@ export class Catalog implements OnInit {
   }
 
   private loadInitialData(): void {
+    this.productService
+      .getProducts()
+      .pipe(
+        catchError(() => of([])),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((products) => {
+        this.allProducts.set(products);
+        this.isLoading.set(false);
+      });
+
     this.categoryService
       .getCategories()
       .pipe(
@@ -238,24 +270,8 @@ export class Catalog implements OnInit {
         const rawCategory = filters.category ?? 'all';
         if (this.selectedCategoryId() !== rawCategory) {
           this.selectedCategoryId.set(rawCategory);
-          const newCatId = rawCategory === 'all' ? null : rawCategory;
           this.page.set(1);
           this.updateActiveFilters(rawCategory);
-
-          this.isLoading.set(true);
-          this.productService
-            .getProductsByQuery(newCatId)
-            .pipe(
-              catchError((err) => {
-                console.error('Error al cargar productos del catálogo:', err);
-                return of([]);
-              }),
-              takeUntilDestroyed(this.destroyRef),
-            )
-            .subscribe((products) => {
-              this.productsFromQuery.set(products);
-              this.isLoading.set(false);
-            });
         }
       });
   }
