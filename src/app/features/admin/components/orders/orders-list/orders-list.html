@@ -167,7 +167,7 @@
                       <td data-label="Método Entrega" class="text-center order-delivery">
                         @let badge = getDeliveryBadge(order);
                         <span
-                          class="badge py-1 px-2 fw-medium d-inline-flex align-items-center gap-1"
+                          class="badge-delivery"
                           [ngClass]="badge.cssClass"
                           [title]="badge.summary || badge.label"
                         >

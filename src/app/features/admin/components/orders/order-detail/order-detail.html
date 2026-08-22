@@ -97,10 +97,10 @@
                 <div class="col-md-6">
                   @if (isStorePickup(order)) {
                     <div
-                      class="p-3 rounded border border-info-subtle bg-info-subtle bg-opacity-10 text-white"
+                      class="delivery-info-box delivery-info-box--pickup p-3 rounded"
                     >
                       <div class="d-flex align-items-center gap-2 mb-2">
-                        <span class="badge bg-info text-dark font-monospace">
+                        <span class="badge-delivery badge-delivery-pickup">
                           <i class="bi bi-shop me-1"></i> Retiro en Local
                         </span>
                       </div>
@@ -128,13 +128,20 @@
                       }
                     </div>
                   } @else {
-                    <h6 class="text-label mb-2 fw-semibold">Dirección de Envío</h6>
-                    <address class="mb-0 text-soft">
-                      {{ order.shippingAddress.street }}<br />
-                      {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }}
-                      {{ order.shippingAddress.zipCode }}<br />
-                      {{ order.shippingAddress.country }}
-                    </address>
+                    <div class="delivery-info-box delivery-info-box--home p-3 rounded">
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge-delivery badge-delivery-home">
+                          <i class="bi bi-truck me-1"></i> Envío a Domicilio
+                        </span>
+                      </div>
+                      <h6 class="text-label mb-2 fw-semibold">Dirección de Envío</h6>
+                      <address class="mb-0 text-soft">
+                        <span class="text-strong fw-semibold d-block">{{ order.shippingAddress.street }}</span>
+                        {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }}
+                        {{ order.shippingAddress.zipCode }}<br />
+                        {{ order.shippingAddress.country }}
+                      </address>
+                    </div>
                   }
                 </div>
               </div>
