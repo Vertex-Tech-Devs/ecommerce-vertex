@@ -96,9 +96,7 @@
                 </div>
                 <div class="col-md-6">
                   @if (isStorePickup(order)) {
-                    <div
-                      class="delivery-info-box delivery-info-box--pickup p-3 rounded"
-                    >
+                    <div class="delivery-info-box delivery-info-box--pickup p-3 rounded">
                       <div class="d-flex align-items-center gap-2 mb-2">
                         <span class="badge-delivery badge-delivery-pickup">
                           <i class="bi bi-shop me-1"></i> Retiro en Local
@@ -136,7 +134,9 @@
                       </div>
                       <h6 class="text-label mb-2 fw-semibold">Dirección de Envío</h6>
                       <address class="mb-0 text-soft">
-                        <span class="text-strong fw-semibold d-block">{{ order.shippingAddress.street }}</span>
+                        <span class="text-strong fw-semibold d-block">{{
+                          order.shippingAddress.street
+                        }}</span>
                         {{ order.shippingAddress.city }}, {{ order.shippingAddress.state }}
                         {{ order.shippingAddress.zipCode }}<br />
                         {{ order.shippingAddress.country }}

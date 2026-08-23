@@ -263,7 +263,19 @@
 // ============================================
 // PRINT STYLES FOR RECEIPTS
 // ============================================
+@page {
+  margin: 12mm;
+  size: auto;
+}
+
 @media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
   body * {
     visibility: hidden;
   }
@@ -284,13 +296,13 @@
 
   .confirmation__printable-receipt {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    padding: 24px;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
     background: #fff;
     color: #111827;
     font-family: Arial, sans-serif;
@@ -358,7 +370,8 @@
       border-collapse: collapse;
       margin-bottom: 24px;
 
-      th, td {
+      th,
+      td {
         padding: 8px 10px;
         border-bottom: 1px solid #e5e7eb;
         font-size: 13px;
@@ -368,8 +381,12 @@
         text-align: left;
         font-weight: 600;
       }
-      .text-center { text-align: center; }
-      .text-end { text-align: right; }
+      .text-center {
+        text-align: center;
+      }
+      .text-end {
+        text-align: right;
+      }
 
       tfoot th {
         font-size: 15px;

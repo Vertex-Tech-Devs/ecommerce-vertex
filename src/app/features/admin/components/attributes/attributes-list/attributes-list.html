@@ -103,16 +103,22 @@
                         </div>
                       </td>
                       <td data-label="Acciones" class="text-end action-cell">
-                        <button
-                          class="btn-glass-primary me-2"
-                          (click)="toggleAttributeForm(attr)"
-                          title="Editar"
-                        >
-                          <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                        </button>
-                        <button class="btn-glass-danger" (click)="onDelete(attr)" title="Eliminar">
-                          <i class="bi bi-trash" aria-hidden="true"></i>
-                        </button>
+                        <div class="d-inline-flex align-items-center justify-content-end gap-2">
+                          <button
+                            class="btn-glass-primary"
+                            (click)="toggleAttributeForm(attr)"
+                            title="Editar"
+                          >
+                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                          </button>
+                          <button
+                            class="btn-glass-danger"
+                            (click)="onDelete(attr)"
+                            title="Eliminar"
+                          >
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   }

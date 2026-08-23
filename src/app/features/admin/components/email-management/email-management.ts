@@ -116,10 +116,7 @@ export class EmailManagement implements OnInit {
   private initializeForm(): void {
     this.emailForm = this.fb.group({
       storeOwnerEmail: ['', [Validators.required, Validators.email]],
-      storeWhatsappNumber: [
-        '',
-        [Validators.pattern('^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$')],
-      ],
+      storeWhatsappNumber: ['', [Validators.pattern(/^(\+?[0-9]{1,4})?[\s\d./()-]*$/)]],
       adminNotification: this.fb.group({
         subject: ['', Validators.required],
         template: ['', Validators.required],
@@ -158,7 +155,7 @@ export class EmailManagement implements OnInit {
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (settings) => {
-          if (settings?.storeOwnerEmail) {
+          if (settings) {
             this.emailForm.patchValue(settings);
             this.emailForm.markAsPristine();
           } else {

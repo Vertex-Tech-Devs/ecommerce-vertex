@@ -166,7 +166,11 @@ Versión actual: `0.5.0`
 
 ### 2. Generación e Impresión de Comprobante / Recibo
 - El componente `OrderConfirmation` (`/shop/order-confirmation/:id`) incluye un toolbar de acciones con botón de **Imprimir / Descargar Comprobante** (`printReceipt()`), invocando `window.print()`.
-- Incorpora un voucher imprimible semántico (`#printable-receipt`) con reglas `@media print` dedicadas que ocultan headers, navegaciones y fondos web, formateando una factura/recibo limpia y lista para ser guardada como PDF o impresa físicamente.
+- Incorpora un voucher imprimible semántico (`#printable-receipt`) con reglas `@media print` dedicadas que ocultan headers, navegaciones y fondos web, formateando una factura/recibo limpia y lista para ser guardada como PDF o impresa físicamente sin cortes superiores (`@page { margin: 12mm; }`).
+
+### 3. Soporte de Productos Simples (Sin Atributos)
+- Soporte para productos sin atributos (ej. libros, bazar, servicios) mediante resolución automática de variante base (`attributes: {}`, `stock: totalStock`).
+- El storefront habilita directamente la compra y el carrito muestra el nombre limpio del producto.
 
 ---
 
