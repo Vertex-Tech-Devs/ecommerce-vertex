@@ -99,6 +99,10 @@
     border: none;
     color: var(--bs-table-color);
   }
+
+  .action-cell {
+    white-space: nowrap;
+  }
 }
 
 .values-pills {

@@ -40,8 +40,8 @@ export class ProductVariantFormService {
       categoryId: [null, Validators.required],
       image: ['', [Validators.required]],
       images: this.fb.array([]),
-      variantAttributes: this.fb.array([], Validators.required),
-      variants: this.fb.array([], Validators.required),
+      variantAttributes: this.fb.array([]),
+      variants: this.fb.array([]),
     });
   }
 

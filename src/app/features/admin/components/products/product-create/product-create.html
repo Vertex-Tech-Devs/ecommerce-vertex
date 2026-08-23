@@ -1,13 +1,20 @@
 <section class="product-create-wrapper" aria-label="Formulario de producto">
   <div class="create-container">
-    <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4 gap-2">
-      <button type="button" class="btn-glass-back" (click)="onCancel()" aria-label="Volver">
+    <div
+      class="product-create-header position-relative d-flex align-items-center justify-content-center mb-3 mb-md-4"
+    >
+      <button
+        type="button"
+        class="btn-glass-back position-absolute start-0"
+        (click)="onCancel()"
+        aria-label="Volver"
+      >
         <i class="bi bi-chevron-left"></i>
         <span class="d-none d-md-inline ms-2">{{
           isEditMode ? 'Volver al Detalle' : 'Volver a la Lista'
         }}</span>
       </button>
-      <h2 class="mb-0 create__title text-end text-md-start text-truncate">
+      <h2 class="mb-0 create__title text-center text-truncate px-5">
         {{ pageTitle }}
       </h2>
     </div>

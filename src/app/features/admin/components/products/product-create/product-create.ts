@@ -419,10 +419,13 @@ export class ProductCreate implements OnInit, AfterViewInit {
         void this.router.navigate(['/admin/products', this.productId]);
       } else {
         const productData = this.variantFormService.buildProductData(formValue);
-        const variantsData = formValue.variants.map((v) => ({
-          attributes: v.attributes,
-          stock: v.stock,
-        }));
+        const variantsData =
+          formValue.variants && formValue.variants.length > 0
+            ? formValue.variants.map((v) => ({
+                attributes: v.attributes ?? {},
+                stock: v.stock ?? 0,
+              }))
+            : [{ attributes: {}, stock: 99 }];
         const newId = await this.productService.createProductWithVariants(
           productData,
           variantsData,
