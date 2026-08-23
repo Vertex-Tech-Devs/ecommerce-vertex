@@ -205,7 +205,7 @@ function generateVariantCombinations(
           });
         }
 
-        await productRef.update({ totalStock, inStockAttributes });
+        await productRef.set({ totalStock, inStockAttributes }, { merge: true });
       }
     }
   }
