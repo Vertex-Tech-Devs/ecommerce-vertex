@@ -104,7 +104,8 @@
         @if (data.paymentStatus === 'approved') {
           <p class="confirmation__email">
             Te hemos enviado un correo de confirmación a
-            <strong>{{ data.order.clientEmail }}</strong>.
+            <strong>{{ data.order.clientEmail }}</strong
+            >.
           </p>
           <a routerLink="/shop/catalog" class="confirmation__action">Seguir Comprando</a>
         } @else {
@@ -116,7 +117,9 @@
       <!-- Printable Receipt Voucher for window.print() and PDF generation -->
       <section class="confirmation__printable-receipt" id="printable-receipt" aria-hidden="true">
         <header class="receipt-header">
-          <h2 class="receipt-store-name">{{ storeConfig()?.storeName || 'Comprobante de Compra' }}</h2>
+          <h2 class="receipt-store-name">
+            {{ storeConfig()?.storeName || 'Comprobante de Compra' }}
+          </h2>
           <p class="receipt-meta">Comprobante Oficial de Pedido</p>
           <p class="receipt-meta">Fecha: {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}</p>
         </header>
@@ -125,7 +128,12 @@
           <div class="receipt-info-block">
             <h3>Detalle del Pedido</h3>
             <p><strong>Pedido #:</strong> {{ data.order.id }}</p>
-            <p><strong>Estado:</strong> {{ data.paymentStatus === 'approved' ? 'Aprobado / Pagado' : 'Pendiente de Aprobación' }}</p>
+            <p>
+              <strong>Estado:</strong>
+              {{
+                data.paymentStatus === 'approved' ? 'Aprobado / Pagado' : 'Pendiente de Aprobación'
+              }}
+            </p>
             <p><strong>Método:</strong> Mercado Pago</p>
           </div>
           <div class="receipt-info-block">
@@ -140,10 +148,17 @@
           <h3>Entrega</h3>
           <p>
             <strong>Modalidad:</strong>
-            {{ data.order.deliverySelection?.type === 'store_pickup' ? 'Retiro en Local' : 'Envío a Domicilio' }}
+            {{
+              data.order.deliverySelection?.type === 'store_pickup'
+                ? 'Retiro en Local'
+                : 'Envío a Domicilio'
+            }}
           </p>
           @if (data.order.deliverySelection?.type === 'store_pickup') {
-            <p><strong>Punto de Retiro:</strong> {{ data.order.deliverySelection?.pickupAddressFormatted || 'Sucursal Seleccionada' }}</p>
+            <p>
+              <strong>Punto de Retiro:</strong>
+              {{ data.order.deliverySelection?.pickupAddressFormatted || 'Sucursal Seleccionada' }}
+            </p>
           }
         </div>
 

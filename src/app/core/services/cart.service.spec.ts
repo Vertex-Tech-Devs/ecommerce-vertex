@@ -343,4 +343,20 @@ describe('CartService', () => {
       expect(service.cart().items[0].image).toBe('https://example.com/var.jpg');
     });
   });
+
+  describe('simple products without attributes', () => {
+    it('should format cart item name cleanly without empty parenthesis when attributes is empty', () => {
+      const product = makeProduct({ name: 'Libro de Filosofía' });
+      const simpleVariant = makeVariant({ id: 'var-simple', attributes: {} });
+      service.addItem(product, simpleVariant, 1);
+
+      expect(service.cart().items[0].name).toBe('Libro de Filosofía');
+      expect(service.cart().items[0].name).not.toContain('()');
+    });
+
+    it('should return empty string from getVariantDescription when attributes is empty or null', () => {
+      expect(service.getVariantDescription({})).toBe('');
+      expect(service.getVariantDescription(null as unknown as { [key: string]: string })).toBe('');
+    });
+  });
 });

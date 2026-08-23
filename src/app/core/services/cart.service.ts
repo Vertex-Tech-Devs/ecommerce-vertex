@@ -72,6 +72,10 @@ export class CartService {
   }
 
   getVariantDescription(attributes: { [key: string]: string }): string {
+    if (!attributes || Object.keys(attributes).length === 0) {
+      return '';
+    }
+
     if (this.attributeMap.size === 0) {
       this.loadAttributes();
     }
@@ -113,15 +117,18 @@ export class CartService {
         );
       } else {
         const variantDescription = this.getVariantDescription(variant.attributes);
+        const itemName = variantDescription
+          ? `${product.name} (${variantDescription})`
+          : product.name;
         const newItem: CartItem = {
           id: cartItemId,
           productId: product.id,
           variantId: variant.id,
-          name: `${product.name} (${variantDescription})`,
+          name: itemName,
           price: product.price,
           quantity,
           image: variant.image ?? product.image,
-          attributes: variant.attributes,
+          attributes: variant.attributes ?? {},
           stock: variant.stock,
         };
         newItems = [...currentCart.items, newItem];

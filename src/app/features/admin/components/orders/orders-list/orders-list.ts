@@ -158,14 +158,14 @@ export class OrdersList implements OnInit {
     if (order.deliverySelection?.type === 'store_pickup') {
       return {
         icon: 'bi-shop',
-        cssClass: 'badge bg-info-subtle text-info border border-info-subtle',
+        cssClass: 'badge-delivery-pickup',
         label: 'Retiro en Local',
         summary: order.deliverySelection.pickupAddressFormatted ?? 'Sucursal',
       };
     }
     return {
       icon: 'bi-truck',
-      cssClass: 'badge bg-secondary-subtle text-secondary border border-secondary-subtle',
+      cssClass: 'badge-delivery-home',
       label: 'Envío a Domicilio',
       summary: order.shippingAddress
         ? `${order.shippingAddress.city}, ${order.shippingAddress.state}`

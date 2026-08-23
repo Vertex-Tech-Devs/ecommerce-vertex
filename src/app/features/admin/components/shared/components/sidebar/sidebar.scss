@@ -1,24 +1,6 @@
 @use 'sass:color';
 @use 'variables' as vars;
 
-.sidebar__backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  z-index: 999;
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition-base);
-
-  &--active {
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
 .sidebar {
   position: fixed;
   top: 0;
@@ -154,10 +136,6 @@
 }
 
 @media (max-width: 1024px) {
-  .sidebar__backdrop {
-    display: block;
-  }
-
   .sidebar {
     width: vars.$sidebar-width-mobile-overlay;
     transform: translateX(-100%);

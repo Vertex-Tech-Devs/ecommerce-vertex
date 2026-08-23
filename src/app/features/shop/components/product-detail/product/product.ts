@@ -82,19 +82,41 @@ export class Product {
 
   private initializeAttributes(): void {
     const product = this.product();
-    if (!product?.variantAttributes) {
+    if (!product) {
       this.selectedVariant.set(null);
+      return;
+    }
+
+    const variantAttrs = product.variantAttributes ?? [];
+    const variants = this.variants();
+
+    // If product has no variant attributes (simple product)
+    if (variantAttrs.length === 0) {
+      this.attributes.set([]);
+      if (variants.length > 0) {
+        this.selectedVariant.set(variants[0]);
+      } else {
+        // Fallback for simple products created without subcollection variants
+        this.selectedVariant.set({
+          id: 'default',
+          productId: product.id,
+          sku: `${product.id}-BASE`,
+          stock: product.totalStock ?? 1,
+          attributes: {},
+        });
+      }
       return;
     }
 
     this.allPossibleValues.clear();
 
-    const variants = this.variants();
-    const attributeSelections: AttributeSelection[] = product.variantAttributes.map((attrId) => {
+    const attributeSelections: AttributeSelection[] = variantAttrs.map((attrId) => {
       const attr = this.allAttributes().find((a) => a.id === attrId);
       const attrName = attr?.name ?? attrId;
 
-      const allValuesForAttr = [...new Set(variants.map((v) => v.attributes[attrId]))].sort();
+      const allValuesForAttr = [
+        ...new Set(variants.map((v) => v.attributes?.[attrId]).filter(Boolean)),
+      ].sort();
       this.allPossibleValues.set(attrId, allValuesForAttr);
 
       return {
@@ -108,7 +130,7 @@ export class Product {
 
     this.attributes.set(attributeSelections);
 
-    if (product.variantAttributes.length === 0 && variants.length === 1) {
+    if (attributeSelections.length === 0 && variants.length > 0) {
       this.selectedVariant.set(variants[0]);
     } else {
       this.selectedVariant.set(undefined);
