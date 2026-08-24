@@ -99,14 +99,16 @@ describe('Checkout', () => {
 
     mockStoreConfigSignal = signal<StoreConfig | null>(mockConfig);
 
-    cartServiceSpy = jasmine.createSpyObj('CartService', ['clearCart'], {
+    cartServiceSpy = jasmine.createSpyObj('CartService', ['clearCart', 'pruneUnavailableItems'], {
       cart: mockCartSignal,
     });
+    cartServiceSpy.pruneUnavailableItems.and.returnValue(Promise.resolve([]));
     paymentServiceSpy = jasmine.createSpyObj('PaymentService', ['initiatePayment']);
     sweetAlertServiceSpy = jasmine.createSpyObj('SweetAlertService', [
       'loading',
       'error',
       'success',
+      'warning',
     ]);
     orderServiceSpy = jasmine.createSpyObj('OrderService', ['createOrder', 'updateOrder']);
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {

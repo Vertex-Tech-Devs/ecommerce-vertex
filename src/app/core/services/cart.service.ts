@@ -3,7 +3,8 @@ import type { Product, ProductVariant } from '@core/models/product.model';
 import type { Cart, CartItem } from '@core/models/cart.model';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
-import { take } from 'rxjs';
+import { ProductService } from './product.service';
+import { firstValueFrom, take } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -14,6 +15,7 @@ export class CartService {
   private sweetAlertService = inject(SweetAlertService);
   private destroyRef = inject(DestroyRef);
   private attributeService = inject(AttributeService);
+  private productService = inject(ProductService);
   private readonly CART_STORAGE_KEY = `cart_${environment.tenantId}`;
 
   private attributeMap = new Map<string, string>();
@@ -173,6 +175,47 @@ export class CartService {
       this.sweetAlertService.success('Eliminado', 'El producto ha sido eliminado del carrito.');
       return { items: newItems, total: this.calculateTotal(newItems) };
     });
+  }
+
+  /**
+   * Valida los items del carrito contra el catálogo actual y elimina los que ya no
+   * existen o quedaron sin stock (carritos obsoletos desde localStorage).
+   * Devuelve los nombres de los productos removidos. Nunca lanza: ante fallos de red
+   * o catálogo vacío, deja el carrito intacto para no bloquear la compra.
+   */
+  async pruneUnavailableItems(): Promise<string[]> {
+    try {
+      const products = await firstValueFrom(this.productService.getProducts().pipe(take(1)));
+      const byId = new Map<string, Product>();
+      products.forEach((product) => {
+        if (product.id) {
+          byId.set(product.id, product);
+        }
+      });
+
+      const removed: string[] = [];
+      this.cart.update((currentCart) => {
+        if (!currentCart.items.length) {
+          return currentCart;
+        }
+        const kept = currentCart.items.filter((item) => {
+          const product = byId.get(item.productId);
+          const available = !!product && product.totalStock > 0;
+          if (!available) {
+            removed.push(item.name);
+          }
+          return available;
+        });
+        if (kept.length === currentCart.items.length) {
+          return currentCart;
+        }
+        return { items: kept, total: this.calculateTotal(kept) };
+      });
+      return removed;
+    } catch (error) {
+      console.warn('No se pudo validar el carrito contra el catálogo:', error);
+      return [];
+    }
   }
 
   clearCart(): void {

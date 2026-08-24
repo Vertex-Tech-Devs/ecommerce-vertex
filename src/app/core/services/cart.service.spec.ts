@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { CartService } from './cart.service';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
+import { ProductService } from './product.service';
 import type { Product, ProductVariant } from '@core/models/product.model';
 import { environment } from '../../../environments/environment';
 
@@ -35,6 +36,7 @@ describe('CartService', () => {
   let service: CartService;
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
   let attributeServiceSpy: jasmine.SpyObj<AttributeService>;
+  let productServiceSpy: jasmine.SpyObj<ProductService>;
 
   beforeEach(() => {
     localStorage.clear();
@@ -42,12 +44,15 @@ describe('CartService', () => {
     sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['success', 'error']);
     attributeServiceSpy = jasmine.createSpyObj('AttributeService', ['getAttributes']);
     attributeServiceSpy.getAttributes.and.returnValue(of([]));
+    productServiceSpy = jasmine.createSpyObj('ProductService', ['getProducts']);
+    productServiceSpy.getProducts.and.returnValue(of([]));
 
     TestBed.configureTestingModule({
       providers: [
         CartService,
         { provide: SweetAlertService, useValue: sweetAlertSpy },
         { provide: AttributeService, useValue: attributeServiceSpy },
+        { provide: ProductService, useValue: productServiceSpy },
       ],
     });
 
@@ -215,6 +220,7 @@ describe('CartService', () => {
           CartService,
           { provide: SweetAlertService, useValue: sweetAlertSpy },
           { provide: AttributeService, useValue: attributeServiceSpy },
+          { provide: ProductService, useValue: productServiceSpy },
         ],
       });
       const newService = TestBed.inject(CartService);
@@ -231,6 +237,7 @@ describe('CartService', () => {
           CartService,
           { provide: SweetAlertService, useValue: sweetAlertSpy },
           { provide: AttributeService, useValue: attributeServiceSpy },
+          { provide: ProductService, useValue: productServiceSpy },
         ],
       });
       const newService = TestBed.inject(CartService);
@@ -248,6 +255,7 @@ describe('CartService', () => {
           CartService,
           { provide: SweetAlertService, useValue: sweetAlertSpy },
           { provide: AttributeService, useValue: attributeServiceSpy },
+          { provide: ProductService, useValue: productServiceSpy },
         ],
       });
       const newService = TestBed.inject(CartService);
@@ -268,6 +276,7 @@ describe('CartService', () => {
           CartService,
           { provide: SweetAlertService, useValue: sweetAlertSpy },
           { provide: AttributeService, useValue: attributeServiceSpy },
+          { provide: ProductService, useValue: productServiceSpy },
         ],
       });
       const newService = TestBed.inject(CartService);
@@ -292,6 +301,7 @@ describe('CartService', () => {
           CartService,
           { provide: SweetAlertService, useValue: sweetAlertSpy },
           { provide: AttributeService, useValue: attributeServiceSpy },
+          { provide: ProductService, useValue: productServiceSpy },
         ],
       });
       const newService = TestBed.inject(CartService);
@@ -357,6 +367,77 @@ describe('CartService', () => {
     it('should return empty string from getVariantDescription when attributes is empty or null', () => {
       expect(service.getVariantDescription({})).toBe('');
       expect(service.getVariantDescription(null as unknown as { [key: string]: string })).toBe('');
+    });
+  });
+
+  describe('pruneUnavailableItems', () => {
+    it('should remove items whose product no longer exists in the catalog', async () => {
+      const product = makeProduct({ id: 'prod-keep', name: 'Producto Vivo', totalStock: 5 });
+      const keepItem = {
+        id: 'var-keep',
+        productId: 'prod-keep',
+        variantId: 'var-keep',
+        name: 'Producto Vivo',
+        price: 100,
+        quantity: 1,
+        attributes: {},
+        stock: 5,
+      };
+      const ghostItem = {
+        id: 'var-ghost',
+        productId: 'prod-borrado',
+        variantId: 'var-ghost',
+        name: 'Producto Borrado',
+        price: 100,
+        quantity: 1,
+        attributes: {},
+        stock: 1,
+      };
+      service.cart.set({ items: [keepItem, ghostItem], total: 200 });
+      productServiceSpy.getProducts.and.returnValue(of([product]));
+
+      const removed = await service.pruneUnavailableItems();
+
+      expect(removed).toEqual(['Producto Borrado']);
+      expect(service.cart().items).toEqual([jasmine.objectContaining({ id: 'var-keep' })]);
+      expect(service.cart().total).toBe(100);
+    });
+
+    it('should remove items whose product is out of stock (totalStock 0)', async () => {
+      const product = makeProduct({ id: 'prod-sin-stock', name: 'Sin Stock', totalStock: 0 });
+      productServiceSpy.getProducts.and.returnValue(of([product]));
+      service.cart.set({
+        items: [
+          {
+            id: 'var-sin',
+            productId: 'prod-sin-stock',
+            variantId: 'var-sin',
+            name: 'Sin Stock',
+            price: 100,
+            quantity: 1,
+            attributes: {},
+            stock: 0,
+          },
+        ],
+        total: 100,
+      });
+
+      const removed = await service.pruneUnavailableItems();
+
+      expect(removed).toEqual(['Sin Stock']);
+      expect(service.cart().items.length).toBe(0);
+      expect(service.cart().total).toBe(0);
+    });
+
+    it('should keep the cart intact when catalog fetch fails', async () => {
+      const product = makeProduct({ id: 'prod-ok', name: 'Ok', totalStock: 3 });
+      service.addItem(product, makeVariant({ id: 'var-ok', productId: 'prod-ok', stock: 3 }), 1);
+      productServiceSpy.getProducts.and.returnValue(throwError(() => new Error('red caída')));
+
+      const removed = await service.pruneUnavailableItems();
+
+      expect(removed).toEqual([]);
+      expect(service.cart().items.length).toBe(1);
     });
   });
 });

@@ -195,7 +195,29 @@ export class Checkout implements OnInit {
     let orderId: string | null = null;
 
     try {
-      orderId = await this.createOrder(cart.items, cart.total);
+      // Quita items obsoletos (producto borrado o sin stock) antes de pagar.
+      const removed = await this.cartService.pruneUnavailableItems();
+      const cartAfter = this.cartService.cart();
+
+      if (removed.length > 0) {
+        this.sweetAlertService.warning(
+          'Productos no disponibles',
+          `Se quitaron del carrito: ${removed.join(', ')}.`,
+        );
+      }
+      if (!cartAfter || cartAfter.items.length === 0) {
+        this.sweetAlertService.error(
+          'Carrito Vacío',
+          removed.length > 0
+            ? 'Los productos de tu carrito ya no están disponibles.'
+            : 'No puedes proceder al pago sin productos.',
+        );
+        this.isProcessingPayment.set(false);
+        void this.router.navigate(['/shop/cart']);
+        return;
+      }
+
+      orderId = await this.createOrder(cartAfter.items, cartAfter.total);
 
       const contactValue = this.checkoutForm.get('contactInfo')?.value;
       const payer = {
