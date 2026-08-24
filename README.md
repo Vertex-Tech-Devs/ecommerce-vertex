@@ -289,3 +289,47 @@ Servicios: `seed-data.service.ts`, `seed-content.service.ts`, `seed-products.ser
 ---
 
 📖 **Nota para Desarrolladores:** Mantén este documento `README.md` actualizado como la referencia operativa principal. Para reglas de agentes de IA y flujos de QA unificados, consulta [agent.md](agent.md).
+
+---
+
+## 🏗️ Arquitectura Flat Multi-Tenant V1.0
+
+Cada tienda vive en un **shard** (proyecto GCP compartido, ~35 tiendas) y sus datos se
+almacenan en colecciones planas con el campo `storeId` (slug de la tienda), más singletons
+en `configuracion/store_{storeId}` (config pública), `configuracion/footer_{storeId}`,
+`configuracion/hero_{storeId}`, `settings/emailTemplates_{storeId}` (Gestión de Emails) y
+`admin_roles/{storeId}_{email}` (RBAC). Todas las consultas del storefront filtran por
+`storeId` (`storeIdFilter()` en `@core/utils/tenant`).
+
+## ✉️ Sistema de Notificaciones Duales (comprador + vendedor)
+
+- **Endpoint público** `notifyOrderConfirmation` (HTTPS) y trigger `onOrderWrittenSendNotifications`
+  resuelven la DB del tenant vía `tenantDb` (por `projectId`) y envían **dos emails en paralelo**:
+  confirmación al **comprador** y aviso de nueva venta al **vendedor** (`storeOwnerEmail`).
+- La **fuente de verdad de los emails** es `settings/emailTemplates_{storeId}` (Gestión de
+  Emails), que **gana** sobre la config pública `configuracion/store_{storeId}` — así el
+  vendedor siempre recibe la notificación al email real configurado.
+- Despacho con **idempotencia**: el pedido marca `emailDirectSent=true` para no reenviar.
+
+## 🖨️ Voucher Imprimible
+
+El recibo vive en `#printable-receipt` dentro de `OrderConfirmationComponent`. En `@media print`
+se oculta el resto de la página (`visibility: hidden`) y el recibo se posiciona
+`position: absolute; top: 0` para que **nunca se corte en la parte superior**; se genera un PDF
+limpio con `window.print()`.
+
+## 🔢 IDs Cortos de Pedido (Base32)
+
+`OrderService.createOrder` genera IDs de **8 caracteres** con alfabeto Base32 sin caracteres
+ambiguos `0/O/1/I/L` (`ABCDEFGHJKMNPQRSTUVWXYZ23456789`) vía `crypto.getRandomValues`, en
+reemplazo de los IDs largos (20+ chars) de Firestore. Ver `generateShortOrderId()`.
+
+## ✅ Guía de Calidad y Testing
+
+- `npm run lint` — 0 errores ESLint.
+- `npm run typecheck` — 0 errores TS.
+- `npm run test:ci` — 313+ tests; el hook `pre-push` exige **Statements Coverage ≥ 85%**
+  (`scripts/verify-coverage.js`). Coverage actual: **78.4%** (los módulos `@angular/fire/firestore`
+  no son mockeables con jasmine/Karma; los specs se enfocan en servicios delegados, pipes y
+  componentes con servicios mockeados).
+- `npm run build` — build de producción limpio.

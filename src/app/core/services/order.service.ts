@@ -16,7 +16,7 @@ import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
 
 /** Alfabeto base32 sin caracteres ambiguos (0/O, 1/I/L). */
-const ORDER_ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const ORDER_ID_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 
 /** Genera un ID de pedido corto y legible (8 chars) — colisión improbable a esta escala. */
 export function generateShortOrderId(): string {

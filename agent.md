@@ -184,3 +184,17 @@ Versión actual: `0.5.0`
 | `notifyOrderConfirmation 401 (Unauthorized)`           | Funciones `onCall` verificando token contra el proyecto central en vez del shard | Usar `onRequest({ cors: true, invoker: 'public' })` y despachar petición HTTP desacoplada de Auth header |
 | `permission-denied` en Firestore                       | Email no en `admin_roles`                      | Agregar vía Cloud Function o plataforma       |
 | `Cannot read properties of undefined (hasOwnProperty)` | Problema de DI en Angular con lazy loading     | Revisar barrel imports y providers            |
+
+## Vertex Storefront — Notas de Agente (v0.6.x)
+
+- **Regla de oro**: nunca `write` con `isAuthenticated()` genérico en rules; aislamiento por
+  `storeId` siempre. El catch-all del shard es `if false` (deny).
+- **Fleet deploy (dev)**: el workflow `deploy-all-stores-dev.yml` separa **Hosting** (solo
+  tiendas `autoUpdate=true`, canary + rest) de **Infra de shard** (`firestore.rules`, índices,
+  functions — SIEMPRE a todos los shards activos, vía el job `deploy-infra`). Disparo por
+  `workflow_dispatch` (sin `on: push` para evitar carreras de concurrencia).
+- **Emails**: la Gestión de Emails (`settings/emailTemplates_{storeId}`) es la fuente de verdad;
+  el seed escribe el `storeOwnerEmail` real (nunca placeholders `admin@<slug>`).
+- **Pedidos**: IDs cortos Base32 de 8 chars; el checkout prunnea items obsoletos antes de pagar.
+- **Coverage**: el hook pre-push pide Statements ≥85%; los módulos firestore no se mockean
+  (specs de servicios delegados + componentes).

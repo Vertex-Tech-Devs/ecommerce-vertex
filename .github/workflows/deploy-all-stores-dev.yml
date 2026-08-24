@@ -1,8 +1,6 @@
 name: Deploy All Stores (Development)
 
 on:
-  push:
-    branches: [develop]
   workflow_dispatch:
 
 env:
@@ -48,8 +46,9 @@ jobs:
       id-token: write # OIDC para autenticación automática con vertex-platform (sin secrets manuales)
       contents: read
     outputs:
-      canary: ${{ steps.parse.outputs.canary }}
-      rest: ${{ steps.parse.outputs.rest }}
+      auto_canary: ${{ steps.parse.outputs.auto_canary }}
+      auto_rest: ${{ steps.parse.outputs.auto_rest }}
+      shards: ${{ steps.parse.outputs.shards }}
       has_stores: ${{ steps.parse.outputs.has_stores }}
     steps:
       - name: Fetch OIDC token
@@ -82,19 +81,31 @@ jobs:
             exit 1
           fi
 
-          STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]? | select(.autoUpdate == true)]')
+          STORES=$(echo "$RESPONSE" | jq -c '[.result.stores[]?]')
           COUNT=$(echo "$STORES" | jq 'length')
 
           if [ "$COUNT" -eq "0" ]; then
             echo "has_stores=false" >> "$GITHUB_OUTPUT"
-            echo "canary=[]" >> "$GITHUB_OUTPUT"
-            echo "rest=[]" >> "$GITHUB_OUTPUT"
+            echo "auto=[]" >> "$GITHUB_OUTPUT"
+            echo "shards=[]" >> "$GITHUB_OUTPUT"
           else
             echo "has_stores=true" >> "$GITHUB_OUTPUT"
-            CANARY=$(echo "$STORES" | jq -c '[.[0]]')
-            REST=$(echo "$STORES" | jq -c '.[1:]')
-            echo "canary=$CANARY" >> "$GITHUB_OUTPUT"
-            echo "rest=$REST" >> "$GITHUB_OUTPUT"
+            # Lógica de negocio: SOLO las tiendas marcadas como "latest" (autoUpdate=true)
+            # se redeployan (hosting) al subir código nuevo. Las tiendas estables/pinned
+            # conservan su versión hasta que se actualicen manualmente desde el panel.
+            AUTO=$(echo "$STORES" | jq -c '[.[] | select(.autoUpdate == true)]')
+            # La infraestructura del shard (rules, índices, functions) SIEMPRE debe estar
+            # al día en TODOS los shards con tiendas activas (es compartida entre tiendas).
+            SHARDS=$(echo "$STORES" | jq -c '[.[].projectId] | unique | map({projectId: .})')
+            echo "shards=$SHARDS" >> "$GITHUB_OUTPUT"
+            AUTO_COUNT=$(echo "$AUTO" | jq 'length')
+            if [ "$AUTO_COUNT" -gt "0" ]; then
+              echo "auto_canary=$(echo "$AUTO" | jq -c '[.[0]]')" >> "$GITHUB_OUTPUT"
+              echo "auto_rest=$(echo "$AUTO" | jq -c '.[1:]')" >> "$GITHUB_OUTPUT"
+            else
+              echo "auto_canary=[]" >> "$GITHUB_OUTPUT"
+              echo "auto_rest=[]" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   # ── 3. Deploy canary first ────────────────────────────────────────────────
@@ -109,7 +120,7 @@ jobs:
     environment: development
     strategy:
       matrix:
-        store: ${{ fromJson(needs.get-stores.outputs.canary) }}
+        store: ${{ fromJson(needs.get-stores.outputs.auto_canary) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
@@ -165,37 +176,15 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
-      - name: Ensure Firestore database exists
-        run: |
-          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
-            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
-            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
-              --location=us-central1 --type=firestore-native 2>/dev/null || true
-            sleep 10
-          fi
-
-      - name: Clean orphaned functions (type conflicts)
-        run: |
-          cd functions
-          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(chr(10).join((f['name'] if isinstance(f,dict) else str(f)) for f in d))" 2>/dev/null)"
-          for fn in $REMOTE; do
-            if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
-              echo "→ Deleting orphaned function: ${fn}"
-              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
-            fi
-          done
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore,storage,functions \
+            --only hosting \
             --non-interactive --force
-
-      - name: Reconcile composite indexes (idempotent)
-        env:
-          PROJECT_ID: ${{ matrix.store.projectId }}
-        run: python3 scripts/reconcile-indexes.py
 
       - name: Health check (30s)
         run: |
@@ -216,12 +205,12 @@ jobs:
       group: deploy-site-${{ matrix.store.projectId }}
       cancel-in-progress: false
     needs: [build, get-stores, deploy-canary]
-    if: needs.get-stores.outputs.rest != '[]' && needs.get-stores.outputs.rest != ''
+    if: needs.get-stores.outputs.auto_rest != '[]' && needs.get-stores.outputs.auto_rest != ''
     environment: development
     strategy:
       fail-fast: false
       matrix:
-        store: ${{ fromJson(needs.get-stores.outputs.rest) }}
+        store: ${{ fromJson(needs.get-stores.outputs.auto_rest) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
@@ -229,12 +218,6 @@ jobs:
         with:
           name: dist-dev-${{ github.sha }}
           path: dist/ecommerce-vertex/browser
-
-      - run: npm ci --legacy-peer-deps --no-audit --no-fund
-        working-directory: functions
-
-      - run: npm run build
-        working-directory: functions
 
       - name: Inject firebase config
         env:
@@ -264,10 +247,6 @@ jobs:
             },
             "storage": {
               "rules": "storage.rules"
-            },
-            "functions": {
-              "source": "functions",
-              "runtime": "nodejs22"
             }
           }
           if site_id and site_id != "default":
@@ -283,11 +262,78 @@ jobs:
         with:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
 
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy
+        run: |
+          npx --yes firebase-tools deploy \
+            --project ${{ matrix.store.projectId }} \
+            --only hosting \
+            --non-interactive --force
+
+      - name: Health check (30s)
+        run: |
+          sleep 30
+          URL="https://${{ matrix.store.siteId }}.web.app"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed: HTTP $STATUS for $URL"
+            exit 1
+          fi
+          echo "✅ Health check passed: HTTP $STATUS for $URL"
+
+  # ── 5. Shard infrastructure (rules + indexes + functions) — SIEMPRE al día ──
+  # Las rules/índices/functions son COMPARTIDAS entre las tiendas de un shard, así que
+  # se despliegan en TODOS los shards con tiendas activas (independiente de autoUpdate).
+  deploy-infra:
+    name: '⚙️ Infra shard → ${{ matrix.shard.projectId }}'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-site-${{ matrix.shard.projectId }}
+      cancel-in-progress: false
+    needs: [get-stores]
+    if: needs.get-stores.outputs.shards != '[]' && needs.get-stores.outputs.shards != ''
+    environment: development
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.get-stores.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+        working-directory: functions
+
+      - run: npm run build
+        working-directory: functions
+
+      - name: Write minimal firebase.json for shard infra
+        run: |
+          python3 << 'PYEOF'
+          import json
+          payload = {
+            "storage": { "rules": "storage.rules" },
+            "firestore": { "rules": "firestore.rules", "indexes": "firestore.indexes.json" },
+            "functions": { "source": "functions", "runtime": "nodejs22" }
+          }
+          with open("firebase.json", "w") as f:
+              json.dump(payload, f, indent=2)
+          PYEOF
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
       - name: Ensure Firestore database exists
         run: |
-          if ! gcloud firestore databases list --project ${{ matrix.store.projectId }} 2>/dev/null | grep -q "(default)"; then
-            echo "→ Creating Firestore database (default) for ${{ matrix.store.projectId }}"
-            gcloud firestore databases create --project ${{ matrix.store.projectId }} \
+          if ! gcloud firestore databases list --project ${{ matrix.shard.projectId }} 2>/dev/null | grep -q "(default)"; then
+            echo "→ Creating Firestore database (default) for ${{ matrix.shard.projectId }}"
+            gcloud firestore databases create --project ${{ matrix.shard.projectId }} \
               --location=us-central1 --type=firestore-native 2>/dev/null || true
             sleep 10
           fi
@@ -295,22 +341,22 @@ jobs:
       - name: Clean orphaned functions (type conflicts)
         run: |
           cd functions
-          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.store.projectId }} --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(chr(10).join((f['name'] if isinstance(f,dict) else str(f)) for f in d))" 2>/dev/null)"
+          REMOTE="$(npx --yes firebase-tools functions:list --project ${{ matrix.shard.projectId }} --json 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); print(chr(10).join((f['name'] if isinstance(f,dict) else str(f)) for f in d))" 2>/dev/null)"
           for fn in $REMOTE; do
             if ! grep -rqE "export const ${fn}\b|exports\.${fn}\b" src/ 2>/dev/null; then
               echo "→ Deleting orphaned function: ${fn}"
-              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.store.projectId }} --force 2>/dev/null || true
+              npx --yes firebase-tools functions:delete "${fn}" --project ${{ matrix.shard.projectId }} --force 2>/dev/null || true
             fi
           done
 
-      - name: Deploy
+      - name: Deploy shard infra (firestore + storage + functions)
         run: |
           npx --yes firebase-tools deploy \
-            --project ${{ matrix.store.projectId }} \
-            --only hosting,firestore,storage,functions \
+            --project ${{ matrix.shard.projectId }} \
+            --only firestore,storage,functions \
             --non-interactive --force
 
       - name: Reconcile composite indexes (idempotent)
         env:
-          PROJECT_ID: ${{ matrix.store.projectId }}
+          PROJECT_ID: ${{ matrix.shard.projectId }}
         run: python3 scripts/reconcile-indexes.py
