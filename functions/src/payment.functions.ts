@@ -253,15 +253,28 @@ async function revertStockOnFailure(orderId: string, projectId?: string) {
         }
         const validItem = itemValidation.data;
 
-        const variantRef = tenantDb
+        const productRef = tenantDb
           .collection(collectionPath(COLLECTIONS.PRODUCTS))
-          .doc(validItem.productId)
+          .doc(validItem.productId);
+        const variantRef = productRef
           .collection('variants')
           .doc(validItem.variantId);
 
-        transaction.update(variantRef, {
-          stock: FieldValue.increment(validItem.quantity),
-        });
+        const [productDoc, variantDoc] = await Promise.all([
+          transaction.get(productRef),
+          transaction.get(variantRef),
+        ]);
+
+        if (variantDoc.exists) {
+          transaction.update(variantRef, {
+            stock: FieldValue.increment(validItem.quantity),
+          });
+        }
+        if (productDoc.exists) {
+          transaction.update(productRef, {
+            totalStock: FieldValue.increment(validItem.quantity),
+          });
+        }
       }
 
       transaction.update(orderRef, {
@@ -345,51 +358,86 @@ export const createPaymentPreference = onCall(
             transaction.get(variantRef),
           ]);
 
-          if (!variantDoc.exists || !productDoc.exists) {
+          if (!productDoc.exists) {
             logger.error(
-              `Variante ${item.variantId} no encontrada para producto ${item.productId}.`,
+              `Producto ${item.productId} no encontrado en el catálogo.`,
             );
             throw new HttpsError('not-found', `Producto ${item.title} no disponible.`);
           }
 
-          const variantData = variantDoc.data();
-          if (!variantData || variantData.stock < item.quantity) {
-            logger.warn(
-              `Stock insuficiente para ${item.title}. Solicitado: ${item.quantity}, Disponible: ${variantData?.stock || 0}`,
-            );
-            throw new HttpsError(
-              'resource-exhausted',
-              `Stock insuficiente para ${item.title}. Solo quedan ${variantData?.stock || 0}.`,
-            );
-          }
-
           const productData = productDoc.data() ?? {};
 
-          // Resolver el precio oficial del producto/variante exactamente como figura en el catálogo
-          const serverPrice =
-            (productData['price'] as number | undefined) ??
-            (variantData['price'] as number | undefined) ??
-            (productData['finalPrice'] as number | undefined) ??
-            0;
+          if (variantDoc.exists) {
+            const variantData = variantDoc.data();
+            if (!variantData || variantData.stock < item.quantity) {
+              logger.warn(
+                `Stock insuficiente para variante ${item.variantId} de ${item.title}. Solicitado: ${item.quantity}, Disponible: ${variantData?.stock || 0}`,
+              );
+              throw new HttpsError(
+                'resource-exhausted',
+                `Stock insuficiente para ${item.title}. Solo quedan ${variantData?.stock || 0}.`,
+              );
+            }
 
-          serverItems.push({
-            productId: item.productId,
-            variantId: item.variantId,
-            title: item.title,
-            quantity: item.quantity,
-            unit_price: serverPrice,
-          });
+            const serverPrice =
+              (variantData['price'] as number | undefined) ??
+              (productData['price'] as number | undefined) ??
+              (productData['finalPrice'] as number | undefined) ??
+              0;
+
+            serverItems.push({
+              productId: item.productId,
+              variantId: item.variantId,
+              title: item.title,
+              quantity: item.quantity,
+              unit_price: serverPrice,
+            });
+          } else {
+            // Producto Simple (sin subcolección de variantes o variante base default)
+            const availableStock =
+              (productData['totalStock'] as number | undefined) ??
+              (productData['stock'] as number | undefined) ??
+              0;
+
+            if (availableStock < item.quantity) {
+              logger.warn(
+                `Stock insuficiente para producto simple ${item.title}. Solicitado: ${item.quantity}, Disponible: ${availableStock}`,
+              );
+              throw new HttpsError(
+                'resource-exhausted',
+                `Stock insuficiente para ${item.title}. Solo quedan ${availableStock}.`,
+              );
+            }
+
+            const serverPrice =
+              (productData['price'] as number | undefined) ??
+              (productData['finalPrice'] as number | undefined) ??
+              0;
+
+            serverItems.push({
+              productId: item.productId,
+              variantId: item.variantId || 'default',
+              title: item.title,
+              quantity: item.quantity,
+              unit_price: serverPrice,
+            });
+          }
         }
 
         for (const item of paymentData.items) {
-          const variantRef = tenantDb
+          const productRef = tenantDb
             .collection(collectionPath(COLLECTIONS.PRODUCTS))
-            .doc(item.productId)
-            .collection('variants')
-            .doc(item.variantId);
+            .doc(item.productId);
+          const variantRef = productRef.collection('variants').doc(item.variantId);
+          const variantDoc = await transaction.get(variantRef);
 
-          transaction.update(variantRef, {
-            stock: FieldValue.increment(-item.quantity),
+          if (variantDoc.exists) {
+            transaction.update(variantRef, {
+              stock: FieldValue.increment(-item.quantity),
+            });
+          }
+          transaction.update(productRef, {
+            totalStock: FieldValue.increment(-item.quantity),
           });
         }
 
@@ -596,15 +644,28 @@ export const mercadoPagoWebhookHandler = onRequest(
               if (!itemValidation.success) continue;
               const validItem = itemValidation.data;
 
-              const variantRef = tenantDb
+              const productRef = tenantDb
                 .collection(collectionPath(COLLECTIONS.PRODUCTS))
-                .doc(validItem.productId)
+                .doc(validItem.productId);
+              const variantRef = productRef
                 .collection('variants')
                 .doc(validItem.variantId);
 
-              transaction.update(variantRef, {
-                stock: FieldValue.increment(-validItem.quantity),
-              });
+              const [productDoc, variantDoc] = await Promise.all([
+                transaction.get(productRef),
+                transaction.get(variantRef),
+              ]);
+
+              if (variantDoc.exists) {
+                transaction.update(variantRef, {
+                  stock: FieldValue.increment(-validItem.quantity),
+                });
+              }
+              if (productDoc.exists) {
+                transaction.update(productRef, {
+                  totalStock: FieldValue.increment(-validItem.quantity),
+                });
+              }
             }
 
             transaction.update(orderRef, {

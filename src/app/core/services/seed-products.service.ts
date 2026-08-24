@@ -1,5 +1,14 @@
 import { Injectable, inject, EnvironmentInjector, runInInjectionContext } from '@angular/core';
-import { Firestore, collection, addDoc, getDocs, updateDoc, query } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  query,
+  doc,
+  setDoc,
+} from '@angular/fire/firestore';
 import type { Attribute } from '@core/models/attribute.model';
 import { PRODUCT_CATALOGUE } from '../constants/seed-products.constants';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
@@ -144,6 +153,19 @@ export class SeedProductsService {
           }
 
           await this.run(() => updateDoc(productRef, { totalStock, inStockAttributes }));
+        } else {
+          const baseStock = Math.floor(Math.random() * 80) + 15;
+          await this.run(() =>
+            setDoc(doc(collection(productRef, 'variants'), 'default'), {
+              attributes: {},
+              stock: baseStock,
+              productId: productRef.id,
+              storeId: resolveTenantId(),
+            }),
+          );
+          await this.run(() =>
+            updateDoc(productRef, { totalStock: baseStock, inStockAttributes: {} }),
+          );
         }
 
         seeded.push({

@@ -177,4 +177,93 @@ describe('createPaymentPreference', () => {
       init_point: 'https://mercadopago.com/checkout/123',
     });
   });
+
+  it('creates payment preference for simple products without variant documents', async () => {
+    const validData = {
+      items: [
+        {
+          productId: 'prod-simple-1',
+          variantId: 'default',
+          title: 'Bandeja Cemento',
+          quantity: 1,
+          unit_price: 2500,
+        },
+      ],
+      external_reference: 'order-456',
+      projectId: 'vtx-sd-c3732d17',
+    };
+
+    const mockOrderData = {
+      status: 'pending',
+      storeId: 'store-test',
+    };
+
+    const mockProductData = {
+      price: 2500,
+      totalStock: 5,
+    };
+
+    const mockTransaction = {
+      get: vi.fn().mockImplementation(async (ref: any) => {
+        if (ref.id === 'order-456') {
+          return { exists: true, data: () => mockOrderData };
+        }
+        if (ref.id === 'prod-simple-1') {
+          return { exists: true, data: () => mockProductData };
+        }
+        // Subcollection variant does NOT exist
+        return { exists: false, data: () => null };
+      }),
+      update: vi.fn(),
+    };
+
+    mockRunTransaction.mockImplementation(async (cb: any) => {
+      return await cb(mockTransaction);
+    });
+
+    mockCreatePreference.mockResolvedValueOnce({
+      id: 'pref-mp-456',
+      init_point: 'https://mercadopago.com/checkout/456',
+      date_of_expiration: new Date().toISOString(),
+    });
+
+    const mockDoc = (docId: string) => ({
+      id: docId,
+      collection: vi.fn(() => ({
+        doc: (vId: string) => mockDoc(vId),
+      })),
+    });
+
+    mockTenantDbCollection.mockImplementation((colName: string) => ({
+      doc: (docId: string) => mockDoc(docId),
+    }));
+
+    const response = await paymentHandler({ data: validData });
+
+    expect(mockRunTransaction).toHaveBeenCalled();
+    expect(mockCreatePreference).toHaveBeenCalledWith(
+      expect.objectContaining({
+        external_reference: 'order-456',
+        items: [
+          {
+            productId: 'prod-simple-1',
+            variantId: 'default',
+            title: 'Bandeja Cemento',
+            quantity: 1,
+            unit_price: 2500,
+          },
+        ],
+      }),
+      'store-test',
+    );
+    expect(response).toEqual({
+      id: 'pref-mp-456',
+      init_point: 'https://mercadopago.com/checkout/456',
+    });
+    // Verifies that totalStock of product was decremented
+    expect(mockTransaction.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'prod-simple-1' }),
+      expect.objectContaining({ totalStock: expect.anything() }),
+    );
+  });
 });
