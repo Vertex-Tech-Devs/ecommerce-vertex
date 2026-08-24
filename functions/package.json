@@ -38,7 +38,7 @@
     "eslint": "^10.5.0",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "esbuild": "^0.28.1",
