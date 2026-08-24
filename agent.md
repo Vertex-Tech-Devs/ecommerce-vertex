@@ -92,11 +92,11 @@ Versión actual: `0.5.0`
 - Se vacía **únicamente** cuando el cliente navega a la pantalla de confirmación exitosa (`/shop/order-confirmation/:id`).
 - Si el usuario cancela o regresa desde Mercado Pago sin pagar, el storefront lo redirige a `/shop/cart`, detecta el retorno sin pago, muestra una notificación informativa y **mantiene los productos en el carrito** para que no pierda su selección.
 
-### 2. Ciclo de Vida del Stock
-- **Reserva Inicial**: Al invocar `createPaymentPreference`, la Cloud Function decrementa de forma atómica el stock de la variante (`FieldValue.increment(-quantity)`) y registra `stockDecremented: true` en la orden (`status: 'processing'`).
+### 2. Ciclo de Vida del Stock (Productos Simples y con Variantes)
+- **Reserva Inicial**: Al invocar `createPaymentPreference`, la Cloud Function decrementa de forma atómica el stock de la variante (`variantRef.stock`) si existe subcolección, y descuenta el `totalStock` del producto (`productRef.totalStock`), registrando `stockDecremented: true` en la orden (`status: 'processing'`). Si el producto no tiene variantes o es simple, valida directamente contra `totalStock`.
 - **Pago Aprobado**: El webhook `mercadoPagoWebhookHandler` recibe `status: 'approved'`, confirma el pago y la orden pasa a procesarse definitivamente.
-- **Pago Cancelado o Rechazado**: El webhook ejecuta `revertStockOnFailure(orderId)`, revirtiendo mediante transacción el stock exacto a cada variante y marcando la orden como `cancelled`.
-- **Abandono / Expiración de Pago**: La Cloud Function programada `cleanupExpiredOrders` corre cada 60 minutos, busca órdenes `processing` expiradas (`mercadopago_expiration_date <= now`) sin pago confirmado y devuelve el stock al inventario automáticamente.
+- **Pago Cancelado o Rechazado**: El webhook ejecuta `revertStockOnFailure(orderId)`, revirtiendo mediante transacción el stock exacto a cada variante y/o producto simple (`totalStock`) y marcando la orden como `cancelled`.
+- **Abandono / Expiración de Pago**: La Cloud Function programada `cleanupExpiredOrders` corre cada 60 minutos, busca órdenes `processing` expiradas (`mercadopago_expiration_date <= now`) sin pago confirmado y devuelve el stock al inventario automáticamente tanto para variantes como para productos simples.
 
 ### 3. Logs de Consola de Terceros en Checkout (Mercado Pago)
 - Al interactuar con el iframe o la redirección de Mercado Pago, la consola del navegador puede registrar eventos de `TrackBuilder`, `Armor` (sistema antifraude de Mercado Libre), o avisos internos de CSP (`script-src 'nonce...'`) emitidos por el dominio `mercadopago.com.ar` / `mercadolibre.com`.

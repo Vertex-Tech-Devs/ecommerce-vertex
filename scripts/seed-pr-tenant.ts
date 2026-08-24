@@ -206,6 +206,15 @@ function generateVariantCombinations(
         }
 
         await productRef.set({ totalStock, inStockAttributes }, { merge: true });
+      } else {
+        const baseStock = Math.floor(Math.random() * 40) + 15;
+        await productRef.collection('variants').doc('default').set({
+          attributes: {},
+          stock: baseStock,
+          productId: productRef.id,
+          storeId: tenantId,
+        });
+        await productRef.set({ totalStock: baseStock, inStockAttributes: {} }, { merge: true });
       }
     }
   }
