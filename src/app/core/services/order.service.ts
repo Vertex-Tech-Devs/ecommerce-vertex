@@ -9,11 +9,25 @@ import type {
   CollectionReference,
   DocumentData,
 } from '@angular/fire/firestore';
-import { collection, query, where } from '@angular/fire/firestore';
+import { collection, query, where, doc, setDoc } from '@angular/fire/firestore';
 import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
-import { tenantPath, storeIdFilter } from '@core/utils/tenant';
+import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
+
+/** Alfabeto base32 sin caracteres ambiguos (0/O, 1/I/L). */
+const ORDER_ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** Genera un ID de pedido corto y legible (8 chars) — colisión improbable a esta escala. */
+export function generateShortOrderId(): string {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  let id = '';
+  for (let i = 0; i < bytes.length; i++) {
+    id += ORDER_ID_ALPHABET[bytes[i] % ORDER_ID_ALPHABET.length];
+  }
+  return id;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -51,9 +65,22 @@ export class OrderService {
   }
 
   createOrder(order: WithFieldValue<Omit<Order, 'id'>>): Promise<DocumentReference<Order>> {
-    return this.firestoreService.create(this.collectionName, order) as Promise<
-      DocumentReference<Order>
-    >;
+    return runInInjectionContext(this.injector, () => {
+      // ID corto y legible (8 chars, base32 sin caracteres ambiguos) para el pedido.
+      const orderId = generateShortOrderId();
+      const ref = doc(
+        this.firestore,
+        tenantPath(this.collectionName),
+        orderId,
+      ) as DocumentReference<Order>;
+      const tagged = {
+        ...(order as Record<string, unknown>),
+        storeId: resolveTenantId(),
+      };
+      return setDoc(ref, tagged as unknown as WithFieldValue<Omit<Order, 'id'>>, {
+        merge: true,
+      }).then(() => ref);
+    });
   }
 
   updateOrder(id: string, order: Partial<Order>): Promise<void> {

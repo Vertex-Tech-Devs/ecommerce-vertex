@@ -146,6 +146,10 @@ jobs:
             },
             "storage": {
               "rules": "storage.rules"
+            },
+            "firestore": {
+              "rules": "firestore.rules",
+              "indexes": "firestore.indexes.json"
             }
           }
           if site_id and site_id != "default":
