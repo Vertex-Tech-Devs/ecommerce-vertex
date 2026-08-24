@@ -139,7 +139,8 @@
   .sidebar {
     width: vars.$sidebar-width-mobile-overlay;
     transform: translateX(-100%);
-    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.5);
+    border-right: 1px solid rgba(0, 0, 0, 0.4);
+    box-shadow: 12px 0 36px rgba(0, 0, 0, 0.5);
 
     &--open {
       transform: translateX(0);
