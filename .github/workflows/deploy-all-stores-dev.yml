@@ -1,8 +1,6 @@
 name: Deploy All Stores (Development)
 
 on:
-  push:
-    branches: [develop]
   workflow_dispatch:
 
 env:
