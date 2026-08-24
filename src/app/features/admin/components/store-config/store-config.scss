@@ -66,6 +66,29 @@
   &.card-delivery {
     --glow-rgb: 34, 197, 94;
     animation-delay: 0.2s;
+
+    .input-group,
+    .form-control,
+    .form-select,
+    .form-text,
+    .glass-input {
+      max-width: 100%;
+      word-break: break-word;
+    }
+
+    @media (max-width: 480px) {
+      .glass-switches-container {
+        padding: 1rem;
+      }
+      .input-group-text {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+      }
+      .glass-input {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+      }
+    }
   }
 
   &.card-contact {
@@ -237,6 +260,10 @@
 }
 
 .custom-glass-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   .form-check-input {
     background-color: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.1);
@@ -244,6 +271,7 @@
     width: 3rem;
     cursor: pointer;
     margin-top: 0;
+    flex-shrink: 0;
     transition: all 0.3s ease;
 
     &:checked {
@@ -259,7 +287,20 @@
 
   .form-check-label {
     cursor: pointer;
-    margin-top: 2px;
+    margin-top: 0;
+    word-break: break-word;
+  }
+}
+
+.store-delete-btn {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 575.98px) {
+    padding: 0.5rem 0.75rem;
   }
 }
 
