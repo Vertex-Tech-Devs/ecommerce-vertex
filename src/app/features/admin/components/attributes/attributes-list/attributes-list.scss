@@ -102,6 +102,11 @@
 
   .action-cell {
     white-space: nowrap;
+    padding-right: 0.75rem;
+
+    .d-inline-flex {
+      gap: 0.625rem !important;
+    }
   }
 }
 

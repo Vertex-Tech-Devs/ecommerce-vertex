@@ -85,6 +85,10 @@ app-header {
 @media (max-width: 1024px) {
   .admin-backdrop {
     display: block;
+    /* Sin backdrop-filter en mobile: el blur crea un halo/fringe blanco en el borde
+       derecho del sidebar al abrirlo (bug reportado v0.5.0). El fondo oscuro alcanza. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   app-sidebar {
