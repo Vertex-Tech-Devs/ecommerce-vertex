@@ -15,42 +15,54 @@ function envSiteUrl(): string {
 }
 
 async function getEmailConfig(storeId: string, tenantDb: Firestore) {
+  // 1) Config pública del storefront (configuracion/store_*) — datos de display.
+  let publicSnap = await tenantDb.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
+  if (!publicSnap.exists) {
+    publicSnap = await tenantDb.doc('configuracion/store').get();
+  }
+  const merged: Record<string, unknown> = publicSnap.exists
+    ? ((publicSnap.data() as Record<string, unknown>) ?? {})
+    : {};
+
+  // 2) Gestión de Emails (settings/emailTemplates_*) — fuente de verdad de emails.
+  // Gana sobre la config pública para los campos de email, así el vendedor recibe
+  // las notificaciones al email real configurado (no a placeholders de seed).
   let configDoc = await tenantDb
     .doc(singletonDoc(storeId, COLLECTIONS.SETTINGS, DOCS.EMAIL_TEMPLATES))
     .get();
   if (!configDoc.exists) {
     configDoc = await tenantDb.doc(`${COLLECTIONS.SETTINGS}/${DOCS.EMAIL_TEMPLATES}`).get();
   }
-  const base = configDoc.exists ? (configDoc.data() as Record<string, unknown>) : {};
-
-  let publicSnap = await tenantDb.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
-  if (!publicSnap.exists) {
-    publicSnap = await tenantDb.doc('configuracion/store').get();
+  if (configDoc.exists) {
+    const settings = configDoc.data() as Record<string, unknown>;
+    if (settings) {
+      if (settings['storeOwnerEmail']) merged['storeOwnerEmail'] = settings['storeOwnerEmail'];
+      if (settings['notificationEmail']) merged['notificationEmail'] = settings['notificationEmail'];
+      if (settings['emailSenderName']) merged['emailSenderName'] = settings['emailSenderName'];
+      if (settings['emailSignature']) merged['emailSignature'] = settings['emailSignature'];
+      if (settings['storeWhatsappNumber']) merged['storeWhatsappNumber'] = settings['storeWhatsappNumber'];
+      if (settings['adminNotification']) merged['adminNotification'] = settings['adminNotification'];
+      if (settings['customerConfirmation']) {
+        merged['customerConfirmation'] = settings['customerConfirmation'];
+      }
+      if (settings['storeName']) merged['storeName'] = settings['storeName'];
+    }
   }
 
-  if (publicSnap.exists) {
-    const pub = publicSnap.data() as Record<string, unknown>;
-    const merged: Record<string, unknown> = { ...base };
-    if (pub) {
-      if (!merged['storeName'] && pub['storeName']) merged['storeName'] = pub['storeName'];
-      if (pub['storeOwnerEmail']) merged['storeOwnerEmail'] = pub['storeOwnerEmail'];
-      if (pub['notificationEmail']) merged['notificationEmail'] = pub['notificationEmail'];
-      if (pub['emailSenderName']) merged['emailSenderName'] = pub['emailSenderName'];
-      if (pub['emailSignature']) merged['emailSignature'] = pub['emailSignature'];
-      if (pub['storeWhatsappNumber']) merged['storeWhatsappNumber'] = pub['storeWhatsappNumber'];
-      if (pub['contact'] && typeof pub['contact'] === 'object') {
-        const contact = pub['contact'] as Record<string, unknown>;
-        if (contact['email'] && !merged['storeOwnerEmail']) {
-          merged['storeOwnerEmail'] = contact['email'];
-        }
-        if (contact['whatsApp'] && !merged['storeWhatsappNumber']) {
-          merged['storeWhatsappNumber'] = contact['whatsApp'];
-        }
+  // 3) Contacto de la config pública como respaldo si no hay emails definidos.
+  const pub = publicSnap.exists ? (publicSnap.data() as Record<string, unknown>) : null;
+  if (pub) {
+    if (pub['contact'] && typeof pub['contact'] === 'object') {
+      const contact = pub['contact'] as Record<string, unknown>;
+      if (contact['email'] && !merged['storeOwnerEmail']) {
+        merged['storeOwnerEmail'] = contact['email'];
+      }
+      if (contact['whatsApp'] && !merged['storeWhatsappNumber']) {
+        merged['storeWhatsappNumber'] = contact['whatsApp'];
       }
     }
-    return merged;
   }
-  return configDoc.exists ? base : null;
+  return Object.keys(merged).length > 0 ? merged : null;
 }
 
 async function getAttributeMap(storeId: string, tenantDb: Firestore): Promise<Map<string, string>> {
