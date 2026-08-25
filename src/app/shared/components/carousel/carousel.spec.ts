@@ -89,8 +89,8 @@ describe('Carousel', () => {
     component.images = mockImages;
     fixture.detectChanges();
 
-    expect(component.getRoute(mockImages[0])).toEqual(['/shop/product', 'prod-123']);
-    expect(component.getRoute(mockImages[1])).toEqual(['/shop/catalog']);
+    expect(component.getRoute(mockImages[0])).toEqual(['/product', 'prod-123']);
+    expect(component.getRoute(mockImages[1])).toEqual(['/catalog']);
     expect(component.getRoute(null)).toBeNull();
 
     expect(component.getQueryParams(mockImages[1])).toEqual({ category: 'cat-456' });

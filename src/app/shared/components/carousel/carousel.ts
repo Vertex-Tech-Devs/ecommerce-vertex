@@ -162,10 +162,10 @@ export class Carousel implements OnInit, OnDestroy {
       return null;
     }
     if (image.linkType === 'product' && image.linkId) {
-      return ['/shop/product', image.linkId];
+      return ['/product', image.linkId];
     }
     if (image.linkType === 'category' && image.linkId) {
-      return ['/shop/catalog'];
+      return ['/catalog'];
     }
     return null;
   }

@@ -8,7 +8,7 @@ export const checkoutGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (cartService.itemCount() === 0) {
-    return router.createUrlTree(['/shop/cart']);
+    return router.createUrlTree(['/cart']);
   }
   return true;
 };

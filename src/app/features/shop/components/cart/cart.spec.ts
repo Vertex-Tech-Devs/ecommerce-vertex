@@ -73,7 +73,7 @@ describe('Cart', () => {
 
   it('goToCheckout() should navigate to /shop/checkout', () => {
     component.goToCheckout();
-    expect(router.navigate).toHaveBeenCalledWith(['/shop/checkout']);
+    expect(router.navigate).toHaveBeenCalledWith(['/checkout']);
   });
 
   it('onRemoveItem() should call cartService.removeItem with the correct id', () => {
