@@ -11,9 +11,10 @@ describe('AdminGuard', () => {
   let routerSpy: jasmine.SpyObj<Router>;
 
   beforeEach(() => {
-    authServiceSpy = jasmine.createSpyObj('AuthService', [], {
+    authServiceSpy = jasmine.createSpyObj('AuthService', ['isAuthenticated'], {
       isAdmin$: of(false),
     });
+    authServiceSpy.isAuthenticated.and.returnValue(of(false));
     routerSpy = jasmine.createSpyObj('Router', ['createUrlTree']);
     routerSpy.createUrlTree.and.returnValue({} as UrlTree);
 
@@ -41,9 +42,11 @@ describe('AdminGuard', () => {
     });
   });
 
-  it('should redirect to /admin/login if user is not admin', (done) => {
+  it('should redirect to /admin/login (no params) if user is not authenticated', (done) => {
     const dummyUrlTree = {} as UrlTree;
     routerSpy.createUrlTree.and.returnValue(dummyUrlTree);
+    // isAdmin$ emits false (default), isAuthenticated returns false → not logged in
+    authServiceSpy.isAuthenticated.and.returnValue(of(false));
 
     TestBed.runInInjectionContext(() => {
       const result = AdminGuard(
@@ -58,4 +61,27 @@ describe('AdminGuard', () => {
       });
     });
   });
+
+  it('should redirect to /admin/login?unauthorized=1 if user is authenticated but not admin', (done) => {
+    const dummyUrlTree = {} as UrlTree;
+    routerSpy.createUrlTree.and.returnValue(dummyUrlTree);
+    // isAdmin$ emits false, but isAuthenticated returns true → logged in, no permissions
+    authServiceSpy.isAuthenticated.and.returnValue(of(true));
+
+    TestBed.runInInjectionContext(() => {
+      const result = AdminGuard(
+        {} as ActivatedRouteSnapshot,
+        {} as RouterStateSnapshot,
+      ) as Observable<UrlTree | boolean>;
+
+      result.subscribe((val) => {
+        expect(val).toBe(dummyUrlTree);
+        expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/admin/login'], {
+          queryParams: { unauthorized: '1' },
+        });
+        done();
+      });
+    });
+  });
 });
+

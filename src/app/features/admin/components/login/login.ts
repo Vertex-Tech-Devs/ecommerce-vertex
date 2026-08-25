@@ -1,4 +1,4 @@
-import type { OnInit } from '@angular/core';
+import type { OnInit, OnDestroy } from '@angular/core';
 import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements OnInit {
+export class Login implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -23,6 +23,10 @@ export class Login implements OnInit {
   authErrorMessage = '';
   isAlreadyLogged = false;
   isGoogleSubmitting = false;
+
+  private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  /** Máximo tiempo de espera para el flujo de login (ms). El retry loop interno dura ~12s. */
+  private readonly LOGIN_TIMEOUT_MS = 18_000;
 
   ngOnInit(): void {
     this.authService
@@ -40,18 +44,55 @@ export class Login implements OnInit {
       if (params['authError']) {
         this.authErrorMessage = 'Debes iniciar sesión para acceder al panel de administración.';
       }
+      // El guard redirige acá con ?unauthorized=1 cuando el usuario autenticado no tiene permisos.
+      if (params['unauthorized']) {
+        this._resetSubmitting();
+        this.authErrorMessage =
+          'Tu cuenta de Google no está autorizada para acceder a esta tienda. Solicita acceso al administrador.';
+      }
     });
+  }
+
+  ngOnDestroy(): void {
+    this._clearLoginTimeout();
+  }
+
+  private _clearLoginTimeout(): void {
+    if (this.loginTimeoutId !== null) {
+      clearTimeout(this.loginTimeoutId);
+      this.loginTimeoutId = null;
+    }
+  }
+
+  private _resetSubmitting(): void {
+    this._clearLoginTimeout();
+    this.isGoogleSubmitting = false;
   }
 
   onGoogleLogin(): void {
     this.isGoogleSubmitting = true;
     this.authErrorMessage = '';
 
+    // Safety net: si el flujo de login no resuelve en LOGIN_TIMEOUT_MS (e.g. redirect fallback
+    // o cuelgue de red), mostrar error y habilitar el botón nuevamente.
+    this._clearLoginTimeout();
+    this.loginTimeoutId = setTimeout(() => {
+      if (this.isGoogleSubmitting) {
+        this._resetSubmitting();
+        this.authErrorMessage =
+          'El inicio de sesión tardó demasiado. Verificá tu conexión e intentá de nuevo.';
+      }
+    }, this.LOGIN_TIMEOUT_MS);
+
     this.authService
       .loginWithGoogle()
       .pipe(take(1))
       .subscribe({
         next: () => {
+          // Resetear siempre el estado al completar (sea exitoso o no).
+          // Si el usuario no tenía permisos, AuthService hace signOut() y lanza error,
+          // pero como fallback extra reseteamos acá también por si algún edge case pasa por next.
+          this._resetSubmitting();
           void this.router.navigate(['/admin']);
         },
         error: (err: unknown) => {
@@ -84,7 +125,7 @@ export class Login implements OnInit {
           } else {
             this.authErrorMessage = `No se pudo iniciar sesión con Google. Error: ${msg}`;
           }
-          this.isGoogleSubmitting = false;
+          this._resetSubmitting();
         },
       });
   }
