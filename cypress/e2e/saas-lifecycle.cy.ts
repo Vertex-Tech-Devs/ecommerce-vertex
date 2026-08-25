@@ -95,11 +95,11 @@ describe('3 · Storefront Catalog', () => {
   beforeEach(() => {
     stubStoreConfig();
     stubProducts(25);
-    cy.visit('/shop/catalog');
+    cy.visit('/catalog');
   });
 
   it('navigates to the catalog page', () => {
-    cy.location('pathname').should('eq', '/shop/catalog');
+    cy.location('pathname').should('eq', '/catalog');
   });
 
   it('renders at least one product card', () => {
@@ -125,7 +125,7 @@ describe('3 · Storefront Catalog', () => {
         if (hasCatalogShell || hasRenderedProduct) {
           expect(true).to.be.true;
         } else {
-          cy.location('pathname', { timeout: 8000 }).should('eq', '/shop/catalog');
+          cy.location('pathname', { timeout: 8000 }).should('eq', '/catalog');
         }
       }
     });
@@ -147,8 +147,8 @@ describe('4 · Add-to-Cart Flow', () => {
     stock: 20,
   };
 
-  it('persists a cart item in localStorage and shows it on /shop/cart', () => {
-    cy.visit('/shop/cart');
+  it('persists a cart item in localStorage and shows it on /cart', () => {
+    cy.visit('/cart');
 
     cy.window().then((win) => {
       win.localStorage.setItem(
@@ -162,7 +162,7 @@ describe('4 · Add-to-Cart Flow', () => {
   });
 
   it('shows the cart total reflecting the item price', () => {
-    cy.visit('/shop/cart');
+    cy.visit('/cart');
 
     cy.window().then((win) => {
       win.localStorage.setItem(
@@ -180,7 +180,7 @@ describe('4 · Add-to-Cart Flow', () => {
   });
 
   it('shows empty-cart state when localStorage has no items', () => {
-    cy.visit('/shop/cart');
+    cy.visit('/cart');
     cy.window().then((win) => win.localStorage.removeItem(CART_KEY));
     cy.reload();
 
@@ -210,7 +210,7 @@ describe('5 · Checkout Flow', () => {
   };
 
   beforeEach(() => {
-    cy.visit('/shop/cart');
+    cy.visit('/cart');
     cy.window().then((win) => win.localStorage.setItem(CART_KEY, JSON.stringify(CART_WITH_ITEM)));
     cy.reload();
   });
@@ -231,7 +231,7 @@ describe('5 · Checkout Flow', () => {
     });
   });
 
-  it('navigates to /shop/checkout after clicking the checkout button', () => {
+  it('navigates to /checkout after clicking the checkout button', () => {
     cy.get('body').then(($body) => {
       const btn = $body.find(
         'a[href*="checkout"], button:contains("Checkout"), button:contains("Finalizar"), [routerlink*="checkout"]',
@@ -241,14 +241,14 @@ describe('5 · Checkout Flow', () => {
         cy.location('pathname', { timeout: 8000 }).should('include', 'checkout');
       } else {
         cy.task('log', '⚠️ Checkout CTA not found, validating checkout route directly');
-        cy.visit('/shop/checkout');
+        cy.visit('/checkout');
         cy.location('pathname', { timeout: 8000 }).should('include', 'checkout');
       }
     });
   });
 
   it('checkout page loads without error', () => {
-    cy.visit('/shop/checkout');
+    cy.visit('/checkout');
     cy.get('app-root').should('exist');
     cy.get('body').should('not.contain', 'Store configuration unavailable');
   });
@@ -268,7 +268,7 @@ describe('6 · Admin Route Protection', () => {
 
 describe('7 · 404 & Unknown Routes', () => {
   it('shows a not-found indicator for non-existent shop routes', () => {
-    cy.visit('/shop/this-page-does-not-exist', { failOnStatusCode: false });
+    cy.visit('/this-page-does-not-exist', { failOnStatusCode: false });
     // Either a dedicated 404 component or redirect — the app should not crash
     cy.get('app-root').should('exist');
     cy.get('body').should('not.contain', 'Store configuration unavailable');

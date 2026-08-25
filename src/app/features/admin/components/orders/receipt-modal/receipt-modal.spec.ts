@@ -84,4 +84,21 @@ describe('ReceiptModal', () => {
     component.printReceipt();
     expect(window.print).toHaveBeenCalled();
   });
+
+  it('currencyCode() should return ARS and currencySymbol() should return $', () => {
+    expect(component.currencyCode()).toBe('ARS');
+    expect(component.currencySymbol()).toBe('$');
+  });
+
+  it('close() should emit closeModal event', () => {
+    spyOn(component.closeModal, 'emit');
+    component.close();
+    expect(component.closeModal.emit).toHaveBeenCalled();
+  });
+
+  it('should handle undefined order gracefully', () => {
+    component.order = undefined;
+    fixture.detectChanges();
+    expect(component).toBeTruthy();
+  });
 });

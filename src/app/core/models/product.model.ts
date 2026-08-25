@@ -5,6 +5,7 @@ export interface ProductVariant {
   attributes: { [key: string]: string };
   stock: number;
   image?: string;
+  price?: number;
 }
 
 export interface Product {

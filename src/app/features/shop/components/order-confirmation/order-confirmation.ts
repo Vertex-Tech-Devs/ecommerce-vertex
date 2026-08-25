@@ -3,7 +3,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { Observable } from 'rxjs';
-import { switchMap, of, combineLatest, map } from 'rxjs';
+import { switchMap, of, combineLatest, map, tap } from 'rxjs';
 import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
@@ -57,6 +57,11 @@ export class OrderConfirmation implements OnInit {
       orderId: orderId$,
       paymentStatus: paymentStatus$,
     }).pipe(
+      tap(({ orderId, paymentStatus }) => {
+        if (orderId && (paymentStatus === 'approved' || !paymentStatus)) {
+          void this.orderService.notifyOrderConfirmation(orderId);
+        }
+      }),
       map(({ order, orderId, paymentStatus }) => ({
         order,
         orderId,

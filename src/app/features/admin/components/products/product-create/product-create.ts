@@ -405,6 +405,7 @@ export class ProductCreate implements OnInit, AfterViewInit {
         const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(
           formValue.variants,
           this.initialVariants,
+          formValue.price,
         );
         const { name, description, price, categoryId, image, images, variantAttributes } =
           formValue;

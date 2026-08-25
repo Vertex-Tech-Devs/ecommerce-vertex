@@ -161,6 +161,7 @@ Versión actual: `0.5.0`
 
 ### 1. Despacho Multi-Tenant de Emails (`notifyOrderConfirmation`)
 - **Trigger HTTPS Público**: La Cloud Function `notifyOrderConfirmation` opera como endpoint HTTPS (`onRequest({ cors: true, invoker: 'public' })`) para evitar errores `401 Unauthorized` derivados del chequeo automático de audience de Firebase Auth (`aud: <shard-id>` vs `<platform-id>`) al invocar funciones centrales desde shards dedicados.
+- **Despacho Automático Redundante**: `OrderConfirmation` (`/shop/order-confirmation/:id`) invoca `notifyOrderConfirmation` al cargar el pedido aprobado para asegurar el envío inmediato aun si el webhook de Mercado Pago experimenta retrasos en entornos locales o de prueba.
 - **Resolución Automática de Shards**: Si la petición proviene de un shard o storefront, la función resuelve la base de datos de Firestore correspondiente mediante `resolveTenantDb(tenantProjectId)` o buscando el tenant en la colección global `stores`.
 - **Doble Notificación**: Despacha emails transaccionales tanto al comprador (`clientEmail`) como al administrador/dueño de la tienda configurado en Firestore o en la colección `admin_roles`.
 
@@ -168,8 +169,9 @@ Versión actual: `0.5.0`
 - El componente `OrderConfirmation` (`/shop/order-confirmation/:id`) incluye un toolbar de acciones con botón de **Imprimir / Descargar Comprobante** (`printReceipt()`), invocando `window.print()`.
 - Incorpora un voucher imprimible semántico (`#printable-receipt`) con reglas `@media print` dedicadas que ocultan headers, navegaciones y fondos web, formateando una factura/recibo limpia y lista para ser guardada como PDF o impresa físicamente sin cortes superiores (`@page { margin: 12mm; }`).
 
-### 3. Soporte de Productos Simples (Sin Atributos)
+### 3. Soporte de Productos Simples y Sincronización de Precios
 - Soporte para productos sin atributos (ej. libros, bazar, servicios) mediante resolución automática de variante base (`attributes: {}`, `stock: totalStock`).
+- Al editar el precio base de un producto en el panel de administración, la actualización se propaga de forma atómica a todas sus variantes para mantener la consistencia de precios en la subcolección de variantes de Firestore y en `createPaymentPreference`.
 - El storefront habilita directamente la compra y el carrito muestra el nombre limpio del producto.
 
 ---

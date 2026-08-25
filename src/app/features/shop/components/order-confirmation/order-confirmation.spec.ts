@@ -94,7 +94,11 @@ describe('OrderConfirmation', () => {
   beforeEach(async () => {
     mockStoreConfigSignal = signal<StoreConfig | null>(mockConfig);
 
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderById']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', [
+      'getOrderById',
+      'notifyOrderConfirmation',
+    ]);
+    orderServiceSpy.notifyOrderConfirmation.and.returnValue(Promise.resolve({ success: true }));
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {
       storeConfig: mockStoreConfigSignal,
     });
@@ -162,5 +166,91 @@ describe('OrderConfirmation', () => {
 
     expect(whatsappUrl).toContain(`text=${encoded}`);
     expect(whatsappUrl.includes(' ')).toBeFalse();
+  });
+
+  it('printReceipt() should call window.print()', () => {
+    spyOn(window, 'print');
+    component.printReceipt();
+    expect(window.print).toHaveBeenCalled();
+  });
+
+  it('getWhatsappUrl() should return fallback wa.me URL without phone if store config has no contact phone/WhatsApp', () => {
+    mockStoreConfigSignal.set({
+      ...mockConfig,
+      contact: { whatsApp: '', phone: '', email: '', instagram: '', facebook: '' },
+    });
+    const url = component.getWhatsappUrl(undefined, 'FALLBACK-ID');
+    expect(url).toContain('https://wa.me/?text=');
+    expect(url).toContain('FALLBACK-ID');
+  });
+
+  it('ngOnInit should parse collection_status when status param is absent', (done) => {
+    TestBed.resetTestingModule();
+    mockStoreConfigSignal = signal<StoreConfig | null>(mockConfig);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderById']);
+    orderServiceSpy.getOrderById.and.returnValue(of(mockOrderPickup));
+    storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {
+      storeConfig: mockStoreConfigSignal,
+    });
+    cartServiceSpy = jasmine.createSpyObj('CartService', ['clearCart']);
+
+    TestBed.configureTestingModule({
+      imports: [OrderConfirmation],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: StoreConfigService, useValue: storeConfigServiceSpy },
+        { provide: CartService, useValue: cartServiceSpy },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({ id: 'ORD-9999' })),
+            queryParamMap: of(convertToParamMap({ collection_status: 'in_process' })),
+          },
+        },
+      ],
+    });
+
+    const f2 = TestBed.createComponent(OrderConfirmation);
+    f2.componentInstance.ngOnInit();
+    f2.componentInstance.data$.subscribe((data) => {
+      expect(data.paymentStatus).toBe('in_process');
+      expect(data.orderId).toBe('ORD-9999');
+      done();
+    });
+  });
+
+  it('ngOnInit should return undefined order when paramMap has no id', (done) => {
+    TestBed.resetTestingModule();
+    mockStoreConfigSignal = signal<StoreConfig | null>(mockConfig);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderById']);
+    storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {
+      storeConfig: mockStoreConfigSignal,
+    });
+    cartServiceSpy = jasmine.createSpyObj('CartService', ['clearCart']);
+
+    TestBed.configureTestingModule({
+      imports: [OrderConfirmation],
+      providers: [
+        { provide: OrderService, useValue: orderServiceSpy },
+        { provide: StoreConfigService, useValue: storeConfigServiceSpy },
+        { provide: CartService, useValue: cartServiceSpy },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            paramMap: of(convertToParamMap({})),
+            queryParamMap: of(convertToParamMap({})),
+          },
+        },
+      ],
+    });
+
+    const f3 = TestBed.createComponent(OrderConfirmation);
+    f3.componentInstance.ngOnInit();
+    f3.componentInstance.data$.subscribe((data) => {
+      expect(data.order).toBeUndefined();
+      expect(data.orderId).toBeNull();
+      expect(data.paymentStatus).toBe('approved');
+      done();
+    });
   });
 });
