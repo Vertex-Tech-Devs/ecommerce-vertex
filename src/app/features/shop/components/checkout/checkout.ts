@@ -188,7 +188,7 @@ export class Checkout implements OnInit {
     if (!cart || cart.items.length === 0) {
       this.sweetAlertService.error('Carrito Vacío', 'No puedes proceder al pago sin productos.');
       this.isProcessingPayment.set(false);
-      void this.router.navigate(['/shop/cart']);
+      void this.router.navigate(['/cart']);
       return;
     }
 
@@ -213,7 +213,7 @@ export class Checkout implements OnInit {
             : 'No puedes proceder al pago sin productos.',
         );
         this.isProcessingPayment.set(false);
-        void this.router.navigate(['/shop/cart']);
+        void this.router.navigate(['/cart']);
         return;
       }
 

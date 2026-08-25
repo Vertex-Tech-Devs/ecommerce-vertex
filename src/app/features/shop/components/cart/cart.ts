@@ -44,7 +44,7 @@ export class Cart implements OnInit {
   }
 
   goToCheckout(): void {
-    void this.router.navigate(['/shop/checkout']);
+    void this.router.navigate(['/checkout']);
   }
 
   onUpdateQuantity(item: CartItem, event: Event): void {

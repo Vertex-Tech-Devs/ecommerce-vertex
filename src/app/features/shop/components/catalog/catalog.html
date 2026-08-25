@@ -156,7 +156,7 @@
         @if (products.length > 0) {
           <div class="product-grid">
             @for (product of products; track product.id) {
-              <a [routerLink]="['/shop/product', product.id]" class="product-card">
+              <a [routerLink]="['/product', product.id]" class="product-card">
                 <div class="product-card__image-wrap">
                   <img
                     [src]="product.image"

@@ -8,10 +8,6 @@ import type { Order } from '@core/models/order.model';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { CartService } from '@core/services/cart.service';
-import { resolveTenantId } from '@core/utils/tenant';
-
-import { environment } from '../../../../../environments/environment';
-import { FirebaseApp } from '@angular/fire/app';
 
 interface ConfirmationData {
   order: Order | undefined;
@@ -32,7 +28,6 @@ export class OrderConfirmation implements OnInit {
   private orderService = inject(OrderService);
   private storeConfigService = inject(StoreConfigService);
   private cartService = inject(CartService);
-  private firebaseApp = inject(FirebaseApp, { optional: true });
 
   readonly storeConfig = this.storeConfigService.storeConfig;
   readonly currentDate = new Date();
@@ -51,7 +46,6 @@ export class OrderConfirmation implements OnInit {
     const order$ = orderId$.pipe(
       switchMap((orderId) => {
         if (orderId) {
-          void this.triggerConfirmationEmail(orderId);
           return this.orderService.getOrderById(orderId);
         }
         return of(undefined);
@@ -75,28 +69,6 @@ export class OrderConfirmation implements OnInit {
   printReceipt(): void {
     if (typeof window !== 'undefined') {
       window.print();
-    }
-  }
-
-  private async triggerConfirmationEmail(orderId: string): Promise<void> {
-    try {
-      const baseUrl =
-        environment.api?.cloudFunctionsUrl && environment.api.cloudFunctionsUrl.trim() !== ''
-          ? environment.api.cloudFunctionsUrl.trim()
-          : 'https://us-central1-ecommerce-vertex-dev.cloudfunctions.net';
-      const endpoint = `${baseUrl}/notifyOrderConfirmation`;
-      const tenantProjectId = this.firebaseApp?.options?.projectId;
-      await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderId,
-          tenantId: resolveTenantId(),
-          tenantProjectId,
-        }),
-      });
-    } catch {
-      // Ignorar fallas de red secundarias
     }
   }
 

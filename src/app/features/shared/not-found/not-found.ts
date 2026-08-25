@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
     <div class="not-found-container">
       <h1>404</h1>
       <p>La página que buscás no existe.</p>
-      <a routerLink="/shop">Volver a la tienda</a>
+      <a routerLink="/">Volver a la tienda</a>
     </div>
   `,
   styles: [

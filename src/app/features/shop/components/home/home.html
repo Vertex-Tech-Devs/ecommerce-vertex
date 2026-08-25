@@ -30,7 +30,7 @@
     @if (banner.featuredCategories && banner.featuredCategories.length > 0) {
       <div class="home-container">
         <section class="section" aria-label="Categorías destacadas">
-          <a routerLink="/shop/catalog" class="section__title-link">
+          <a routerLink="/catalog" class="section__title-link">
             <h2 class="section__title">Categorías Destacadas</h2>
           </a>
           <div
@@ -39,7 +39,7 @@
           >
             @for (category of banner.featuredCategories; track category.categoryId) {
               <a
-                [routerLink]="['/shop/catalog']"
+                [routerLink]="['/catalog']"
                 [queryParams]="{ category: category.categoryId }"
                 class="category-card"
                 [attr.aria-label]="'Ver categoría ' + category.name"
@@ -61,7 +61,7 @@
 
   <div class="home-container">
     <section class="section" aria-label="Nuevos ingresos">
-      <a routerLink="/shop/catalog" class="section__title-link">
+      <a routerLink="/catalog" class="section__title-link">
         <h2 class="section__title">Nuevos Ingresos</h2>
       </a>
 
@@ -82,7 +82,7 @@
         <div class="product-grid">
           @for (product of newArrivals(); track product.id) {
             <a
-              [routerLink]="['/shop/product', product.id]"
+              [routerLink]="['/product', product.id]"
               class="product-card"
               [attr.aria-label]="product.name"
             >
@@ -111,7 +111,7 @@
 
         <div class="home__catalog-action">
           <a
-            routerLink="/shop/catalog"
+            routerLink="/catalog"
             class="catalog-redirect-btn"
             (mousemove)="onButtonMouseMove($event)"
           >

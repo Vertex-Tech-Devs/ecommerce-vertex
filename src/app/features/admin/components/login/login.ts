@@ -30,6 +30,10 @@ export class Login implements OnInit {
       .pipe(take(1))
       .subscribe((isAuth) => {
         this.isAlreadyLogged = isAuth;
+        // Si ya está logueado, redirigir directo al dashboard (no mostrar el login).
+        if (isAuth) {
+          void this.router.navigate(['/admin']);
+        }
       });
 
     this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
