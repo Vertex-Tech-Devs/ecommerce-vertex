@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { CartService } from './cart.service';
 import { SweetAlertService } from './sweet-alert.service';
@@ -429,15 +429,21 @@ describe('CartService', () => {
       expect(service.cart().total).toBe(0);
     });
 
-    it('should keep the cart intact when catalog fetch fails', async () => {
+    it('should keep the cart intact when catalog fetch fails', fakeAsync(() => {
+      spyOn(console, 'warn');
+      spyOn(console, 'error');
       const product = makeProduct({ id: 'prod-ok', name: 'Ok', totalStock: 3 });
       service.addItem(product, makeVariant({ id: 'var-ok', productId: 'prod-ok', stock: 3 }), 1);
       productServiceSpy.getProducts.and.returnValue(throwError(() => new Error('red caída')));
 
-      const removed = await service.pruneUnavailableItems();
+      let removed: string[] = [];
+      service.pruneUnavailableItems().then((res) => {
+        removed = res;
+      });
+      tick();
 
       expect(removed).toEqual([]);
       expect(service.cart().items.length).toBe(1);
-    });
+    }));
   });
 });

@@ -30,7 +30,7 @@ describe('checkoutGuard', () => {
       const result = checkoutGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
 
       expect(result).toBe(dummyUrlTree);
-      expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/shop/cart']);
+      expect(routerSpy.createUrlTree).toHaveBeenCalledWith(['/cart']);
     });
   });
 

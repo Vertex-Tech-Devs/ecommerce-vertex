@@ -511,7 +511,7 @@ describe('Checkout', () => {
         'Carrito Vacío',
         'Los productos de tu carrito ya no están disponibles.',
       );
-      expect(navigateSpy).toHaveBeenCalledWith(['/shop/cart']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/cart']);
       expect(component.isProcessingPayment()).toBeFalse();
     }));
 

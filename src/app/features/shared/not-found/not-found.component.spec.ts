@@ -29,6 +29,6 @@ describe('NotFound', () => {
 
     const link = compiled.querySelector('a');
     expect(link).toBeTruthy();
-    expect(link?.getAttribute('href')).toBe('/shop');
+    expect(link?.getAttribute('href')).toBe('/');
   });
 });
