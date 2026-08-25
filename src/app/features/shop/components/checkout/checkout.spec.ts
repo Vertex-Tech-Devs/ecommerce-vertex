@@ -332,7 +332,7 @@ describe('Checkout', () => {
         'Carrito Vacío',
         'No puedes proceder al pago sin productos.',
       );
-      expect(navigateSpy).toHaveBeenCalledWith(['/shop/cart']);
+      expect(navigateSpy).toHaveBeenCalledWith(['/cart']);
       expect(component.isProcessingPayment()).toBeFalse();
     }));
 

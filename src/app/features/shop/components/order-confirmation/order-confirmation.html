@@ -107,10 +107,10 @@
             <strong>{{ data.order.clientEmail }}</strong
             >.
           </p>
-          <a routerLink="/shop/catalog" class="confirmation__action">Seguir Comprando</a>
+          <a routerLink="/catalog" class="confirmation__action">Seguir Comprando</a>
         } @else {
           <p class="confirmation__email">Si tienes problemas, no dudes en contactarnos.</p>
-          <a routerLink="/shop/cart" class="confirmation__action">Volver al Carrito</a>
+          <a routerLink="/cart" class="confirmation__action">Volver al Carrito</a>
         }
       </article>
 
@@ -249,9 +249,9 @@
         </div>
 
         @if (data.paymentStatus === 'approved') {
-          <a routerLink="/shop/catalog" class="confirmation__action mt-4">Seguir Comprando</a>
+          <a routerLink="/catalog" class="confirmation__action mt-4">Seguir Comprando</a>
         } @else {
-          <a routerLink="/shop/cart" class="confirmation__action mt-4">Volver al Carrito</a>
+          <a routerLink="/cart" class="confirmation__action mt-4">Volver al Carrito</a>
         }
       </article>
     }

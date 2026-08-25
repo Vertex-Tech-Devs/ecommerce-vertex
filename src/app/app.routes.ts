@@ -4,11 +4,6 @@ import { AdminGuard } from '@core/guards/admin.guard';
 export const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'shop',
-  },
-  {
-    path: 'shop',
     loadChildren: () => import('./features/shop/shop.routes').then((m) => m.SHOP_ROUTES),
   },
   {

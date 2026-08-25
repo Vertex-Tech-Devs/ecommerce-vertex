@@ -7,7 +7,7 @@
   ></div>
 
   <div class="header__container">
-    <a routerLink="/shop" class="header__brand" aria-label="Ir al inicio">
+    <a routerLink="/" class="header__brand" aria-label="Ir al inicio">
       @if (logoUrl()) {
         <img [src]="logoUrl()" [alt]="storeName() || 'Logo de tienda'" class="header__brand-logo" />
       } @else {
@@ -30,26 +30,23 @@
       aria-label="Navegación principal"
     >
       <a
-        routerLink="/shop"
+        routerLink="/"
         routerLinkActive="header__nav-link--active"
         [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeMenu()"
         >Inicio</a
       >
-      <a
-        routerLink="/shop/catalog"
-        routerLinkActive="header__nav-link--active"
-        (click)="closeMenu()"
+      <a routerLink="/catalog" routerLinkActive="header__nav-link--active" (click)="closeMenu()"
         >Productos</a
       >
-      <a routerLink="/shop/about" routerLinkActive="header__nav-link--active" (click)="closeMenu()"
+      <a routerLink="/about" routerLinkActive="header__nav-link--active" (click)="closeMenu()"
         >Nosotros</a
       >
     </nav>
 
     <div class="header__actions">
       <a
-        routerLink="/shop/cart"
+        routerLink="/cart"
         class="header__cart"
         [attr.aria-label]="
           cartItemCount() > 0

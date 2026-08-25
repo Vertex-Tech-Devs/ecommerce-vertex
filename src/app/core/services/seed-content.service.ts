@@ -117,7 +117,7 @@ export class SeedContentService {
         carouselSettings: { interval: 4500, showIndicators: true },
         title: 'Nueva Colección 2026',
         buttonText: 'Explorar todo',
-        buttonLink: '/shop/catalog',
+        buttonLink: '/catalog',
         featuredCategories: [
           {
             categoryId: cats['remeras']?.id ?? '',
