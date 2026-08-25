@@ -2,6 +2,7 @@ import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import type { PaymentRequestData } from './payment.model';
 import { logger } from 'firebase-functions';
 import { getFirestore } from 'firebase-admin/firestore';
+import { resolveTenantDb } from './tenant-db';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { singletonDoc } from './config';
 
@@ -25,9 +26,13 @@ function resolveProjectId(): string {
 
 let cachedAccessTokens = new Map<string, string>();
 
-async function resolveAccessTokenFromSecret(secretName: string): Promise<string> {
-  if (cachedAccessTokens.has(secretName)) return cachedAccessTokens.get(secretName)!;
-  const projectId = resolveProjectId();
+async function resolveAccessTokenFromSecret(
+  secretName: string,
+  projectIdOverride?: string,
+): Promise<string> {
+  const cacheKey = `${projectIdOverride || ''}:${secretName}`;
+  if (cachedAccessTokens.has(cacheKey)) return cachedAccessTokens.get(cacheKey)!;
+  const projectId = projectIdOverride || resolveProjectId();
   if (!projectId) {
     throw new Error('No se pudo resolver el proyecto para leer Secret Manager.');
   }
@@ -37,8 +42,7 @@ async function resolveAccessTokenFromSecret(secretName: string): Promise<string>
       name: `projects/${projectId}/secrets/${secretName}/versions/latest`,
     });
     const token = version.payload?.data?.toString().trim() || '';
-    // Caché keyed por secretName (aislamiento por tienda)
-    cachedAccessTokens.set(secretName, token);
+    cachedAccessTokens.set(cacheKey, token);
     return token;
   } catch (error) {
     logger.warn(
@@ -86,8 +90,11 @@ function resolveStoreBaseUrl(
 async function getMercadoPagoRuntimeConfig(
   storeId?: string,
   clientSiteUrl?: string,
+  shardProjectId?: string,
 ): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
-  const db = getFirestore();
+  // Leer el config desde el proyecto del shard (no del master): las credenciales
+  // de la tienda viven en el Firestore del shard (configuracion/store_{slug}).
+  const db = shardProjectId ? resolveTenantDb(shardProjectId) : getFirestore();
 
   // Flat multi-tenant path: configuracion/store_{storeId}
   let mpConfig: Record<string, any> | undefined;
@@ -112,14 +119,14 @@ async function getMercadoPagoRuntimeConfig(
   }
 
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
-  let tokenFromSecret = secretName ? await resolveAccessTokenFromSecret(secretName) : '';
+  const readSecret = (name: string) =>
+    resolveAccessTokenFromSecret(name, shardProjectId);
+  let tokenFromSecret = secretName ? await readSecret(secretName) : '';
   if (!tokenFromSecret && secretName !== 'mp-access-token-default') {
-    // Si el secreto específico falló, intentar fallback al secreto por defecto de la plataforma
-    tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
+    tokenFromSecret = await readSecret('mp-access-token-default');
   }
   if (!tokenFromSecret) {
-    // Fallback de plataforma para credenciales de prueba predeterminadas en Secret Manager
-    tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
+    tokenFromSecret = await readSecret('mp-access-token-default');
   }
   if (!tokenFromSecret) {
     // Fallback a variable de entorno o parámetro (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
@@ -151,7 +158,11 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     };
   }
 
-  const runtime = await getMercadoPagoRuntimeConfig(tenantId, data.siteUrl);
+  const runtime = await getMercadoPagoRuntimeConfig(
+    tenantId,
+    data.siteUrl,
+    (data as PaymentRequestData)?.projectId || undefined,
+  );
 
   const tokenPrefix = runtime.accessToken.slice(0, 8);
   const isSandbox =
