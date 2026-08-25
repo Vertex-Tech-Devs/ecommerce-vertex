@@ -1,6 +1,6 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
+import { provideRouter, Router, ActivatedRoute } from '@angular/router';
 import { signal } from '@angular/core';
 import { Cart } from './cart';
 import { CartService } from '@core/services/cart.service';
@@ -149,5 +149,132 @@ describe('Cart', () => {
   it('onButtonMouseMove() should return early if currentTarget is null', () => {
     const fakeEvent = { currentTarget: null } as unknown as MouseEvent;
     expect(() => component.onButtonMouseMove(fakeEvent)).not.toThrow();
+  });
+
+  describe('ngOnInit Payment Reference Handling', () => {
+    it('should show warning alert and clean query params when preference_id exists with rejected status', () => {
+      TestBed.resetTestingModule();
+      cartSignal = signal<CartModel>({ items: [], total: 0 });
+      cartServiceSpy = jasmine.createSpyObj('CartService', ['updateQuantity', 'removeItem'], {
+        cart: cartSignal,
+      });
+      sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['warning']);
+
+      TestBed.configureTestingModule({
+        imports: [Cart],
+        providers: [
+          provideRouter([]),
+          { provide: CartService, useValue: cartServiceSpy },
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                queryParamMap: {
+                  has: (key: string) => key === 'preference_id',
+                  get: (key: string) => (key === 'status' ? 'rejected' : null),
+                },
+              },
+            },
+          },
+        ],
+      });
+
+      const navRouter = TestBed.inject(Router);
+      spyOn(navRouter, 'navigate').and.returnValue(Promise.resolve(true));
+
+      const fix = TestBed.createComponent(Cart);
+      fix.detectChanges();
+
+      expect(sweetAlertSpy.warning).toHaveBeenCalledWith(
+        'Pago no completado',
+        'El proceso de pago fue cancelado o no se completó. Tus productos continúan guardados en el carrito.',
+      );
+      expect(navRouter.navigate).toHaveBeenCalledWith([], {
+        relativeTo: jasmine.anything(),
+        queryParams: {},
+        replaceUrl: true,
+      });
+    });
+
+    it('should show warning alert when external_reference exists with cancelled status', () => {
+      TestBed.resetTestingModule();
+      cartSignal = signal<CartModel>({ items: [], total: 0 });
+      cartServiceSpy = jasmine.createSpyObj('CartService', ['updateQuantity', 'removeItem'], {
+        cart: cartSignal,
+      });
+      sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['warning']);
+
+      TestBed.configureTestingModule({
+        imports: [Cart],
+        providers: [
+          provideRouter([]),
+          { provide: CartService, useValue: cartServiceSpy },
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                queryParamMap: {
+                  has: (key: string) => key === 'external_reference',
+                  get: (key: string) => (key === 'collection_status' ? 'cancelled' : null),
+                },
+              },
+            },
+          },
+        ],
+      });
+
+      const navRouter = TestBed.inject(Router);
+      spyOn(navRouter, 'navigate').and.returnValue(Promise.resolve(true));
+
+      const fix = TestBed.createComponent(Cart);
+      fix.detectChanges();
+
+      expect(sweetAlertSpy.warning).toHaveBeenCalled();
+      expect(navRouter.navigate).toHaveBeenCalled();
+    });
+
+    it('should clean query params without showing warning if payment status is approved', () => {
+      TestBed.resetTestingModule();
+      cartSignal = signal<CartModel>({ items: [], total: 0 });
+      cartServiceSpy = jasmine.createSpyObj('CartService', ['updateQuantity', 'removeItem'], {
+        cart: cartSignal,
+      });
+      sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['warning']);
+
+      TestBed.configureTestingModule({
+        imports: [Cart],
+        providers: [
+          provideRouter([]),
+          { provide: CartService, useValue: cartServiceSpy },
+          { provide: SweetAlertService, useValue: sweetAlertSpy },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: {
+                queryParamMap: {
+                  has: (key: string) => key === 'preference_id',
+                  get: (key: string) => (key === 'status' ? 'approved' : null),
+                },
+              },
+            },
+          },
+        ],
+      });
+
+      const navRouter = TestBed.inject(Router);
+      spyOn(navRouter, 'navigate').and.returnValue(Promise.resolve(true));
+
+      const fix = TestBed.createComponent(Cart);
+      fix.detectChanges();
+
+      expect(sweetAlertSpy.warning).not.toHaveBeenCalled();
+      expect(navRouter.navigate).toHaveBeenCalledWith([], {
+        relativeTo: jasmine.anything(),
+        queryParams: {},
+        replaceUrl: true,
+      });
+    });
   });
 });

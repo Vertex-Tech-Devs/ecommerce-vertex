@@ -257,5 +257,35 @@ describe('OrderDetail', () => {
       expect(component.pageTitle).toBe('Error: ID de Pedido Faltante');
       expect(navigateSpy).toHaveBeenCalledWith(['/admin/orders']);
     });
+
+    it('onStatusChange should do nothing if orderId is null', () => {
+      component.orderId = null;
+      const event = {
+        target: { value: 'cancelled' } as unknown as HTMLSelectElement,
+      } as unknown as Event;
+
+      component.onStatusChange(event);
+
+      expect(orderServiceSpy.updateOrder).not.toHaveBeenCalled();
+    });
+
+    it('onStatusChange should update status to processing, delivered, and cancelled', fakeAsync(() => {
+      const statuses: Array<'processing' | 'delivered' | 'cancelled'> = [
+        'processing',
+        'delivered',
+        'cancelled',
+      ];
+      for (const st of statuses) {
+        const event = {
+          target: { value: st } as unknown as HTMLSelectElement,
+        } as unknown as Event;
+
+        component.onStatusChange(event);
+        tick();
+
+        expect(orderServiceSpy.updateOrder).toHaveBeenCalledWith('ORD-1001', { status: st });
+        expect(component.currentStatus).toBe(st);
+      }
+    }));
   });
 });

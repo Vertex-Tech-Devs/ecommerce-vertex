@@ -125,4 +125,66 @@ describe('Carousel', () => {
     expect(component.aspectRatio).toBe('4 / 3');
     expect(component.carouselAspectRatio).toBe('4 / 3');
   });
+
+  it('should handle empty images array gracefully', () => {
+    component.images = [];
+    fixture.detectChanges();
+
+    expect(component.currentImage).toBeNull();
+    expect(component.getRoute(null)).toBeNull();
+    expect(component.getQueryParams(null)).toBeNull();
+  });
+
+  it('should handle mouse events and touch events when images.length is 1', () => {
+    component.images = [mockImages[0]];
+    fixture.detectChanges();
+
+    component.onMouseEnter();
+    expect(component.isAutoplayActive).toBeTrue();
+
+    component.onMouseLeave();
+    expect(component.isAutoplayActive).toBeTrue();
+
+    const startEvent = { touches: [{ clientX: 200 }] } as unknown as TouchEvent;
+    const endEvent = { changedTouches: [{ clientX: 100 }] } as unknown as TouchEvent;
+
+    component.onTouchStart(startEvent);
+    component.onTouchEnd(endEvent);
+    expect(component.currentIndex).toBe(0);
+  });
+
+  it('should handle right swipe (diff < -50) and swipe under threshold (|diff| < 50)', () => {
+    component.images = mockImages;
+    fixture.detectChanges();
+
+    // Right swipe: diff = 100 - 200 = -100 (< -50) -> prevSlide
+    const startRight = { touches: [{ clientX: 100 }] } as unknown as TouchEvent;
+    const endRight = { changedTouches: [{ clientX: 200 }] } as unknown as TouchEvent;
+
+    component.onTouchStart(startRight);
+    component.onTouchEnd(endRight);
+    expect(component.currentIndex).toBe(1);
+
+    // Swipe under threshold: diff = 100 - 110 = -10 (|diff| < 50) -> no change
+    const startSmall = { touches: [{ clientX: 100 }] } as unknown as TouchEvent;
+    const endSmall = { changedTouches: [{ clientX: 110 }] } as unknown as TouchEvent;
+
+    component.onTouchStart(startSmall);
+    component.onTouchEnd(endSmall);
+    expect(component.currentIndex).toBe(1);
+  });
+
+  it('should return null for getRoute and getQueryParams when linkId is missing or linkType is unknown', () => {
+    const noLinkIdImage: HeroImage = { imageUrl: 'x', linkType: 'category' };
+    const unknownTypeImage: HeroImage = {
+      imageUrl: 'x',
+      linkType: 'unknown' as unknown as HeroImage['linkType'],
+    };
+
+    expect(component.getRoute(noLinkIdImage)).toBeNull();
+    expect(component.getRoute(unknownTypeImage)).toBeNull();
+
+    expect(component.getQueryParams(noLinkIdImage)).toBeNull();
+    expect(component.getQueryParams(unknownTypeImage)).toBeNull();
+  });
 });

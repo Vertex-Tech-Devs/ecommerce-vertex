@@ -169,6 +169,39 @@ describe('Login', () => {
     expect(component.isGoogleSubmitting).toBeFalse();
   });
 
+  it('should set invalid-continue-uri error message', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/invalid-continue-uri')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('continuación no es válida');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set popup-closed-by-user error message', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/popup-closed-by-user')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('ventana de inicio de sesión');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set redirect-uri-mismatch error message', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/redirect-uri-mismatch')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('redirect_uri_mismatch');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
   it('logout() should set isAlreadyLogged to false', async () => {
     authServiceSpy.logout = jasmine.createSpy('logout').and.returnValue(Promise.resolve());
     component.isAlreadyLogged = true;
