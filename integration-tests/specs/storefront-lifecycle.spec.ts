@@ -16,13 +16,12 @@
 
 import { test, expect } from '@playwright/test';
 
-// ─── Suite 1: Root redirect ───────────────────────────────────────────────────
+// ─── Suite 1: Root navigation ─────────────────────────────────────────────────
 
-test.describe('Home → /shop redirect', () => {
-  test('navigating to / redirects to /shop', async ({ page }) => {
+test.describe('Home page', () => {
+  test('navigating to / loads storefront homepage', async ({ page }) => {
     await page.goto('/');
-    // Angular router should redirect the root to the shop
-    await expect(page).toHaveURL(/\/shop/);
+    await expect(page.locator('app-root')).toBeVisible();
   });
 });
 
@@ -58,13 +57,13 @@ test.describe('Shop catalog', () => {
   });
 
   test('shop catalog route loads without crash', async ({ page }) => {
-    await page.goto('/shop/catalog');
+    await page.goto('/catalog');
     // The Angular root element must always exist — a crash leaves a blank DOM
     await expect(page.locator('app-root')).toBeVisible({ timeout: 15_000 });
   });
 
   test('catalog page does not show an unhandled error banner', async ({ page }) => {
-    await page.goto('/shop/catalog');
+    await page.goto('/catalog');
     await page.waitForLoadState('networkidle');
     // Angular Error Interceptor would typically render "Store configuration unavailable"
     const errorBanner = page.locator('text=Store configuration unavailable');
@@ -76,7 +75,7 @@ test.describe('Shop catalog', () => {
 
 test.describe('Cart route', () => {
   test('cart page is accessible and renders app shell', async ({ page }) => {
-    await page.goto('/shop/cart');
+    await page.goto('/cart');
     await expect(page.locator('app-root')).toBeVisible({ timeout: 10_000 });
   });
 
@@ -100,7 +99,7 @@ test.describe('Cart route', () => {
       window.localStorage.setItem('cart_', cartData);
     });
 
-    await page.goto('/shop/cart');
+    await page.goto('/cart');
     // The product name from localStorage must appear on screen
     await expect(page.locator('text=Producto Semilla 1')).toBeVisible({ timeout: 10_000 });
   });
@@ -133,7 +132,7 @@ test.describe('Admin login page', () => {
 
 test.describe('Unknown routes', () => {
   test('non-existent shop route does not crash the app', async ({ page }) => {
-    await page.goto('/shop/this-page-does-not-exist', {
+    await page.goto('/this-page-does-not-exist', {
       waitUntil: 'domcontentloaded',
     });
     await expect(page.locator('app-root')).toBeVisible({ timeout: 10_000 });

@@ -32,32 +32,32 @@ describe('Shop — Home & Catalog', () => {
     }).as('firestoreQuery');
   });
 
-  it('should redirect / to /shop', () => {
+  it('should display the shop homepage at root', () => {
     cy.visit('/');
-    cy.location('pathname').should('include', 'shop');
+    cy.location('pathname').should('eq', '/');
   });
 
   it('should display the shop homepage', () => {
-    cy.visit('/shop');
+    cy.visit('/');
     cy.get('body').should('exist');
     // Page should load without error
     cy.get('app-root').should('exist');
   });
 
   it('should navigate to catalog page', () => {
-    cy.visit('/shop/catalog');
-    cy.location('pathname').should('eq', '/shop/catalog');
+    cy.visit('/catalog');
+    cy.location('pathname').should('eq', '/catalog');
     cy.get('body').should('exist');
   });
 });
 
 describe('Shop — Cart', () => {
   beforeEach(() => {
-    cy.visit('/shop/cart');
+    cy.visit('/cart');
   });
 
   it('should display the cart page', () => {
-    cy.location('pathname').should('eq', '/shop/cart');
+    cy.location('pathname').should('eq', '/cart');
     cy.get('body').should('exist');
   });
 
