@@ -349,5 +349,65 @@ describe('OrdersList', () => {
       expect(spyError).toHaveBeenCalled();
       expect(result).toEqual([]);
     }));
+
+    it('should catch error when deleteOrder fails after confirmation', fakeAsync(() => {
+      const spyError = spyOn(console, 'error');
+      sweetAlertServiceSpy.confirm.and.returnValue(Promise.resolve(true));
+      orderServiceSpy.deleteOrder.and.returnValue(Promise.reject(new Error('Delete error')));
+
+      component.deleteOrder(mockOrders[0]);
+      tick();
+
+      expect(orderServiceSpy.deleteOrder).toHaveBeenCalledWith('ORD-001');
+      expect(spyError).toHaveBeenCalledWith('Error al eliminar el pedido:', jasmine.any(Error));
+    }));
+
+    it('should filter orders by order ID or status in search term', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onSearchTermChange('ORD-002');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-002');
+
+      component.onSearchTermChange('pending');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-001');
+    }));
+
+    it('should set totalPages to 0 and correctedPage to 1 when search yields no results', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.onSearchTermChange('NONEXISTENT_QUERY');
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(0);
+      expect(component.totalOrders).toBe(0);
+      expect(component.totalPages).toBe(0);
+    }));
+
+    it('should ignore out of bound page numbers in goToPage()', () => {
+      expect(component.currentPageSubject.value).toBe(1);
+
+      component.goToPage(0);
+      expect(component.currentPageSubject.value).toBe(1);
+
+      component.goToPage(999);
+      expect(component.currentPageSubject.value).toBe(1);
+    });
   });
 });

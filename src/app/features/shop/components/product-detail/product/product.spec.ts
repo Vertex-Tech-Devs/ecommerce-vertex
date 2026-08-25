@@ -140,6 +140,51 @@ describe('Product Component (Storefront)', () => {
       component.changeMainImage('https://example.com/remera-back.jpg');
       expect(component.mainImage()).toBe('https://example.com/remera-back.jpg');
     });
+
+    it('should toggle attribute selection off if same value is clicked twice', () => {
+      component.selectAttribute('attr-color', 'Rojo');
+      expect(component.attributes().find((a) => a.id === 'attr-color')?.selectedValue).toBe('Rojo');
+
+      component.selectAttribute('attr-color', 'Rojo');
+      expect(component.attributes().find((a) => a.id === 'attr-color')?.selectedValue).toBeNull();
+    });
+
+    it('should reset incompatible attribute values when changing selections', () => {
+      component.selectAttribute('attr-color', 'Rojo');
+      component.selectAttribute('attr-talle', 'M');
+
+      // Now change color to Azul (which only has talle L)
+      component.selectAttribute('attr-color', 'Azul');
+
+      // talle M is incompatible with Azul, so talle selectedValue should be reset to null
+      expect(component.attributes().find((a) => a.id === 'attr-talle')?.selectedValue).toBeNull();
+    });
+
+    it('should check option visibility via isOptionVisible()', () => {
+      expect(component.isOptionVisible('nonexistent', 'Val')).toBeFalse();
+      expect(component.isOptionVisible('attr-color', 'Rojo')).toBeTrue();
+    });
+
+    it('should get values for attribute via getValuesForAttribute()', () => {
+      const attrSelection = component.attributes().find((a) => a.id === 'attr-color')!;
+      const values = component.getValuesForAttribute(attrSelection);
+      expect(values).toEqual(['Azul', 'Rojo']);
+    });
+
+    it('should calculate isMaxQuantityReached correctly', () => {
+      expect(component.isMaxQuantityReached).toBeTrue(); // No variant selected yet
+
+      component.selectAttribute('attr-color', 'Rojo');
+      component.selectAttribute('attr-talle', 'M'); // stock 5
+
+      expect(component.isMaxQuantityReached).toBeFalse();
+
+      component.quantity.set(5);
+      expect(component.isMaxQuantityReached).toBeTrue();
+
+      component.increaseQuantity(); // Should not increase beyond stock 5
+      expect(component.quantity()).toBe(5);
+    });
   });
 
   describe('Simple products without attributes', () => {
@@ -172,6 +217,44 @@ describe('Product Component (Storefront)', () => {
 
       component.decreaseQuantity();
       expect(component.quantity()).toBe(1); // Min 1
+    });
+  });
+
+  describe('Fallback and Edge Cases', () => {
+    it('should create default synthetic variant if simple product has empty variants array', () => {
+      setupTestBed({ product: mockSimpleProduct, variants: [] });
+
+      expect(component.selectedVariant()?.id).toBe('default');
+      expect(component.selectedVariant()?.sku).toBe('prod-simple-1-BASE');
+      expect(component.selectedVariant()?.stock).toBe(8);
+    });
+
+    it('should handle route with missing id parameter', () => {
+      productServiceSpy = jasmine.createSpyObj('ProductService', ['getProductWithVariants']);
+      cartServiceSpy = jasmine.createSpyObj('CartService', ['addItem']);
+      attributeServiceSpy = jasmine.createSpyObj('AttributeService', ['getAttributes']);
+
+      TestBed.configureTestingModule({
+        imports: [Product],
+        providers: [
+          { provide: ProductService, useValue: productServiceSpy },
+          { provide: CartService, useValue: cartServiceSpy },
+          { provide: AttributeService, useValue: attributeServiceSpy },
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              paramMap: of(convertToParamMap({})),
+            },
+          },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(Product);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(component.product()).toBeUndefined();
+      expect(productServiceSpy.getProductWithVariants).not.toHaveBeenCalled();
     });
   });
 });

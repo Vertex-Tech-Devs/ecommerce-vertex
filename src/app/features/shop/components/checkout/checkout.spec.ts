@@ -459,5 +459,78 @@ describe('Checkout', () => {
       );
       expect(component.isProcessingPayment()).toBeFalse();
     }));
+
+    it('should show warning alert when cart items are pruned before payment', fakeAsync(() => {
+      component.checkoutForm.get('contactInfo')?.patchValue({
+        firstName: 'Juan',
+        lastName: 'Pérez',
+        email: 'juan@example.com',
+        phone: '1122334455',
+        dni: '12345678',
+      });
+      component.setDeliveryType('store_pickup');
+
+      cartServiceSpy.pruneUnavailableItems.and.returnValue(Promise.resolve(['Prod A (Agotado)']));
+
+      paymentServiceSpy.initiatePayment.and.returnValue(
+        Promise.resolve({ success: false, error: 'Rechazado' }),
+      );
+      spyOn(console, 'error');
+
+      component.onSubmit();
+      tick();
+
+      expect(sweetAlertServiceSpy.warning).toHaveBeenCalledWith(
+        'Productos no disponibles',
+        'Se quitaron del carrito: Prod A (Agotado).',
+      );
+    }));
+
+    it('should show error and navigate to cart if all items are pruned', fakeAsync(() => {
+      component.checkoutForm.get('contactInfo')?.patchValue({
+        firstName: 'Juan',
+        lastName: 'Pérez',
+        email: 'juan@example.com',
+        phone: '1122334455',
+        dni: '12345678',
+      });
+      component.setDeliveryType('store_pickup');
+
+      cartServiceSpy.pruneUnavailableItems.and.callFake(async () => {
+        mockCartSignal.set({ items: [], total: 0 });
+        return ['Prod A (Agotado)'];
+      });
+
+      const navigateSpy = spyOn(router, 'navigate');
+
+      component.onSubmit();
+      tick();
+
+      expect(sweetAlertServiceSpy.warning).toHaveBeenCalled();
+      expect(sweetAlertServiceSpy.error).toHaveBeenCalledWith(
+        'Carrito Vacío',
+        'Los productos de tu carrito ya no están disponibles.',
+      );
+      expect(navigateSpy).toHaveBeenCalledWith(['/shop/cart']);
+      expect(component.isProcessingPayment()).toBeFalse();
+    }));
+
+    it('should access contactControls and shippingControls getters', () => {
+      expect(component.contactControls['firstName']).toBeTruthy();
+      expect(component.shippingControls['address']).toBeTruthy();
+    });
+
+    it('should fallback to default pickup location when unknown ID is selected', () => {
+      component.setPickupLocation('unknown-location-id');
+      expect(component.selectedPickupLocation()?.id).toBe('loc-centro-1');
+    });
+
+    it('should fallback to default delivery config when storeConfig is null', () => {
+      mockStoreConfigSignal.set(null);
+      fixture.detectChanges();
+      TestBed.flushEffects();
+
+      expect(component.deliveryConfig().enableHomeDelivery).toBeTrue();
+    });
   });
 });

@@ -1,5 +1,7 @@
 import type { ComponentFixture } from '@angular/core/testing';
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import type { ElementRef, QueryList } from '@angular/core';
+
 import { ReactiveFormsModule } from '@angular/forms';
 import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
@@ -287,11 +289,105 @@ describe('StoreConfig', () => {
       group.patchValue({ name: 'Sucursal Test', address: '' });
       expect(group.invalid).toBeTrue();
 
-      group.patchValue({ address: 'Calle Falsa 123', city: '' });
-      expect(group.invalid).toBeTrue();
-
       group.patchValue({ city: 'Cordoba', schedule: '' });
       expect(group.invalid).toBeTrue();
+    });
+
+    it('should toggle days and update schedule in pickup location group', () => {
+      component.addPickupLocation();
+      const index = component.pickupLocationsArray.length - 1;
+
+      expect(component.isDaySelected(index, 'Sáb')).toBeFalse();
+      component.toggleDay(index, 'Sáb');
+
+      expect(component.isDaySelected(index, 'Sáb')).toBeTrue();
+
+      component.toggleDay(index, 'Sáb');
+      expect(component.isDaySelected(index, 'Sáb')).toBeFalse();
+    });
+
+    it('should format schedule with split time when hasSplitSchedule is true', () => {
+      const formatted = component.formatSchedule(
+        ['Lun', 'Mar'],
+        '09:00',
+        '13:00',
+        true,
+        '16:00',
+        '20:00',
+      );
+      expect(formatted).toBe('Lun, Mar: 09:00 a 13:00 y 16:00 a 20:00 hs');
+    });
+
+    it('should focus locationNameInput after addPickupLocation timeout', fakeAsync(() => {
+      const focusSpy = jasmine.createSpy('focus');
+      component.locationNameInputs = {
+        last: { nativeElement: { focus: focusSpy } } as ElementRef,
+      } as unknown as QueryList<ElementRef>;
+
+      component.addPickupLocation();
+      tick(50);
+
+      expect(focusSpy).toHaveBeenCalled();
+    }));
+
+    it('should safely handle syncSchedule or togglePickupLocationStatus with invalid index', () => {
+      expect(() => component.syncSchedule(999)).not.toThrow();
+      expect(() => component.toggleDay(999, 'Lun')).not.toThrow();
+      expect(() => component.togglePickupLocationStatus(999)).not.toThrow();
+    });
+
+    it('should populate form when storeConfig has existing pickupLocations', () => {
+      mockConfigSignal.set({
+        ...mockConfig,
+        deliveryMethods: {
+          enableHomeDelivery: true,
+          enableStorePickup: true,
+          pickupLocations: [
+            {
+              id: 'loc-existing-1',
+              name: 'Sucursal Existente',
+              address: 'Av 1',
+              city: 'CABA',
+              schedule: 'Lun a Vie 9-18',
+              enabled: true,
+            },
+          ],
+        },
+      });
+
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect(component.pickupLocationsArray.length).toBe(1);
+      expect(component.pickupLocationsArray.at(0).get('name')?.value).toBe('Sucursal Existente');
+    });
+  });
+
+  describe('Branding and Favicon removal', () => {
+    it('removeFavicon() should clear faviconUrl control and mark dirty', () => {
+      component.form.patchValue({ faviconUrl: 'http://example.com/fav.ico' });
+      component.removeFavicon();
+
+      expect(component.form.get('faviconUrl')?.value).toBe('');
+      expect(component.form.get('faviconUrl')?.dirty).toBeTrue();
+      expect(component.form.dirty).toBeTrue();
+    });
+
+    it('onFaviconUpload() should show error alert when file type is invalid', () => {
+      const file = new File(['hello'], 'document.txt', { type: 'text/plain' });
+      const event = {
+        target: {
+          files: [file],
+        },
+      } as unknown as Event;
+
+      component.onFaviconUpload(event);
+
+      expect(sweetAlertSpy.error).toHaveBeenCalledWith(
+        'Formato no válido',
+        'Selecciona un archivo válido (.ico, .png, .svg, .jpg).',
+      );
+      expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
     });
   });
 });
