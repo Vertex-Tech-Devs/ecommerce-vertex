@@ -105,17 +105,54 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * Envuelve el contenido de un email en una plantilla moderna y profesional
+ * (tablas + estilos inline = email-safe en Gmail/Outlook/Apple Mail).
+ * `body` ya viene con HTML; `footer` típicamente la firma de la tienda.
+ */
+function buildEmailShell(body: string, opts: { storeName: string; subject: string; footer?: string }): string {
+  const footer = (opts.footer || '').trim();
+  return `
+  <div style="background:#f1f5f9;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;">
+      <tr>
+        <td style="background-color:#4f46e5;background-image:linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#06b6d4 100%);padding:30px 34px;">
+          <div style="font-size:20px;line-height:1.3;color:#ffffff;font-weight:700;letter-spacing:0.2px;">${opts.storeName}</div>
+          <div style="margin-top:6px;font-size:13px;line-height:1.4;color:rgba(255,255,255,0.9);">${opts.subject}</div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:32px 34px;color:#0f172a;font-size:15px;line-height:1.65;">${body}</td>
+      </tr>
+      <tr>
+        <td style="padding:20px 34px;background:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.5;text-align:center;">
+          ${footer ? `<div style="margin-bottom:8px;">${footer}</div>` : ''}
+          <div>Este es un email automático de Vertex Commerce — no respondas a este mensaje.</div>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+}
+
 function buildEmailHtml(
   template: string,
   order: Order,
   orderId: string,
   attributeMap: Map<string, string>,
   extras: { manageButtonUrl?: string | null; whatsappUrl?: string | null } = {},
+  shell: { storeName: string; subject: string; footer?: string } = {
+    storeName: 'Vertex Store',
+    subject: 'Notificación de pedido',
+  },
 ): string {
   const itemsHtml = order.items
     .map((item) => {
       const description = getVariantDescription(item.attributes, attributeMap);
-      return `<li>${escapeHtml(item.productName)} (${escapeHtml(description)}) (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}</li>`;
+      return `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:14px;">${escapeHtml(item.productName)}${description ? ` <span style="color:#94a3b8;font-size:12px;">(${escapeHtml(description)})</span>` : ''}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:13px;white-space:nowrap;">x${item.quantity}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:14px;text-align:right;white-space:nowrap;">$${(item.price * item.quantity).toFixed(2)}</td>
+      </tr>`;
     })
     .join('');
 
@@ -141,7 +178,10 @@ function buildEmailHtml(
     .replace(/{clientName}/g, escapeHtml(order.clientName))
     .replace(/{clientEmail}/g, escapeHtml(order.clientEmail || 'N/A'))
     .replace(/{clientPhone}/g, escapeHtml(order.clientPhone || 'N/A'))
-    .replace(/{itemsList}/g, `<ul>${itemsHtml}</ul>`)
+    .replace(
+      /{itemsList}/g,
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tbody>${itemsHtml}</tbody></table>`,
+    )
     .replace(/{deliverySection}/g, deliveryTable)
     .replace(/{totalAmount}/g, order.total.toFixed(2));
 
@@ -149,7 +189,7 @@ function buildEmailHtml(
     emailBody += deliveryTable;
   }
 
-  const buttonStyle = `style="display: inline-block; padding: 12px 24px; margin: 10px 10px 10px 0; font-size: 16px; color: #ffffff; background-color: #007bff; border-radius: 5px; text-decoration: none;"`;
+  const buttonStyle = `style="display: inline-block; padding: 12px 24px; margin: 8px 10px 8px 0; font-size: 14px; font-weight: 600; color: #ffffff; background-color: #4f46e5; border-radius: 10px; text-decoration: none;"`;
 
   let buttonsHtml = '<div style="margin-top: 30px;">';
   if (extras.manageButtonUrl) {
@@ -160,7 +200,11 @@ function buildEmailHtml(
   }
   buttonsHtml += '</div>';
 
-  return emailBody + buttonsHtml;
+  return buildEmailShell(emailBody + buttonsHtml, {
+    storeName: shell.storeName,
+    subject: shell.subject,
+    footer: shell.footer,
+  });
 }
 
 export async function sendOrderNotificationEmailsDirect(
@@ -226,17 +270,14 @@ export async function sendOrderNotificationEmailsDirect(
           ? `https://wa.me/${orderData.clientPhone.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`
           : null;
 
-      const adminHtml =
-        buildEmailHtml(
-          adminConfig.template || `<p>Nueva venta #{orderId}</p>{itemsList}`,
-          orderData,
-          orderId,
-          attributeMap,
-          { manageButtonUrl, whatsappUrl },
-        ) +
-        (emailSignature
-          ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
-          : '');
+      const adminHtml = buildEmailHtml(
+        adminConfig.template || `<p>Nueva venta #{orderId}</p>{itemsList}`,
+        orderData,
+        orderId,
+        attributeMap,
+        { manageButtonUrl, whatsappUrl },
+        { storeName, subject: `Nueva venta #${orderId}`, footer: emailSignature },
+      );
 
       const adminSubject = (adminConfig.subject || `Nueva venta aprobada #${orderId}`).replace(
         /{orderId}/g,
@@ -287,17 +328,14 @@ export async function sendOrderNotificationEmailsDirect(
           ? `https://wa.me/${cleanStoreWa}?text=${customerWaMsg}`
           : null;
 
-      const customerHtml =
-        buildEmailHtml(
-          customerConfig.template || `<p>¡Gracias por tu compra #{orderId}!</p>{itemsList}`,
-          orderData,
-          orderId,
-          attributeMap,
-          { whatsappUrl },
-        ) +
-        (emailSignature
-          ? `<p style="margin:24px 0 0;color:#94a3b8;font-size:12px;line-height:1.5;">${emailSignature}</p>`
-          : '');
+      const customerHtml = buildEmailHtml(
+        customerConfig.template || `<p>¡Gracias por tu compra #{orderId}!</p>{itemsList}`,
+        orderData,
+        orderId,
+        attributeMap,
+        { whatsappUrl },
+        { storeName, subject: `Confirmación de compra #${orderId}`, footer: emailSignature },
+      );
 
       const customerSubject = (
         customerConfig.subject || `Confirmación de tu compra #${orderId}`
