@@ -1,4 +1,3 @@
-import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { onRequest } from 'firebase-functions/v2/https';
 import * as logger from 'firebase-functions/logger';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
@@ -7,8 +6,6 @@ import type { Order } from './core/order.model';
 import { COLLECTIONS, DOCS, collectionPath, singletonDoc } from './core/config';
 import { sendEmail, getNotificationEmail } from './core/email.service';
 import { resolveTenantDb } from './core/tenant-db';
-
-const defaultDb = getFirestore();
 
 function envSiteUrl(): string {
   return process.env.SITE_URL || 'https://ecommerce-vertex.web.app';
@@ -214,6 +211,9 @@ export async function sendOrderNotificationEmailsDirect(
   storeId?: string,
   tenantProjectId?: string,
 ): Promise<{ success: boolean; adminSent: boolean; customerSent: boolean; error?: string }> {
+  const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
+  let deliveryClaimed = false;
+
   try {
     const effectiveStoreId =
       storeId ||
@@ -222,6 +222,30 @@ export async function sendOrderNotificationEmailsDirect(
     logger.info(
       `[OrderNotifications] Enviando emails para pedido #${orderId} (store: ${effectiveStoreId}, shard: ${tenantProjectId || 'default'})...`,
     );
+
+    deliveryClaimed = await tenantDb.runTransaction(async (transaction) => {
+      const orderSnap = await transaction.get(orderRef);
+      const orderRaw = orderSnap.data() as Record<string, unknown> | undefined;
+
+      if (!orderSnap.exists || orderRaw?.['emailDirectSent'] === true) {
+        return false;
+      }
+
+      if (orderRaw?.['emailDispatchState'] === 'sending') {
+        return false;
+      }
+
+      transaction.update(orderRef, {
+        emailDispatchState: 'sending',
+        emailDispatchStartedAt: new Date(),
+      });
+      return true;
+    });
+
+    if (!deliveryClaimed) {
+      logger.info(`[OrderNotifications] El pedido #${orderId} ya tiene un envío de email en curso o completado. Omitiendo.`);
+      return { success: true, adminSent: false, customerSent: false };
+    }
 
     const config = await getEmailConfig(effectiveStoreId, tenantDb);
     const attributeMap = await getAttributeMap(effectiveStoreId, tenantDb);
@@ -357,9 +381,10 @@ export async function sendOrderNotificationEmailsDirect(
     }
 
     try {
-      await tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId).update({
+      await orderRef.update({
         notificationsSent: true,
         emailDirectSent: adminSent || customerSent,
+        emailDispatchState: adminSent || customerSent ? 'sent' : 'failed',
         notificationsSentAt: new Date(),
       });
     } catch (updateErr) {
@@ -372,6 +397,16 @@ export async function sendOrderNotificationEmailsDirect(
     return { success: adminSent || customerSent, adminSent, customerSent };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);
+    if (deliveryClaimed) {
+      try {
+        await orderRef.update({
+          emailDispatchState: 'failed',
+          emailDispatchFailedAt: new Date(),
+        });
+      } catch (updateErr) {
+        logger.warn(`[OrderNotifications] No se pudo liberar el envío de email para pedido #${orderId}:`, updateErr);
+      }
+    }
     logger.error(
       `[OrderNotifications] Error enviando notificaciones para pedido #${orderId}:`,
       err,
@@ -483,35 +518,5 @@ export const notifyOrderConfirmation = onRequest(
       logger.error(`[notifyOrderConfirmation] Error inesperado procesando pedido:`, err);
       response.status(500).json({ success: false, error: errorMsg });
     }
-  },
-);
-
-export const onOrderWrittenSendNotifications = onDocumentWritten(
-  `${COLLECTIONS.ORDERS}/{orderId}`,
-  async (event) => {
-    const afterSnap = event.data?.after;
-    const orderId = event.params.orderId;
-    if (!afterSnap || !afterSnap.exists) return;
-
-    const orderRaw = afterSnap.data() as Record<string, unknown>;
-    const status = orderRaw['status'] as string | undefined;
-
-    if (status !== 'processing' && status !== 'approved' && status !== 'paid') return;
-    if (orderRaw['emailDirectSent'] === true) return;
-
-    const validationResult = OrderSchema.safeParse({ id: orderId, ...afterSnap.data() });
-    if (!validationResult.success) {
-      logger.error(`Datos del pedido ${orderId} son inválidos.`, {
-        errors: validationResult.error.flatten(),
-      });
-      return;
-    }
-
-    await sendOrderNotificationEmailsDirect(
-      orderId,
-      validationResult.data,
-      defaultDb,
-      orderRaw['storeId'] as string,
-    );
   },
 );

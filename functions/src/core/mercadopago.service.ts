@@ -153,7 +153,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     // resolver la orden (el parseo por timestamp no era reversible).
     return {
       id: `mp-mock-pref-${Buffer.from(external_reference).toString('base64url')}`,
-      init_point: `${host}/shop/order-confirmation/${external_reference}?status=approved`,
+      init_point: `${host}/order-confirmation/${external_reference}?status=approved`,
       date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
     };
   }
@@ -226,9 +226,9 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       project_id: data.projectId || '',
     },
     back_urls: {
-      success: `${runtime.baseUrl}/shop/order-confirmation/${external_reference}`,
-      failure: `${runtime.baseUrl}/shop/cart`,
-      pending: `${runtime.baseUrl}/shop/cart`,
+      success: `${runtime.baseUrl}/order-confirmation/${external_reference}`,
+      failure: `${runtime.baseUrl}/cart`,
+      pending: `${runtime.baseUrl}/cart`,
     },
     auto_return: 'approved' as const,
     payment_methods: {
