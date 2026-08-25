@@ -71,6 +71,30 @@ describe('ProductVariantFormService', () => {
     expect(changes.toDelete).toEqual(['v2']);
   });
 
+  it('should include basePrice in buildEditChanges when provided', () => {
+    const formVariants: ProductVariantFormValue[] = [
+      { id: 'v1', attributes: { color: 'Azul' }, stock: 5 },
+      { id: null, attributes: { color: 'Verde' }, stock: 15 },
+    ];
+    const initialVariants: ProductVariant[] = [
+      { id: 'v1', productId: 'p1', attributes: { color: 'Rojo' }, stock: 10 },
+    ];
+
+    const changes = service.buildEditChanges(formVariants, initialVariants, 999);
+
+    expect(changes.toUpdate[0]).toEqual({
+      id: 'v1',
+      attributes: { color: 'Azul' },
+      stock: 5,
+      price: 999,
+    });
+    expect(changes.toAdd[0]).toEqual({
+      attributes: { color: 'Verde' },
+      stock: 15,
+      price: 999,
+    });
+  });
+
   it('should build product data object', () => {
     const formValue: ProductFormValue = {
       name: 'Remera',

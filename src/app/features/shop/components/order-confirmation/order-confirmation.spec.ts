@@ -94,7 +94,11 @@ describe('OrderConfirmation', () => {
   beforeEach(async () => {
     mockStoreConfigSignal = signal<StoreConfig | null>(mockConfig);
 
-    orderServiceSpy = jasmine.createSpyObj('OrderService', ['getOrderById']);
+    orderServiceSpy = jasmine.createSpyObj('OrderService', [
+      'getOrderById',
+      'notifyOrderConfirmation',
+    ]);
+    orderServiceSpy.notifyOrderConfirmation.and.returnValue(Promise.resolve({ success: true }));
     storeConfigServiceSpy = jasmine.createSpyObj('StoreConfigService', [], {
       storeConfig: mockStoreConfigSignal,
     });

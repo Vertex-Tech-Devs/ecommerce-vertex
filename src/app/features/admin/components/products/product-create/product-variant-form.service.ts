@@ -64,17 +64,29 @@ export class ProductVariantFormService {
   buildEditChanges(
     formVariants: ProductVariantFormValue[],
     initialVariants: ProductVariant[],
+    basePrice?: number,
   ): EditVariantChanges {
     const toUpdate: (Partial<ProductVariant> & { id: string })[] = [];
     const toAdd: WithFieldValue<Omit<ProductVariant, 'id' | 'productId'>>[] = [];
     const currentIds = new Set<string>();
 
     formVariants.forEach((v) => {
+      const variantPayload: Partial<ProductVariant> = {
+        attributes: v.attributes,
+        stock: v.stock,
+      };
+      if (typeof basePrice === 'number') {
+        variantPayload.price = basePrice;
+      }
       if (v.id) {
-        toUpdate.push({ id: v.id, attributes: v.attributes, stock: v.stock });
+        toUpdate.push({ id: v.id, ...variantPayload });
         currentIds.add(v.id);
       } else {
-        toAdd.push({ attributes: v.attributes, stock: v.stock });
+        toAdd.push({
+          attributes: v.attributes,
+          stock: v.stock,
+          ...(typeof basePrice === 'number' ? { price: basePrice } : {}),
+        });
       }
     });
 

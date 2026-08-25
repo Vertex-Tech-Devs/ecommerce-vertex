@@ -14,6 +14,7 @@ import type { Order, OrderStatus } from '../models/order.model';
 import { FirestoreService } from './firestore.service';
 import { convertTimestampsToDates } from '@core/utils/date-converter';
 import { tenantPath, storeIdFilter, resolveTenantId } from '@core/utils/tenant';
+import { environment } from '../../../environments/environment';
 
 /** Alfabeto base32 sin caracteres ambiguos (0/O, 1/I/L). */
 const ORDER_ID_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -172,5 +173,30 @@ export class OrderService {
         return of([]);
       }),
     );
+  }
+
+  async notifyOrderConfirmation(
+    orderId: string,
+    tenantId?: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${environment.api.cloudFunctionsUrl}/notifyOrderConfirmation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          tenantId: tenantId || resolveTenantId(),
+          tenantProjectId: environment.firebaseConfig.projectId,
+        }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        return { success: false, error: data.error || `HTTP ${response.status}` };
+      }
+      return await response.json();
+    } catch (err) {
+      console.warn('[OrderService] Could not trigger notifyOrderConfirmation directly:', err);
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
   }
 }
