@@ -85,4 +85,37 @@ describe('ClientsList', () => {
 
     expect(component.isLoading()).toBeFalse();
   });
+
+  it('should ignore invalid page numbers in goToPage()', () => {
+    component.totalPages = 3;
+    component.goToPage(0);
+    expect(component.currentPageSubject.value).toBe(1);
+
+    component.goToPage(999);
+    expect(component.currentPageSubject.value).toBe(1);
+  });
+
+  it('should handle empty search results setting totalPages to 0 and correctedPage to 1', fakeAsync(() => {
+    let result: Client[] = [];
+    component.clients$.subscribe((clients) => (result = clients));
+
+    component.onSearchChange('NONEXISTENT_CLIENT');
+    tick(300);
+
+    expect(result.length).toBe(0);
+    expect(component.totalClients).toBe(0);
+    expect(component.totalPages).toBe(0);
+  }));
+
+  it('should clamp correctedPage to totalPages when currentPage > totalPages', fakeAsync(() => {
+    let result: Client[] = [];
+    component.clients$.subscribe((clients) => (result = clients));
+
+    component.onItemsPerPageChange(1); // totalPages = 2
+    component.currentPageSubject.next(5); // 5 > 2
+    tick(300);
+
+    expect(result.length).toBe(1);
+    expect(result[0].id).toBe('c2');
+  }));
 });

@@ -164,4 +164,39 @@ describe('ProductsList', () => {
 
     expect(component.isLoading()).toBeFalse();
   });
+
+  it('should not navigate in goToDetail if productId is undefined', () => {
+    const navigateSpy = spyOn(router, 'navigate');
+    component.goToDetail(undefined);
+    expect(navigateSpy).not.toHaveBeenCalled();
+  });
+
+  it('should ignore invalid page numbers in goToPage()', () => {
+    component.totalPages = 3;
+    component.goToPage(0);
+    expect(component.currentPageSubject.value).toBe(1);
+
+    component.goToPage(999);
+    expect(component.currentPageSubject.value).toBe(1);
+  });
+
+  it('should fallback to empty array when getCategories throws error', (done) => {
+    categoryServiceSpy.getCategories.and.returnValue(throwError(() => new Error('Cat err')));
+    component.ngOnInit();
+    component.categories$.subscribe((cats) => {
+      expect(cats).toEqual([]);
+      done();
+    });
+  });
+
+  it('should correct currentPage when currentPage exceeds totalPages', fakeAsync(() => {
+    let result: Product[] = [];
+    component.products$.subscribe((products) => (result = products));
+
+    component.onPageSizeChange(1); // totalPages = 2
+    component.currentPageSubject.next(5); // 5 > 2
+    tick(300);
+
+    expect(result.length).toBe(1);
+  }));
 });

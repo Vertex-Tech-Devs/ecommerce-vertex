@@ -256,5 +256,43 @@ describe('Product Component (Storefront)', () => {
       expect(component.product()).toBeUndefined();
       expect(productServiceSpy.getProductWithVariants).not.toHaveBeenCalled();
     });
+
+    it('getValuesForAttribute should fallback to allAttr values when variantValues is empty', () => {
+      setupTestBed({
+        product: { ...mockProductWithVariants, variantAttributes: ['attr-color'] },
+        variants: [],
+      });
+
+      const attrSelection = {
+        id: 'attr-color',
+        name: 'Color',
+        values: [],
+        allValues: [],
+        selectedValue: null,
+      };
+
+      const values = component.getValuesForAttribute(attrSelection);
+      expect(values).toEqual(['Rojo', 'Azul']);
+    });
+
+    it('isOptionVisible should fallback to attribute definition values when variants is empty', () => {
+      setupTestBed({
+        product: { ...mockProductWithVariants, variantAttributes: ['attr-color'] },
+        variants: [],
+      });
+
+      expect(component.isOptionVisible('attr-color', 'Rojo')).toBeTrue();
+      expect(component.isOptionVisible('attr-color', 'Verde')).toBeFalse();
+    });
+
+    it('addToCart should not call cartService.addItem if product or variant is missing', () => {
+      setupTestBed({ product: mockProductWithVariants, variants: mockVariants });
+      component.selectedVariant.set(undefined);
+      cartServiceSpy.addItem.calls.reset();
+
+      component.addToCart();
+
+      expect(cartServiceSpy.addItem).not.toHaveBeenCalled();
+    });
   });
 });

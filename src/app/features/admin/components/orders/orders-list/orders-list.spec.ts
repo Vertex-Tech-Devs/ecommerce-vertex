@@ -409,5 +409,21 @@ describe('OrdersList', () => {
       component.goToPage(999);
       expect(component.currentPageSubject.value).toBe(1);
     });
+
+    it('should clamp correctedPage to totalPages when currentPage exceeds totalPages', fakeAsync(() => {
+      let result: Order[] = [];
+      component.orders$.subscribe((orders) => {
+        result = orders;
+      });
+      tick(300);
+
+      component.itemsPerPageSubject.next(1); // totalPages = 3
+      component.currentPageSubject.next(5); // 5 > 3
+      fixture.detectChanges();
+      tick(300);
+
+      expect(result.length).toBe(1);
+      expect(result[0].id).toBe('ORD-003');
+    }));
   });
 });

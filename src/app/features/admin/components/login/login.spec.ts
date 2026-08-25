@@ -4,7 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import type { UserCredential } from '@angular/fire/auth';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { Login } from './login';
 import { AuthService } from '@core/services/auth.service';
 
@@ -209,5 +209,75 @@ describe('Login', () => {
     await component.logout();
 
     expect(component.isAlreadyLogged).toBeFalse();
+  });
+
+  it('should set error message for auth/wrong-password error', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/wrong-password')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('auth/wrong-password');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set error message for auth/user-not-found error', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('auth/user-not-found')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('auth/user-not-found');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set error message when error contains redirect_uri_mismatch without auth/ prefix', () => {
+    authServiceSpy.loginWithGoogle.and.returnValue(
+      throwError(() => new Error('redirect_uri_mismatch')),
+    );
+
+    component.onGoogleLogin();
+
+    expect(component.authErrorMessage).toContain('redirect_uri_mismatch');
+    expect(component.isGoogleSubmitting).toBeFalse();
+  });
+
+  it('should set isGoogleSubmitting to true while google login is pending', () => {
+    const loginSubject = new Subject<UserCredential>();
+    authServiceSpy.loginWithGoogle.and.returnValue(loginSubject.asObservable());
+
+    component.onGoogleLogin();
+
+    expect(component.isGoogleSubmitting).toBeTrue();
+
+    loginSubject.next({} as UserCredential);
+    loginSubject.complete();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
+  });
+
+  it('should trigger logout when clicking logout link in template', () => {
+    TestBed.resetTestingModule();
+    authServiceSpy.isAuthenticated.and.returnValue(of(true));
+
+    TestBed.configureTestingModule({
+      imports: [Login, ReactiveFormsModule],
+      providers: [
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
+      ],
+    });
+
+    const fLogout = TestBed.createComponent(Login);
+    fLogout.detectChanges();
+
+    authServiceSpy.logout = jasmine.createSpy('logout').and.returnValue(Promise.resolve());
+    const logoutLink = fLogout.nativeElement.querySelector('.alert-info a') as HTMLAnchorElement;
+    expect(logoutLink).toBeTruthy();
+
+    logoutLink.click();
+    expect(authServiceSpy.logout).toHaveBeenCalled();
   });
 });
