@@ -379,11 +379,14 @@ export const createPaymentPreference = onCall(
               );
             }
 
-            const serverPrice =
-              (variantData['price'] as number | undefined) ??
+            const productBasePrice =
               (productData['price'] as number | undefined) ??
-              (productData['finalPrice'] as number | undefined) ??
-              0;
+              (productData['finalPrice'] as number | undefined);
+
+            const serverPrice =
+              typeof productBasePrice === 'number'
+                ? productBasePrice
+                : ((variantData['price'] as number | undefined) ?? 0);
 
             serverItems.push({
               productId: item.productId,
