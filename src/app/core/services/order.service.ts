@@ -185,15 +185,15 @@ export class OrderService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderId,
-          tenantId: tenantId || resolveTenantId(),
+          tenantId: tenantId ?? resolveTenantId(),
           tenantProjectId: environment.firebaseConfig.projectId,
         }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        return { success: false, error: data.error || `HTTP ${response.status}` };
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        return { success: false, error: data.error ?? `HTTP ${response.status}` };
       }
-      return await response.json();
+      return (await response.json()) as { success: boolean; error?: string };
     } catch (err) {
       console.warn('[OrderService] Could not trigger notifyOrderConfirmation directly:', err);
       return { success: false, error: err instanceof Error ? err.message : String(err) };
