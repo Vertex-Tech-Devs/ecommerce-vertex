@@ -63,6 +63,11 @@
     animation-delay: 0.1s;
   }
 
+  &.card-conversion {
+    --glow-rgb: 245, 158, 11;
+    animation-delay: 0.15s;
+  }
+
   &.card-delivery {
     --glow-rgb: 34, 197, 94;
     animation-delay: 0.2s;
@@ -427,6 +432,36 @@
     height: 32px;
     object-fit: contain;
   }
+}
+
+.logo-preview-avatar {
+  width: 72px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+  .logo-thumb {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+}
+
+.announcement-live-preview {
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.whatsapp-float-preview {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  transition: transform 0.2s ease;
 }
 
 .day-pill-btn {
