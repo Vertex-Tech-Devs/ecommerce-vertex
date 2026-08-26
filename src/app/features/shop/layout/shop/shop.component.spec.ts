@@ -104,10 +104,11 @@ describe('Shop', () => {
       );
     });
 
-    it('should fallback to contact.whatsApp if floatingWhatsApp.phoneNumber is missing', () => {
+    it('should NOT render floating whatsapp button if floatingWhatsApp.phoneNumber is missing or empty even if contact.whatsApp is set', () => {
       mockStoreConfigSignal.set({
         floatingWhatsApp: {
           enabled: true,
+          phoneNumber: '',
         },
         contact: {
           whatsApp: '+54 9 11 9876-5432',
@@ -115,7 +116,9 @@ describe('Shop', () => {
       } as StoreConfig);
       fixture.detectChanges();
 
-      expect(component.whatsAppUrl()).toBe('https://wa.me/5491198765432');
+      expect(component.whatsAppUrl()).toBeNull();
+      const btn = fixture.debugElement.query(By.css('.floating-whatsapp'));
+      expect(btn).toBeNull();
     });
   });
 });
