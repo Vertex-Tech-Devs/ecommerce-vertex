@@ -34,6 +34,8 @@ export class Header {
     return mode === 'text' || mode === 'both' || logo.length === 0;
   });
 
+  readonly isTextResponsive = computed(() => this.brandDisplayMode() === 'both' && this.showLogo());
+
   readonly announcementBar = computed(() => this.storeConfig()?.announcementBar);
 
   readonly isMenuOpen = signal(false);

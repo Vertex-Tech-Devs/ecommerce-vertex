@@ -39,7 +39,12 @@
         <img [src]="logoUrl()" [alt]="storeName() || 'Logo de tienda'" class="header__brand-logo" />
       }
       @if (showText()) {
-        <span class="header__brand-text">{{ storeName() }}</span>
+        <span
+          class="header__brand-text"
+          [class.d-none]="isTextResponsive()"
+          [class.d-sm-inline]="isTextResponsive()"
+          >{{ storeName() }}</span
+        >
       }
     </a>
 

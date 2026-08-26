@@ -77,12 +77,15 @@ describe('Header', () => {
 
       expect(component.showLogo()).toBeFalse();
       expect(component.showText()).toBeTrue();
+      expect(component.isTextResponsive()).toBeFalse();
 
       const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
       const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
       expect(logoImg).toBeNull();
       expect(textSpan).not.toBeNull();
       expect(textSpan.nativeElement.textContent.trim()).toBe('Mi Tienda Test');
+      expect(textSpan.classes['d-none']).toBeFalsy();
+      expect(textSpan.classes['d-sm-inline']).toBeFalsy();
     });
 
     it('should show logo only when mode is "logo" and logoUrl is provided', () => {
@@ -95,6 +98,7 @@ describe('Header', () => {
 
       expect(component.showLogo()).toBeTrue();
       expect(component.showText()).toBeFalse();
+      expect(component.isTextResponsive()).toBeFalse();
 
       const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
       const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
@@ -113,12 +117,15 @@ describe('Header', () => {
 
       expect(component.showLogo()).toBeFalse();
       expect(component.showText()).toBeTrue();
+      expect(component.isTextResponsive()).toBeFalse();
 
       const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
       const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
       expect(logoImg).toBeNull();
       expect(textSpan).not.toBeNull();
       expect(textSpan.nativeElement.textContent.trim()).toBe('Mi Tienda Fallback');
+      expect(textSpan.classes['d-none']).toBeFalsy();
+      expect(textSpan.classes['d-sm-inline']).toBeFalsy();
     });
 
     it('should show both logo and text when mode is "both" and logoUrl is provided', () => {
@@ -131,11 +138,35 @@ describe('Header', () => {
 
       expect(component.showLogo()).toBeTrue();
       expect(component.showText()).toBeTrue();
+      expect(component.isTextResponsive()).toBeTrue();
 
       const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
       const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
       expect(logoImg).not.toBeNull();
       expect(textSpan).not.toBeNull();
+      expect(textSpan.classes['d-none']).toBeTrue();
+      expect(textSpan.classes['d-sm-inline']).toBeTrue();
+    });
+
+    it('should fallback to text visible on all resolutions when mode is "both" but logoUrl is empty', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Mi Tienda Both Fallback',
+        logoUrl: '',
+        brandDisplayMode: 'both',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.showLogo()).toBeFalse();
+      expect(component.showText()).toBeTrue();
+      expect(component.isTextResponsive()).toBeFalse();
+
+      const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
+      const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
+      expect(logoImg).toBeNull();
+      expect(textSpan).not.toBeNull();
+      expect(textSpan.nativeElement.textContent.trim()).toBe('Mi Tienda Both Fallback');
+      expect(textSpan.classes['d-none']).toBeFalsy();
+      expect(textSpan.classes['d-sm-inline']).toBeFalsy();
     });
   });
 
