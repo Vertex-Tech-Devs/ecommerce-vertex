@@ -3,6 +3,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import type { ElementRef, QueryList } from '@angular/core';
 
 import { ReactiveFormsModule } from '@angular/forms';
+import type { FormGroup } from '@angular/forms';
 import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
@@ -388,6 +389,145 @@ describe('StoreConfig', () => {
         'Selecciona un archivo válido (.ico, .png, .svg, .jpg).',
       );
       expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Brand Logo, Display Mode, Announcement Bar & Floating WhatsApp', () => {
+    it('should initialize form with brandDisplayMode, announcementBar, and floatingWhatsApp defaults', () => {
+      expect(component.form.get('brandDisplayMode')?.value).toBe('text');
+      expect(component.form.get('announcementBar.enabled')?.value).toBeFalse();
+      expect(component.form.get('announcementBar.backgroundColor')?.value).toBe('#111827');
+      expect(component.form.get('announcementBar.textColor')?.value).toBe('#ffffff');
+      expect(component.form.get('floatingWhatsApp.enabled')?.value).toBeFalse();
+      expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe(
+        '¡Hola! Tengo una consulta sobre un producto de la tienda',
+      );
+    });
+
+    it('removeLogo() should clear logoUrl control and mark dirty', () => {
+      component.form.patchValue({ logoUrl: 'http://example.com/logo.png' });
+      component.removeLogo();
+
+      expect(component.form.get('logoUrl')?.value).toBe('');
+      expect(component.form.get('logoUrl')?.dirty).toBeTrue();
+      expect(component.form.dirty).toBeTrue();
+    });
+
+    it('onLogoUpload() should return early if no file is selected', () => {
+      const event = { target: { files: [] } } as unknown as Event;
+      storageServiceSpy.uploadFile.calls.reset();
+      component.onLogoUpload(event);
+      expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
+    });
+
+    it('onLogoUpload() should show error alert when file format is invalid', () => {
+      const file = new File([''], 'doc.pdf', { type: 'application/pdf' });
+      const event = { target: { files: [file] } } as unknown as Event;
+
+      component.onLogoUpload(event);
+
+      expect(sweetAlertSpy.error).toHaveBeenCalledWith(
+        'Formato no válido',
+        'Selecciona una imagen válida (.png, .svg, .jpg, .webp).',
+      );
+      expect(storageServiceSpy.uploadFile).not.toHaveBeenCalled();
+    });
+
+    it('onLogoUpload() should handle successful logo upload to stores/{tenantId}/branding/logo.{ext}', () => {
+      const file = new File(['image'], 'logo.webp', { type: 'image/webp' });
+      const event = { target: { files: [file] } } as unknown as Event;
+
+      const mockUpload = {
+        progress$: of(50, 100),
+        downloadUrl$: of('http://example.com/new-logo.webp'),
+      };
+      storageServiceSpy.uploadFile.and.returnValue(
+        mockUpload as unknown as ReturnType<StorageService['uploadFile']>,
+      );
+
+      component.onLogoUpload(event);
+
+      expect(storageServiceSpy.uploadFile).toHaveBeenCalledWith(
+        file,
+        jasmine.stringMatching(/stores\/.*\/branding\/logo\.webp/),
+      );
+      expect(component.form.get('logoUrl')?.value).toBe('http://example.com/new-logo.webp');
+      expect(component.form.get('logoUrl')?.dirty).toBeTrue();
+      expect(component.isUploadingLogo()).toBeFalse();
+      expect(sweetAlertSpy.success).toHaveBeenCalledWith(
+        'Logotipo subido',
+        'El logotipo de marca fue cargado exitosamente.',
+      );
+    });
+
+    it('onLogoUpload() should handle upload failure gracefully', () => {
+      const file = new File(['image'], 'logo.png', { type: 'image/png' });
+      const event = { target: { files: [file] } } as unknown as Event;
+
+      const mockUpload = {
+        progress$: of(10),
+        downloadUrl$: throwError(() => new Error('Upload error')),
+      };
+      storageServiceSpy.uploadFile.and.returnValue(
+        mockUpload as unknown as ReturnType<StorageService['uploadFile']>,
+      );
+
+      component.onLogoUpload(event);
+
+      expect(component.isUploadingLogo()).toBeFalse();
+      expect(sweetAlertSpy.error).toHaveBeenCalledWith(
+        'Error de subida',
+        'No se pudo cargar el logotipo de marca.',
+      );
+    });
+
+    it('should set text validator on announcementBar when enabled changes to true', () => {
+      const announcementGroup = component.form.get('announcementBar') as FormGroup;
+      const enabledCtrl = announcementGroup.get('enabled');
+      const textCtrl = announcementGroup.get('text');
+
+      expect(textCtrl?.valid).toBeTrue();
+
+      enabledCtrl?.setValue(true);
+      expect(textCtrl?.valid).toBeFalse();
+
+      textCtrl?.setValue('¡Gran oferta!');
+      expect(textCtrl?.valid).toBeTrue();
+
+      enabledCtrl?.setValue(false);
+      textCtrl?.setValue('');
+      expect(textCtrl?.valid).toBeTrue();
+    });
+
+    it('should populate form when config contains announcementBar, floatingWhatsApp, and brandDisplayMode', () => {
+      mockConfigSignal.set({
+        ...mockConfig,
+        brandDisplayMode: 'both',
+        announcementBar: {
+          enabled: true,
+          text: 'Promo de Verano',
+          link: '/summer-sale',
+          backgroundColor: '#ff0000',
+          textColor: '#ffffff',
+        },
+        floatingWhatsApp: {
+          enabled: true,
+          phoneNumber: '+5491199998888',
+          defaultMessage: 'Hola tienda!',
+        },
+      });
+
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect(component.form.get('brandDisplayMode')?.value).toBe('both');
+      expect(component.form.get('announcementBar.enabled')?.value).toBeTrue();
+      expect(component.form.get('announcementBar.text')?.value).toBe('Promo de Verano');
+      expect(component.form.get('announcementBar.link')?.value).toBe('/summer-sale');
+      expect(component.form.get('announcementBar.backgroundColor')?.value).toBe('#ff0000');
+      expect(component.form.get('floatingWhatsApp.enabled')?.value).toBeTrue();
+      expect(component.form.get('floatingWhatsApp.phoneNumber')?.value).toBe('+5491199998888');
+      expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe('Hola tienda!');
     });
   });
 });

@@ -7,18 +7,32 @@ import { provideRouter } from '@angular/router';
 import { Header } from './header';
 import { CartService } from '@core/services/cart.service';
 import { StoreConfigService } from '@core/services/store-config.service';
+import type { StoreConfig } from '@core/models/store-config.model';
 
 describe('Header', () => {
   let component: Header;
   let fixture: ComponentFixture<Header>;
 
   const mockCartService = { itemCount: signal(0) };
+  const mockStoreConfigSignal = signal<StoreConfig | null>({
+    storeName: 'Mi Tienda',
+    logoUrl: '',
+    brandDisplayMode: 'text',
+  } as StoreConfig);
+
   const mockStoreConfigService = {
+    storeConfig: mockStoreConfigSignal,
     storeName: signal('Mi Tienda'),
     logoUrl: signal(''),
   };
 
   beforeEach(async () => {
+    mockStoreConfigSignal.set({
+      storeName: 'Mi Tienda',
+      logoUrl: '',
+      brandDisplayMode: 'text',
+    } as StoreConfig);
+
     await TestBed.configureTestingModule({
       imports: [Header],
       providers: [
@@ -49,6 +63,117 @@ describe('Header', () => {
 
     it('should reflect cart count from service', () => {
       expect(component.cartItemCount()).toBe(0);
+    });
+  });
+
+  describe('brand display modes and fallbacks', () => {
+    it('should show text only when mode is "text"', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Mi Tienda Test',
+        logoUrl: 'https://example.com/logo.png',
+        brandDisplayMode: 'text',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.showLogo()).toBeFalse();
+      expect(component.showText()).toBeTrue();
+
+      const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
+      const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
+      expect(logoImg).toBeNull();
+      expect(textSpan).not.toBeNull();
+      expect(textSpan.nativeElement.textContent.trim()).toBe('Mi Tienda Test');
+    });
+
+    it('should show logo only when mode is "logo" and logoUrl is provided', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Mi Tienda Test',
+        logoUrl: 'https://example.com/logo.png',
+        brandDisplayMode: 'logo',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.showLogo()).toBeTrue();
+      expect(component.showText()).toBeFalse();
+
+      const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
+      const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
+      expect(logoImg).not.toBeNull();
+      expect(logoImg.nativeElement.getAttribute('src')).toBe('https://example.com/logo.png');
+      expect(textSpan).toBeNull();
+    });
+
+    it('should fallback to text when mode is "logo" but logoUrl is empty', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Mi Tienda Fallback',
+        logoUrl: '',
+        brandDisplayMode: 'logo',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.showLogo()).toBeFalse();
+      expect(component.showText()).toBeTrue();
+
+      const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
+      const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
+      expect(logoImg).toBeNull();
+      expect(textSpan).not.toBeNull();
+      expect(textSpan.nativeElement.textContent.trim()).toBe('Mi Tienda Fallback');
+    });
+
+    it('should show both logo and text when mode is "both" and logoUrl is provided', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Mi Tienda Both',
+        logoUrl: 'https://example.com/logo.png',
+        brandDisplayMode: 'both',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.showLogo()).toBeTrue();
+      expect(component.showText()).toBeTrue();
+
+      const logoImg = fixture.debugElement.query(By.css('.header__brand-logo'));
+      const textSpan = fixture.debugElement.query(By.css('.header__brand-text'));
+      expect(logoImg).not.toBeNull();
+      expect(textSpan).not.toBeNull();
+    });
+  });
+
+  describe('announcement bar', () => {
+    it('should not render announcement bar when disabled or text is empty', () => {
+      mockStoreConfigSignal.set({
+        announcementBar: { enabled: false, text: '' },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('.announcement-bar'));
+      expect(bar).toBeNull();
+    });
+
+    it('should render announcement bar with dynamic colors when enabled', () => {
+      mockStoreConfigSignal.set({
+        announcementBar: {
+          enabled: true,
+          text: '¡Envío gratis en compras mayores a $5000!',
+          backgroundColor: '#ff0000',
+          textColor: '#ffffff',
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('.announcement-bar'));
+      expect(bar).not.toBeNull();
+      expect(bar.nativeElement.textContent.trim()).toContain(
+        '¡Envío gratis en compras mayores a $5000!',
+      );
+    });
+
+    it('should correctly classify internal vs external links', () => {
+      expect(component.isExternalLink('https://example.com')).toBeTrue();
+      expect(component.isExternalLink('http://example.com')).toBeTrue();
+      expect(component.isExternalLink('//example.com')).toBeTrue();
+      expect(component.isExternalLink('/catalog')).toBeFalse();
+      expect(component.isExternalLink(undefined)).toBeFalse();
     });
   });
 

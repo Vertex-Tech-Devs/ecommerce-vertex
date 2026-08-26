@@ -1,4 +1,31 @@
 <header class="header" [class.header--scrolled]="isScrolled()" role="banner">
+  @if (announcementBar()?.enabled && announcementBar()?.text) {
+    <div
+      class="announcement-bar"
+      [style.background-color]="announcementBar()?.backgroundColor || '#111827'"
+      [style.color]="announcementBar()?.textColor || '#ffffff'"
+    >
+      @if (announcementBar()?.link) {
+        @if (isExternalLink(announcementBar()?.link)) {
+          <a
+            [href]="announcementBar()?.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="announcement-bar__link"
+          >
+            {{ announcementBar()?.text }}
+          </a>
+        } @else {
+          <a [routerLink]="announcementBar()?.link" class="announcement-bar__link">
+            {{ announcementBar()?.text }}
+          </a>
+        }
+      } @else {
+        <span class="announcement-bar__text">{{ announcementBar()?.text }}</span>
+      }
+    </div>
+  }
+
   <div
     class="header__backdrop"
     [class.header__backdrop--active]="isMenuOpen()"
@@ -8,10 +35,11 @@
 
   <div class="header__container">
     <a routerLink="/" class="header__brand" aria-label="Ir al inicio">
-      @if (logoUrl()) {
+      @if (showLogo()) {
         <img [src]="logoUrl()" [alt]="storeName() || 'Logo de tienda'" class="header__brand-logo" />
-      } @else {
-        {{ storeName() }}
+      }
+      @if (showText()) {
+        <span class="header__brand-text">{{ storeName() }}</span>
       }
     </a>
 
