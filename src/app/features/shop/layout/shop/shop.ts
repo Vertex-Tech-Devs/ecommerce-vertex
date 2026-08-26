@@ -18,19 +18,24 @@ export class Shop {
 
   readonly whatsAppUrl = computed(() => {
     const config = this.storeConfig();
-    if (!config?.floatingWhatsApp?.enabled) {
+    const floatingWhatsApp = config?.floatingWhatsApp;
+    if (!floatingWhatsApp?.enabled) {
       return null;
     }
 
-    const phone = config.floatingWhatsApp.phoneNumber ?? config.contact?.whatsApp ?? '';
-    const cleanPhone = phone.replace(/\D/g, '');
+    const rawPhone = floatingWhatsApp.phoneNumber;
+    if (!rawPhone?.trim()) {
+      return null;
+    }
+
+    const cleanPhone = rawPhone.replace(/\D/g, '');
     if (!cleanPhone) {
       return null;
     }
 
-    const defaultMsg = config.floatingWhatsApp.defaultMessage;
-    if (defaultMsg && defaultMsg.trim().length > 0) {
-      return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultMsg)}`;
+    const defaultMsg = floatingWhatsApp.defaultMessage;
+    if (defaultMsg?.trim()) {
+      return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultMsg.trim())}`;
     }
 
     return `https://wa.me/${cleanPhone}`;

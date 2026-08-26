@@ -499,6 +499,36 @@ describe('StoreConfig', () => {
       expect(textCtrl?.valid).toBeTrue();
     });
 
+    it('should set phoneNumber validator on floatingWhatsApp when enabled changes to true', () => {
+      const floatingGroup = component.form.get('floatingWhatsApp') as FormGroup;
+      const enabledCtrl = floatingGroup.get('enabled');
+      const phoneCtrl = floatingGroup.get('phoneNumber');
+
+      expect(phoneCtrl?.valid).toBeTrue();
+
+      enabledCtrl?.setValue(true);
+      expect(phoneCtrl?.valid).toBeFalse();
+
+      phoneCtrl?.setValue('5492611234567');
+      expect(phoneCtrl?.valid).toBeTrue();
+
+      enabledCtrl?.setValue(false);
+      phoneCtrl?.setValue('');
+      expect(phoneCtrl?.valid).toBeTrue();
+    });
+
+    it('should be invalid on submit if floatingWhatsApp is enabled and phoneNumber is empty', async () => {
+      const floatingGroup = component.form.get('floatingWhatsApp') as FormGroup;
+      floatingGroup.get('enabled')?.setValue(true);
+      floatingGroup.get('phoneNumber')?.setValue('');
+
+      await component.onSubmit();
+
+      expect(component.form.invalid).toBeTrue();
+      expect(sweetAlertSpy.error).toHaveBeenCalled();
+      expect(storeConfigServiceSpy.saveConfig).not.toHaveBeenCalled();
+    });
+
     it('should populate form when config contains announcementBar, floatingWhatsApp, and brandDisplayMode', () => {
       mockConfigSignal.set({
         ...mockConfig,

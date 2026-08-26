@@ -379,7 +379,7 @@
                           <!-- Número de WhatsApp -->
                           <div class="col-12 col-md-6">
                             <label class="form-label text-label" for="whatsappPhoneNumber">
-                              Número de WhatsApp
+                              Número de WhatsApp <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
                               <span class="input-group-text"><i class="bi bi-telephone"></i></span>
@@ -388,13 +388,21 @@
                                 formControlName="phoneNumber"
                                 type="text"
                                 class="form-control glass-input"
-                                placeholder="Hereda el número de contacto si queda vacío"
+                                [class.is-invalid]="
+                                  form.get('floatingWhatsApp.phoneNumber')?.touched &&
+                                  form.get('floatingWhatsApp.phoneNumber')?.invalid
+                                "
+                                placeholder="Ej: 5492611234567 (Obligatorio)"
                               />
                             </div>
-                            <span class="text-muted text-xs mt-1 d-block">
-                              Si se deja vacío, utilizará automáticamente el WhatsApp de contacto
-                              principal.
-                            </span>
+                            @if (
+                              form.get('floatingWhatsApp.phoneNumber')?.touched &&
+                              form.get('floatingWhatsApp.phoneNumber')?.invalid
+                            ) {
+                              <div class="invalid-feedback d-block mt-1">
+                                El número de WhatsApp es obligatorio si el botón está activo.
+                              </div>
+                            }
                           </div>
 
                           <!-- Mensaje Predeterminado -->

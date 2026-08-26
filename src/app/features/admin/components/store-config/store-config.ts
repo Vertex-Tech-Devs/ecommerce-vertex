@@ -254,6 +254,20 @@ export class StoreConfig {
         }
         textCtrl?.updateValueAndValidity();
       });
+
+    const floatingWhatsAppGroup = this.form.get('floatingWhatsApp') as FormGroup;
+    floatingWhatsAppGroup
+      .get('enabled')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((enabled: boolean) => {
+        const phoneCtrl = floatingWhatsAppGroup.get('phoneNumber');
+        if (enabled) {
+          phoneCtrl?.setValidators([Validators.required]);
+        } else {
+          phoneCtrl?.clearValidators();
+        }
+        phoneCtrl?.updateValueAndValidity();
+      });
   }
 
   private populateFormFromConfig(cfg: StoreConfigData | null): void {
@@ -299,6 +313,11 @@ export class StoreConfig {
   }
 
   private patchSocialAndWidgets(cfg: StoreConfigData | null): void {
+    this.patchContactInfo(cfg);
+    this.patchWidgets(cfg);
+  }
+
+  private patchContactInfo(cfg: StoreConfigData | null): void {
     this.form.patchValue({
       contact: {
         phone: cfg?.contact?.phone ?? '+54 11 1234-5678',
@@ -307,6 +326,19 @@ export class StoreConfig {
         instagram: cfg?.contact?.instagram ?? '',
         facebook: cfg?.contact?.facebook ?? '',
       },
+    });
+  }
+
+  private patchWidgets(cfg: StoreConfigData | null): void {
+    const isFloatingEnabled = cfg?.floatingWhatsApp?.enabled ?? false;
+    const phoneCtrl = this.form.get('floatingWhatsApp.phoneNumber');
+    if (isFloatingEnabled) {
+      phoneCtrl?.setValidators([Validators.required]);
+    } else {
+      phoneCtrl?.clearValidators();
+    }
+
+    this.form.patchValue({
       announcementBar: {
         enabled: cfg?.announcementBar?.enabled ?? false,
         text: cfg?.announcementBar?.text ?? '',
@@ -315,13 +347,15 @@ export class StoreConfig {
         textColor: cfg?.announcementBar?.textColor ?? '#ffffff',
       },
       floatingWhatsApp: {
-        enabled: cfg?.floatingWhatsApp?.enabled ?? false,
+        enabled: isFloatingEnabled,
         phoneNumber: cfg?.floatingWhatsApp?.phoneNumber ?? '',
         defaultMessage:
           cfg?.floatingWhatsApp?.defaultMessage ??
           '¡Hola! Tengo una consulta sobre un producto de la tienda',
       },
     });
+
+    phoneCtrl?.updateValueAndValidity();
   }
 
   private patchDeliverySettings(delivery: typeof DEFAULT_DELIVERY_METHOD_CONFIG): void {
