@@ -7,6 +7,14 @@ export const STORE_CONFIG: StoreConfig = {
   tagline: 'Tu tienda de moda de marca blanca',
   logoUrl: '',
   faviconUrl: '',
+  brandDisplayMode: 'text',
+  announcementBar: {
+    enabled: false,
+    text: '',
+  },
+  floatingWhatsApp: {
+    enabled: false,
+  },
   colors: {
     primary: '#ea580c',
     accent: '#ef4444',

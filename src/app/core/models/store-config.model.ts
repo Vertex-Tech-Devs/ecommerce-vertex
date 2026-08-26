@@ -71,8 +71,21 @@ export interface StoreConfig {
   storeId: string;
   storeName: string;
   tagline: string;
-  logoUrl: string;
+  logoUrl?: string;
   faviconUrl: string;
+  brandDisplayMode?: 'text' | 'logo' | 'both';
+  announcementBar?: {
+    enabled: boolean;
+    text: string;
+    link?: string;
+    backgroundColor?: string;
+    textColor?: string;
+  };
+  floatingWhatsApp?: {
+    enabled: boolean;
+    phoneNumber?: string;
+    defaultMessage?: string;
+  };
   colors: {
     primary: string;
     accent: string;
@@ -125,6 +138,14 @@ export const DEFAULT_STORE_CONFIG: StoreConfig = {
   tagline: 'Tu tienda de moda de marca blanca',
   logoUrl: '',
   faviconUrl: '',
+  brandDisplayMode: 'text',
+  announcementBar: {
+    enabled: false,
+    text: '',
+  },
+  floatingWhatsApp: {
+    enabled: false,
+  },
   colors: {
     primary: '#ea580c',
     accent: '#ef4444',

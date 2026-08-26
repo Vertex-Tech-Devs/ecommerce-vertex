@@ -20,6 +20,32 @@
   }
 }
 
+.announcement-bar {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &__link {
+    color: inherit;
+    text-decoration: underline;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.85;
+    }
+  }
+
+  &__text {
+    color: inherit;
+  }
+}
+
 .header__container {
   display: flex;
   justify-content: space-between;
@@ -32,8 +58,11 @@
 }
 
 .header__brand {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -43,10 +72,15 @@
 }
 
 .header__brand-logo {
-  max-height: 36px;
-  max-width: 160px;
+  max-height: 44px;
+  max-width: 180px;
   width: auto;
+  height: auto;
   object-fit: contain;
+}
+
+.header__brand-text {
+  white-space: nowrap;
 }
 
 .header__nav {
