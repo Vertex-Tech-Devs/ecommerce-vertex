@@ -2,6 +2,7 @@ import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { Shop } from './shop';
@@ -23,6 +24,9 @@ describe('Shop', () => {
     mockStoreConfigSignal = signal<StoreConfig | null>({
       storeName: 'Mi Tienda',
       logoUrl: 'logo.png',
+      floatingWhatsApp: {
+        enabled: false,
+      },
     } as unknown as StoreConfig);
 
     mockCartSignal = signal<Cart>({ items: [], total: 0 });
@@ -64,5 +68,57 @@ describe('Shop', () => {
 
   it('should create the shop layout component', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('floating whatsapp button', () => {
+    it('should return null when floatingWhatsApp is disabled', () => {
+      mockStoreConfigSignal.set({
+        floatingWhatsApp: { enabled: false },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.whatsAppUrl()).toBeNull();
+
+      const btn = fixture.debugElement.query(By.css('.floating-whatsapp'));
+      expect(btn).toBeNull();
+    });
+
+    it('should generate whatsapp URL using floatingWhatsApp.phoneNumber and default message', () => {
+      mockStoreConfigSignal.set({
+        floatingWhatsApp: {
+          enabled: true,
+          phoneNumber: '+54 (911) 1234-5678',
+          defaultMessage: 'Hola, tengo una pregunta',
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.whatsAppUrl()).toBe(
+        'https://wa.me/5491112345678?text=Hola%2C%20tengo%20una%20pregunta',
+      );
+
+      const btn = fixture.debugElement.query(By.css('.floating-whatsapp'));
+      expect(btn).not.toBeNull();
+      expect(btn.nativeElement.getAttribute('href')).toBe(
+        'https://wa.me/5491112345678?text=Hola%2C%20tengo%20una%20pregunta',
+      );
+    });
+
+    it('should NOT render floating whatsapp button if floatingWhatsApp.phoneNumber is missing or empty even if contact.whatsApp is set', () => {
+      mockStoreConfigSignal.set({
+        floatingWhatsApp: {
+          enabled: true,
+          phoneNumber: '',
+        },
+        contact: {
+          whatsApp: '+54 9 11 9876-5432',
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      expect(component.whatsAppUrl()).toBeNull();
+      const btn = fixture.debugElement.query(By.css('.floating-whatsapp'));
+      expect(btn).toBeNull();
+    });
   });
 });

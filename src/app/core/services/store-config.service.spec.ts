@@ -21,6 +21,14 @@ describe('StoreConfigService', () => {
     tagline: 'Test Tagline',
     logoUrl: 'https://logo.url',
     faviconUrl: 'https://favicon.url',
+    brandDisplayMode: 'text',
+    announcementBar: {
+      enabled: false,
+      text: '',
+    },
+    floatingWhatsApp: {
+      enabled: false,
+    },
     colors: {
       primary: '#ea580c',
       accent: '#ef4444',

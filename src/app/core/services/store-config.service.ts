@@ -70,6 +70,7 @@ export class StoreConfigService {
             root.style.setProperty('--color-accent', config.colors.accent);
           }
           if (config.colors.background) {
+            root.style.setProperty('--color-background', config.colors.background);
             root.style.setProperty('--shop-bg', config.colors.background);
           }
         }
@@ -195,6 +196,7 @@ export class StoreConfigService {
         root.style.setProperty('--color-accent', config.colors.accent);
       }
       if (config.colors.background) {
+        root.style.setProperty('--color-background', config.colors.background);
         root.style.setProperty('--shop-bg', config.colors.background);
       }
     }

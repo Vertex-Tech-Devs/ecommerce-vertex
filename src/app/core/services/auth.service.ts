@@ -47,11 +47,18 @@ export class AuthService {
     map((tokenResult) => {
       if (tokenResult && typeof tokenResult === 'object') {
         const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
-        return (
-          tokenResult.claims['admin'] === true ||
+        const claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+        const currentTenant = resolveTenantId();
+        const isSuper =
           tokenResult.claims['superAdmin'] === true ||
           tokenResult.claims['platformAdmin'] === true ||
-          PLATFORM_DEV_EMAILS.includes(email)
+          PLATFORM_DEV_EMAILS.includes(email);
+        if (isSuper) {
+          return true;
+        }
+        return (
+          tokenResult.claims['admin'] === true &&
+          (!claimedTenantId || claimedTenantId === currentTenant)
         );
       }
       return false;
@@ -99,19 +106,31 @@ export class AuthService {
             // Attempt to sync the claim synchronously via callable.
             // This handles the race where onRoleChange fired before the user existed in Auth,
             // or if the user is logging into a new tenant.
+            let granted = false;
             try {
-              await this.refreshMyAdminClaim({ tenantId: currentTenant });
+              const res = (await this.refreshMyAdminClaim({ tenantId: currentTenant })) as {
+                data?: { granted?: boolean };
+              };
+              granted = !!res?.data?.granted;
             } catch {
-              // If callable fails, fall back to waiting for the background trigger.
+              // If callable fails or throws error, user is not authorized
+              granted = false;
             }
-            // Custom claims can take up to ~10s to propagate — retry token refresh up to 4x.
-            for (let i = 0; i < 4; i++) {
-              await new Promise((resolve) => setTimeout(resolve, 3000));
-              tokenResult = await result.user.getIdTokenResult(true);
-              claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
-              if (tokenResult.claims['admin'] && claimedTenantId === currentTenant) {
-                break;
+
+            if (granted) {
+              // Custom claims were set by server — retry token refresh briefly.
+              for (let i = 0; i < 3; i++) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                tokenResult = await result.user.getIdTokenResult(true);
+                claimedTenantId = tokenResult.claims['tenantId'] as string | undefined;
+                if (tokenResult.claims['admin'] && claimedTenantId === currentTenant) {
+                  break;
+                }
               }
+            } else {
+              // User is definitely NOT authorized for this store — sign out immediately.
+              await signOut(this.auth);
+              throw new Error('permission-denied');
             }
           }
 
@@ -158,6 +177,14 @@ export class AuthService {
         }
       })(),
     );
+  }
+
+  async silentLogout(): Promise<void> {
+    try {
+      await signOut(this.auth);
+    } catch (err) {
+      console.error('Error during silent logout:', err);
+    }
   }
 
   async logout(options?: { title?: string; text?: string }): Promise<void> {

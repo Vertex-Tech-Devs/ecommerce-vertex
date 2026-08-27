@@ -4,4 +4,16 @@
   <router-outlet></router-outlet>
 </main>
 
+@if (whatsAppUrl()) {
+  <a
+    [href]="whatsAppUrl()"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="floating-whatsapp"
+    aria-label="Contactar por WhatsApp"
+  >
+    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+  </a>
+}
+
 <app-shop-footer></app-shop-footer>

@@ -56,12 +56,28 @@ export class StoreConfig {
   faviconProgress = signal<number>(0);
   faviconUploading = signal<boolean>(false);
 
+  logoUploadProgress = signal<number>(0);
+  isUploadingLogo = signal<boolean>(false);
+
   form: FormGroup = this.fb.group({
     tenantId: [''],
     storeId: [resolveTenantId()],
     storeName: ['', Validators.required],
     logoUrl: [''],
     faviconUrl: [''],
+    brandDisplayMode: ['text'],
+    announcementBar: this.fb.group({
+      enabled: [false],
+      text: [''],
+      link: [''],
+      backgroundColor: ['#111827'],
+      textColor: ['#ffffff'],
+    }),
+    floatingWhatsApp: this.fb.group({
+      enabled: [false],
+      phoneNumber: [''],
+      defaultMessage: ['¡Hola! Tengo una consulta sobre un producto de la tienda'],
+    }),
     colors: this.fb.group({
       primary: ['#ea580c', Validators.required],
       accent: ['#ef4444', Validators.required],
@@ -214,10 +230,44 @@ export class StoreConfig {
     this.form.markAsDirty();
   }
 
+  removeLogo(): void {
+    this.form.patchValue({ logoUrl: '' });
+    this.form.get('logoUrl')?.markAsDirty();
+    this.form.markAsDirty();
+  }
+
   constructor() {
     effect(() => {
       this.populateFormFromConfig(this.storeConfigService.storeConfig());
     });
+
+    const announcementGroup = this.form.get('announcementBar') as FormGroup;
+    announcementGroup
+      .get('enabled')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((enabled: boolean) => {
+        const textCtrl = announcementGroup.get('text');
+        if (enabled) {
+          textCtrl?.setValidators([Validators.required]);
+        } else {
+          textCtrl?.clearValidators();
+        }
+        textCtrl?.updateValueAndValidity();
+      });
+
+    const floatingWhatsAppGroup = this.form.get('floatingWhatsApp') as FormGroup;
+    floatingWhatsAppGroup
+      .get('enabled')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((enabled: boolean) => {
+        const phoneCtrl = floatingWhatsAppGroup.get('phoneNumber');
+        if (enabled) {
+          phoneCtrl?.setValidators([Validators.required]);
+        } else {
+          phoneCtrl?.clearValidators();
+        }
+        phoneCtrl?.updateValueAndValidity();
+      });
   }
 
   private populateFormFromConfig(cfg: StoreConfigData | null): void {
@@ -244,15 +294,31 @@ export class StoreConfig {
   }
 
   private patchBrandingAndSocial(cfg: StoreConfigData | null): void {
+    this.patchBrandingAndColors(cfg);
+    this.patchSocialAndWidgets(cfg);
+  }
+
+  private patchBrandingAndColors(cfg: StoreConfigData | null): void {
     this.form.patchValue({
       logoUrl: cfg?.logoUrl ?? '',
       faviconUrl: cfg?.faviconUrl ?? '',
+      brandDisplayMode: cfg?.brandDisplayMode ?? 'text',
       colors: {
         primary: cfg?.colors?.primary ?? '#ea580c',
         accent: cfg?.colors?.accent ?? '#ef4444',
         background: cfg?.colors?.background ?? '#ffffff',
       },
       payments: { mercadoPagoPublicKey: cfg?.payments?.mercadoPagoPublicKey ?? '' },
+    });
+  }
+
+  private patchSocialAndWidgets(cfg: StoreConfigData | null): void {
+    this.patchContactInfo(cfg);
+    this.patchWidgets(cfg);
+  }
+
+  private patchContactInfo(cfg: StoreConfigData | null): void {
+    this.form.patchValue({
       contact: {
         phone: cfg?.contact?.phone ?? '+54 11 1234-5678',
         email: cfg?.contact?.email ?? 'contacto@mitienda.com',
@@ -261,6 +327,35 @@ export class StoreConfig {
         facebook: cfg?.contact?.facebook ?? '',
       },
     });
+  }
+
+  private patchWidgets(cfg: StoreConfigData | null): void {
+    const isFloatingEnabled = cfg?.floatingWhatsApp?.enabled ?? false;
+    const phoneCtrl = this.form.get('floatingWhatsApp.phoneNumber');
+    if (isFloatingEnabled) {
+      phoneCtrl?.setValidators([Validators.required]);
+    } else {
+      phoneCtrl?.clearValidators();
+    }
+
+    this.form.patchValue({
+      announcementBar: {
+        enabled: cfg?.announcementBar?.enabled ?? false,
+        text: cfg?.announcementBar?.text ?? '',
+        link: cfg?.announcementBar?.link ?? '',
+        backgroundColor: cfg?.announcementBar?.backgroundColor ?? '#111827',
+        textColor: cfg?.announcementBar?.textColor ?? '#ffffff',
+      },
+      floatingWhatsApp: {
+        enabled: isFloatingEnabled,
+        phoneNumber: cfg?.floatingWhatsApp?.phoneNumber ?? '',
+        defaultMessage:
+          cfg?.floatingWhatsApp?.defaultMessage ??
+          '¡Hola! Tengo una consulta sobre un producto de la tienda',
+      },
+    });
+
+    phoneCtrl?.updateValueAndValidity();
   }
 
   private patchDeliverySettings(delivery: typeof DEFAULT_DELIVERY_METHOD_CONFIG): void {
@@ -328,6 +423,48 @@ export class StoreConfig {
       error: () => {
         this.faviconUploading.set(false);
         this.sweetAlert.error('Error de subida', 'No se pudo cargar el favicon.');
+      },
+    });
+  }
+
+  onLogoUpload(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) {
+      return;
+    }
+    const file = input.files[0];
+    const allowed = ['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      this.sweetAlert.error(
+        'Formato no válido',
+        'Selecciona una imagen válida (.png, .svg, .jpg, .webp).',
+      );
+      return;
+    }
+
+    const storeId = resolveTenantId() ?? 'store';
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'png';
+    this.isUploadingLogo.set(true);
+    this.logoUploadProgress.set(0);
+
+    const upload = this.storageService.uploadFile(file, `stores/${storeId}/branding/logo.${ext}`);
+    upload.progress$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((p) => this.logoUploadProgress.set(Math.round(p)));
+    upload.downloadUrl$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (url) => {
+        this.form.patchValue({ logoUrl: url });
+        this.form.get('logoUrl')?.markAsDirty();
+        this.form.markAsDirty();
+        this.isUploadingLogo.set(false);
+        this.sweetAlert.success(
+          'Logotipo subido',
+          'El logotipo de marca fue cargado exitosamente.',
+        );
+      },
+      error: () => {
+        this.isUploadingLogo.set(false);
+        this.sweetAlert.error('Error de subida', 'No se pudo cargar el logotipo de marca.');
       },
     });
   }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
@@ -13,11 +13,31 @@ import { StoreConfigService } from '@core/services/store-config.service';
 })
 export class Header {
   private readonly cartService = inject(CartService);
-  private readonly storeConfig = inject(StoreConfigService);
+  private readonly storeConfigService = inject(StoreConfigService);
 
   readonly cartItemCount = this.cartService.itemCount;
-  readonly storeName = this.storeConfig.storeName;
-  readonly logoUrl = this.storeConfig.logoUrl;
+  readonly storeConfig = this.storeConfigService.storeConfig;
+
+  readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
+  readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
+  readonly brandDisplayMode = computed(() => this.storeConfig()?.brandDisplayMode ?? 'text');
+
+  readonly showLogo = computed(() => {
+    const mode = this.brandDisplayMode();
+    const logo = this.logoUrl().trim();
+    return (mode === 'logo' || mode === 'both') && logo.length > 0;
+  });
+
+  readonly showText = computed(() => {
+    const mode = this.brandDisplayMode();
+    const logo = this.logoUrl().trim();
+    return mode === 'text' || mode === 'both' || logo.length === 0;
+  });
+
+  readonly isTextResponsive = computed(() => this.brandDisplayMode() === 'both' && this.showLogo());
+
+  readonly announcementBar = computed(() => this.storeConfig()?.announcementBar);
+
   readonly isMenuOpen = signal(false);
   readonly isScrolled = signal(false);
 
@@ -33,5 +53,12 @@ export class Header {
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
+  }
+
+  isExternalLink(link?: string): boolean {
+    if (!link) {
+      return false;
+    }
+    return link.startsWith('http://') || link.startsWith('https://') || link.startsWith('//');
   }
 }

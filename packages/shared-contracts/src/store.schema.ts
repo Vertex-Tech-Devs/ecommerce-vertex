@@ -7,8 +7,25 @@ export const StoreConfigSchema = z
     storeId: z.string().default('white-label-store').catch('white-label-store'),
     storeName: z.string().default('Mi Tienda').catch('Mi Tienda'),
     tagline: z.string().default('').catch(''),
-    logoUrl: z.string().default('').catch(''),
+    logoUrl: z.string().optional().default('').catch(''),
     faviconUrl: z.string().default('').catch(''),
+    brandDisplayMode: z.enum(['text', 'logo', 'both']).optional().default('text').catch('text'),
+    announcementBar: z
+      .object({
+        enabled: z.boolean().default(false).catch(false),
+        text: z.string().default('').catch(''),
+        link: z.string().optional(),
+        backgroundColor: z.string().optional(),
+        textColor: z.string().optional(),
+      })
+      .optional(),
+    floatingWhatsApp: z
+      .object({
+        enabled: z.boolean().default(false).catch(false),
+        phoneNumber: z.string().optional(),
+        defaultMessage: z.string().optional(),
+      })
+      .optional(),
     colors: z
       .object({
         primary: z.string().default('#ea580c').catch('#ea580c'),

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
-import type { UserCredential } from '@angular/fire/auth';
+import type { User, UserCredential } from '@angular/fire/auth';
 import { of, throwError, Subject } from 'rxjs';
 import { Login } from './login';
 import { AuthService } from '@core/services/auth.service';
@@ -17,14 +17,18 @@ describe('Login', () => {
   beforeEach(async () => {
     spyOn(console, 'error');
     spyOn(console, 'warn');
-    authServiceSpy = jasmine.createSpyObj('AuthService', [
-      'loginWithGoogle',
-      'logout',
-      'isAuthenticated',
-    ]);
+    authServiceSpy = jasmine.createSpyObj<AuthService>(
+      'AuthService',
+      ['loginWithGoogle', 'logout', 'silentLogout', 'isAuthenticated'],
+      {
+        currentUser$: of(null),
+        isAdmin$: of(false),
+      },
+    );
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     authServiceSpy.isAuthenticated.and.returnValue(of(false));
+    authServiceSpy.silentLogout.and.returnValue(Promise.resolve());
     routerSpy.navigate.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
@@ -96,8 +100,15 @@ describe('Login', () => {
     expect(f2.componentInstance.authErrorMessage).toBeTruthy();
   });
 
-  it('should set isAlreadyLogged to true when user is already authenticated', () => {
-    authServiceSpy.isAuthenticated.and.returnValue(of(true));
+  it('should set isAlreadyLogged to true and navigate when user is already an authorized admin', () => {
+    Object.defineProperty(authServiceSpy, 'currentUser$', {
+      value: of({ email: 'admin@test.com' } as unknown as User),
+      configurable: true,
+    });
+    Object.defineProperty(authServiceSpy, 'isAdmin$', {
+      value: of(true),
+      configurable: true,
+    });
 
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -113,6 +124,36 @@ describe('Login', () => {
     f3.detectChanges();
 
     expect(f3.componentInstance.isAlreadyLogged).toBeTrue();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin']);
+  });
+
+  it('should silently logout and show error if user is authenticated in Firebase Auth but NOT an admin of this store', async () => {
+    Object.defineProperty(authServiceSpy, 'currentUser$', {
+      value: of({ email: 'unauthorized@test.com' } as unknown as User),
+      configurable: true,
+    });
+    Object.defineProperty(authServiceSpy, 'isAdmin$', {
+      value: of(false),
+      configurable: true,
+    });
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [Login, ReactiveFormsModule],
+      providers: [
+        { provide: AuthService, useValue: authServiceSpy },
+        { provide: Router, useValue: routerSpy },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
+      ],
+    });
+
+    const fUnauthorized = TestBed.createComponent(Login);
+    fUnauthorized.detectChanges();
+    await fUnauthorized.whenStable();
+
+    expect(authServiceSpy.silentLogout).toHaveBeenCalled();
+    expect(fUnauthorized.componentInstance.isAlreadyLogged).toBeFalse();
+    expect(fUnauthorized.componentInstance.authErrorMessage).toContain('no está autorizada');
   });
 
   it('should set permission-denied error message on unauthorized error', () => {
@@ -259,7 +300,14 @@ describe('Login', () => {
 
   it('should trigger logout when clicking logout link in template', () => {
     TestBed.resetTestingModule();
-    authServiceSpy.isAuthenticated.and.returnValue(of(true));
+    Object.defineProperty(authServiceSpy, 'currentUser$', {
+      value: of({ email: 'admin@test.com' } as unknown as User),
+      configurable: true,
+    });
+    Object.defineProperty(authServiceSpy, 'isAdmin$', {
+      value: of(true),
+      configurable: true,
+    });
 
     TestBed.configureTestingModule({
       imports: [Login, ReactiveFormsModule],
@@ -271,6 +319,7 @@ describe('Login', () => {
     });
 
     const fLogout = TestBed.createComponent(Login);
+    fLogout.componentInstance.isAlreadyLogged = true;
     fLogout.detectChanges();
 
     authServiceSpy.logout = jasmine.createSpy('logout').and.returnValue(Promise.resolve());
