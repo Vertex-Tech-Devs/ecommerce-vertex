@@ -25,20 +25,30 @@ export class Login implements OnInit, OnDestroy {
   isGoogleSubmitting = false;
 
   private loginTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  /** Máximo tiempo de espera para el flujo de login (ms). El retry loop interno dura ~12s. */
-  private readonly LOGIN_TIMEOUT_MS = 18_000;
+  /** Máximo tiempo de espera para el flujo de login (ms). */
+  private readonly LOGIN_TIMEOUT_MS = 10_000;
 
   ngOnInit(): void {
-    this.authService
-      .isAuthenticated()
-      .pipe(take(1))
-      .subscribe((isAuth) => {
-        this.isAlreadyLogged = isAuth;
-        // Si ya está logueado, redirigir directo al dashboard (no mostrar el login).
-        if (isAuth) {
+    this.authService.currentUser$.pipe(take(1)).subscribe((currentUser) => {
+      if (!currentUser) {
+        this.isAlreadyLogged = false;
+        return;
+      }
+      this.authService.isAdmin$.pipe(take(1)).subscribe((isAdmin) => {
+        if (isAdmin) {
+          this.isAlreadyLogged = true;
           void this.router.navigate(['/admin']);
+        } else {
+          // El usuario está autenticado en Firebase Auth pero no tiene permisos en esta tienda.
+          // Limpiamos la sesión silenciosamente para no bloquear reintentos ni generar loops.
+          this.isAlreadyLogged = false;
+          void this.authService.silentLogout().then(() => {
+            this.authErrorMessage =
+              'Tu cuenta de Google no está autorizada para acceder a esta tienda. Solicita acceso al administrador.';
+          });
         }
       });
+    });
 
     this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params['authError']) {
@@ -47,6 +57,8 @@ export class Login implements OnInit, OnDestroy {
       // El guard redirige acá con ?unauthorized=1 cuando el usuario autenticado no tiene permisos.
       if (params['unauthorized']) {
         this._resetSubmitting();
+        this.isAlreadyLogged = false;
+        void this.authService.silentLogout();
         this.authErrorMessage =
           'Tu cuenta de Google no está autorizada para acceder a esta tienda. Solicita acceso al administrador.';
       }
