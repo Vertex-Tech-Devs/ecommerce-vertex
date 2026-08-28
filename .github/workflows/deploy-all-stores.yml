@@ -103,7 +103,7 @@ jobs:
     name: '🐤 Canary → ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
     needs: [build, get-stores]
-    if: needs.get-stores.outputs.has_stores == 'true'
+    if: needs.get-stores.outputs.canary != '[]' && needs.get-stores.outputs.canary != ''
     strategy:
       matrix:
         store: ${{ fromJson(needs.get-stores.outputs.canary) }}

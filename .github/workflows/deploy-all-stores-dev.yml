@@ -116,7 +116,7 @@ jobs:
       group: deploy-site-${{ matrix.store.projectId }}
       cancel-in-progress: false
     needs: [build, get-stores]
-    if: needs.get-stores.outputs.has_stores == 'true'
+    if: needs.get-stores.outputs.auto_canary != '[]' && needs.get-stores.outputs.auto_canary != ''
     environment: development
     strategy:
       matrix:
