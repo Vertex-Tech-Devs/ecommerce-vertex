@@ -23,7 +23,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^14.3.0",
     "firebase-functions": "^7.2.5",
-    "mercadopago": "^3.1.0",
+    "mercadopago": "^3.6.0",
     "nodemailer": "^9.0.4",
     "zod": "^4.4.3"
   },
@@ -35,7 +35,7 @@
     "@types/sockjs": "^0.3.36",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",
-    "eslint": "^10.5.0",
+    "eslint": "^10.9.1",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"
