@@ -212,7 +212,244 @@
               </div>
             </div>
 
-            <!-- 2. Herramientas de Promoción y Conversión -->
+            <!-- 2. Personalización del Header & Live Preview -->
+            <div class="glass-card card-header-customization mb-4" formGroupName="appearance">
+              <div
+                class="card-header border-0 fw-bold d-flex align-items-center justify-content-between"
+              >
+                <div>
+                  <i class="bi bi-layout-text-window-reverse me-2 text-primary"></i> Personalización
+                  del Header & Live Preview
+                </div>
+                <span
+                  class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 text-xs"
+                >
+                  <i class="bi bi-lightning-charge-fill me-1"></i> Tiempo Real
+                </span>
+              </div>
+              <div class="card-body" formGroupName="header">
+                <!-- Mockup Live Preview Container -->
+                <div class="preview-browser-wrapper mb-4">
+                  <div
+                    class="preview-browser-header d-flex align-items-center justify-content-between px-3 py-2"
+                  >
+                    <div class="d-flex align-items-center gap-1">
+                      <span class="browser-dot browser-dot--red"></span>
+                      <span class="browser-dot browser-dot--yellow"></span>
+                      <span class="browser-dot browser-dot--green"></span>
+                    </div>
+                    <div class="browser-address-bar flex-grow-1 mx-3 text-center text-truncate">
+                      <i class="bi bi-lock-fill text-success me-1 text-xs"></i>
+                      <span class="text-xs text-soft"
+                        >{{ liveStoreName().toLowerCase().replace(' ', '') }}.mitienda.com</span
+                      >
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-soft text-xs">
+                      <i class="bi bi-arrow-clockwise"></i>
+                    </div>
+                  </div>
+
+                  <div class="preview-browser-viewport p-0">
+                    <div class="mockup-header" [ngStyle]="liveHeaderStyles()">
+                      <div
+                        class="mockup-header__container d-flex align-items-center justify-content-between px-3 py-2"
+                      >
+                        <!-- Brand -->
+                        <div class="mockup-header__brand d-flex align-items-center gap-2">
+                          @if (
+                            (liveBrandDisplayMode() === 'logo' ||
+                              liveBrandDisplayMode() === 'both') &&
+                            liveLogoUrl()
+                          ) {
+                            <img
+                              [src]="liveLogoUrl()"
+                              [alt]="liveStoreName()"
+                              class="mockup-header__logo"
+                            />
+                          }
+                          @if (
+                            liveBrandDisplayMode() === 'text' ||
+                            liveBrandDisplayMode() === 'both' ||
+                            !liveLogoUrl()
+                          ) {
+                            <span class="mockup-header__brand-text fw-bold fs-6">{{
+                              liveStoreName()
+                            }}</span>
+                          }
+                        </div>
+
+                        <!-- Nav items -->
+                        <div class="mockup-header__nav d-none d-md-flex align-items-center gap-3">
+                          <span class="mockup-header__link mockup-header__link--active"
+                            >Inicio</span
+                          >
+                          <span class="mockup-header__link">Productos</span>
+                          <span class="mockup-header__link">Nosotros</span>
+                        </div>
+
+                        <!-- Actions (Search + Cart) -->
+                        <div class="mockup-header__actions d-flex align-items-center gap-3">
+                          <i class="bi bi-search mockup-header__action-icon"></i>
+                          <div
+                            class="mockup-header__cart position-relative d-inline-flex align-items-center"
+                          >
+                            <i class="bi bi-bag mockup-header__action-icon fs-5"></i>
+                            <span class="mockup-header__cart-badge">3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Simulated Hero/Content banner inside mockup -->
+                    <div class="mockup-body-placeholder p-4 text-center">
+                      <span
+                        class="badge bg-secondary bg-opacity-25 text-soft rounded-pill px-3 py-1 mb-2 text-xs"
+                      >
+                        Vista previa del diseño
+                      </span>
+                      <p class="text-soft small mb-0">
+                        Los cambios en colores, sombras y tipografía se reflejan al instante.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Form Controls: Colors, Shadow, Typography -->
+                <div class="row g-4 mb-4">
+                  <!-- Color Pickers -->
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerBgColorInput">
+                      Color de Fondo <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerBgColorInput"
+                        type="color"
+                        formControlName="backgroundColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de fondo"
+                      />
+                      <input
+                        type="text"
+                        formControlName="backgroundColor"
+                        class="form-control glass-input"
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerTextColorInput">
+                      Color de Texto y Marca <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerTextColorInput"
+                        type="color"
+                        formControlName="textColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de texto"
+                      />
+                      <input
+                        type="text"
+                        formControlName="textColor"
+                        class="form-control glass-input"
+                        placeholder="#1f2937"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerAccentColorInput">
+                      Color de Acento & Insignias <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerAccentColorInput"
+                        type="color"
+                        formControlName="accentColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de acento"
+                      />
+                      <input
+                        type="text"
+                        formControlName="accentColor"
+                        class="form-control glass-input"
+                        placeholder="#0d6efd"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Shadow Presets Selector -->
+                <div class="mb-4">
+                  <label class="form-label text-label d-block mb-2">
+                    Estilo de Sombra & Elevación <span class="text-danger">*</span>
+                  </label>
+                  <div class="row g-2">
+                    @for (preset of shadowPresets; track preset.id) {
+                      <div class="col-6 col-sm-4 col-md">
+                        <button
+                          type="button"
+                          class="btn shadow-preset-card w-100 text-start p-3 h-100"
+                          [class.shadow-preset-card--active]="liveShadowStyle() === preset.id"
+                          (click)="selectShadowPreset(preset.id)"
+                        >
+                          <div class="d-flex align-items-center justify-content-between mb-1">
+                            <i class="bi {{ preset.icon }} fs-5"></i>
+                            @if (liveShadowStyle() === preset.id) {
+                              <i class="bi bi-check-circle-fill text-primary text-xs"></i>
+                            }
+                          </div>
+                          <div class="fw-semibold text-white text-xs mb-1">{{ preset.label }}</div>
+                          <div class="text-soft text-xxs lh-sm">{{ preset.description }}</div>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <input type="hidden" formControlName="shadowStyle" />
+                </div>
+
+                <!-- Font Family Preset Dropdown & Info -->
+                <div class="row g-4 align-items-center">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-label" for="headerFontFamilySelect">
+                      Tipografía del Header <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                      <select
+                        id="headerFontFamilySelect"
+                        formControlName="fontFamily"
+                        class="form-select glass-input glass-select"
+                      >
+                        @for (font of fontPresets; track font.id) {
+                          <option [value]="font.id">{{ font.name }} ({{ font.category }})</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="form-text text-soft small mt-1">
+                      Las fuentes de Google Fonts se cargan automáticamente de forma optimizada.
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-label">Muestra de Tipografía Activa</label>
+                    <div
+                      class="font-sample-card p-3 rounded-3"
+                      [style.fontFamily]="liveHeaderStyles()['--header-font-family']"
+                    >
+                      <div class="fw-bold text-white fs-6 mb-1">
+                        {{ liveStoreName() }} — Colección 2026
+                      </div>
+                      <div class="text-soft text-xs">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Herramientas de Promoción y Conversión -->
             <div class="glass-card card-conversion mb-4">
               <div class="card-header border-0 fw-bold d-flex align-items-center">
                 <i class="bi bi-megaphone me-2 text-warning"></i> Herramientas de Promoción y

@@ -559,5 +559,82 @@ describe('StoreConfig', () => {
       expect(component.form.get('floatingWhatsApp.phoneNumber')?.value).toBe('+5491199998888');
       expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe('Hola tienda!');
     });
+
+    it('should initialize appearance form controls with fallback defaults when config has no appearance', () => {
+      mockConfigSignal.set({
+        ...mockConfig,
+        appearance: undefined,
+      });
+
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#ffffff');
+      expect(component.form.get('appearance.header.textColor')?.value).toBe('#1f2937');
+      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#0d6efd');
+      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('subtle');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('system');
+    });
+
+    it('should initialize appearance form controls from service when config provides appearance', () => {
+      mockConfigSignal.set({
+        ...mockConfig,
+        appearance: {
+          header: {
+            backgroundColor: '#111827',
+            textColor: '#f9fafb',
+            accentColor: '#10b981',
+            shadowStyle: 'floating',
+            fontFamily: 'montserrat',
+          },
+        },
+      });
+
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#111827');
+      expect(component.form.get('appearance.header.textColor')?.value).toBe('#f9fafb');
+      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#10b981');
+      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('floating');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('montserrat');
+    });
+
+    it('should reactively update live preview styles when appearance form values change', () => {
+      component.form.patchValue({
+        appearance: {
+          header: {
+            backgroundColor: '#000000',
+            textColor: '#ffffff',
+            accentColor: '#ff0055',
+            shadowStyle: 'border-bottom',
+            fontFamily: 'poppins',
+          },
+        },
+      });
+      fixture.detectChanges();
+
+      const styles = component.liveHeaderStyles();
+      expect(styles['--header-bg']).toBe('#000000');
+      expect(styles['--header-text']).toBe('#ffffff');
+      expect(styles['--header-accent']).toBe('#ff0055');
+      expect(styles['--header-shadow']).toBe('none');
+      expect(styles['--header-border-bottom']).toBe('1px solid rgba(0, 0, 0, 0.1)');
+      expect(styles['--header-font-family']).toBe("'Poppins', sans-serif");
+    });
+
+    it('selectShadowPreset should update shadowStyle and mark form dirty', () => {
+      expect(component.form.dirty).toBeFalse();
+      component.selectShadowPreset('floating');
+      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('floating');
+      expect(component.form.dirty).toBeTrue();
+    });
+
+    it('selectFontPreset should update fontFamily and mark form dirty', () => {
+      expect(component.form.dirty).toBeFalse();
+      component.selectFontPreset('raleway');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('raleway');
+      expect(component.form.dirty).toBeTrue();
+    });
   });
 });

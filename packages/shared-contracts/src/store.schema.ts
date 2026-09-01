@@ -1,5 +1,44 @@
 import { z } from 'zod';
 
+export const HeaderShadowPresetSchema = z.enum([
+  'none',
+  'border-bottom',
+  'subtle',
+  'medium',
+  'floating',
+]);
+export type HeaderShadowPreset = z.infer<typeof HeaderShadowPresetSchema>;
+
+export const HeaderFontPresetSchema = z.enum([
+  'system',
+  'inter',
+  'montserrat',
+  'poppins',
+  'playfair',
+  'raleway',
+]);
+export type HeaderFontPreset = z.infer<typeof HeaderFontPresetSchema>;
+
+export const HeaderAppearanceConfigSchema = z.object({
+  backgroundColor: z.string().default('#ffffff').catch('#ffffff'),
+  textColor: z.string().default('#1f2937').catch('#1f2937'),
+  accentColor: z.string().default('#0d6efd').catch('#0d6efd'),
+  shadowStyle: HeaderShadowPresetSchema.default('subtle').catch('subtle'),
+  fontFamily: HeaderFontPresetSchema.default('system').catch('system'),
+});
+export type HeaderAppearanceConfig = z.infer<typeof HeaderAppearanceConfigSchema>;
+
+export const StoreAppearanceConfigSchema = z.object({
+  header: HeaderAppearanceConfigSchema.default({
+    backgroundColor: '#ffffff',
+    textColor: '#1f2937',
+    accentColor: '#0d6efd',
+    shadowStyle: 'subtle',
+    fontFamily: 'system',
+  }),
+});
+export type StoreAppearanceConfig = z.infer<typeof StoreAppearanceConfigSchema>;
+
 export const StoreConfigSchema = z
   .object({
     id: z.string().optional(),
@@ -75,6 +114,7 @@ export const StoreConfigSchema = z
       .default({
         metaDescription: '',
       }),
+    appearance: StoreAppearanceConfigSchema.optional(),
     setupCompleted: z.boolean().default(true).catch(true),
     updatedAt: z.any().optional().nullable(),
     createdAt: z.any().optional().nullable(),

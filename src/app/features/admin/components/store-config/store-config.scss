@@ -63,6 +63,11 @@
     animation-delay: 0.1s;
   }
 
+  &.card-header-customization {
+    --glow-rgb: 99, 102, 241;
+    animation-delay: 0.12s;
+  }
+
   &.card-conversion {
     --glow-rgb: 245, 158, 11;
     animation-delay: 0.15s;
@@ -686,4 +691,206 @@
   100% {
     background-position: -200% 0;
   }
+}
+
+.text-xxs {
+  font-size: 0.7rem;
+}
+
+// ── Header Customization Live Preview Mockup ─────────────────────────────────
+.preview-browser-wrapper {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.75);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: all 0.3s ease;
+}
+
+.preview-browser-header {
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.browser-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &--red {
+    background-color: #ef4444;
+  }
+  &--yellow {
+    background-color: #f59e0b;
+  }
+  &--green {
+    background-color: #10b981;
+  }
+}
+
+.browser-address-bar {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 2px 12px;
+  max-width: 320px;
+}
+
+.preview-browser-viewport {
+  background: #090d16;
+  position: relative;
+  min-height: 140px;
+}
+
+.mockup-header {
+  background-color: var(--header-bg, #ffffff);
+  box-shadow: var(--header-shadow, none);
+  border-bottom: var(--header-border-bottom, transparent);
+  font-family: var(--header-font-family, inherit);
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease,
+    border 0.25s ease;
+  position: relative;
+  z-index: 2;
+
+  &__container {
+    min-height: 52px;
+  }
+
+  &__brand {
+    color: var(--header-text, #1f2937);
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  &__logo {
+    max-height: 28px;
+    max-width: 110px;
+    object-fit: contain;
+  }
+
+  &__brand-text {
+    color: var(--header-text, #1f2937);
+    letter-spacing: -0.3px;
+  }
+
+  &__nav {
+    gap: 1.25rem;
+  }
+
+  &__link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--header-text, #1f2937);
+    opacity: 0.85;
+    cursor: default;
+    position: relative;
+    padding-bottom: 2px;
+    transition:
+      color 0.2s ease,
+      opacity 0.2s ease;
+
+    &--active {
+      color: var(--header-accent, #0d6efd) !important;
+      opacity: 1;
+      font-weight: 600;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--header-accent, #0d6efd);
+        border-radius: 2px;
+      }
+    }
+  }
+
+  &__actions {
+    color: var(--header-text, #1f2937);
+  }
+
+  &__action-icon {
+    font-size: 1rem;
+    color: var(--header-text, #1f2937);
+  }
+
+  &__cart {
+    cursor: default;
+  }
+
+  &__cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background-color: var(--header-accent, #0d6efd);
+    color: #ffffff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.mockup-body-placeholder {
+  background: radial-gradient(
+    circle at center,
+    rgba(30, 41, 59, 0.4) 0%,
+    rgba(15, 23, 42, 0.8) 100%
+  );
+  border-top: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+// ── Shadow Preset Cards ──────────────────────────────────────────────────────
+.shadow-preset-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: #e2e8f0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+
+  i.bi:not(.bi-check-circle-fill) {
+    color: #94a3b8;
+    transition: color 0.2s ease;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+
+    i.bi:not(.bi-check-circle-fill) {
+      color: #38bdf8;
+    }
+  }
+
+  &--active {
+    background: rgba(14, 165, 233, 0.12) !important;
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 15px -3px rgba(14, 165, 233, 0.35);
+
+    i.bi:not(.bi-check-circle-fill) {
+      color: #38bdf8;
+    }
+  }
+}
+
+// ── Font Sample Card ────────────────────────────────────────────────────────
+.font-sample-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: font-family 0.3s ease;
 }

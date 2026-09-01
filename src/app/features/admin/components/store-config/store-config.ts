@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   DestroyRef,
   effect,
   ViewChildren,
@@ -19,14 +20,20 @@ import { AuthService } from '@core/services/auth.service';
 import type {
   StoreConfig as StoreConfigData,
   StorePickupLocation,
+  HeaderShadowPreset,
+  HeaderFontPreset,
 } from '@core/models/store-config.model';
 import {
   DEFAULT_DELIVERY_METHOD_CONFIG,
+  DEFAULT_HEADER_APPEARANCE,
   WEEK_DAYS,
   TIME_SLOTS,
 } from '@core/models/store-config.model';
+import { computeHeaderCustomProperties, loadGoogleFont } from '@core/utils/font-loader';
 import { resolveTenantId } from '@core/utils/tenant';
 import { RouterModule } from '@angular/router';
+import { SHADOW_PRESETS, FONT_PRESETS, formatSchedule } from './store-config.constants';
+import { createStoreConfigForm, createPickupLocationGroup } from './store-config.form';
 
 @Component({
   selector: 'app-store-config',
@@ -46,6 +53,9 @@ export class StoreConfig {
   readonly weekDays = WEEK_DAYS;
   readonly timeSlots = TIME_SLOTS;
 
+  readonly shadowPresets = SHADOW_PRESETS;
+  readonly fontPresets = FONT_PRESETS;
+
   @ViewChildren('locationNameInput', { read: ElementRef })
   locationNameInputs!: QueryList<ElementRef>;
 
@@ -59,51 +69,47 @@ export class StoreConfig {
   logoUploadProgress = signal<number>(0);
   isUploadingLogo = signal<boolean>(false);
 
-  form: FormGroup = this.fb.group({
-    tenantId: [''],
-    storeId: [resolveTenantId()],
-    storeName: ['', Validators.required],
-    logoUrl: [''],
-    faviconUrl: [''],
-    brandDisplayMode: ['text'],
-    announcementBar: this.fb.group({
-      enabled: [false],
-      text: [''],
-      link: [''],
-      backgroundColor: ['#111827'],
-      textColor: ['#ffffff'],
-    }),
-    floatingWhatsApp: this.fb.group({
-      enabled: [false],
-      phoneNumber: [''],
-      defaultMessage: ['¡Hola! Tengo una consulta sobre un producto de la tienda'],
-    }),
-    colors: this.fb.group({
-      primary: ['#ea580c', Validators.required],
-      accent: ['#ef4444', Validators.required],
-      background: ['#ffffff', Validators.required],
-    }),
-    payments: this.fb.group({ mercadoPagoPublicKey: [''] }),
-    contact: this.fb.group({
-      phone: [''],
-      email: [''],
-      whatsApp: [''],
-      instagram: [''],
-      facebook: [''],
-    }),
-    seo: this.fb.group({ metaDescription: [''] }),
-    setupCompleted: [true],
-    storeOwnerEmail: [''],
-    notificationEmail: [''],
-    emailSenderName: [''],
-    emailSignature: [''],
-    deliveryMethods: this.fb.group({
-      enableHomeDelivery: [true],
-      enableStorePickup: [false],
-      homeDeliveryDescription: ['Coordinamos el envío y costo por WhatsApp'],
-      pickupLocations: this.fb.array([]),
-    }),
-  });
+  form: FormGroup = createStoreConfigForm(this.fb);
+
+  readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
+
+  readonly liveStoreName = computed(() => this.formValue()?.storeName ?? 'Mi Tienda');
+  readonly liveLogoUrl = computed(() => this.formValue()?.logoUrl ?? '');
+  readonly liveBrandDisplayMode = computed(() => this.formValue()?.brandDisplayMode ?? 'text');
+  readonly liveHeaderStyles = computed(() =>
+    computeHeaderCustomProperties(this.formValue()?.appearance?.header),
+  );
+  readonly liveFontFamily = computed(
+    () => this.formValue()?.appearance?.header?.fontFamily ?? 'system',
+  );
+  readonly liveShadowStyle = computed(
+    () => this.formValue()?.appearance?.header?.shadowStyle ?? 'subtle',
+  );
+  readonly liveHeaderBg = computed(
+    () => this.formValue()?.appearance?.header?.backgroundColor ?? '#ffffff',
+  );
+  readonly liveHeaderText = computed(
+    () => this.formValue()?.appearance?.header?.textColor ?? '#1f2937',
+  );
+  readonly liveHeaderAccent = computed(
+    () => this.formValue()?.appearance?.header?.accentColor ?? '#0d6efd',
+  );
+
+  get headerAppearanceGroup(): FormGroup {
+    return this.form.get('appearance.header') as FormGroup;
+  }
+
+  selectShadowPreset(preset: HeaderShadowPreset): void {
+    this.headerAppearanceGroup.patchValue({ shadowStyle: preset });
+    this.headerAppearanceGroup.get('shadowStyle')?.markAsDirty();
+    this.form.markAsDirty();
+  }
+
+  selectFontPreset(font: HeaderFontPreset): void {
+    this.headerAppearanceGroup.patchValue({ fontFamily: font });
+    this.headerAppearanceGroup.get('fontFamily')?.markAsDirty();
+    this.form.markAsDirty();
+  }
 
   get deliveryMethodsGroup(): FormGroup {
     return this.form.get('deliveryMethods') as FormGroup;
@@ -114,36 +120,7 @@ export class StoreConfig {
   }
 
   createPickupLocationGroup(location?: Partial<StorePickupLocation>): FormGroup {
-    const days = location?.days ?? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
-    const timeFrom1 = location?.timeFrom1 ?? '09:00';
-    const timeTo1 = location?.timeTo1 ?? '18:00';
-    const hasSplit = location?.hasSplitSchedule ?? false;
-    const timeFrom2 = location?.timeFrom2 ?? '16:30';
-    const timeTo2 = location?.timeTo2 ?? '20:30';
-    const initialSchedule =
-      location?.schedule ??
-      this.formatSchedule(days, timeFrom1, timeTo1, hasSplit, timeFrom2, timeTo2);
-
-    return this.fb.group({
-      id: [
-        location?.id ??
-          (typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : Date.now().toString()),
-      ],
-      name: [location?.name ?? '', Validators.required],
-      address: [location?.address ?? '', Validators.required],
-      city: [location?.city ?? '', Validators.required],
-      days: [days],
-      timeFrom1: [timeFrom1],
-      timeTo1: [timeTo1],
-      hasSplitSchedule: [hasSplit],
-      timeFrom2: [timeFrom2],
-      timeTo2: [timeTo2],
-      schedule: [initialSchedule, Validators.required],
-      notes: [location?.notes ?? ''],
-      enabled: [location?.enabled ?? true],
-    });
+    return createPickupLocationGroup(this.fb, location);
   }
 
   formatSchedule(
@@ -154,11 +131,7 @@ export class StoreConfig {
     from2: string,
     to2: string,
   ): string {
-    const daysStr = days.length > 0 ? days.join(', ') : 'Lun a Vie';
-    if (hasSplit && from2 && to2) {
-      return `${daysStr}: ${from1} a ${to1} y ${from2} a ${to2} hs`;
-    }
-    return `${daysStr}: ${from1} a ${to1} hs`;
+    return formatSchedule(days, from1, to1, hasSplit, from2, to2);
   }
 
   syncSchedule(index: number): void {
@@ -241,6 +214,13 @@ export class StoreConfig {
       this.populateFormFromConfig(this.storeConfigService.storeConfig());
     });
 
+    effect(() => {
+      const font = this.liveFontFamily();
+      if (font) {
+        loadGoogleFont(font);
+      }
+    });
+
     const announcementGroup = this.form.get('announcementBar') as FormGroup;
     announcementGroup
       .get('enabled')
@@ -295,7 +275,23 @@ export class StoreConfig {
 
   private patchBrandingAndSocial(cfg: StoreConfigData | null): void {
     this.patchBrandingAndColors(cfg);
+    this.patchAppearance(cfg);
     this.patchSocialAndWidgets(cfg);
+  }
+
+  private patchAppearance(cfg: StoreConfigData | null): void {
+    const header = cfg?.appearance?.header ?? DEFAULT_HEADER_APPEARANCE;
+    this.form.patchValue({
+      appearance: {
+        header: {
+          backgroundColor: header.backgroundColor ?? '#ffffff',
+          textColor: header.textColor ?? '#1f2937',
+          accentColor: header.accentColor ?? '#0d6efd',
+          shadowStyle: header.shadowStyle ?? 'subtle',
+          fontFamily: header.fontFamily ?? 'system',
+        },
+      },
+    });
   }
 
   private patchBrandingAndColors(cfg: StoreConfigData | null): void {

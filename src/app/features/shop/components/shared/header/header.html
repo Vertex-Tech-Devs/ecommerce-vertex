@@ -1,4 +1,9 @@
-<header class="header" [class.header--scrolled]="isScrolled()" role="banner">
+<header
+  class="header"
+  [class.header--scrolled]="isScrolled()"
+  [ngStyle]="headerStyles()"
+  role="banner"
+>
   @if (announcementBar()?.enabled && announcementBar()?.text) {
     <div
       class="announcement-bar"

@@ -142,6 +142,15 @@ export class StoreConfigService {
         facebook: (raw['socialFacebookUrl'] as string) ?? '',
       },
       seo: { metaDescription: (raw['metaDescription'] as string) ?? '' },
+      appearance: (raw['appearance'] as StoreConfig['appearance']) ?? {
+        header: {
+          backgroundColor: '#ffffff',
+          textColor: '#1f2937',
+          accentColor: '#0d6efd',
+          shadowStyle: 'subtle',
+          fontFamily: 'system',
+        },
+      },
       setupCompleted: (raw['setupCompleted'] as boolean) ?? true,
     };
   }

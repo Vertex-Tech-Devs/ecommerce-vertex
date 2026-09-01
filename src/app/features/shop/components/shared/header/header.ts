@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, effect, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
 import { StoreConfigService } from '@core/services/store-config.service';
+import { computeHeaderCustomProperties, loadGoogleFont } from '@core/utils/font-loader';
 
 @Component({
   selector: 'app-shop-header',
@@ -17,6 +18,10 @@ export class Header {
 
   readonly cartItemCount = this.cartService.itemCount;
   readonly storeConfig = this.storeConfigService.storeConfig;
+
+  readonly headerStyles = computed(() =>
+    computeHeaderCustomProperties(this.storeConfig()?.appearance?.header),
+  );
 
   readonly storeName = computed(() => this.storeConfig()?.storeName ?? 'Mi Tienda');
   readonly logoUrl = computed(() => this.storeConfig()?.logoUrl ?? '');
@@ -40,6 +45,15 @@ export class Header {
 
   readonly isMenuOpen = signal(false);
   readonly isScrolled = signal(false);
+
+  constructor() {
+    effect(() => {
+      const font = this.storeConfig()?.appearance?.header?.fontFamily;
+      if (font) {
+        loadGoogleFont(font);
+      }
+    });
+  }
 
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
