@@ -181,16 +181,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     (data as PaymentRequestData)?.projectId || undefined,
   );
 
-  // Si la tienda aún no tiene token configurado o válido, activar modo simulación / sandbox
   if (!runtime.accessToken) {
-    logger.info(
-      `[MercadoPago:Preference] Simulating preference creation for ${external_reference} (sin token válido configurado para ${tenantId ?? 'default'})`,
+    throw new Error(
+      `No se encontraron credenciales de Mercado Pago configuradas para la tienda ${tenantId ?? 'default'}. Por favor, configura tu Access Token en Ajustes del Negocio > Pagos.`,
     );
-    return {
-      id: `mp-sim-${Buffer.from(external_reference).toString('base64url')}`,
-      init_point: `${runtime.baseUrl}/order-confirmation/${external_reference}?status=approved`,
-      date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
-    };
   }
 
   const tokenPrefix = runtime.accessToken.slice(0, 8);

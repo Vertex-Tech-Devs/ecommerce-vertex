@@ -21,6 +21,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'mantenimiento',
+    title: 'Tienda en actualización',
+    loadComponent: () =>
+      import('./core/components/deploying-state/deploying-state').then((m) => m.DeployingState),
+  },
+  {
     path: '**',
     loadComponent: () => import('./features/shared/not-found/not-found').then((m) => m.NotFound),
   },

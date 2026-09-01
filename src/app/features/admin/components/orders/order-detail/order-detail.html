@@ -2,17 +2,22 @@
   <div class="card-gradient-wrapper">
     <div class="card list-card">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
-          <div class="page-title-container">
-            <h2 class="card-title mb-0">{{ pageTitle }}</h2>
+        <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+          <button
+            type="button"
+            (click)="goBack()"
+            class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 36px; height: 36px; min-width: 36px"
+            aria-label="Volver"
+          >
+            <i class="bi bi-arrow-left"></i>
+          </button>
+          <div class="flex-grow-1 min-w-0">
+            <h1 class="h4 mb-0 text-truncate">{{ pageTitle }}</h1>
             @if (order$ | async; as order) {
-              <small class="order-id-subtitle">#{{ order.id }}</small>
+              <p class="text-muted small mb-0">Identificador del pedido: #{{ order.id }}</p>
             }
           </div>
-          <button type="button" (click)="goBack()" class="btn-glass-secondary">
-            <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            <span class="d-none d-sm-inline ms-2">Volver</span>
-          </button>
         </div>
 
         @if (order$ | async; as order) {

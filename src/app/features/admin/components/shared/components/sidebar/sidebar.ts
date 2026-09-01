@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { environment } from '../../../../../../../environments/environment';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,6 +13,7 @@ import { RouterModule } from '@angular/router';
 export class Sidebar {
   @Input() isOpen: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
+  readonly isDev = !environment.production;
 
   onLinkClick(): void {
     this.linkClicked.emit();
