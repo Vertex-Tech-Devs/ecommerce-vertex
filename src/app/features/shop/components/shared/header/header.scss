@@ -206,7 +206,7 @@
     left: 0;
     width: 280px;
     height: 100vh;
-    background: #fff;
+    background-color: var(--header-bg, #ffffff);
     flex-direction: column;
     justify-content: center;
     align-items: center;

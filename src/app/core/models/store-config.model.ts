@@ -97,7 +97,7 @@ export interface StoreAppearanceConfig {
 export const DEFAULT_HEADER_APPEARANCE: HeaderAppearanceConfig = {
   backgroundColor: '#ffffff',
   textColor: '#1f2937',
-  accentColor: '#0d6efd',
+  accentColor: '#000000',
   fontFamily: 'system',
 };
 

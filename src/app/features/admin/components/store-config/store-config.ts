@@ -87,7 +87,7 @@ export class StoreConfig {
     () => this.formValue()?.appearance?.header?.textColor ?? '#1f2937',
   );
   readonly liveHeaderAccent = computed(
-    () => this.formValue()?.appearance?.header?.accentColor ?? '#0d6efd',
+    () => this.formValue()?.appearance?.header?.accentColor ?? '#000000',
   );
 
   get headerAppearanceGroup(): FormGroup {
@@ -275,7 +275,7 @@ export class StoreConfig {
         header: {
           backgroundColor: header.backgroundColor ?? '#ffffff',
           textColor: header.textColor ?? '#1f2937',
-          accentColor: header.accentColor ?? '#0d6efd',
+          accentColor: header.accentColor ?? '#000000',
           fontFamily: header.fontFamily ?? 'system',
         },
       },

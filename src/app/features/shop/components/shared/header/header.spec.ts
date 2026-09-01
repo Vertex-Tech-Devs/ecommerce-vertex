@@ -299,7 +299,7 @@ describe('Header', () => {
       const styles = component.headerStyles();
       expect(styles['--header-bg']).toBe('#ffffff');
       expect(styles['--header-text']).toBe('#1f2937');
-      expect(styles['--header-accent']).toBe('#0d6efd');
+      expect(styles['--header-accent']).toBe('#000000');
       expect(styles['--header-font-family']).toContain('system-ui');
     });
 

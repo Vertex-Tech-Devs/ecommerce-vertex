@@ -571,7 +571,7 @@ describe('StoreConfig', () => {
 
       expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#ffffff');
       expect(component.form.get('appearance.header.textColor')?.value).toBe('#1f2937');
-      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#0d6efd');
+      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#000000');
       expect(component.form.get('appearance.header.fontFamily')?.value).toBe('system');
     });
 

@@ -22,7 +22,7 @@ export type HeaderFontPreset = z.infer<typeof HeaderFontPresetSchema>;
 export const HeaderAppearanceConfigSchema = z.object({
   backgroundColor: z.string().default('#ffffff').catch('#ffffff'),
   textColor: z.string().default('#1f2937').catch('#1f2937'),
-  accentColor: z.string().default('#0d6efd').catch('#0d6efd'),
+  accentColor: z.string().default('#000000').catch('#000000'),
   fontFamily: HeaderFontPresetSchema.default('system').catch('system'),
 });
 export type HeaderAppearanceConfig = z.infer<typeof HeaderAppearanceConfigSchema>;
@@ -31,7 +31,7 @@ export const StoreAppearanceConfigSchema = z.object({
   header: HeaderAppearanceConfigSchema.default({
     backgroundColor: '#ffffff',
     textColor: '#1f2937',
-    accentColor: '#0d6efd',
+    accentColor: '#000000',
     fontFamily: 'system',
   }),
 });

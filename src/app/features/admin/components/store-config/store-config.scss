@@ -793,7 +793,7 @@
       opacity 0.2s ease;
 
     &--active {
-      color: var(--header-accent, #0d6efd) !important;
+      color: var(--header-accent, #000000) !important;
       opacity: 1;
       font-weight: 600;
 
@@ -804,7 +804,7 @@
         left: 0;
         width: 100%;
         height: 2px;
-        background-color: var(--header-accent, #0d6efd);
+        background-color: var(--header-accent, #000000);
         border-radius: 2px;
       }
     }
@@ -827,7 +827,7 @@
     position: absolute;
     top: -5px;
     right: -8px;
-    background-color: var(--header-accent, #0d6efd);
+    background-color: var(--header-accent, #000000);
     color: #ffffff;
     border-radius: 50%;
     width: 16px;
