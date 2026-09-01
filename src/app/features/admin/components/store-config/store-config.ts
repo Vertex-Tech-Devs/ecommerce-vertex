@@ -20,7 +20,6 @@ import { AuthService } from '@core/services/auth.service';
 import type {
   StoreConfig as StoreConfigData,
   StorePickupLocation,
-  HeaderShadowPreset,
   HeaderFontPreset,
 } from '@core/models/store-config.model';
 import {
@@ -32,7 +31,7 @@ import {
 import { computeHeaderCustomProperties, loadGoogleFont } from '@core/utils/font-loader';
 import { resolveTenantId } from '@core/utils/tenant';
 import { RouterModule } from '@angular/router';
-import { SHADOW_PRESETS, FONT_PRESETS, formatSchedule } from './store-config.constants';
+import { FONT_PRESETS, formatSchedule } from './store-config.constants';
 import { createStoreConfigForm, createPickupLocationGroup } from './store-config.form';
 
 @Component({
@@ -53,7 +52,6 @@ export class StoreConfig {
   readonly weekDays = WEEK_DAYS;
   readonly timeSlots = TIME_SLOTS;
 
-  readonly shadowPresets = SHADOW_PRESETS;
   readonly fontPresets = FONT_PRESETS;
 
   @ViewChildren('locationNameInput', { read: ElementRef })
@@ -82,9 +80,6 @@ export class StoreConfig {
   readonly liveFontFamily = computed(
     () => this.formValue()?.appearance?.header?.fontFamily ?? 'system',
   );
-  readonly liveShadowStyle = computed(
-    () => this.formValue()?.appearance?.header?.shadowStyle ?? 'subtle',
-  );
   readonly liveHeaderBg = computed(
     () => this.formValue()?.appearance?.header?.backgroundColor ?? '#ffffff',
   );
@@ -97,12 +92,6 @@ export class StoreConfig {
 
   get headerAppearanceGroup(): FormGroup {
     return this.form.get('appearance.header') as FormGroup;
-  }
-
-  selectShadowPreset(preset: HeaderShadowPreset): void {
-    this.headerAppearanceGroup.patchValue({ shadowStyle: preset });
-    this.headerAppearanceGroup.get('shadowStyle')?.markAsDirty();
-    this.form.markAsDirty();
   }
 
   selectFontPreset(font: HeaderFontPreset): void {
@@ -287,7 +276,6 @@ export class StoreConfig {
           backgroundColor: header.backgroundColor ?? '#ffffff',
           textColor: header.textColor ?? '#1f2937',
           accentColor: header.accentColor ?? '#0d6efd',
-          shadowStyle: header.shadowStyle ?? 'subtle',
           fontFamily: header.fontFamily ?? 'system',
         },
       },

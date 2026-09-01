@@ -5,8 +5,7 @@
   width: 100%;
   z-index: 1000;
   background-color: var(--header-bg, var(--shop-surface));
-  box-shadow: var(--header-shadow, none);
-  border-bottom: var(--header-border-bottom, 1px solid rgba(0, 0, 0, 0.05));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   font-family: var(--header-font-family, inherit);
   transition: var(--header-transition);
 

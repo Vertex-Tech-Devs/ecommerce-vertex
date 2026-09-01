@@ -1,21 +1,21 @@
 import { z } from 'zod';
 
-export const HeaderShadowPresetSchema = z.enum([
-  'none',
-  'border-bottom',
-  'subtle',
-  'medium',
-  'floating',
-]);
-export type HeaderShadowPreset = z.infer<typeof HeaderShadowPresetSchema>;
-
 export const HeaderFontPresetSchema = z.enum([
   'system',
   'inter',
   'montserrat',
   'poppins',
-  'playfair',
   'raleway',
+  'playfair',
+  'dancing-script',
+  'bebas-neue',
+  'cormorant',
+  'cinzel',
+  'tenor-sans',
+  'quicksand',
+  'comfortaa',
+  'space-grotesk',
+  'oswald',
 ]);
 export type HeaderFontPreset = z.infer<typeof HeaderFontPresetSchema>;
 
@@ -23,7 +23,6 @@ export const HeaderAppearanceConfigSchema = z.object({
   backgroundColor: z.string().default('#ffffff').catch('#ffffff'),
   textColor: z.string().default('#1f2937').catch('#1f2937'),
   accentColor: z.string().default('#0d6efd').catch('#0d6efd'),
-  shadowStyle: HeaderShadowPresetSchema.default('subtle').catch('subtle'),
   fontFamily: HeaderFontPresetSchema.default('system').catch('system'),
 });
 export type HeaderAppearanceConfig = z.infer<typeof HeaderAppearanceConfigSchema>;
@@ -33,7 +32,6 @@ export const StoreAppearanceConfigSchema = z.object({
     backgroundColor: '#ffffff',
     textColor: '#1f2937',
     accentColor: '#0d6efd',
-    shadowStyle: 'subtle',
     fontFamily: 'system',
   }),
 });

@@ -747,12 +747,10 @@
 
 .mockup-header {
   background-color: var(--header-bg, #ffffff);
-  box-shadow: var(--header-shadow, none);
-  border-bottom: var(--header-border-bottom, transparent);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--header-font-family, inherit);
   transition:
     background-color 0.25s ease,
-    box-shadow 0.25s ease,
     border 0.25s ease;
   position: relative;
   z-index: 2;
@@ -850,41 +848,6 @@
     rgba(15, 23, 42, 0.8) 100%
   );
   border-top: 1px dashed rgba(255, 255, 255, 0.05);
-}
-
-// ── Shadow Preset Cards ──────────────────────────────────────────────────────
-.shadow-preset-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  color: #e2e8f0;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-
-  i.bi:not(.bi-check-circle-fill) {
-    color: #94a3b8;
-    transition: color 0.2s ease;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-
-    i.bi:not(.bi-check-circle-fill) {
-      color: #38bdf8;
-    }
-  }
-
-  &--active {
-    background: rgba(14, 165, 233, 0.12) !important;
-    border-color: #0ea5e9 !important;
-    box-shadow: 0 0 15px -3px rgba(14, 165, 233, 0.35);
-
-    i.bi:not(.bi-check-circle-fill) {
-      color: #38bdf8;
-    }
-  }
 }
 
 // ── Font Sample Card ────────────────────────────────────────────────────────

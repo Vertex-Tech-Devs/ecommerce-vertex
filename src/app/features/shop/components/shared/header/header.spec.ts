@@ -300,8 +300,6 @@ describe('Header', () => {
       expect(styles['--header-bg']).toBe('#ffffff');
       expect(styles['--header-text']).toBe('#1f2937');
       expect(styles['--header-accent']).toBe('#0d6efd');
-      expect(styles['--header-shadow']).toBe('0 1px 3px rgba(0, 0, 0, 0.07)');
-      expect(styles['--header-border-bottom']).toBe('transparent');
       expect(styles['--header-font-family']).toContain('system-ui');
     });
 
@@ -313,7 +311,6 @@ describe('Header', () => {
             backgroundColor: '#0f172a',
             textColor: '#f8fafc',
             accentColor: '#38bdf8',
-            shadowStyle: 'floating',
             fontFamily: 'montserrat',
           },
         },
@@ -324,30 +321,25 @@ describe('Header', () => {
       expect(styles['--header-bg']).toBe('#0f172a');
       expect(styles['--header-text']).toBe('#f8fafc');
       expect(styles['--header-accent']).toBe('#38bdf8');
-      expect(styles['--header-shadow']).toBe('0 10px 15px -3px rgba(0, 0, 0, 0.08)');
-      expect(styles['--header-border-bottom']).toBe('transparent');
       expect(styles['--header-font-family']).toBe("'Montserrat', sans-serif");
     });
 
-    it('should map border-bottom shadowStyle correctly', () => {
+    it('should compute custom CSS properties for new font presets', () => {
       mockStoreConfigSignal.set({
-        storeName: 'Tienda Border',
+        storeName: 'Tienda Dancing',
         appearance: {
           header: {
             backgroundColor: '#ffffff',
             textColor: '#000000',
             accentColor: '#ff0000',
-            shadowStyle: 'border-bottom',
-            fontFamily: 'inter',
+            fontFamily: 'dancing-script',
           },
         },
       } as StoreConfig);
       fixture.detectChanges();
 
       const styles = component.headerStyles();
-      expect(styles['--header-shadow']).toBe('none');
-      expect(styles['--header-border-bottom']).toBe('1px solid rgba(0, 0, 0, 0.1)');
-      expect(styles['--header-font-family']).toBe("'Inter', sans-serif");
+      expect(styles['--header-font-family']).toBe("'Dancing Script', cursive");
     });
 
     it('should inject Google Font stylesheet link when a Google font is configured', () => {
@@ -358,18 +350,17 @@ describe('Header', () => {
             backgroundColor: '#ffffff',
             textColor: '#1f2937',
             accentColor: '#0d6efd',
-            shadowStyle: 'subtle',
-            fontFamily: 'poppins',
+            fontFamily: 'space-grotesk',
           },
         },
       } as StoreConfig);
       TestBed.flushEffects();
       fixture.detectChanges();
 
-      const link = document.getElementById('google-font-poppins');
+      const link = document.getElementById('google-font-space-grotesk');
       expect(link).not.toBeNull();
       expect(link?.getAttribute('rel')).toBe('stylesheet');
-      expect(link?.getAttribute('href')).toContain('Poppins');
+      expect(link?.getAttribute('href')).toContain('Space+Grotesk');
     });
   });
 });

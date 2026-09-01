@@ -147,7 +147,6 @@ export class StoreConfigService {
           backgroundColor: '#ffffff',
           textColor: '#1f2937',
           accentColor: '#0d6efd',
-          shadowStyle: 'subtle',
           fontFamily: 'system',
         },
       },

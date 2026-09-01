@@ -1,17 +1,5 @@
-import type {
-  HeaderAppearanceConfig,
-  HeaderFontPreset,
-  HeaderShadowPreset,
-} from '@core/models/store-config.model';
+import type { HeaderAppearanceConfig, HeaderFontPreset } from '@core/models/store-config.model';
 import { DEFAULT_HEADER_APPEARANCE } from '@core/models/store-config.model';
-
-export const HEADER_SHADOW_MAP: Record<HeaderShadowPreset, string> = {
-  none: 'none',
-  'border-bottom': 'none',
-  subtle: '0 1px 3px rgba(0, 0, 0, 0.07)',
-  medium: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  floating: '0 10px 15px -3px rgba(0, 0, 0, 0.08)',
-};
 
 export const HEADER_FONT_STACK_MAP: Record<HeaderFontPreset, string> = {
   system:
@@ -19,8 +7,17 @@ export const HEADER_FONT_STACK_MAP: Record<HeaderFontPreset, string> = {
   inter: "'Inter', sans-serif",
   montserrat: "'Montserrat', sans-serif",
   poppins: "'Poppins', sans-serif",
-  playfair: "'Playfair Display', Georgia, serif",
   raleway: "'Raleway', sans-serif",
+  playfair: "'Playfair Display', Georgia, serif",
+  'dancing-script': "'Dancing Script', cursive",
+  'bebas-neue': "'Bebas Neue', sans-serif",
+  cormorant: "'Cormorant Garamond', serif",
+  cinzel: "'Cinzel', serif",
+  'tenor-sans': "'Tenor Sans', sans-serif",
+  quicksand: "'Quicksand', sans-serif",
+  comfortaa: "'Comfortaa', cursive",
+  'space-grotesk': "'Space Grotesk', sans-serif",
+  oswald: "'Oswald', sans-serif",
 };
 
 export const GOOGLE_FONT_URLS: Partial<Record<HeaderFontPreset, string>> = {
@@ -28,9 +25,21 @@ export const GOOGLE_FONT_URLS: Partial<Record<HeaderFontPreset, string>> = {
   montserrat:
     'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap',
   poppins: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
+  raleway: 'https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap',
   playfair:
     'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap',
-  raleway: 'https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&display=swap',
+  'dancing-script':
+    'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap',
+  'bebas-neue': 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
+  cormorant:
+    'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&display=swap',
+  cinzel: 'https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap',
+  'tenor-sans': 'https://fonts.googleapis.com/css2?family=Tenor+Sans&display=swap',
+  quicksand: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap',
+  comfortaa: 'https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&display=swap',
+  'space-grotesk':
+    'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap',
+  oswald: 'https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&display=swap',
 };
 
 export function loadGoogleFont(font?: HeaderFontPreset | string): void {
@@ -61,22 +70,15 @@ export function computeHeaderCustomProperties(
   const bg = appearance?.backgroundColor ?? DEFAULT_HEADER_APPEARANCE.backgroundColor;
   const text = appearance?.textColor ?? DEFAULT_HEADER_APPEARANCE.textColor;
   const accent = appearance?.accentColor ?? DEFAULT_HEADER_APPEARANCE.accentColor;
-  const shadowPreset: HeaderShadowPreset =
-    appearance?.shadowStyle ?? DEFAULT_HEADER_APPEARANCE.shadowStyle;
   const fontPreset: HeaderFontPreset =
     appearance?.fontFamily ?? DEFAULT_HEADER_APPEARANCE.fontFamily;
 
-  const shadowValue = HEADER_SHADOW_MAP[shadowPreset] ?? HEADER_SHADOW_MAP.subtle;
-  const borderBottomValue =
-    shadowPreset === 'border-bottom' ? '1px solid rgba(0, 0, 0, 0.1)' : 'transparent';
   const fontValue = HEADER_FONT_STACK_MAP[fontPreset] ?? HEADER_FONT_STACK_MAP.system;
 
   return {
     '--header-bg': bg,
     '--header-text': text,
     '--header-accent': accent,
-    '--header-shadow': shadowValue,
-    '--header-border-bottom': borderBottomValue,
     '--header-font-family': fontValue,
   };
 }

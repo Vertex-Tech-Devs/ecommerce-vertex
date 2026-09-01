@@ -66,15 +66,27 @@ export const DEFAULT_DELIVERY_METHOD_CONFIG: DeliveryMethodConfig = {
   pickupLocations: [],
 };
 
-export type HeaderShadowPreset = 'none' | 'border-bottom' | 'subtle' | 'medium' | 'floating';
 export type HeaderFontPreset =
-  'system' | 'inter' | 'montserrat' | 'poppins' | 'playfair' | 'raleway';
+  | 'system'
+  | 'inter'
+  | 'montserrat'
+  | 'poppins'
+  | 'raleway'
+  | 'playfair'
+  | 'dancing-script'
+  | 'bebas-neue'
+  | 'cormorant'
+  | 'cinzel'
+  | 'tenor-sans'
+  | 'quicksand'
+  | 'comfortaa'
+  | 'space-grotesk'
+  | 'oswald';
 
 export interface HeaderAppearanceConfig {
   backgroundColor: string;
   textColor: string;
   accentColor: string;
-  shadowStyle: HeaderShadowPreset;
   fontFamily: HeaderFontPreset;
 }
 
@@ -86,7 +98,6 @@ export const DEFAULT_HEADER_APPEARANCE: HeaderAppearanceConfig = {
   backgroundColor: '#ffffff',
   textColor: '#1f2937',
   accentColor: '#0d6efd',
-  shadowStyle: 'subtle',
   fontFamily: 'system',
 };
 

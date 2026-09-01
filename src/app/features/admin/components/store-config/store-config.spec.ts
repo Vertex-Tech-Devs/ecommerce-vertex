@@ -572,7 +572,6 @@ describe('StoreConfig', () => {
       expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#ffffff');
       expect(component.form.get('appearance.header.textColor')?.value).toBe('#1f2937');
       expect(component.form.get('appearance.header.accentColor')?.value).toBe('#0d6efd');
-      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('subtle');
       expect(component.form.get('appearance.header.fontFamily')?.value).toBe('system');
     });
 
@@ -584,7 +583,6 @@ describe('StoreConfig', () => {
             backgroundColor: '#111827',
             textColor: '#f9fafb',
             accentColor: '#10b981',
-            shadowStyle: 'floating',
             fontFamily: 'montserrat',
           },
         },
@@ -596,7 +594,6 @@ describe('StoreConfig', () => {
       expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#111827');
       expect(component.form.get('appearance.header.textColor')?.value).toBe('#f9fafb');
       expect(component.form.get('appearance.header.accentColor')?.value).toBe('#10b981');
-      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('floating');
       expect(component.form.get('appearance.header.fontFamily')?.value).toBe('montserrat');
     });
 
@@ -607,7 +604,6 @@ describe('StoreConfig', () => {
             backgroundColor: '#000000',
             textColor: '#ffffff',
             accentColor: '#ff0055',
-            shadowStyle: 'border-bottom',
             fontFamily: 'poppins',
           },
         },
@@ -618,23 +614,22 @@ describe('StoreConfig', () => {
       expect(styles['--header-bg']).toBe('#000000');
       expect(styles['--header-text']).toBe('#ffffff');
       expect(styles['--header-accent']).toBe('#ff0055');
-      expect(styles['--header-shadow']).toBe('none');
-      expect(styles['--header-border-bottom']).toBe('1px solid rgba(0, 0, 0, 0.1)');
       expect(styles['--header-font-family']).toBe("'Poppins', sans-serif");
-    });
-
-    it('selectShadowPreset should update shadowStyle and mark form dirty', () => {
-      expect(component.form.dirty).toBeFalse();
-      component.selectShadowPreset('floating');
-      expect(component.form.get('appearance.header.shadowStyle')?.value).toBe('floating');
-      expect(component.form.dirty).toBeTrue();
     });
 
     it('selectFontPreset should update fontFamily and mark form dirty', () => {
       expect(component.form.dirty).toBeFalse();
-      component.selectFontPreset('raleway');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('raleway');
+      component.selectFontPreset('space-grotesk');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('space-grotesk');
       expect(component.form.dirty).toBeTrue();
+    });
+
+    it('selectFontPreset should support cursive and disruptive presets', () => {
+      component.selectFontPreset('dancing-script');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('dancing-script');
+
+      component.selectFontPreset('bebas-neue');
+      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('bebas-neue');
     });
   });
 });

@@ -17,7 +17,6 @@ export function createStoreConfigForm(fb: FormBuilder): FormGroup {
         backgroundColor: ['#ffffff', Validators.required],
         textColor: ['#1f2937', Validators.required],
         accentColor: ['#0d6efd', Validators.required],
-        shadowStyle: ['subtle', Validators.required],
         fontFamily: ['system', Validators.required],
       }),
     }),

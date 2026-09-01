@@ -308,13 +308,13 @@
                         Vista previa del diseño
                       </span>
                       <p class="text-soft small mb-0">
-                        Los cambios en colores, sombras y tipografía se reflejan al instante.
+                        Los cambios en colores y tipografía se reflejan al instante.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <!-- Form Controls: Colors, Shadow, Typography -->
+                <!-- Form Controls: Colors, Typography -->
                 <div class="row g-4 mb-4">
                   <!-- Color Pickers -->
                   <div class="col-12 col-md-4">
@@ -379,35 +379,6 @@
                       />
                     </div>
                   </div>
-                </div>
-
-                <!-- Shadow Presets Selector -->
-                <div class="mb-4">
-                  <label class="form-label text-label d-block mb-2">
-                    Estilo de Sombra & Elevación <span class="text-danger">*</span>
-                  </label>
-                  <div class="row g-2">
-                    @for (preset of shadowPresets; track preset.id) {
-                      <div class="col-6 col-sm-4 col-md">
-                        <button
-                          type="button"
-                          class="btn shadow-preset-card w-100 text-start p-3 h-100"
-                          [class.shadow-preset-card--active]="liveShadowStyle() === preset.id"
-                          (click)="selectShadowPreset(preset.id)"
-                        >
-                          <div class="d-flex align-items-center justify-content-between mb-1">
-                            <i class="bi {{ preset.icon }} fs-5"></i>
-                            @if (liveShadowStyle() === preset.id) {
-                              <i class="bi bi-check-circle-fill text-primary text-xs"></i>
-                            }
-                          </div>
-                          <div class="fw-semibold text-white text-xs mb-1">{{ preset.label }}</div>
-                          <div class="text-soft text-xxs lh-sm">{{ preset.description }}</div>
-                        </button>
-                      </div>
-                    }
-                  </div>
-                  <input type="hidden" formControlName="shadowStyle" />
                 </div>
 
                 <!-- Font Family Preset Dropdown & Info -->
