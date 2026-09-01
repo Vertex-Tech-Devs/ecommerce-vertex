@@ -66,6 +66,45 @@ export const DEFAULT_DELIVERY_METHOD_CONFIG: DeliveryMethodConfig = {
   pickupLocations: [],
 };
 
+export type HeaderFontPreset =
+  | 'system'
+  | 'inter'
+  | 'montserrat'
+  | 'poppins'
+  | 'raleway'
+  | 'playfair'
+  | 'dancing-script'
+  | 'bebas-neue'
+  | 'cormorant'
+  | 'cinzel'
+  | 'tenor-sans'
+  | 'quicksand'
+  | 'comfortaa'
+  | 'space-grotesk'
+  | 'oswald';
+
+export interface HeaderAppearanceConfig {
+  backgroundColor: string;
+  textColor: string;
+  accentColor: string;
+  fontFamily: HeaderFontPreset;
+}
+
+export interface StoreAppearanceConfig {
+  header: HeaderAppearanceConfig;
+}
+
+export const DEFAULT_HEADER_APPEARANCE: HeaderAppearanceConfig = {
+  backgroundColor: '#ffffff',
+  textColor: '#1f2937',
+  accentColor: '#000000',
+  fontFamily: 'system',
+};
+
+export const DEFAULT_STORE_APPEARANCE: StoreAppearanceConfig = {
+  header: DEFAULT_HEADER_APPEARANCE,
+};
+
 export interface StoreConfig {
   readonly tenantId: string;
   storeId: string;
@@ -111,6 +150,7 @@ export interface StoreConfig {
   seo: {
     metaDescription: string;
   };
+  appearance?: StoreAppearanceConfig;
   setupCompleted: boolean;
 
   // Métodos de entrega
@@ -164,6 +204,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfig = {
   seo: {
     metaDescription: 'Bienvenido a nuestra tienda online.',
   },
+  appearance: DEFAULT_STORE_APPEARANCE,
   setupCompleted: false,
   deliveryMethods: DEFAULT_DELIVERY_METHOD_CONFIG,
 };

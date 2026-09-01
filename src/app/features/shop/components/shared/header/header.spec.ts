@@ -288,4 +288,79 @@ describe('Header', () => {
       expect(nav.classes['header__nav--open']).toBeTrue();
     });
   });
+
+  describe('header appearance and custom properties', () => {
+    it('should compute default custom properties when appearance is undefined', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Tienda Default',
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const styles = component.headerStyles();
+      expect(styles['--header-bg']).toBe('#ffffff');
+      expect(styles['--header-text']).toBe('#1f2937');
+      expect(styles['--header-accent']).toBe('#000000');
+      expect(styles['--header-font-family']).toContain('system-ui');
+    });
+
+    it('should compute custom CSS properties according to appearance settings', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Tienda Custom',
+        appearance: {
+          header: {
+            backgroundColor: '#0f172a',
+            textColor: '#f8fafc',
+            accentColor: '#38bdf8',
+            fontFamily: 'montserrat',
+          },
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const styles = component.headerStyles();
+      expect(styles['--header-bg']).toBe('#0f172a');
+      expect(styles['--header-text']).toBe('#f8fafc');
+      expect(styles['--header-accent']).toBe('#38bdf8');
+      expect(styles['--header-font-family']).toBe("'Montserrat', sans-serif");
+    });
+
+    it('should compute custom CSS properties for new font presets', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Tienda Dancing',
+        appearance: {
+          header: {
+            backgroundColor: '#ffffff',
+            textColor: '#000000',
+            accentColor: '#ff0000',
+            fontFamily: 'dancing-script',
+          },
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const styles = component.headerStyles();
+      expect(styles['--header-font-family']).toBe("'Dancing Script', cursive");
+    });
+
+    it('should inject Google Font stylesheet link when a Google font is configured', () => {
+      mockStoreConfigSignal.set({
+        storeName: 'Tienda Font Test',
+        appearance: {
+          header: {
+            backgroundColor: '#ffffff',
+            textColor: '#1f2937',
+            accentColor: '#0d6efd',
+            fontFamily: 'space-grotesk',
+          },
+        },
+      } as StoreConfig);
+      TestBed.flushEffects();
+      fixture.detectChanges();
+
+      const link = document.getElementById('google-font-space-grotesk');
+      expect(link).not.toBeNull();
+      expect(link?.getAttribute('rel')).toBe('stylesheet');
+      expect(link?.getAttribute('href')).toContain('Space+Grotesk');
+    });
+  });
 });
