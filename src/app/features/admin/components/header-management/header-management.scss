@@ -1,0 +1,112 @@
+@use 'variables' as vars;
+
+.header-management-wrapper {
+  color: #f1f5f9;
+}
+
+.dashboard__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.text-soft {
+  color: #94a3b8;
+}
+
+.text-label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 0.35rem;
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  padding: 1.25rem 1.5rem;
+}
+
+.glass-input,
+.glass-select {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+  font-size: 0.875rem;
+  border-radius: var(--radius-md, 8px);
+
+  &:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15) !important;
+  }
+
+  &::placeholder {
+    color: #64748b;
+  }
+}
+
+.glass-color-picker {
+  width: 44px;
+  height: 38px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.input-group-text {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  border-right: none;
+}
+
+.custom-glass-switch {
+  .form-check-input {
+    width: 2.8rem;
+    height: 1.4rem;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+
+    &:checked {
+      background-color: #2563eb;
+      border-color: #3b82f6;
+    }
+  }
+}
+
+.font-preset-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease;
+  user-select: none;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    background: rgba(37, 99, 235, 0.15) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 16px rgba(37, 99, 235, 0.3);
+  }
+}
+
+.font-sample {
+  font-size: 1.15rem;
+  color: #f8fafc;
+  line-height: 1.3;
+}
+
+.live-preview-container {
+  background: #0b0f19;
+}

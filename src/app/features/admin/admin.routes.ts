@@ -80,6 +80,22 @@ export const ADMIN_ROUTES: Routes = [
           import('./components/client/client-details/client-details').then((m) => m.ClientDetails),
       },
       {
+        path: 'branches',
+        title: 'Sucursales y Retiro',
+        loadComponent: () =>
+          import('./components/branches-management/branches-management').then(
+            (m) => m.BranchesManagement,
+          ),
+      },
+      {
+        path: 'header-management',
+        title: 'Gestión Encabezado',
+        loadComponent: () =>
+          import('./components/header-management/header-management').then(
+            (m) => m.HeaderManagement,
+          ),
+      },
+      {
         path: 'home-management',
         title: 'Gestión Home',
         loadComponent: () =>
@@ -109,7 +125,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'store-config',
-        title: 'Configuración',
+        title: 'Identidad y Marca',
         loadComponent: () =>
           import('./components/store-config/store-config').then((m) => m.StoreConfig),
       },

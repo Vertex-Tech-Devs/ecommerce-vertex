@@ -14,152 +14,286 @@
     </div>
   </div>
 
-  <ul class="sidebar__nav" role="list">
-    <!-- 📊 PRINCIPAL -->
-    <li class="sidebar__section-title">Principal</li>
-    <li>
-      <a
-        routerLink="/admin/dashboard"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
-        <span>Dashboard</span>
-      </a>
-    </li>
+  <div class="sidebar__nav-container">
+    <ul class="sidebar__nav" role="list">
+      <!-- 📊 PRINCIPAL (Enlace Directo) -->
+      <li>
+        <a
+          routerLink="/admin/dashboard"
+          routerLinkActive="sidebar__link--active"
+          class="sidebar__link sidebar__link--single"
+          (click)="onLinkClick()"
+        >
+          <i class="bi bi-grid-1x2-fill" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
 
-    <!-- 📦 CATÁLOGO -->
-    <li class="sidebar__section-title">Catálogo</li>
-    <li>
-      <a
-        routerLink="/admin/products"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-box-seam" aria-hidden="true"></i>
-        <span>Productos</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/categories"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-tags" aria-hidden="true"></i>
-        <span>Categorías</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/attributes"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-sliders" aria-hidden="true"></i>
-        <span>Atributos & Variantes</span>
-      </a>
-    </li>
+      <!-- 📦 CATÁLOGO (Colapsable) -->
+      <li class="sidebar__section-item">
+        <button
+          type="button"
+          class="sidebar__section-header"
+          [class.sidebar__section-header--active]="
+            isSectionActive(['/admin/products', '/admin/categories', '/admin/attributes'])
+          "
+          [attr.aria-expanded]="isExpanded('catalog')"
+          aria-controls="section-catalog"
+          (click)="toggleSection('catalog')"
+        >
+          <span class="sidebar__section-header-left">
+            <i class="bi bi-box-seam sidebar__section-icon" aria-hidden="true"></i>
+            <span class="sidebar__section-title">Catálogo</span>
+          </span>
+          <i class="bi bi-chevron-right sidebar__toggle-chevron" aria-hidden="true"></i>
+        </button>
 
-    <!-- 🛒 VENTAS -->
-    <li class="sidebar__section-title">Ventas</li>
-    <li>
-      <a
-        routerLink="/admin/orders"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-receipt" aria-hidden="true"></i>
-        <span>Pedidos</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/customers"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-people" aria-hidden="true"></i>
-        <span>Clientes</span>
-      </a>
-    </li>
+        <div
+          id="section-catalog"
+          class="sidebar__collapse"
+          [class.sidebar__collapse--open]="isExpanded('catalog')"
+        >
+          <div class="sidebar__collapse-inner">
+            <a
+              routerLink="/admin/products"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-boxes" aria-hidden="true"></i>
+              <span>Productos</span>
+            </a>
+            <a
+              routerLink="/admin/categories"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-tags" aria-hidden="true"></i>
+              <span>Categorías</span>
+            </a>
+            <a
+              routerLink="/admin/attributes"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-sliders" aria-hidden="true"></i>
+              <span>Atributos & Variantes</span>
+            </a>
+          </div>
+        </div>
+      </li>
 
-    <!-- 🎨 DISEÑO & CONTENIDO -->
-    <li class="sidebar__section-title">Diseño & Contenido</li>
-    <li>
-      <a
-        routerLink="/admin/store-config"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-palette" aria-hidden="true"></i>
-        <span>Identidad & Marca</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/home-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-image" aria-hidden="true"></i>
-        <span>Banners & Portada</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/footer-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i>
-        <span>Pie de Página</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/about-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-        <span>Páginas de Contenido</span>
-      </a>
-    </li>
+      <!-- 🛒 VENTAS (Colapsable) -->
+      <li class="sidebar__section-item">
+        <button
+          type="button"
+          class="sidebar__section-header"
+          [class.sidebar__section-header--active]="
+            isSectionActive(['/admin/orders', '/admin/customers'])
+          "
+          [attr.aria-expanded]="isExpanded('sales')"
+          aria-controls="section-sales"
+          (click)="toggleSection('sales')"
+        >
+          <span class="sidebar__section-header-left">
+            <i class="bi bi-receipt sidebar__section-icon" aria-hidden="true"></i>
+            <span class="sidebar__section-title">Ventas</span>
+          </span>
+          <i class="bi bi-chevron-right sidebar__toggle-chevron" aria-hidden="true"></i>
+        </button>
 
-    <!-- ⚙️ AJUSTES DEL NEGOCIO -->
-    <li class="sidebar__section-title">Ajustes del Negocio</li>
-    <li>
-      <a
-        routerLink="/admin/email-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-envelope-paper" aria-hidden="true"></i>
-        <span>Notificaciones Email</span>
-      </a>
-    </li>
-    <li *ngIf="isDev">
-      <a
-        routerLink="/admin/_dev"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-code-slash" aria-hidden="true"></i>
-        <span>Panel Dev</span>
-      </a>
-    </li>
-  </ul>
+        <div
+          id="section-sales"
+          class="sidebar__collapse"
+          [class.sidebar__collapse--open]="isExpanded('sales')"
+        >
+          <div class="sidebar__collapse-inner">
+            <a
+              routerLink="/admin/orders"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-bag-check" aria-hidden="true"></i>
+              <span>Pedidos</span>
+            </a>
+            <a
+              routerLink="/admin/customers"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-people" aria-hidden="true"></i>
+              <span>Clientes</span>
+            </a>
+          </div>
+        </div>
+      </li>
+
+      <!-- 📍 PUNTOS DE VENTA & SUCURSALES (Colapsable) -->
+      <li class="sidebar__section-item">
+        <button
+          type="button"
+          class="sidebar__section-header"
+          [class.sidebar__section-header--active]="isSectionActive(['/admin/branches'])"
+          [attr.aria-expanded]="isExpanded('locations')"
+          aria-controls="section-locations"
+          (click)="toggleSection('locations')"
+        >
+          <span class="sidebar__section-header-left">
+            <i class="bi bi-geo-alt sidebar__section-icon" aria-hidden="true"></i>
+            <span class="sidebar__section-title">Puntos de Venta</span>
+          </span>
+          <i class="bi bi-chevron-right sidebar__toggle-chevron" aria-hidden="true"></i>
+        </button>
+
+        <div
+          id="section-locations"
+          class="sidebar__collapse"
+          [class.sidebar__collapse--open]="isExpanded('locations')"
+        >
+          <div class="sidebar__collapse-inner">
+            <a
+              routerLink="/admin/branches"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-shop-window" aria-hidden="true"></i>
+              <span>Sucursales & Retiro</span>
+            </a>
+          </div>
+        </div>
+      </li>
+
+      <!-- 🎨 TIENDA ONLINE (Colapsable) -->
+      <li class="sidebar__section-item">
+        <button
+          type="button"
+          class="sidebar__section-header"
+          [class.sidebar__section-header--active]="
+            isSectionActive([
+              '/admin/header-management',
+              '/admin/home-management',
+              '/admin/footer-management',
+              '/admin/about-management',
+            ])
+          "
+          [attr.aria-expanded]="isExpanded('onlineStore')"
+          aria-controls="section-online-store"
+          (click)="toggleSection('onlineStore')"
+        >
+          <span class="sidebar__section-header-left">
+            <i class="bi bi-palette sidebar__section-icon" aria-hidden="true"></i>
+            <span class="sidebar__section-title">Tienda Online</span>
+          </span>
+          <i class="bi bi-chevron-right sidebar__toggle-chevron" aria-hidden="true"></i>
+        </button>
+
+        <div
+          id="section-online-store"
+          class="sidebar__collapse"
+          [class.sidebar__collapse--open]="isExpanded('onlineStore')"
+        >
+          <div class="sidebar__collapse-inner">
+            <a
+              routerLink="/admin/header-management"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-layout-text-sidebar-reverse" aria-hidden="true"></i>
+              <span>Encabezado & Anuncios</span>
+            </a>
+            <a
+              routerLink="/admin/home-management"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-image" aria-hidden="true"></i>
+              <span>Portada & Banners</span>
+            </a>
+            <a
+              routerLink="/admin/footer-management"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i>
+              <span>Pie de Página</span>
+            </a>
+            <a
+              routerLink="/admin/about-management"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+              <span>Páginas de Contenido</span>
+            </a>
+          </div>
+        </div>
+      </li>
+
+      <!-- ⚙️ CONFIGURACIÓN (Colapsable) -->
+      <li class="sidebar__section-item">
+        <button
+          type="button"
+          class="sidebar__section-header"
+          [class.sidebar__section-header--active]="
+            isSectionActive(['/admin/store-config', '/admin/email-management', '/admin/_dev'])
+          "
+          [attr.aria-expanded]="isExpanded('settings')"
+          aria-controls="section-settings"
+          (click)="toggleSection('settings')"
+        >
+          <span class="sidebar__section-header-left">
+            <i class="bi bi-gear sidebar__section-icon" aria-hidden="true"></i>
+            <span class="sidebar__section-title">Configuración</span>
+          </span>
+          <i class="bi bi-chevron-right sidebar__toggle-chevron" aria-hidden="true"></i>
+        </button>
+
+        <div
+          id="section-settings"
+          class="sidebar__collapse"
+          [class.sidebar__collapse--open]="isExpanded('settings')"
+        >
+          <div class="sidebar__collapse-inner">
+            <a
+              routerLink="/admin/store-config"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-brush" aria-hidden="true"></i>
+              <span>Identidad & Marca</span>
+            </a>
+            <a
+              routerLink="/admin/email-management"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-envelope-paper" aria-hidden="true"></i>
+              <span>Notificaciones Email</span>
+            </a>
+            <a
+              *ngIf="isDev"
+              routerLink="/admin/_dev"
+              routerLinkActive="sidebar__link--active"
+              class="sidebar__link sidebar__link--sub"
+              (click)="onLinkClick()"
+            >
+              <i class="bi bi-code-slash" aria-hidden="true"></i>
+              <span>Panel Dev</span>
+            </a>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
 </nav>

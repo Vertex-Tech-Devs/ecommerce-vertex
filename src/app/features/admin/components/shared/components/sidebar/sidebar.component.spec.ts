@@ -23,6 +23,14 @@ describe('Sidebar', () => {
     expect(component.isOpen).toBeFalse();
   });
 
+  it('should toggle collapsible sections', () => {
+    expect(component.isExpanded('catalog')).toBeTrue();
+    component.toggleSection('catalog');
+    expect(component.isExpanded('catalog')).toBeFalse();
+    component.toggleSection('catalog');
+    expect(component.isExpanded('catalog')).toBeTrue();
+  });
+
   it('should emit linkClicked on onLinkClick', () => {
     spyOn(component.linkClicked, 'emit');
     component.onLinkClick();

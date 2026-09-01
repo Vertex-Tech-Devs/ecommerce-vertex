@@ -1,0 +1,368 @@
+<section class="header-management-wrapper" aria-label="Gestión de Cabecera y Navegación">
+  <div class="container-fluid my-4">
+    <!-- Header principal -->
+    <header
+      class="dashboard__header d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25"
+    >
+      <div>
+        <h1 class="dashboard__title mb-1">Encabezado y Barra de Anuncios</h1>
+        <p class="text-soft mb-0 small">
+          Personalizá el estilo visual de la cabecera de tu tienda, tipografías y anuncios
+          superiores.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-primary rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm"
+        [disabled]="isSaving() || isLoading()"
+        (click)="onSubmit()"
+      >
+        @if (isSaving()) {
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <span>Guardando...</span>
+        } @else {
+          <i class="bi bi-check2-circle fs-5"></i>
+          <span>Guardar Cambios</span>
+        }
+      </button>
+    </header>
+
+    @if (isLoading()) {
+      <div
+        class="header-skeleton-wrapper"
+        aria-busy="true"
+        aria-label="Cargando configuración de cabecera"
+      >
+        <div class="glass-card mb-4 p-4">
+          <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--input"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--input"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+        <!-- 1. Barra de Anuncios Superior -->
+        <div class="glass-card mb-4" formGroupName="announcementBar">
+          <div class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3">
+            <i class="bi bi-megaphone me-2 text-primary fs-5"></i>
+            <span class="fs-6">Barra de Anuncios Superior (Top Bar)</span>
+          </div>
+          <div class="card-body pt-0">
+            <div
+              class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-3"
+            >
+              <label
+                class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                for="enableAnnouncement"
+              >
+                Mostrar barra de anuncios en la parte superior de la tienda
+              </label>
+              <input
+                class="form-check-input ms-0 flex-shrink-0"
+                type="checkbox"
+                role="switch"
+                id="enableAnnouncement"
+                formControlName="enabled"
+              />
+            </div>
+
+            @if (announcementGroup.get('enabled')?.value) {
+              <div class="row g-3 mt-1">
+                <div class="col-12 col-md-8">
+                  <label class="form-label text-label" for="announcementText"
+                    >Texto del Anuncio <span class="text-danger">*</span></label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-chat-left-quote"></i></span>
+                    <input
+                      id="announcementText"
+                      formControlName="text"
+                      type="text"
+                      class="form-control glass-input"
+                      placeholder="Ej: 🚚 ¡Envío gratis en compras superiores a $50.000!"
+                    />
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-label" for="announcementLink"
+                    >Enlace Opcional</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                    <input
+                      id="announcementLink"
+                      formControlName="link"
+                      type="text"
+                      class="form-control glass-input"
+                      placeholder="Ej: /shop?category=ofertas"
+                    />
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-label" for="announcementBgColor"
+                    >Color de Fondo de la Barra</label
+                  >
+                  <div class="d-flex align-items-center gap-3">
+                    <input
+                      id="announcementBgColor"
+                      formControlName="backgroundColor"
+                      type="color"
+                      class="form-control form-control-color glass-color-picker"
+                    />
+                    <input
+                      formControlName="backgroundColor"
+                      type="text"
+                      class="form-control glass-input font-monospace text-uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-label" for="announcementTextColor"
+                    >Color del Texto del Anuncio</label
+                  >
+                  <div class="d-flex align-items-center gap-3">
+                    <input
+                      id="announcementTextColor"
+                      formControlName="textColor"
+                      type="color"
+                      class="form-control form-control-color glass-color-picker"
+                    />
+                    <input
+                      formControlName="textColor"
+                      type="text"
+                      class="form-control glass-input font-monospace text-uppercase"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- 2. Apariencia de la Cabecera -->
+        <div class="glass-card mb-4" formGroupName="appearance">
+          <div class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3">
+            <i class="bi bi-layout-text-sidebar-reverse me-2 text-warning fs-5"></i>
+            <span class="fs-6">Colores y Modo de Visualización del Header</span>
+          </div>
+
+          <div class="card-body pt-0">
+            <!-- Modo de Visualización -->
+            <div class="mb-4">
+              <label class="form-label text-label" for="brandDisplayMode">
+                Modo de Visualización de la Marca en Cabecera
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                <select
+                  id="brandDisplayMode"
+                  formControlName="brandDisplayMode"
+                  class="form-select glass-input glass-select"
+                >
+                  <option value="text">Solo Nombre del Comercio (Texto)</option>
+                  <option value="logo">Solo Logotipo (Imagen)</option>
+                  <option value="both">Logotipo y Nombre Juntos</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Colores del Header -->
+            <div class="row g-4" formGroupName="header">
+              <div class="col-12 col-md-4">
+                <label class="form-label text-label">Fondo de la Cabecera</label>
+                <div class="d-flex align-items-center gap-3">
+                  <input
+                    formControlName="backgroundColor"
+                    type="color"
+                    class="form-control form-control-color glass-color-picker"
+                  />
+                  <input
+                    formControlName="backgroundColor"
+                    type="text"
+                    class="form-control glass-input font-monospace text-uppercase"
+                  />
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <label class="form-label text-label">Color de Texto & Enlaces</label>
+                <div class="d-flex align-items-center gap-3">
+                  <input
+                    formControlName="textColor"
+                    type="color"
+                    class="form-control form-control-color glass-color-picker"
+                  />
+                  <input
+                    formControlName="textColor"
+                    type="text"
+                    class="form-control glass-input font-monospace text-uppercase"
+                  />
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4">
+                <label class="form-label text-label">Color de Acento / Hover</label>
+                <div class="d-flex align-items-center gap-3">
+                  <input
+                    formControlName="accentColor"
+                    type="color"
+                    class="form-control form-control-color glass-color-picker"
+                  />
+                  <input
+                    formControlName="accentColor"
+                    type="text"
+                    class="form-control glass-input font-monospace text-uppercase"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Tipografía de la Cabecera -->
+        <div class="glass-card mb-4" formGroupName="appearance">
+          <div
+            class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3"
+            formGroupName="header"
+          >
+            <i class="bi bi-fonts me-2 text-info fs-5"></i>
+            <span class="fs-6">Tipografía Corporativa del Header</span>
+          </div>
+
+          <div class="card-body pt-0" formGroupName="header">
+            <p class="text-soft small mb-3">
+              Seleccioná la familia tipográfica aplicada al nombre de marca y menús principales.
+            </p>
+
+            <div class="row g-3">
+              @for (font of fontPresets; track font.id) {
+                <div class="col-12 col-sm-6 col-lg-4">
+                  <div
+                    class="font-preset-card p-3 rounded-3 border text-start cursor-pointer d-flex flex-column justify-content-between h-100"
+                    [class.font-preset-card--active]="
+                      headerGroup.get('fontFamily')?.value === font.id
+                    "
+                    (click)="selectFont(font.id)"
+                  >
+                    <div>
+                      <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="fw-bold text-white small">{{ font.name }}</span>
+                        <span
+                          class="badge bg-secondary bg-opacity-25 text-soft"
+                          style="font-size: 0.65rem"
+                          >{{ font.category }}</span
+                        >
+                      </div>
+                      <div class="font-sample my-2" [style.font-family]="font.fontFamily">
+                        Mi Tienda Online
+                      </div>
+                    </div>
+                    @if (headerGroup.get('fontFamily')?.value === font.id) {
+                      <div
+                        class="text-primary small fw-semibold mt-1 d-flex align-items-center gap-1"
+                      >
+                        <i class="bi bi-check-circle-fill"></i> Seleccionada
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Vista Previa en Vivo -->
+        <div class="glass-card mb-4">
+          <div class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3">
+            <i class="bi bi-laptop me-2 text-success fs-5"></i>
+            <span class="fs-6">Vista Previa en Vivo de la Cabecera</span>
+          </div>
+          <div class="card-body pt-0">
+            <div
+              class="live-preview-container rounded-3 overflow-hidden border border-secondary border-opacity-25 shadow"
+            >
+              <!-- Top Announcement Bar Preview -->
+              @if (announcementGroup.get('enabled')?.value) {
+                <div
+                  class="announcement-preview-bar py-2 px-3 text-center small fw-semibold"
+                  [style.background-color]="announcementGroup.get('backgroundColor')?.value"
+                  [style.color]="announcementGroup.get('textColor')?.value"
+                >
+                  {{ announcementGroup.get('text')?.value || 'Texto de anuncio de ejemplo' }}
+                </div>
+              }
+
+              <!-- Main Header Bar Preview -->
+              <div
+                class="header-preview-bar py-3 px-4 d-flex align-items-center justify-content-between"
+                [style.background-color]="headerGroup.get('backgroundColor')?.value"
+                [style.color]="headerGroup.get('textColor')?.value"
+              >
+                <!-- Brand -->
+                <div class="d-flex align-items-center gap-2">
+                  <i
+                    class="bi bi-shop-window fs-4"
+                    [style.color]="headerGroup.get('accentColor')?.value"
+                  ></i>
+                  <span
+                    class="fw-bold fs-5"
+                    [style.color]="headerGroup.get('textColor')?.value"
+                    [style.font-family]="headerGroup.get('fontFamily')?.value"
+                  >
+                    Mi Comercio
+                  </span>
+                </div>
+
+                <!-- Nav Mock -->
+                <div class="d-none d-md-flex align-items-center gap-4 small fw-semibold">
+                  <span [style.color]="headerGroup.get('textColor')?.value">Inicio</span>
+                  <span [style.color]="headerGroup.get('textColor')?.value">Catálogo</span>
+                  <span [style.color]="headerGroup.get('textColor')?.value">Nosotros</span>
+                  <span [style.color]="headerGroup.get('accentColor')?.value">Contacto</span>
+                </div>
+
+                <!-- Icons Mock -->
+                <div class="d-flex align-items-center gap-3">
+                  <i class="bi bi-search" [style.color]="headerGroup.get('textColor')?.value"></i>
+                  <i class="bi bi-bag" [style.color]="headerGroup.get('textColor')?.value"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botón Guardar Inferior -->
+        <div class="d-flex justify-content-end mb-5">
+          <button
+            type="button"
+            class="btn btn-primary rounded-pill px-5 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow"
+            [disabled]="isSaving() || isLoading()"
+            (click)="onSubmit()"
+          >
+            @if (isSaving()) {
+              <span
+                class="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              <span>Guardando...</span>
+            } @else {
+              <i class="bi bi-check2-circle fs-5"></i>
+              <span>Guardar Configuración</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</section>
