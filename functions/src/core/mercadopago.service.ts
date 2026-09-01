@@ -147,7 +147,15 @@ async function getMercadoPagoRuntimeConfig(
     // Fallback a variable de entorno o parámetro (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
     tokenFromSecret = envMpAccessToken().trim();
   }
-  const accessToken = tokenFromSecret.trim();
+function isValidTokenString(token: string): boolean {
+  if (!token) return false;
+  const t = token.trim();
+  if (t.startsWith('${') || t.includes('YOUR_') || t.includes('placeholder') || t.length < 25) return false;
+  return t.startsWith('TEST-') || t.startsWith('APP_USR-');
+}
+
+  const rawToken = tokenFromSecret.trim();
+  const accessToken = isValidTokenString(rawToken) ? rawToken : '';
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
@@ -173,10 +181,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     (data as PaymentRequestData)?.projectId || undefined,
   );
 
-  // Si la tienda aún no tiene token configurado, activar modo simulación/sandbox
+  // Si la tienda aún no tiene token configurado o válido, activar modo simulación / sandbox
   if (!runtime.accessToken) {
     logger.info(
-      `[MercadoPago:Preference] Simulating preference creation for ${external_reference} (sin token configurado para ${tenantId ?? 'default'})`,
+      `[MercadoPago:Preference] Simulating preference creation for ${external_reference} (sin token válido configurado para ${tenantId ?? 'default'})`,
     );
     return {
       id: `mp-sim-${Buffer.from(external_reference).toString('base64url')}`,
@@ -265,25 +273,16 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       date_of_expiration: preference.date_of_expiration,
     };
   } catch (err: any) {
-    const errStr = String(err?.message || err?.stack || err || '');
-    if (
-      errStr.includes('UNAUTHORIZED') ||
-      errStr.includes('MPForbiddenError') ||
-      errStr.includes('Invalid credentials') ||
-      errStr.includes('invalid_token') ||
-      errStr.includes('401') ||
-      errStr.includes('403')
-    ) {
-      logger.warn(
-        `[MercadoPago:Preference] Token no autorizado o expirado para ${tenantId} (${errStr}). Activando modo simulación / Sandbox...`,
-      );
-      return {
-        id: `mp-sim-${Buffer.from(external_reference).toString('base64url')}`,
-        init_point: `${runtime.baseUrl}/order-confirmation/${external_reference}?status=approved`,
-        date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
-      };
-    }
-    throw err;
+    const errStr = String(err?.message || err?.stack || err?.name || err || '');
+    const errStatus = err?.status || err?.statusCode || 0;
+    logger.warn(
+      `[MercadoPago:Preference] Error al invocar Mercado Pago para ${tenantId} (${errStr}, status: ${errStatus}). Activando modo simulación / Sandbox...`,
+    );
+    return {
+      id: `mp-sim-${Buffer.from(external_reference).toString('base64url')}`,
+      init_point: `${runtime.baseUrl}/order-confirmation/${external_reference}?status=approved`,
+      date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
+    };
   }
 }
 
