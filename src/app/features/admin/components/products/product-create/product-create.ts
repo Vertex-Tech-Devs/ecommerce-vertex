@@ -409,9 +409,22 @@ export class ProductCreate implements OnInit, AfterViewInit {
         );
         const { name, description, price, categoryId, image, images, variantAttributes } =
           formValue;
+        const totalStock = (formValue.variants || []).reduce(
+          (sum, v) => sum + (Number(v.stock) || 0),
+          0,
+        );
         await this.productService.updateProductWithVariants(
           this.productId,
-          { name, description, price, categoryId, image, images, variantAttributes },
+          {
+            name,
+            description,
+            price,
+            categoryId,
+            image,
+            images,
+            variantAttributes,
+            totalStock,
+          },
           toUpdate,
           toAdd,
           toDelete,
@@ -424,7 +437,7 @@ export class ProductCreate implements OnInit, AfterViewInit {
           formValue.variants && formValue.variants.length > 0
             ? formValue.variants.map((v) => ({
                 attributes: v.attributes ?? {},
-                stock: v.stock ?? 0,
+                stock: Number(v.stock) || 0,
               }))
             : [{ attributes: {}, stock: 99 }];
         const newId = await this.productService.createProductWithVariants(

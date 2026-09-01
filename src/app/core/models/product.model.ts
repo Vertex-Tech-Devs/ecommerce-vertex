@@ -17,8 +17,10 @@ export interface Product {
   image: string;
   images?: string[];
   createdAt: Date;
+  updatedAt?: Date;
 
   totalStock: number;
+  inStock?: boolean;
   inStockAttributes: { [key: string]: string[] };
   variantAttributes: string[];
 }
