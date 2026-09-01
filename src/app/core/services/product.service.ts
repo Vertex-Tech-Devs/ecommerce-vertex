@@ -153,8 +153,39 @@ export class ProductService {
     const productId = generateShortId(8);
     const newProductRef = doc(this.collectionRef, productId);
 
+    const computedTotalStock = variants.reduce(
+      (sum, v) => sum + (Number((v as { stock?: number }).stock) || 0),
+      0,
+    );
+    const inStockAttributes: Record<string, string[]> = {};
+    variants.forEach((v) => {
+      const vStock = Number((v as { stock?: number }).stock) || 0;
+      const vAttrs = (v as { attributes?: Record<string, string> }).attributes;
+      if (vStock > 0 && vAttrs) {
+        Object.entries(vAttrs).forEach(([attrId, attrVal]) => {
+          if (typeof attrVal === 'string') {
+            if (!inStockAttributes[attrId]) {
+              inStockAttributes[attrId] = [];
+            }
+            if (!inStockAttributes[attrId].includes(attrVal)) {
+              inStockAttributes[attrId].push(attrVal);
+            }
+          }
+        });
+      }
+    });
+
+    const explicitTotalStock = (product as Record<string, unknown>)['totalStock'];
+    const totalStock =
+      typeof explicitTotalStock === 'number' && explicitTotalStock >= 0
+        ? explicitTotalStock
+        : computedTotalStock;
+
     batch.set(newProductRef, {
       ...(product as Record<string, unknown>),
+      totalStock,
+      inStockAttributes,
+      inStock: totalStock > 0,
       storeId: resolveTenantId(),
     } as unknown as WithFieldValue<Omit<Product, 'id'>>);
 
@@ -183,8 +214,6 @@ export class ProductService {
     const batch = writeBatch(this.firestore);
     const productRef = doc(this.firestore, tenantPath(this.collectionName), productId);
 
-    batch.update(productRef, productData);
-
     const variantsCollectionRef = collection(productRef, 'variants');
 
     variantsToUpdate.forEach((variant) => {
@@ -206,6 +235,44 @@ export class ProductService {
     variantIdsToDelete.forEach((variantId) => {
       const variantRef = doc(variantsCollectionRef, variantId);
       batch.delete(variantRef);
+    });
+
+    // Compute updated totalStock & inStockAttributes from remaining active variants
+    const allRemainingVariants = [
+      ...variantsToUpdate.map((v) => ({ ...v, stock: Number(v.stock) || 0 })),
+      ...variantsToAdd.map((v) => ({ ...v, stock: Number((v as { stock?: number }).stock) || 0 })),
+    ];
+    const computedTotalStock = allRemainingVariants.reduce(
+      (sum, v) => sum + (Number(v.stock) || 0),
+      0,
+    );
+    const inStockAttributes: Record<string, string[]> = {};
+    allRemainingVariants.forEach((v) => {
+      if ((v.stock || 0) > 0 && v.attributes) {
+        Object.entries(v.attributes).forEach(([attrId, attrVal]) => {
+          if (typeof attrVal === 'string') {
+            if (!inStockAttributes[attrId]) {
+              inStockAttributes[attrId] = [];
+            }
+            if (!inStockAttributes[attrId].includes(attrVal)) {
+              inStockAttributes[attrId].push(attrVal);
+            }
+          }
+        });
+      }
+    });
+
+    const totalStock =
+      typeof productData.totalStock === 'number' && productData.totalStock >= 0
+        ? productData.totalStock
+        : computedTotalStock;
+
+    batch.update(productRef, {
+      ...productData,
+      totalStock,
+      inStockAttributes,
+      inStock: totalStock > 0,
+      updatedAt: new Date(),
     });
 
     return batch.commit();

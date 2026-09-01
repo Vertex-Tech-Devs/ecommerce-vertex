@@ -110,21 +110,21 @@ function escapeHtml(value: unknown): string {
 function buildEmailShell(body: string, opts: { storeName: string; subject: string; footer?: string }): string {
   const footer = (opts.footer || '').trim();
   return `
-  <div style="background:#f1f5f9;padding:24px 12px;font-family:Arial,Helvetica,sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;">
+  <div style="background-color:#f1f5f9;padding:32px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(15,23,42,0.04);">
       <tr>
-        <td style="background-color:#4f46e5;background-image:linear-gradient(135deg,#4f46e5 0%,#7c3aed 55%,#06b6d4 100%);padding:30px 34px;">
-          <div style="font-size:20px;line-height:1.3;color:#ffffff;font-weight:700;letter-spacing:0.2px;">${opts.storeName}</div>
+        <td style="background-color:#1e1b4b;background-image:linear-gradient(135deg,#312e81 0%,#4f46e5 50%,#06b6d4 100%);padding:28px 32px;">
+          <div style="font-size:22px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.3px;">${opts.storeName}</div>
           <div style="margin-top:6px;font-size:13px;line-height:1.4;color:rgba(255,255,255,0.9);">${opts.subject}</div>
         </td>
       </tr>
       <tr>
-        <td style="padding:32px 34px;color:#0f172a;font-size:15px;line-height:1.65;">${body}</td>
+        <td style="padding:32px 32px 24px;color:#0f172a;font-size:14px;line-height:1.65;">${body}</td>
       </tr>
       <tr>
-        <td style="padding:20px 34px;background:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.5;text-align:center;">
-          ${footer ? `<div style="margin-bottom:8px;">${footer}</div>` : ''}
-          <div>Este es un email automático de Vertex Commerce — no respondas a este mensaje.</div>
+        <td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.5;text-align:center;">
+          ${footer ? `<div style="margin-bottom:8px;font-weight:500;color:#475569;">${footer}</div>` : ''}
+          <div>Este es un correo automático generado por la tienda.</div>
         </td>
       </tr>
     </table>
@@ -146,29 +146,55 @@ function buildEmailHtml(
     .map((item) => {
       const description = getVariantDescription(item.attributes, attributeMap);
       return `<tr>
-        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:14px;">${escapeHtml(item.productName)}${description ? ` <span style="color:#94a3b8;font-size:12px;">(${escapeHtml(description)})</span>` : ''}</td>
-        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#64748b;font-size:13px;white-space:nowrap;">x${item.quantity}</td>
-        <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:14px;text-align:right;white-space:nowrap;">$${(item.price * item.quantity).toFixed(2)}</td>
+        <td style="padding:12px 0;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:600;">
+          ${escapeHtml(item.productName)}
+          ${description ? `<br/><span style="color:#64748b;font-size:12px;font-weight:normal;">${escapeHtml(description)}</span>` : ''}
+        </td>
+        <td style="padding:12px 8px;border-bottom:1px solid #f1f5f9;text-align:center;white-space:nowrap;">
+          <span style="background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600;">x${item.quantity}</span>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #f1f5f9;color:#0f172a;font-size:14px;font-weight:700;text-align:right;white-space:nowrap;">
+          $${(item.price * item.quantity).toFixed(2)}
+        </td>
       </tr>`;
     })
     .join('');
 
-  const deliverySectionHtml =
-    order.deliverySelection?.type === 'store_pickup'
-      ? `<tr>
-           <td style="padding: 10px; border-bottom: 1px solid #eee;">
-             <strong>Método de Entrega:</strong> Retiro en el Local<br/>
-             <strong>Punto de Retiro:</strong> ${escapeHtml(order.deliverySelection.pickupAddressFormatted || 'Local Comercial')}<br/>
-             ${order.deliverySelection.notes ? `<em>Instrucciones: ${escapeHtml(order.deliverySelection.notes)}</em>` : ''}
-           </td>
-         </tr>`
-      : `<tr>
-           <td style="padding: 10px; border-bottom: 1px solid #eee;">
-             <strong>Método de Entrega:</strong> Envío a Domicilio (A Coordinar)
-           </td>
-         </tr>`;
+  const isPickup = order.deliverySelection?.type === 'store_pickup';
+  const pickupAddress = order.deliverySelection?.pickupAddressFormatted || 'Sucursal Comercial / Showroom';
+  const notes = order.deliverySelection?.notes;
 
-  const deliveryTable = `<table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px;">${deliverySectionHtml}</table>`;
+  const deliveryTable = `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px 18px;margin:12px 0 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+        <tr>
+          <td style="font-size:13px;color:#64748b;padding-bottom:6px;">Modalidad de Entrega:</td>
+          <td style="font-size:13px;font-weight:700;color:#0f172a;text-align:right;padding-bottom:6px;">
+            ${isPickup ? '🏬 Retiro en el Local' : '🚚 Envío a Domicilio'}
+          </td>
+        </tr>
+        ${isPickup ? `
+        <tr>
+          <td style="font-size:13px;color:#64748b;border-top:1px solid #e2e8f0;padding:8px 0 4px;">Punto de Retiro:</td>
+          <td style="font-size:13px;font-weight:600;color:#0f172a;text-align:right;border-top:1px solid #e2e8f0;padding:8px 0 4px;">
+            ${escapeHtml(pickupAddress)}
+          </td>
+        </tr>
+        ${notes ? `
+        <tr>
+          <td colspan="2" style="font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:6px;">
+            <em>Instrucciones: ${escapeHtml(notes)}</em>
+          </td>
+        </tr>` : ''}
+        ` : `
+        <tr>
+          <td colspan="2" style="font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:6px;">
+            Coordinaremos los detalles de envío y seguimiento con vos a la brevedad.
+          </td>
+        </tr>
+        `}
+      </table>
+    </div>`;
 
   let emailBody = template
     .replace(/{orderId}/g, escapeHtml(orderId))
@@ -186,14 +212,15 @@ function buildEmailHtml(
     emailBody += deliveryTable;
   }
 
-  const buttonStyle = `style="display: inline-block; padding: 12px 24px; margin: 8px 10px 8px 0; font-size: 14px; font-weight: 600; color: #ffffff; background-color: #4f46e5; border-radius: 10px; text-decoration: none;"`;
+  const buttonPrimary = `style="display:inline-block;padding:12px 22px;margin:8px 10px 8px 0;font-size:14px;font-weight:700;color:#ffffff;background-color:#4f46e5;border-radius:10px;text-decoration:none;box-shadow:0 2px 6px rgba(79,70,229,0.25);"`;
+  const buttonWhatsapp = `style="display:inline-block;padding:12px 22px;margin:8px 10px 8px 0;font-size:14px;font-weight:700;color:#ffffff;background-color:#16a34a;border-radius:10px;text-decoration:none;box-shadow:0 2px 6px rgba(22,163,74,0.25);"`;
 
-  let buttonsHtml = '<div style="margin-top: 30px;">';
+  let buttonsHtml = '<div style="margin-top: 24px; text-align: left;">';
   if (extras.manageButtonUrl) {
-    buttonsHtml += `<a href="${extras.manageButtonUrl}" ${buttonStyle}>Gestionar Pedido</a>`;
+    buttonsHtml += `<a href="${extras.manageButtonUrl}" ${buttonPrimary}>Gestionar Pedido</a>`;
   }
   if (extras.whatsappUrl) {
-    buttonsHtml += `<a href="${extras.whatsappUrl}" ${buttonStyle}>Contactar por WhatsApp</a>`;
+    buttonsHtml += `<a href="${extras.whatsappUrl}" ${buttonWhatsapp}>Contactar por WhatsApp</a>`;
   }
   buttonsHtml += '</div>';
 
