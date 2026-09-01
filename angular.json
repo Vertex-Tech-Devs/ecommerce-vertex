@@ -112,7 +112,18 @@
             "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
+            "assets": [
+              {
+                "glob": "favicon.ico",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              }
+            ],
             "scripts": [],
             "karmaConfig": "karma.conf.js",
             "stylePreprocessorOptions": {
