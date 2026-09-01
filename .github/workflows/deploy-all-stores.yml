@@ -15,7 +15,8 @@ jobs:
   build:
     name: Build template
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy]') || vars.AUTO_DEPLOY_ALL == 'true'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
@@ -28,6 +29,13 @@ jobs:
 
       - name: Lint & type check
         run: npm run lint && npm run typecheck
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building template version: $VERSION"
 
       - name: Build
         run: |
@@ -103,6 +111,9 @@ jobs:
     name: '🐤 Canary → ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
     needs: [build, get-stores]
+    permissions:
+      id-token: write
+      contents: read
     if: needs.get-stores.outputs.canary != '[]' && needs.get-stores.outputs.canary != ''
     strategy:
       matrix:
@@ -149,6 +160,7 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Deploy
+        id: deploy
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
@@ -165,11 +177,33 @@ jobs:
           fi
           echo "✅ Health check passed: HTTP $STATUS"
 
+      - name: Fetch OIDC token for completion
+        id: oidc
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const token = await core.getIDToken('vertex-platform');
+            core.setOutput('id_token', token);
+
+      - name: Notify platform of version update completion
+        if: always() && steps.deploy.outcome == 'success'
+        env:
+          ID_TOKEN: ${{ steps.oidc.outputs.id_token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          curl -s -X POST \
+            "${{ env.PLATFORM_FUNCTIONS_URL }}/completeVersionUpdate" \
+            -H "Content-Type: application/json" \
+            -d "{\"data\":{\"storeId\":\"${{ matrix.store.storeId }}\",\"version\":\"$VERSION\",\"success\":true,\"commitSha\":\"${{ github.sha }}\",\"idToken\":\"$ID_TOKEN\"}}"
+
   # ── 4. Deploy rest in parallel (only if canary passed) ────────────────────
   deploy-rest:
     name: '→ ${{ matrix.store.storeName }}'
     runs-on: ubuntu-latest
     needs: [build, get-stores, deploy-canary]
+    permissions:
+      id-token: write
+      contents: read
     if: needs.get-stores.outputs.rest != '[]' && needs.get-stores.outputs.rest != ''
     strategy:
       fail-fast: false
@@ -227,8 +261,28 @@ jobs:
           credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
 
       - name: Deploy
+        id: deploy
         run: |
           npx --yes firebase-tools deploy \
             --project ${{ matrix.store.projectId }} \
             --only hosting,firestore,storage,functions \
             --non-interactive
+
+      - name: Fetch OIDC token for completion
+        id: oidc
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const token = await core.getIDToken('vertex-platform');
+            core.setOutput('id_token', token);
+
+      - name: Notify platform of version update completion
+        if: always() && steps.deploy.outcome == 'success'
+        env:
+          ID_TOKEN: ${{ steps.oidc.outputs.id_token }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          curl -s -X POST \
+            "${{ env.PLATFORM_FUNCTIONS_URL }}/completeVersionUpdate" \
+            -H "Content-Type: application/json" \
+            -d "{\"data\":{\"storeId\":\"${{ matrix.store.storeId }}\",\"version\":\"$VERSION\",\"success\":true,\"commitSha\":\"${{ github.sha }}\",\"idToken\":\"$ID_TOKEN\"}}"
