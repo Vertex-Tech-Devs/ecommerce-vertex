@@ -4,7 +4,7 @@ import type { Cart, CartItem } from '@core/models/cart.model';
 import { SweetAlertService } from './sweet-alert.service';
 import { AttributeService } from './attribute.service';
 import { ProductService } from './product.service';
-import { firstValueFrom, take } from 'rxjs';
+import { firstValueFrom, take, timeout, of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../environments/environment';
 
@@ -185,7 +185,15 @@ export class CartService {
    */
   async pruneUnavailableItems(): Promise<string[]> {
     try {
-      const products = await firstValueFrom(this.productService.getProducts().pipe(take(1)));
+      const products = await firstValueFrom(
+        this.productService.getProducts().pipe(
+          take(1),
+          timeout({
+            each: 2000,
+            with: () => of([]),
+          }),
+        ),
+      );
       const byId = new Map<string, Product>();
       products.forEach((product) => {
         if (product.id) {

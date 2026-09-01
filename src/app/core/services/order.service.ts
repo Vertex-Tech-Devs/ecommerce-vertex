@@ -30,6 +30,28 @@ export function generateShortOrderId(): string {
   return id;
 }
 
+function cleanFirestoreData<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return data;
+  }
+  if (data instanceof Date) {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map((item) => cleanFirestoreData(item)) as unknown as T;
+  }
+  if (typeof data === 'object') {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanFirestoreData(value);
+      }
+    }
+    return cleaned as T;
+  }
+  return data;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -74,10 +96,10 @@ export class OrderService {
         tenantPath(this.collectionName),
         orderId,
       ) as DocumentReference<Order>;
-      const tagged = {
+      const tagged = cleanFirestoreData({
         ...(order as Record<string, unknown>),
         storeId: resolveTenantId(),
-      };
+      });
       return setDoc(ref, tagged as unknown as WithFieldValue<Omit<Order, 'id'>>, {
         merge: true,
       }).then(() => ref);

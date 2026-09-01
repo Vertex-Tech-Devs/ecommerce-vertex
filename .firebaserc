@@ -5,9 +5,34 @@
     "production": "ecommerce-vertex"
   },
   "targets": {
-    "ecommerce-vertex": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex"] } },
-    "ecommerce-vertex-dev": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex-dev"] } },
-    "development": { "hosting": { "ecommerce-vertex": ["ecommerce-vertex-dev"] } }
-  }
+    "ecommerce-vertex": {
+      "hosting": {
+        "ecommerce-vertex": [
+          "ecommerce-vertex"
+        ]
+      }
+    },
+    "ecommerce-vertex-dev": {
+      "hosting": {
+        "ecommerce-vertex": [
+          "ecommerce-vertex-dev"
+        ]
+      }
+    },
+    "development": {
+      "hosting": {
+        "ecommerce-vertex": [
+          "ecommerce-vertex-dev"
+        ]
+      }
+    },
+    "vtx-sd-179je499": {
+      "hosting": {
+        "ecommerce-vertex": [
+          "vtx-gran-tienda"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
-
