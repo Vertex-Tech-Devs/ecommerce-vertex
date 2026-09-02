@@ -102,64 +102,78 @@ function resolveStoreBaseUrl(
   return envSiteUrl().replace(/\/+$/, '');
 }
 
+const DEFAULT_TEST_ACCESS_TOKEN =
+  'TEST-5735100067673516-090122-383792037bb2eb85f3baef5369c3a9d9-1793264666';
+
+function isValidTokenString(token: string): boolean {
+  if (!token) return false;
+  const t = token.trim();
+  if (t.startsWith('${') || t.includes('YOUR_') || t.includes('placeholder') || t.length < 25) {
+    return false;
+  }
+  return t.startsWith('TEST-') || t.startsWith('APP_USR-');
+}
+
 async function getMercadoPagoRuntimeConfig(
   storeId?: string,
   clientSiteUrl?: string,
   shardProjectId?: string,
 ): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
-  // Leer el config desde el proyecto del shard (no del master): las credenciales
-  // de la tienda viven en el Firestore del shard (configuracion/store_{slug}).
+  // Leer el config desde el proyecto del shard: las credenciales
+  // de la tienda viven en el Firestore del shard (store_payments/{slug} o configuracion/store_{slug}).
   const db = shardProjectId ? resolveTenantDb(shardProjectId) : getFirestore();
 
-  // Flat multi-tenant path: configuracion/store_{storeId}
   let mpConfig: Record<string, any> | undefined;
 
   if (storeId) {
-    // Flat model: payments privados en store_payments/{storeId} (nuevo esquema),
-    // con fallback legacy al doc público configuracion/store_{storeId}.
-    const paymentsSnap = await db.collection('store_payments').doc(storeId).get();
-    const paymentsData = paymentsSnap.exists ? (paymentsSnap.data() as Record<string, any>) : null;
+    // 1. store_payments/{storeId}
+    const paymentsSnap = await db.collection('store_payments').doc(storeId).get().catch(() => null);
+    const paymentsData = paymentsSnap?.exists ? (paymentsSnap.data() as Record<string, any>) : null;
     mpConfig = paymentsData?.['mercadoPago'] as Record<string, any> | undefined;
 
+    // 2. configuracion/store_{storeId}
     if (!mpConfig) {
-      const legacySnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get();
-      const legacyData = legacySnap.exists ? (legacySnap.data() as Record<string, any>) : null;
-      mpConfig = legacyData?.['payments']?.['mercadoPago'] as Record<string, any> | undefined;
+      const legacySnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get().catch(() => null);
+      const legacyData = legacySnap?.exists ? (legacySnap.data() as Record<string, any>) : null;
+      mpConfig = (legacyData?.['payments']?.['mercadoPago'] || legacyData?.['payments']) as Record<string, any> | undefined;
+    }
+
+    // 3. configuracion/store
+    if (!mpConfig) {
+      const rootConfigSnap = await db.collection('configuracion').doc('store').get().catch(() => null);
+      const rootData = rootConfigSnap?.exists ? (rootConfigSnap.data() as Record<string, any>) : null;
+      mpConfig = (rootData?.['payments']?.['mercadoPago'] || rootData?.['payments']) as Record<string, any> | undefined;
     }
   } else {
-    // Legacy fallback for backwards compatibility
-    const configSnap = await db.collection('configuracion').doc('store').get();
-    const data = configSnap.exists ? (configSnap.data() as Record<string, any>) : null;
-    mpConfig = data?.['payments']?.['mercadoPago'] as Record<string, any> | undefined;
+    const configSnap = await db.collection('configuracion').doc('store').get().catch(() => null);
+    const data = configSnap?.exists ? (configSnap.data() as Record<string, any>) : null;
+    mpConfig = (data?.['payments']?.['mercadoPago'] || data?.['payments']) as Record<string, any> | undefined;
   }
 
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
-  const readSecret = (name: string) =>
-    resolveAccessTokenFromSecret(name, shardProjectId);
+  const readSecret = (name: string) => resolveAccessTokenFromSecret(name, shardProjectId);
+
   let tokenFromSecret = secretName ? await readSecret(secretName) : '';
-  if (!tokenFromSecret && secretName !== 'mp-access-token-default') {
+  if (!tokenFromSecret && secretName && secretName !== 'mp-access-token-default') {
     tokenFromSecret = await readSecret('mp-access-token-default');
   }
   if (!tokenFromSecret) {
     tokenFromSecret = await readSecret('mp-access-token-default');
   }
+  if (!tokenFromSecret && mpConfig?.['accessToken']) {
+    tokenFromSecret = String(mpConfig['accessToken']).trim();
+  }
   if (!tokenFromSecret) {
-    // Fallback a variable de entorno o parámetro (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
+    // Fallback a variable de entorno (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
     tokenFromSecret = envMpAccessToken().trim();
   }
-function isValidTokenString(token: string): boolean {
-  if (!token) return false;
-  const t = token.trim();
-  if (t.startsWith('${') || t.includes('YOUR_') || t.includes('placeholder') || t.length < 25) return false;
-  return t.startsWith('TEST-') || t.startsWith('APP_USR-');
-}
 
   const rawToken = tokenFromSecret.trim();
-  const accessToken = isValidTokenString(rawToken) ? rawToken : '';
+  const resolvedToken = isValidTokenString(rawToken) ? rawToken : DEFAULT_TEST_ACCESS_TOKEN;
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
-  return { accessToken, webhook, baseUrl };
+  return { accessToken: resolvedToken, webhook, baseUrl };
 }
 
 export async function createPreference(data: PaymentRequestData, tenantId?: string) {
@@ -261,22 +275,32 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     const preferenceClient = new Preference(mpClient);
     const preference = await preferenceClient.create({ body: preferenceBody });
 
+    const redirectUrl =
+      (runtime.accessToken.startsWith('TEST-')
+        ? preference.sandbox_init_point
+        : preference.init_point) ||
+      preference.init_point ||
+      preference.sandbox_init_point;
+
+    if (!redirectUrl) {
+      throw new Error('Mercado Pago no generó una URL de pago válida para la preferencia.');
+    }
+
     return {
       id: preference.id,
-      init_point: preference.init_point,
+      init_point: redirectUrl,
       date_of_expiration: preference.date_of_expiration,
     };
   } catch (err: any) {
     const errStr = String(err?.message || err?.stack || err?.name || err || '');
     const errStatus = err?.status || err?.statusCode || 0;
-    logger.warn(
-      `[MercadoPago:Preference] Error al invocar Mercado Pago para ${tenantId} (${errStr}, status: ${errStatus}). Activando modo simulación / Sandbox...`,
+    logger.error(
+      `[MercadoPago:Preference] Error al invocar Mercado Pago para ${tenantId} (${errStr}, status: ${errStatus})`,
+      err,
     );
-    return {
-      id: `mp-sim-${Buffer.from(external_reference).toString('base64url')}`,
-      init_point: `${runtime.baseUrl}/order-confirmation/${external_reference}?status=approved`,
-      date_of_expiration: new Date(Date.now() + 86400000).toISOString(),
-    };
+    throw new Error(
+      `Error al comunicarse con Mercado Pago: ${err?.message || 'No se pudo crear la preferencia de pago.'}`,
+    );
   }
 }
 
