@@ -12,7 +12,7 @@ describe('DevGuard (Seed Data Guard)', () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     routerSpy.navigate.and.returnValue(Promise.resolve(true));
 
-    originalSeedDataEnabled = environment.features.seedDataEnabled;
+    originalSeedDataEnabled = environment.features?.seedDataEnabled ?? true;
 
     TestBed.configureTestingModule({
       providers: [{ provide: Router, useValue: routerSpy }],
@@ -20,7 +20,11 @@ describe('DevGuard (Seed Data Guard)', () => {
   });
 
   afterEach(() => {
-    environment.features.seedDataEnabled = originalSeedDataEnabled;
+    if (!environment.features) {
+      environment.features = { seedDataEnabled: originalSeedDataEnabled, debugLogging: false };
+    } else {
+      environment.features.seedDataEnabled = originalSeedDataEnabled;
+    }
   });
 
   it('should allow access when seedDataEnabled is true', () => {
@@ -36,6 +40,17 @@ describe('DevGuard (Seed Data Guard)', () => {
 
   it('should navigate to /admin/dashboard and return false when seedDataEnabled is false', () => {
     environment.features.seedDataEnabled = false;
+
+    TestBed.runInInjectionContext(() => {
+      const result = DevGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);
+
+      expect(result).toBe(false);
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/admin/dashboard']);
+    });
+  });
+
+  it('should handle undefined environment.features gracefully', () => {
+    (environment as unknown as { features: undefined }).features = undefined;
 
     TestBed.runInInjectionContext(() => {
       const result = DevGuard({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot);

@@ -29,6 +29,14 @@ module.exports = function (config) {
         { type: 'lcov' },
         { type: 'json-summary' },
       ],
+      check: {
+        global: {
+          statements: 85,
+          branches: 85,
+          functions: 85,
+          lines: 85,
+        },
+      },
     },
     reporters: ['progress', 'kjhtml', 'coverage'],
     port: 9876,

@@ -73,4 +73,15 @@ describe('normalizeFirebaseOptions', () => {
 
     expect(config.authDomain).toBe('vtx-sd-3bf1de61.firebaseapp.com');
   });
+
+  it('infers projectId from storageBucket or returns untouched if neither exists', () => {
+    const fromStorage = normalizeFirebaseOptions({
+      apiKey: 'test-key',
+      storageBucket: 'custom-proj.appspot.com',
+    } as FirebaseOptions);
+    expect(fromStorage.projectId).toBe('custom-proj');
+
+    const emptyConfig = { apiKey: 'test-key' } as FirebaseOptions;
+    expect(normalizeFirebaseOptions(emptyConfig)).toBe(emptyConfig);
+  });
 });
