@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import type { Injector } from '@angular/core';
 import { GlobalErrorHandler } from './global-error.handler';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
@@ -16,6 +16,7 @@ describe('GlobalErrorHandler', () => {
 
     handler = TestBed.inject(GlobalErrorHandler);
     sessionStorage.clear();
+    spyOn(handler, 'reloadLocation').and.stub();
   });
 
   it('should be created', () => {
@@ -35,7 +36,7 @@ describe('GlobalErrorHandler', () => {
     );
   });
 
-  it('should handle chunk / deployment load errors with reload notification', () => {
+  it('should handle chunk / deployment load errors with reload notification and scheduled reload', fakeAsync(() => {
     spyOn(console, 'error');
     const chunkError = new Error('Failed to fetch dynamically imported module: chunk-xyz.js');
 
@@ -45,7 +46,10 @@ describe('GlobalErrorHandler', () => {
       'Actualizando Tienda',
       'Se ha desplegado una nueva versión de la tienda. Actualizando la página...',
     );
-  });
+
+    tick(1500);
+    expect(handler.reloadLocation).toHaveBeenCalled();
+  }));
 
   it('should handle SweetAlert injector failure gracefully without crashing', () => {
     spyOn(console, 'error');

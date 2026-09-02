@@ -72,8 +72,14 @@ export class GlobalErrorHandler implements ErrorHandler {
       }
 
       setTimeout(() => {
-        window.location.reload();
+        this.reloadLocation();
       }, 1200);
+    }
+  }
+
+  reloadLocation(): void {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
     }
   }
 }
