@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import type { OnInit } from '@angular/core';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -43,7 +44,17 @@ export class HeaderManagement implements OnInit {
       backgroundColor: ['#111827'],
       textColor: ['#ffffff'],
     }),
+    floatingWhatsApp: this.fb.group({
+      enabled: [false],
+      phoneNumber: [''],
+      defaultMessage: ['¡Hola! Tengo una consulta sobre un producto de la tienda'],
+    }),
   });
+
+  readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
+  readonly liveAnnouncementText = computed(
+    () => this.formValue().announcementBar?.text ?? 'Texto de anuncio de ejemplo',
+  );
 
   get headerGroup(): FormGroup {
     return this.form.get('appearance.header') as FormGroup;
@@ -54,6 +65,11 @@ export class HeaderManagement implements OnInit {
   }
 
   ngOnInit(): void {
+    this.form.get('floatingWhatsApp.enabled')?.valueChanges.subscribe((enabled: boolean) => {
+      const phone = this.form.get('floatingWhatsApp.phoneNumber');
+      enabled ? phone?.setValidators(Validators.required) : phone?.clearValidators();
+      phone?.updateValueAndValidity({ emitEvent: false });
+    });
     void this.loadData();
   }
 
@@ -79,6 +95,13 @@ export class HeaderManagement implements OnInit {
             link: config.announcementBar?.link ?? '',
             backgroundColor: config.announcementBar?.backgroundColor ?? '#111827',
             textColor: config.announcementBar?.textColor ?? '#ffffff',
+          },
+          floatingWhatsApp: {
+            enabled: config.floatingWhatsApp?.enabled ?? false,
+            phoneNumber: config.floatingWhatsApp?.phoneNumber ?? '',
+            defaultMessage:
+              config.floatingWhatsApp?.defaultMessage ??
+              '¡Hola! Tengo una consulta sobre un producto de la tienda',
           },
         });
       }
@@ -113,6 +136,7 @@ export class HeaderManagement implements OnInit {
           header: formVal.appearance.header,
         },
         announcementBar: formVal.announcementBar,
+        floatingWhatsApp: formVal.floatingWhatsApp,
       };
 
       await this.storeConfigService.saveConfig(updatedConfig);

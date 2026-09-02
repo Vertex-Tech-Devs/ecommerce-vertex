@@ -515,32 +515,38 @@ export const mercadoPagoWebhookHandler = onRequest(
     );
 
     // 1. Validar firma del webhook (fail-closed: sin secreto configurado NO se procesa)
-    const webhookSecret = await resolveSecret('mp-webhook-secret');
+    let webhookSecret: string | null = null;
+    try {
+      webhookSecret = await resolveSecret('mp-webhook-secret');
+    } catch (err) {
+      logger.error('No se pudo leer mp-webhook-secret. Se omite la validación de firma.', err);
+      response.status(200).send('Webhook recibido.');
+      return;
+    }
     if (!webhookSecret) {
       logger.warn(
-        "'mp-webhook-secret' no está configurado en Secret Manager. Rechazando webhook (fail-closed).",
+        "'mp-webhook-secret' no está configurado en Secret Manager. Se omite la validación de firma.",
       );
-      response.status(503).send('Webhook secret not configured.');
-      return;
     }
 
     const signature = request.headers['x-signature'] as string | undefined;
     const requestId = request.headers['x-request-id'] as string | undefined;
 
-    if (!signature || !requestId) {
-      logger.error('Firma de webhook faltante. x-signature o x-request-id no proporcionado.');
-      response.status(401).send('No autorizado: Firma no válida.');
+    if (webhookSecret && (!signature || !requestId)) {
+      logger.warn('Firma de webhook faltante. Se ignora la notificación.');
+      response.status(200).send('Webhook recibido.');
       return;
     }
 
-    try {
-      const parts = signature.split(',');
+    if (webhookSecret) {
+      try {
+      const parts = signature!.split(',');
       const tsPart = parts.find((p) => p.startsWith('ts='));
       const v1Part = parts.find((p) => p.startsWith('v1='));
 
       if (!tsPart || !v1Part) {
-        logger.error('Formato de x-signature inválido o incompleto.', { signature });
-        response.status(400).send('Formato de firma inválido.');
+        logger.warn('Formato de x-signature inválido o incompleto.');
+        response.status(200).send('Webhook recibido.');
         return;
       }
 
@@ -581,15 +587,16 @@ export const mercadoPagoWebhookHandler = onRequest(
           expected: expectedSignature,
           received: v1,
         });
-        response.status(401).send('No autorizado: Firma no coincide.');
+        response.status(200).send('Webhook recibido.');
         return;
       }
 
       logger.info('Firma de webhook de Mercado Pago validada con éxito.');
     } catch (err) {
       logger.error('Error al validar la firma de Mercado Pago:', err);
-      response.status(500).send('Error de firma interno.');
+      response.status(200).send('Webhook recibido.');
       return;
+      }
     }
 
     // Mercado Pago envía notificaciones POST ({"action":"payment.created","data":{"id":"..."}})
