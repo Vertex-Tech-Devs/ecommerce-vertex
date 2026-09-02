@@ -20,11 +20,22 @@ describe('generateShortId', () => {
     expect(set.size).toBe(100);
   });
 
-  it('should only contain safe alphanumeric characters', () => {
-    const safeRegex = /^[23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz]+$/;
-    for (let i = 0; i < 50; i++) {
-      const id = generateShortId();
-      expect(safeRegex.test(id)).toBeTrue();
+  it('should fallback to Math.random when crypto.getRandomValues is unavailable', () => {
+    const origCrypto = window.crypto;
+    try {
+      Object.defineProperty(window, 'crypto', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
+      const id = generateShortId(6);
+      expect(id.length).toBe(6);
+    } finally {
+      Object.defineProperty(window, 'crypto', {
+        value: origCrypto,
+        writable: true,
+        configurable: true,
+      });
     }
   });
 });

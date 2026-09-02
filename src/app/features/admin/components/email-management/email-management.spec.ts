@@ -220,4 +220,36 @@ describe('EmailManagement', () => {
 
     expect(sweetAlertSpy.error).toHaveBeenCalled();
   });
+
+  it('should toggle mobile section, mark dirty, restore defaults without alert or on cancel', async () => {
+    component.mobileActiveSection = 1;
+    component.toggleMobileSection(1);
+    expect(component.mobileActiveSection).toBe(0);
+    component.toggleMobileSection(2);
+    expect(component.mobileActiveSection).toBe(2);
+
+    component.markFormDirty();
+    expect(component.emailForm.dirty).toBeTrue();
+
+    await component.restoreDefaults(false);
+    expect(component.emailForm.get('adminNotification.subject')?.value).toBeDefined();
+
+    sweetAlertSpy.confirm.and.returnValue(Promise.resolve(false));
+    await component.restoreDefaults(true);
+  });
+
+  it('should handle invalid form and save error on submit and onSendAdvancedTest', async () => {
+    component.emailForm.get('storeOwnerEmail')?.setValue('invalid-email');
+    await component.onSubmit();
+    expect(sweetAlertSpy.error).toHaveBeenCalledWith('Formulario Inválido', 'Por favor revisa los campos marcados en rojo.');
+
+    component.emailForm.get('storeOwnerEmail')?.setValue('valid@test.com');
+    emailSettingsSpy.saveEmailSettings.and.returnValue(Promise.reject(new Error('Save error')));
+    await component.onSubmit();
+    expect(sweetAlertSpy.error).toHaveBeenCalledWith('Error', 'No se pudo guardar la configuración de los emails.');
+
+    component.testEmailModalForm.get('recipientEmail')?.setValue('invalid-email');
+    await component.onSendAdvancedTest();
+    expect(sweetAlertSpy.error).toHaveBeenCalledWith('Formulario Inválido', 'Revisa los campos del modal.');
+  });
 });

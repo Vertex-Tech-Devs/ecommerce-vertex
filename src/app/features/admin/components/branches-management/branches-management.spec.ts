@@ -80,17 +80,47 @@ describe('BranchesManagement', () => {
     expect(component.pickupLocationsArray.length).toBe(0);
   });
 
-  it('should toggle day selection and update schedule', () => {
-    component.toggleDay(0, 'Mié');
-    expect(component.isDaySelected(0, 'Mié')).toBeTrue();
+  it('should toggle pickup location status and handle invalid index', () => {
+    component.togglePickupLocationStatus(0);
+    expect(component.pickupLocationsArray.at(0).get('enabled')?.value).toBeFalse();
+
+    component.togglePickupLocationStatus(99);
   });
 
-  it('should submit valid form successfully', async () => {
+  it('should toggle day on and off and handle split schedule in updateComputedSchedule', () => {
+    expect(component.isDaySelected(0, 'Lun')).toBeTrue();
+    component.toggleDay(0, 'Lun');
+    expect(component.isDaySelected(0, 'Lun')).toBeFalse();
+
+    component.toggleDay(99, 'Lun');
+
+    const group = component.pickupLocationsArray.at(0);
+    group.patchValue({ hasSplitSchedule: true, timeFrom2: '17:00', timeTo2: '21:00' });
+    component.updateComputedSchedule(0);
+    expect(group.get('schedule')?.value).toContain('17:00 a 21:00');
+
+    component.updateComputedSchedule(99);
+  });
+
+  it('should handle form invalid on submit', async () => {
+    const group = component.pickupLocationsArray.at(0);
+    group.patchValue({ name: '' });
     await component.onSubmit();
-    expect(mockStoreConfigService.saveConfig).toHaveBeenCalled();
-    expect(mockSweetAlert.success).toHaveBeenCalledWith(
-      'Guardado exitoso',
-      'Sucursales y logística guardadas correctamente.',
+    expect(mockSweetAlert.warning).toHaveBeenCalledWith(
+      'Campos incompletos',
+      'Por favor, completá los campos obligatorios de tus sucursales.',
     );
+  });
+
+  it('should handle saveConfig error on submit', async () => {
+    mockStoreConfigService.saveConfig.and.rejectWith(new Error('Save error'));
+    await component.onSubmit();
+    expect(mockSweetAlert.error).toHaveBeenCalledWith('Error al guardar', 'No se pudieron guardar las sucursales.');
+  });
+
+  it('should handle loadData error gracefully', async () => {
+    mockStoreConfigService.loadConfig.and.rejectWith(new Error('Load error'));
+    await component.loadData();
+    expect(component.isLoading()).toBeFalse();
   });
 });

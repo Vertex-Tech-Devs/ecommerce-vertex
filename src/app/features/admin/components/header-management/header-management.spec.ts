@@ -81,4 +81,25 @@ describe('HeaderManagement', () => {
       'Configuración de cabecera guardada con éxito.',
     );
   });
+
+  it('should handle invalid form on submit', async () => {
+    component.headerGroup.patchValue({ backgroundColor: '' });
+    await component.onSubmit();
+    expect(mockSweetAlert.warning).toHaveBeenCalledWith(
+      'Campos incompletos',
+      'Por favor verificá los campos de cabecera.',
+    );
+  });
+
+  it('should handle saveConfig error on submit', async () => {
+    mockStoreConfigService.saveConfig.and.rejectWith(new Error('Save error'));
+    await component.onSubmit();
+    expect(mockSweetAlert.error).toHaveBeenCalledWith('Error al guardar', 'Error al guardar la cabecera.');
+  });
+
+  it('should handle loadData error or null config', async () => {
+    mockStoreConfigService.loadConfig.and.rejectWith(new Error('Load error'));
+    await component.loadData();
+    expect(component.isLoading()).toBeFalse();
+  });
 });

@@ -81,4 +81,43 @@ describe('AdminPagination', () => {
     expect(pages.includes('...')).toBeTrue();
     expect(pages[pages.length - 1]).toBe(20);
   });
+
+  it('should handle zero total items and visiblePages <= 7', () => {
+    fixture.componentRef.setInput('totalItems', 0);
+    fixture.detectChanges();
+    expect(component.startItem()).toBe(0);
+    expect(component.endItem()).toBe(0);
+    expect(component.visiblePages()).toEqual([1]);
+  });
+
+  it('should handle onPageClick, prevPage at start, and nextPage at end', () => {
+    fixture.componentRef.setInput('totalItems', 50);
+    fixture.componentRef.setInput('pageSize', 10);
+    fixture.componentRef.setInput('currentPage', 1);
+    fixture.detectChanges();
+
+    let pageEmitted = 0;
+    component.pageChange.subscribe((p) => (pageEmitted = p));
+
+    component.prevPage();
+    expect(pageEmitted).toBe(0);
+
+    component.onPageClick('...');
+    expect(pageEmitted).toBe(0);
+
+    component.onPageClick(1);
+    expect(pageEmitted).toBe(0);
+
+    component.onPageClick(99);
+    expect(pageEmitted).toBe(0);
+
+    component.onPageClick(3);
+    expect(pageEmitted).toBe(3);
+
+    fixture.componentRef.setInput('currentPage', 5);
+    fixture.detectChanges();
+    pageEmitted = 0;
+    component.nextPage();
+    expect(pageEmitted).toBe(0);
+  });
 });

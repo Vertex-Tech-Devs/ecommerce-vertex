@@ -1,5 +1,5 @@
 import { environment } from '../../../environments/environment';
-import { tenantPath, storeDocId, resolveTenantId } from './tenant';
+import { tenantPath, storeDocId, resolveTenantId, storeIdFilter } from './tenant';
 
 describe('tenantPath', () => {
   it('should return the flat root-level collection name (no tenant namespace)', () => {
@@ -133,8 +133,14 @@ describe('resolveTenantId', () => {
     expect(resolveTenantId({ hostname: 'ecommerce-vertex.web.app', search: '' })).toBe('');
   });
 
-  it('should call tenantPath with resolved tenant (flat collection)', () => {
-    environment.tenantId = 'test-tenant';
-    expect(tenantPath('productos')).toBe('productos');
+  it('should resolve PR preview channel and localStorage fallback, and test storeIdFilter', () => {
+    environment.tenantId = 'store';
+    expect(resolveTenantId({ hostname: 'preview--pr-42-abc.web.app', search: '' })).toBe('vtx-pr-42');
+
+    window.localStorage.setItem('vertex_tenant_id', 'persisted-tenant');
+    expect(resolveTenantId({ hostname: 'localhost', search: '' })).toBe('persisted-tenant');
+
+    const filter = storeIdFilter();
+    expect(filter).toBeDefined();
   });
 });
