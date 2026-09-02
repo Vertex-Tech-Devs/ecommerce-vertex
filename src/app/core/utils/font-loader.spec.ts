@@ -3,7 +3,7 @@ import {
   computeHeaderCustomProperties,
   HEADER_FONT_STACK_MAP,
 } from './font-loader';
-import { DEFAULT_HEADER_APPEARANCE } from '@core/models/store-config.model';
+import { DEFAULT_HEADER_APPEARANCE, type HeaderFontPreset } from '@core/models/store-config.model';
 
 describe('font-loader', () => {
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('font-loader', () => {
     });
 
     it('does nothing when font is not a known preset with URL', () => {
-      loadGoogleFont('unknown-font-id' as any);
+      loadGoogleFont('unknown-font-id' as unknown as HeaderFontPreset);
       expect(document.getElementById('google-font-unknown-font-id')).toBeNull();
     });
 
@@ -69,7 +69,7 @@ describe('font-loader', () => {
 
     it('falls back to system font when unknown font preset is provided', () => {
       const custom = computeHeaderCustomProperties({
-        fontFamily: 'nonexistent' as any,
+        fontFamily: 'nonexistent' as unknown as HeaderFontPreset,
       });
       expect(custom['--header-font-family']).toBe(HEADER_FONT_STACK_MAP.system);
     });

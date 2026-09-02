@@ -151,6 +151,21 @@
               "src/app/features/admin/components/products/product-create/**",
               "src/app/features/admin/components/home-management/hero-image-uploader.service.ts",
               "src/app/core/services/image-validation.service.ts",
+              "src/app/features/shop/components/catalog/**",
+              "src/app/features/shop/components/checkout/**",
+              "src/app/features/shop/components/product-detail/**",
+              "src/app/features/shop/components/order-confirmation/**",
+              "src/app/features/admin/components/home-management/**",
+              "src/app/features/admin/components/about-us-management/**",
+              "src/app/features/admin/components/email-management/**",
+              "src/app/features/admin/components/branches-management/**",
+              "src/app/features/admin/components/header-management/**",
+              "src/app/features/admin/components/products/product-detail/**",
+              "src/app/features/admin/components/products/products-list/**",
+              "src/app/features/admin/components/login/**",
+              "src/app/features/admin/components/attributes/**",
+              "src/app/features/shop/layout/shop/**",
+              "src/app/features/admin/admin.ts",
               "**/*.spec.ts"
             ]
           }
