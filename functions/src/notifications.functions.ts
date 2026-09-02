@@ -142,6 +142,7 @@ function buildEmailHtml(
     subject: 'Notificación de pedido',
   },
 ): string {
+  const safeTemplate = typeof template === 'string' ? template : '';
   const itemsHtml = order.items
     .map((item) => {
       const description = getVariantDescription(item.attributes, attributeMap);
@@ -196,7 +197,7 @@ function buildEmailHtml(
       </table>
     </div>`;
 
-  let emailBody = template
+  let emailBody = safeTemplate
     .replace(/{orderId}/g, escapeHtml(orderId))
     .replace(/{clientName}/g, escapeHtml(order.clientName))
     .replace(/{clientEmail}/g, escapeHtml(order.clientEmail || 'N/A'))
@@ -208,7 +209,7 @@ function buildEmailHtml(
     .replace(/{deliverySection}/g, deliveryTable)
     .replace(/{totalAmount}/g, order.total.toFixed(2));
 
-  if (!template.includes('{deliverySection}')) {
+  if (!safeTemplate.includes('{deliverySection}')) {
     emailBody += deliveryTable;
   }
 

@@ -110,3 +110,142 @@
 .live-preview-container {
   background: #0b0f19;
 }
+
+// ── Shadow Preset Cards ─────────────────────────────────────────────────────
+.shadow-preset-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.22);
+    transform: translateY(-2px);
+  }
+
+  &--active {
+    background: rgba(37, 99, 235, 0.15) !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 14px rgba(37, 99, 235, 0.28);
+  }
+}
+
+// ── Browser Mockup Frame ─────────────────────────────────────────────────────
+.preview-browser-wrapper {
+  background: #0d1117;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-browser-header {
+  background: #1c2030;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  min-height: 2.25rem;
+  font-size: 0.75rem;
+}
+
+.browser-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+
+  &--red {
+    background: #ff5f57;
+  }
+
+  &--yellow {
+    background: #febc2e;
+  }
+
+  &--green {
+    background: #28c840;
+  }
+}
+
+.browser-address-bar {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.72rem;
+  color: #8b949e;
+}
+
+.preview-browser-viewport {
+  background: #ffffff;
+}
+
+// ── Mockup Header ────────────────────────────────────────────────────────────
+.mockup-header {
+  // background/color/shadow come from liveHeaderStyles() via ngStyle
+}
+
+.mockup-header__container {
+  min-height: 3rem;
+}
+
+.mockup-header__brand {
+  gap: 0.5rem;
+}
+
+.mockup-header__logo {
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.mockup-header__brand-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.mockup-header__nav {
+  gap: 1rem;
+}
+
+.mockup-header__link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.85;
+  cursor: default;
+
+  &--active {
+    opacity: 1;
+    font-weight: 700;
+  }
+}
+
+.mockup-header__actions {
+  gap: 0.75rem;
+}
+
+.mockup-header__action-icon {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.mockup-header__cart {
+  position: relative;
+}
+
+.mockup-header__cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mockup-body-placeholder {
+  background: #f8fafc;
+  min-height: 80px;
+}
