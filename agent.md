@@ -30,17 +30,30 @@ This file contains instructions for AI agents and developers working on the Stor
 npm start                  # Dev server en puerto 4201
 npm run lint               # ESLint
 npm run typecheck          # TypeScript strict check
-npm run test:ci            # Tests unitarios headless (280 specs)
+npm run test:ci            # Tests unitarios headless (750 specs — 100% pasando con cobertura)
 npm run build              # Build producción (@angular/build)
 npm run build:dev          # Build desarrollo
 npm run e2e                # Cypress headless
 npm run e2e:open           # Cypress interactivo
 
 # Versioning (ejecutar en main o develop antes del merge a main)
-npm run release:patch      # 0.5.0 → 0.5.1
-npm run release:minor      # 0.5.0 → 0.6.0
-npm run release:major      # 0.5.0 → 1.0.0
+npm run release:patch      # 0.8.0 → 0.8.1
+npm run release:minor      # 0.8.0 → 0.9.0
+npm run release:major      # 0.8.0 → 1.0.0
 ```
+
+---
+
+## 🧪 Política Obligatoria de Cobertura de Código (Quality Gate ≥95%, 100% Ideal)
+
+- **Umbral Mínimo No Modificable**: La cobertura de código en Storefront debe ser estrictamente **$\ge 95\%$ en todas las 4 métricas**:
+  1. `Statements` $\ge 95\%$
+  2. `Branches` $\ge 95\%$
+  3. `Functions` $\ge 95\%$
+  4. `Lines` $\ge 95\%$
+  - **100%** es el objetivo ideal permanente para toda la lógica de negocio y utilidades.
+- **Bloqueo en Hooks Locales (`pre-commit` y `pre-push`)**: Los hooks de Husky ejecutan `npm run test:ci` y `node scripts/verify-coverage.js`. No se permite realizar `git commit` ni `git push` si cualquiera de los porcentajes es menor a 95%.
+- **Bloqueo en CI/CD**: `ci.yml` ejecuta la misma verificación y rechaza automáticamente PRs que no alcancen el 95%.
 
 ---
 
@@ -59,7 +72,7 @@ npm run release:major      # 0.5.0 → 1.0.0
 ## 🔢 Versionado del Template
 
 El storefront es el **template de tienda** versionado semánticamente (Semver).
-Versión actual: `0.5.0`
+Versión actual: `0.8.0`
 
 | Tipo de cambio                     | Comando                 |
 | ---------------------------------- | ----------------------- |
