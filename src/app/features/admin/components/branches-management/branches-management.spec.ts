@@ -115,7 +115,10 @@ describe('BranchesManagement', () => {
   it('should handle saveConfig error on submit', async () => {
     mockStoreConfigService.saveConfig.and.rejectWith(new Error('Save error'));
     await component.onSubmit();
-    expect(mockSweetAlert.error).toHaveBeenCalledWith('Error al guardar', 'No se pudieron guardar las sucursales.');
+    expect(mockSweetAlert.error).toHaveBeenCalledWith(
+      'Error al guardar',
+      'No se pudieron guardar las sucursales.',
+    );
   });
 
   it('should handle loadData error gracefully', async () => {

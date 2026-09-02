@@ -135,7 +135,9 @@ describe('resolveTenantId', () => {
 
   it('should resolve PR preview channel and localStorage fallback, and test storeIdFilter', () => {
     environment.tenantId = 'store';
-    expect(resolveTenantId({ hostname: 'preview--pr-42-abc.web.app', search: '' })).toBe('vtx-pr-42');
+    expect(resolveTenantId({ hostname: 'preview--pr-42-abc.web.app', search: '' })).toBe(
+      'vtx-pr-42',
+    );
 
     window.localStorage.setItem('vertex_tenant_id', 'persisted-tenant');
     expect(resolveTenantId({ hostname: 'localhost', search: '' })).toBe('persisted-tenant');

@@ -38,43 +38,69 @@ describe('Sidebar', () => {
   });
 
   it('should auto-expand for various URLs and check section active', () => {
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/products');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/products',
+    );
     expect(component.isExpanded('catalog')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/categories');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/categories',
+    );
     expect(component.isExpanded('catalog')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/attributes');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/attributes',
+    );
     expect(component.isExpanded('catalog')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/orders');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/orders',
+    );
     expect(component.isExpanded('sales')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/customers');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/customers',
+    );
     expect(component.isExpanded('sales')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/branches');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/branches',
+    );
     expect(component.isExpanded('locations')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/header-management');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/header-management',
+    );
     expect(component.isExpanded('onlineStore')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/home-management');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/home-management',
+    );
     expect(component.isExpanded('onlineStore')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/footer-management');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/footer-management',
+    );
     expect(component.isExpanded('onlineStore')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/about-management');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/about-management',
+    );
     expect(component.isExpanded('onlineStore')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/store-config');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/store-config',
+    );
     expect(component.isExpanded('settings')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/email-management');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/email-management',
+    );
     expect(component.isExpanded('settings')).toBeTrue();
 
-    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/admin/_dev');
+    (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl(
+      '/admin/_dev',
+    );
     expect(component.isExpanded('settings')).toBeTrue();
 
     (component as unknown as { autoExpandForUrl: (u: string) => void }).autoExpandForUrl('/other');

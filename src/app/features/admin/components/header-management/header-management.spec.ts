@@ -94,7 +94,10 @@ describe('HeaderManagement', () => {
   it('should handle saveConfig error on submit', async () => {
     mockStoreConfigService.saveConfig.and.rejectWith(new Error('Save error'));
     await component.onSubmit();
-    expect(mockSweetAlert.error).toHaveBeenCalledWith('Error al guardar', 'Error al guardar la cabecera.');
+    expect(mockSweetAlert.error).toHaveBeenCalledWith(
+      'Error al guardar',
+      'Error al guardar la cabecera.',
+    );
   });
 
   it('should handle loadData error or null config', async () => {
