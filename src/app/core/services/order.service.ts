@@ -208,7 +208,12 @@ export class OrderService {
         body: JSON.stringify({
           orderId,
           tenantId: tenantId ?? resolveTenantId(),
-          tenantProjectId: environment.firebaseConfig.projectId,
+          tenantProjectId:
+            (typeof globalThis !== 'undefined' &&
+              ((globalThis as Record<string, unknown>)[
+                '__VERTEX_FIREBASE_PROJECT_ID__'
+              ] as string)) ||
+            environment.firebaseConfig.projectId,
         }),
       });
       if (!response.ok) {

@@ -78,9 +78,18 @@ fetch('/firebase-config.json?t=' + new Date().getTime())
     return config;
   })
   .catch(() => environment.firebaseConfig)
-  .then((firebaseConfig) =>
-    bootstrapApplication(App, createAppConfig(normalizeFirebaseOptions(firebaseConfig))),
-  )
+  .then((firebaseConfig) => {
+    const normalized = normalizeFirebaseOptions(firebaseConfig);
+    // Sincronizar el objeto global environment.firebaseConfig con la configuración real del shard
+    Object.assign(environment.firebaseConfig, normalized);
+    try {
+      (globalThis as Record<string, unknown>)['__VERTEX_FIREBASE_PROJECT_ID__'] =
+        normalized.projectId;
+    } catch {
+      // Ignorar en entornos sin window
+    }
+    return bootstrapApplication(App, createAppConfig(normalized));
+  })
   .catch((err) => {
     console.error('Failed to load Firebase config:', err);
     document.body.innerHTML =

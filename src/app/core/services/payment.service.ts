@@ -64,7 +64,12 @@ export class PaymentService {
               external_reference: orderId,
               // El proyecto del shard donde viven los datos de la tienda (orden/catálogo).
               // Las functions del master resuelven el Firestore de ese proyecto.
-              projectId: environment.firebaseConfig.projectId,
+              projectId:
+                (typeof globalThis !== 'undefined' &&
+                  ((globalThis as Record<string, unknown>)[
+                    '__VERTEX_FIREBASE_PROJECT_ID__'
+                  ] as string)) ||
+                environment.firebaseConfig.projectId,
               siteUrl: typeof window !== 'undefined' ? window.location.origin : undefined,
               payer,
             },

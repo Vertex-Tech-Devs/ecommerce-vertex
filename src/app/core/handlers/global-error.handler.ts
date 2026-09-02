@@ -12,7 +12,13 @@ export class GlobalErrorHandler implements ErrorHandler {
     // Technical log for developer diagnostics
     console.error('[Global Error Intercepted]:', error);
 
-    // Gracefully notify the user without crashing or locking the screen
+    // 1. Detectar si el error es debido a un redespliegue de la tienda (chunks JS desactualizados)
+    if (this.isDeploymentOrChunkError(error)) {
+      this.handleDeploymentReload();
+      return;
+    }
+
+    // 2. Notificación controlada para errores comunes sin bloquear la pantalla
     try {
       const sweetAlert = this.injector.get(SweetAlertService);
       sweetAlert.error(
@@ -21,6 +27,53 @@ export class GlobalErrorHandler implements ErrorHandler {
       );
     } catch (err) {
       console.error('Failed to notify via SweetAlert:', err);
+    }
+  }
+
+  private isDeploymentOrChunkError(error: unknown): boolean {
+    if (!error) {
+      return false;
+    }
+    const message =
+      error instanceof Error
+        ? `${error.message} ${error.name} ${error.stack ?? ''}`
+        : String(error);
+
+    return (
+      message.includes('Loading chunk') ||
+      message.includes('Failed to fetch dynamically imported module') ||
+      message.includes('Importing a module script failed') ||
+      message.includes('error loading dynamically imported module') ||
+      message.includes('ChunkLoadError') ||
+      message.includes('is not a valid JavaScript MIME type')
+    );
+  }
+
+  private handleDeploymentReload(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const RELOAD_KEY = 'vtx_chunk_reload_ts';
+    const lastReload = sessionStorage.getItem(RELOAD_KEY);
+    const now = Date.now();
+
+    // Evitar loop infinito si hay problemas de red persistentes (mínimo 15s de gracia)
+    if (!lastReload || now - Number(lastReload) > 15000) {
+      sessionStorage.setItem(RELOAD_KEY, String(now));
+      try {
+        const sweetAlert = this.injector.get(SweetAlertService);
+        sweetAlert.info(
+          'Actualizando Tienda',
+          'Se ha desplegado una nueva versión de la tienda. Actualizando la página...',
+        );
+      } catch {
+        // Fallback silencioso si SweetAlert no está listo
+      }
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1200);
     }
   }
 }

@@ -8,13 +8,14 @@ describe('GlobalErrorHandler', () => {
   let sweetAlertSpy: jasmine.SpyObj<SweetAlertService>;
 
   beforeEach(() => {
-    sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['error']);
+    sweetAlertSpy = jasmine.createSpyObj('SweetAlertService', ['error', 'info']);
 
     TestBed.configureTestingModule({
       providers: [GlobalErrorHandler, { provide: SweetAlertService, useValue: sweetAlertSpy }],
     });
 
     handler = TestBed.inject(GlobalErrorHandler);
+    sessionStorage.clear();
   });
 
   it('should be created', () => {
@@ -31,6 +32,18 @@ describe('GlobalErrorHandler', () => {
     expect(sweetAlertSpy.error).toHaveBeenCalledWith(
       '¡Ups! Algo salió mal',
       'El sistema ha experimentado una anomalía inesperada. Nos hemos degradado de forma segura; puedes seguir utilizando la aplicación.',
+    );
+  });
+
+  it('should handle chunk / deployment load errors with reload notification', () => {
+    spyOn(console, 'error');
+    const chunkError = new Error('Failed to fetch dynamically imported module: chunk-xyz.js');
+
+    handler.handleError(chunkError);
+
+    expect(sweetAlertSpy.info).toHaveBeenCalledWith(
+      'Actualizando Tienda',
+      'Se ha desplegado una nueva versión de la tienda. Actualizando la página...',
     );
   });
 
