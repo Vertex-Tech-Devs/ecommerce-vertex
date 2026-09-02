@@ -8,8 +8,9 @@ import { RouterModule } from '@angular/router';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { StoreConfig } from '@core/models/store-config.model';
-import { FONT_PRESETS } from '../store-config/store-config.constants';
-import type { FontPresetItem } from '../store-config/store-config.constants';
+import { computeHeaderCustomProperties } from '@core/utils/font-loader';
+import { FONT_PRESETS, SHADOW_PRESETS } from '../store-config/store-config.constants';
+import type { FontPresetItem, ShadowPresetItem } from '../store-config/store-config.constants';
 
 @Component({
   selector: 'app-header-management',
@@ -26,6 +27,7 @@ export class HeaderManagement implements OnInit {
   readonly isLoading = signal<boolean>(true);
   readonly isSaving = signal<boolean>(false);
   readonly fontPresets: FontPresetItem[] = FONT_PRESETS;
+  readonly shadowPresets: ShadowPresetItem[] = SHADOW_PRESETS;
 
   readonly form: FormGroup = this.fb.group({
     brandDisplayMode: ['text'],
@@ -35,6 +37,7 @@ export class HeaderManagement implements OnInit {
         textColor: ['#1f2937', Validators.required],
         accentColor: ['#000000', Validators.required],
         fontFamily: ['system', Validators.required],
+        shadowStyle: ['subtle', Validators.required],
       }),
     }),
     announcementBar: this.fb.group({
@@ -52,8 +55,23 @@ export class HeaderManagement implements OnInit {
   });
 
   readonly formValue = toSignal(this.form.valueChanges, { initialValue: this.form.value });
+
+  /** Computed signals for Live Preview */
+  readonly liveStoreName = computed(
+    () => this.storeConfigService.storeConfig()?.storeName ?? 'Mi Tienda',
+  );
+  readonly liveLogoUrl = computed(() => this.storeConfigService.storeConfig()?.logoUrl ?? '');
+  readonly liveBrandDisplayMode = computed(
+    () => (this.formValue().brandDisplayMode as string) ?? 'text',
+  );
+  readonly liveHeaderStyles = computed(() =>
+    computeHeaderCustomProperties(this.formValue()?.appearance?.header),
+  );
+  readonly liveShadowStyle = computed(
+    () => (this.formValue()?.appearance?.header?.shadowStyle as string) ?? 'subtle',
+  );
   readonly liveAnnouncementText = computed(
-    () => this.formValue().announcementBar?.text ?? 'Texto de anuncio de ejemplo',
+    () => (this.formValue().announcementBar?.text as string) ?? 'Texto de anuncio de ejemplo',
   );
 
   get headerGroup(): FormGroup {
@@ -87,6 +105,7 @@ export class HeaderManagement implements OnInit {
               textColor: config.appearance?.header?.textColor ?? '#1f2937',
               accentColor: config.appearance?.header?.accentColor ?? '#000000',
               fontFamily: config.appearance?.header?.fontFamily ?? 'system',
+              shadowStyle: config.appearance?.header?.shadowStyle ?? 'subtle',
             },
           },
           announcementBar: {
@@ -114,6 +133,14 @@ export class HeaderManagement implements OnInit {
 
   selectFont(fontId: string): void {
     this.headerGroup.patchValue({ fontFamily: fontId });
+    this.headerGroup.get('fontFamily')?.markAsDirty();
+    this.form.markAsDirty();
+  }
+
+  selectShadowPreset(presetId: string): void {
+    this.headerGroup.patchValue({ shadowStyle: presetId });
+    this.headerGroup.get('shadowStyle')?.markAsDirty();
+    this.form.markAsDirty();
   }
 
   async onSubmit(): Promise<void> {

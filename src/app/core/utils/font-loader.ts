@@ -75,10 +75,25 @@ export function computeHeaderCustomProperties(
 
   const fontValue = HEADER_FONT_STACK_MAP[fontPreset] ?? HEADER_FONT_STACK_MAP.system;
 
+  const shadowMap: Record<string, string> = {
+    none: 'none',
+    'border-bottom': 'inset 0 -1px 0 rgba(0,0,0,0.12)',
+    subtle: '0 1px 3px rgba(0,0,0,0.08)',
+    medium: '0 4px 12px rgba(0,0,0,0.18)',
+    floating: '0 8px 24px rgba(0,0,0,0.28)',
+  };
+  const shadowPreset = appearance?.shadowStyle ?? DEFAULT_HEADER_APPEARANCE.shadowStyle;
+  const shadow = shadowMap[shadowPreset] ?? shadowMap['subtle'];
+
   return {
+    'background-color': bg,
+    color: text,
+    'font-family': fontValue,
+    'box-shadow': shadow,
     '--header-bg': bg,
     '--header-text': text,
     '--header-accent': accent,
     '--header-font-family': fontValue,
+    '--header-shadow': shadow,
   };
 }

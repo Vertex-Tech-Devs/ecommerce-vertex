@@ -83,11 +83,14 @@ export type HeaderFontPreset =
   | 'space-grotesk'
   | 'oswald';
 
+export type HeaderShadowPreset = 'none' | 'border-bottom' | 'subtle' | 'medium' | 'floating';
+
 export interface HeaderAppearanceConfig {
   backgroundColor: string;
   textColor: string;
   accentColor: string;
   fontFamily: HeaderFontPreset;
+  shadowStyle: HeaderShadowPreset;
 }
 
 export interface StoreAppearanceConfig {
@@ -99,6 +102,7 @@ export const DEFAULT_HEADER_APPEARANCE: HeaderAppearanceConfig = {
   textColor: '#1f2937',
   accentColor: '#000000',
   fontFamily: 'system',
+  shadowStyle: 'subtle',
 };
 
 export const DEFAULT_STORE_APPEARANCE: StoreAppearanceConfig = {
