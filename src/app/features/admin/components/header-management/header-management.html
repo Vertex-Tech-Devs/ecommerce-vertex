@@ -150,14 +150,14 @@
         </div>
 
         <!-- 2. Apariencia de la Cabecera -->
-        <div class="glass-card mb-4" formGroupName="appearance">
+        <div class="glass-card mb-4">
           <div class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3">
             <i class="bi bi-layout-text-sidebar-reverse me-2 text-warning fs-5"></i>
             <span class="fs-6">Colores y Modo de Visualización del Header</span>
           </div>
 
           <div class="card-body pt-0">
-            <!-- Modo de Visualización -->
+            <!-- Modo de Visualización (Root Control) -->
             <div class="mb-4">
               <label class="form-label text-label" for="brandDisplayMode">
                 Modo de Visualización de la Marca en Cabecera
@@ -177,52 +177,60 @@
             </div>
 
             <!-- Colores del Header -->
-            <div class="row g-4" formGroupName="header">
-              <div class="col-12 col-md-4">
-                <label class="form-label text-label">Fondo de la Cabecera</label>
-                <div class="d-flex align-items-center gap-3">
-                  <input
-                    formControlName="backgroundColor"
-                    type="color"
-                    class="form-control form-control-color glass-color-picker"
-                  />
-                  <input
-                    formControlName="backgroundColor"
-                    type="text"
-                    class="form-control glass-input font-monospace text-uppercase"
-                  />
+            <div class="row g-4" formGroupName="appearance">
+              <div class="row g-4 w-100 m-0 p-0" formGroupName="header">
+                <!-- Color de Fondo -->
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-label">Color de Fondo</label>
+                  <div class="input-group">
+                    <input
+                      formControlName="backgroundColor"
+                      type="color"
+                      class="form-control form-control-color glass-color-picker"
+                      aria-label="Color de fondo del header"
+                    />
+                    <input
+                      formControlName="backgroundColor"
+                      type="text"
+                      class="form-control glass-input font-monospace text-uppercase"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-12 col-md-4">
-                <label class="form-label text-label">Color de Texto & Enlaces</label>
-                <div class="d-flex align-items-center gap-3">
-                  <input
-                    formControlName="textColor"
-                    type="color"
-                    class="form-control form-control-color glass-color-picker"
-                  />
-                  <input
-                    formControlName="textColor"
-                    type="text"
-                    class="form-control glass-input font-monospace text-uppercase"
-                  />
+                <!-- Color del Texto -->
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-label">Color del Texto / Íconos</label>
+                  <div class="input-group">
+                    <input
+                      formControlName="textColor"
+                      type="color"
+                      class="form-control form-control-color glass-color-picker"
+                      aria-label="Color del texto del header"
+                    />
+                    <input
+                      formControlName="textColor"
+                      type="text"
+                      class="form-control glass-input font-monospace text-uppercase"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div class="col-12 col-md-4">
-                <label class="form-label text-label">Color de Acento / Hover</label>
-                <div class="d-flex align-items-center gap-3">
-                  <input
-                    formControlName="accentColor"
-                    type="color"
-                    class="form-control form-control-color glass-color-picker"
-                  />
-                  <input
-                    formControlName="accentColor"
-                    type="text"
-                    class="form-control glass-input font-monospace text-uppercase"
-                  />
+                <!-- Color de Acento -->
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-label">Color de Acento / Badges</label>
+                  <div class="input-group">
+                    <input
+                      formControlName="accentColor"
+                      type="color"
+                      class="form-control form-control-color glass-color-picker"
+                      aria-label="Color de acento del header"
+                    />
+                    <input
+                      formControlName="accentColor"
+                      type="text"
+                      class="form-control glass-input font-monospace text-uppercase"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -231,20 +239,17 @@
 
         <!-- 3. Tipografía de la Cabecera -->
         <div class="glass-card mb-4" formGroupName="appearance">
-          <div
-            class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3"
-            formGroupName="header"
-          >
+          <div class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3">
             <i class="bi bi-fonts me-2 text-info fs-5"></i>
             <span class="fs-6">Tipografía Corporativa del Header</span>
           </div>
 
-          <div class="card-body pt-0" formGroupName="header">
+          <div class="card-body pt-0">
             <p class="text-soft small mb-3">
               Seleccioná la familia tipográfica aplicada al nombre de marca y menús principales.
             </p>
 
-            <div class="row g-3">
+            <div class="row g-3" formGroupName="header">
               @for (font of fontPresets; track font.id) {
                 <div class="col-12 col-sm-6 col-lg-4">
                   <div
