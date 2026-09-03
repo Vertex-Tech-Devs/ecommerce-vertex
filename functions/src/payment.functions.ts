@@ -487,7 +487,7 @@ export const createPaymentPreference = onCall(
 
       if (errMsg.toLowerCase().includes('mercado pago') || errMsg.toLowerCase().includes('mercadopago') || error?.cause) {
         throw new HttpsError(
-          'unprocessable-entity',
+          'invalid-argument',
           `Error al crear preferencia de Mercado Pago: ${errMsg || 'Validación de pago fallida.'}`,
           { error: 'MP_ERROR', details: errMsg },
         );
