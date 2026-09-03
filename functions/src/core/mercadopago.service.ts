@@ -150,21 +150,35 @@ async function getMercadoPagoRuntimeConfig(
     mpConfig = (data?.['payments']?.['mercadoPago'] || data?.['payments']) as Record<string, any> | undefined;
   }
 
+  // Resolución de token en 3 niveles de resiliencia:
+  // 1. Secret Manager (secretRef o accessTokenSecret)
+  const secretRef = String(mpConfig?.['secretRef'] || '').trim();
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
+  const secretIdToTry = secretRef.includes('/') ? secretRef.split('/').pop() || '' : secretRef || secretName;
+
   const readSecret = (name: string) => resolveAccessTokenFromSecret(name, shardProjectId);
 
-  let tokenFromSecret = secretName ? await readSecret(secretName) : '';
-  if (!tokenFromSecret && secretName && secretName !== 'mp-access-token-default') {
-    tokenFromSecret = await readSecret('mp-access-token-default');
+  let tokenFromSecret = '';
+  if (secretIdToTry) {
+    tokenFromSecret = await readSecret(secretIdToTry);
+  }
+  if (!tokenFromSecret && storeId) {
+    tokenFromSecret = await readSecret(`mp-access-token-${storeId}`);
   }
   if (!tokenFromSecret) {
     tokenFromSecret = await readSecret('mp-access-token-default');
+  }
+
+  // 2. Fallback persistido en Firestore (_sandboxFallbackToken o accessToken)
+  if (!tokenFromSecret && mpConfig?.['_sandboxFallbackToken']) {
+    tokenFromSecret = String(mpConfig['_sandboxFallbackToken']).trim();
   }
   if (!tokenFromSecret && mpConfig?.['accessToken']) {
     tokenFromSecret = String(mpConfig['accessToken']).trim();
   }
+
+  // 3. Fallback a variable de entorno o token de prueba por defecto de Vertex
   if (!tokenFromSecret) {
-    // Fallback a variable de entorno (MERCADOPAGO_ACCESSTOKEN / MERCADOPAGO_TEST_TOKEN)
     tokenFromSecret = envMpAccessToken().trim();
   }
 

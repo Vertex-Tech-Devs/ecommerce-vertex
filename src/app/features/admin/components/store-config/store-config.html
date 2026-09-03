@@ -40,33 +40,26 @@
                 </div>
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label text-label">Colores de marca</label>
-                <div class="row g-2" formGroupName="colors">
-                  <div class="col-4">
-                    <input
-                      formControlName="primary"
-                      type="color"
-                      class="form-control form-control-color w-100"
-                      aria-label="Color primario"
-                    />
-                  </div>
-                  <div class="col-4">
-                    <input
-                      formControlName="accent"
-                      type="color"
-                      class="form-control form-control-color w-100"
-                      aria-label="Color de acento"
-                    />
-                  </div>
-                  <div class="col-4">
-                    <input
-                      formControlName="background"
-                      type="color"
-                      class="form-control form-control-color w-100"
-                      aria-label="Color de fondo"
-                    />
-                  </div>
+                <label class="form-label text-label" for="brandDisplayModeSelect">
+                  Modo de visualización en cabecera
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                  <select
+                    id="brandDisplayModeSelect"
+                    formControlName="brandDisplayMode"
+                    class="form-select glass-input glass-select"
+                  >
+                    <option value="text">Solo nombre</option>
+                    <option value="both">Nombre y logo</option>
+                    <option value="logo">Solo logo</option>
+                  </select>
                 </div>
+                @if (!form.get('logoUrl')?.value && (form.get('brandDisplayMode')?.value === 'logo' || form.get('brandDisplayMode')?.value === 'both')) {
+                  <div class="form-text text-warning small mt-1">
+                    <i class="bi bi-exclamation-triangle me-1"></i> No se ha cargado un logotipo aún. Se mostrará el nombre hasta que subas un logo.
+                  </div>
+                }
               </div>
             </div>
 
