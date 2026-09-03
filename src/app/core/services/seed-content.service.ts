@@ -100,6 +100,7 @@ export class SeedContentService {
           parentId: null,
           filterableAttributes: d.attrs,
           imageUrl: u(CAT[d.slug], 400, 400),
+          isFeatured: ['remeras', 'camperas', 'zapatillas'].includes(d.slug),
           storeId: resolveTenantId(),
           createdAt: new Date(),
         }),

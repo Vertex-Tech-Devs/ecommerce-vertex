@@ -480,14 +480,20 @@ export const createPaymentPreference = onCall(
         throw error;
       }
 
-      if (
-        typeof error?.message === 'string' &&
-        error.message.includes('Mercado Pago no está configurado')
-      ) {
-        throw new HttpsError('failed-precondition', error.message);
+      const errMsg = typeof error?.message === 'string' ? error.message : '';
+      if (errMsg.includes('Mercado Pago no está configurado')) {
+        throw new HttpsError('failed-precondition', errMsg);
       }
 
-      throw new HttpsError('internal', 'No se pudo procesar la solicitud de pago.');
+      if (errMsg.toLowerCase().includes('mercado pago') || errMsg.toLowerCase().includes('mercadopago') || error?.cause) {
+        throw new HttpsError(
+          'unprocessable-entity',
+          `Error al crear preferencia de Mercado Pago: ${errMsg || 'Validación de pago fallida.'}`,
+          { error: 'MP_ERROR', details: errMsg },
+        );
+      }
+
+      throw new HttpsError('internal', `No se pudo procesar la solicitud de pago: ${errMsg || 'Error interno.'}`);
     }
   },
 );
