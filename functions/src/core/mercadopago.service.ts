@@ -109,13 +109,17 @@ function resolveStoreBaseUrl(
   return envSiteUrl().replace(/\/+$/, '');
 }
 
-// Master TEST de Develop (zero-IAM, fallback en código): se inyecta por env var
-// MP_MASTER_TEST_TOKEN en el deploy (o como secreto mp-access-token-default en el
-// proyecto propio). NO se hardcodea un token: rotan y un valor fijo termina
-// revocado (401) o no autorizado (403 policy UNAUTHORIZED). Si no está inyectado,
-// la cadena falla con error accionable (nunca llama a MP con token inválido).
+// Master TEST de Develop (zero-IAM, fallback en código). El panel de MP hoy emite
+// tokens con prefijo APP_USR- para test users, por lo que el master de prueba puede
+// ser APP_USR-. Se inyecta por env MP_MASTER_TEST_TOKEN (deploy) o se usa el default
+// verificado contra api.mercadopago.com (HTTP 201). Rotaciones futuras: setear la env.
+const DEFAULT_MASTER_DEV_TEST_TOKEN =
+  'APP_USR-1516515095961487-091615-0e0e36c57f15fa71ba62abf9457f2259-2696854666';
+
 function getMasterDevTestToken(): string {
-  return String(process.env.MP_MASTER_TEST_TOKEN || '').trim();
+  return (
+    String(process.env.MP_MASTER_TEST_TOKEN || '').trim() || DEFAULT_MASTER_DEV_TEST_TOKEN
+  );
 }
 
 function isValidTokenString(token: string): boolean {
