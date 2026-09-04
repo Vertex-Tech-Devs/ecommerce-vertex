@@ -166,7 +166,10 @@
                               >{{ font.category }}</span
                             >
                           </div>
-                          <div class="font-sample my-2" [style.font-family]="font.fontFamily">
+                          <div
+                            class="font-sample font-sample-card my-2 rounded-3 p-2"
+                            [style.font-family]="font.fontFamily"
+                          >
                             Mi Tienda Online
                           </div>
                         </div>
@@ -178,43 +181,6 @@
                           </div>
                         }
                       </div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-            <div class="glass-card mb-4">
-              <div
-                class="card-header border-0 fw-bold d-flex align-items-center bg-transparent py-3"
-              >
-                <i class="bi bi-layers me-2 text-warning fs-5"></i>
-                <span class="fs-6">Sombra y Elevación del Header</span>
-              </div>
-              <div class="card-body pt-0">
-                <p class="text-soft small mb-3">
-                  Definí qué tipo de separación visual tendrá la cabecera respecto al contenido de
-                  la página.
-                </p>
-                <div class="row g-2">
-                  @for (preset of shadowPresets; track preset.id) {
-                    <div class="col-6 col-sm-4 col-md">
-                      <button
-                        type="button"
-                        class="btn shadow-preset-card w-100 text-start p-3 h-100"
-                        [class.shadow-preset-card--active]="liveShadowStyle() === preset.id"
-                        (click)="selectShadowPreset(preset.id)"
-                      >
-                        <div class="d-flex align-items-center justify-content-between mb-1">
-                          <i class="bi {{ preset.icon }} fs-5 text-soft"></i>
-                          @if (liveShadowStyle() === preset.id) {
-                            <i class="bi bi-check-circle-fill text-primary"></i>
-                          }
-                        </div>
-                        <div class="fw-semibold text-white small mb-1">{{ preset.label }}</div>
-                        <div class="text-soft" style="font-size: 0.7rem">
-                          {{ preset.description }}
-                        </div>
-                      </button>
                     </div>
                   }
                 </div>
@@ -261,10 +227,12 @@
                     <!-- Announcement Bar in Mockup -->
                     @if (announcementGroup.get('enabled')?.value) {
                       <div
-                        class="py-1 px-3 text-center fw-semibold"
+                        class="announcement-live-preview rounded-3 p-2 text-center text-xs fw-semibold shadow-sm"
                         style="font-size: 0.72rem"
-                        [style.background-color]="announcementGroup.get('backgroundColor')?.value"
-                        [style.color]="announcementGroup.get('textColor')?.value"
+                        [style.backgroundColor]="
+                          announcementGroup.get('backgroundColor')?.value || '#111827'
+                        "
+                        [style.color]="announcementGroup.get('textColor')?.value || '#ffffff'"
                       >
                         <i class="bi bi-megaphone me-1"></i>
                         {{ announcementGroup.get('text')?.value || 'Texto de anuncio de ejemplo' }}
@@ -497,6 +465,15 @@
                       class="form-control glass-input"
                       placeholder="¡Hola! Tengo una consulta"
                     />
+                  </div>
+                </div>
+                <div class="mt-3 d-flex align-items-center gap-2">
+                  <span class="text-xs text-soft">Vista previa botón flotante:</span>
+                  <div
+                    class="whatsapp-float-preview badge rounded-pill bg-success text-white px-3 py-2 d-inline-flex align-items-center gap-2 shadow-sm"
+                  >
+                    <i class="bi bi-whatsapp fs-6"></i>
+                    <span class="small fw-semibold">Contactar por WhatsApp</span>
                   </div>
                 </div>
               }

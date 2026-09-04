@@ -357,3 +357,34 @@
   background: #131a2a;
   min-height: 80px;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   BLOQUES ORIGINALES DE LIHUE (transplantados desde bafd71e)
+   ──────────────────────────────────────────────────────────────── */
+
+/* Muestra de tipografía activa por familia (caligrafía real) */
+.font-sample-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition:
+    font-family 0.3s ease,
+    background-color 0.2s ease;
+  color: #f8fafc;
+}
+
+/* Vista previa en vivo del anuncio (banner con megáfono) */
+.announcement-live-preview {
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+/* Vista previa del botón flotante de WhatsApp */
+.whatsapp-float-preview {
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
