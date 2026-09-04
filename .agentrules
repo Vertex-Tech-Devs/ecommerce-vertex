@@ -1,0 +1,16 @@
+# REGLAS CRÍTICAS DE ARQUITECTURA VERTEX (NO MODIFICAR)
+
+## 1. MERCADO PAGO MULTI-TENANT
+- Todas las tiendas usan por defecto el Access Token de prueba maestro de Develop (`DEFAULT_TEST_ACCESS_TOKEN` / `mp-access-token-default` del proyecto master).
+- Solo se usan credenciales de producción cuando el cliente final las carga explícitamente (config del shard).
+- Cadena de resolución en `getMercadoPagoRuntimeConfig` (functions): 1) secreto de la tienda en el shard → 2) `mp-access-token-{storeId}` → 3) `mp-access-token-default` del proyecto PROPIO (master) → 4) `_sandboxFallbackToken`/`accessToken` en Firestore → 5) env var → 6) `DEFAULT_TEST_ACCESS_TOKEN`.
+- `createPaymentPreference` NUNCA invoca al SDK con token vacío o undefined; el fallback maestro es obligatorio.
+- Log enmascarado obligatorio: `[MercadoPago Auth] Store | Source | Prefix`.
+- El 400 `At least one policy returned UNAUTHORIZED` en prod = fallo de IAM leyendo el secreto del shard; el fallback DEBE re-leer del proyecto propio.
+
+## 2. INTERFAZ DE ADMINISTRACIÓN
+- El diseño de referencia oficial es el del commit `bafd71e` (Lihue, PR #429), monolítico en `store-config`.
+- No crear componentes sintéticos ni aplicar rollbacks destructivos sin auditoría de diferencias previa.
+
+## 3. PIPELINES
+- El workflow Release requiere `actions: write` para despachar "Deploy All Stores" (403 si falta).

@@ -18,7 +18,14 @@ function envWebhookUrl(): string {
 function envMpAccessToken(): string {
   return process.env.MERCADOPAGO_ACCESSTOKEN || process.env.MERCADOPAGO_TEST_TOKEN || '';
 }
-const secretsClient = new SecretManagerServiceClient();
+let secretsClient: SecretManagerServiceClient | undefined;
+
+function getSecretsClient(): SecretManagerServiceClient {
+  if (!secretsClient) {
+    secretsClient = new SecretManagerServiceClient();
+  }
+  return secretsClient;
+}
 
 function resolveProjectId(): string {
   return process.env['GCLOUD_PROJECT'] || process.env['GOOGLE_CLOUD_PROJECT'] || '';
@@ -40,7 +47,7 @@ async function resolveAccessTokenFromSecret(
 
   // 1. Intentar en el proyecto primario (shard o override)
   try {
-    const [version] = await secretsClient.accessSecretVersion({
+    const [version] = await getSecretsClient().accessSecretVersion({
       name: `projects/${primaryProjectId}/secrets/${secretName}/versions/latest`,
     });
     const token = version.payload?.data?.toString().trim() || '';
@@ -52,7 +59,7 @@ async function resolveAccessTokenFromSecret(
     // Si falló en el shard, intentar en el proyecto master (donde se centralizan los secretos)
     if (primaryProjectId !== masterProjectId && masterProjectId) {
       try {
-        const [version] = await secretsClient.accessSecretVersion({
+        const [version] = await getSecretsClient().accessSecretVersion({
           name: `projects/${masterProjectId}/secrets/${secretName}/versions/latest`,
         });
         const token = version.payload?.data?.toString().trim() || '';
@@ -114,7 +121,7 @@ function isValidTokenString(token: string): boolean {
   return t.startsWith('TEST-') || t.startsWith('APP_USR-');
 }
 
-async function getMercadoPagoRuntimeConfig(
+export async function getMercadoPagoRuntimeConfig(
   storeId?: string,
   clientSiteUrl?: string,
   shardProjectId?: string,
@@ -151,41 +158,65 @@ async function getMercadoPagoRuntimeConfig(
   }
 
   // Resolución de token en 3 niveles de resiliencia:
-  // 1. Secret Manager (secretRef o accessTokenSecret)
+  // 1. Secret Manager (secretRef o accessTokenSecret). Los secretos por tienda
+  //    viven en el SHARD (mp-access-token-{storeId}); el secreto por defecto
+  //    (mp-access-token-default) vive en el PROYECTO PROPIO de la función (master).
   const secretRef = String(mpConfig?.['secretRef'] || '').trim();
   const secretName = String(mpConfig?.['accessTokenSecret'] || '').trim();
   const secretIdToTry = secretRef.includes('/') ? secretRef.split('/').pop() || '' : secretRef || secretName;
 
-  const readSecret = (name: string) => resolveAccessTokenFromSecret(name, shardProjectId);
+  // Intenta primero el proyecto del shard y cae al propio si el IAM no lo permite.
+  const readStoreSecret = async (name: string): Promise<string> => {
+    if (shardProjectId) {
+      const fromShard = await resolveAccessTokenFromSecret(name, shardProjectId);
+      if (fromShard) return fromShard;
+    }
+    return resolveAccessTokenFromSecret(name);
+  };
 
+  let tokenSource = 'none';
   let tokenFromSecret = '';
   if (secretIdToTry) {
-    tokenFromSecret = await readSecret(secretIdToTry);
+    tokenFromSecret = await readStoreSecret(secretIdToTry);
+    if (tokenFromSecret) tokenSource = `secret:${secretIdToTry}`;
   }
   if (!tokenFromSecret && storeId) {
-    tokenFromSecret = await readSecret(`mp-access-token-${storeId}`);
+    tokenFromSecret = await readStoreSecret(`mp-access-token-${storeId}`);
+    if (tokenFromSecret) tokenSource = `secret:mp-access-token-${storeId}`;
   }
   if (!tokenFromSecret) {
-    tokenFromSecret = await readSecret('mp-access-token-default');
+    // El fallback maestro SIEMPRE se lee del proyecto propio de la función (master).
+    tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
+    if (tokenFromSecret) tokenSource = 'secret:mp-access-token-default';
   }
 
   // 2. Fallback persistido en Firestore (_sandboxFallbackToken o accessToken)
   if (!tokenFromSecret && mpConfig?.['_sandboxFallbackToken']) {
     tokenFromSecret = String(mpConfig['_sandboxFallbackToken']).trim();
+    tokenSource = '_sandboxFallbackToken';
   }
   if (!tokenFromSecret && mpConfig?.['accessToken']) {
     tokenFromSecret = String(mpConfig['accessToken']).trim();
+    tokenSource = 'firestore.accessToken';
   }
 
-  // 3. Fallback a variable de entorno o token de prueba por defecto de Vertex
+  // 3. Fallback a variable de entorno o token de prueba maestro de Develop de Vertex
   if (!tokenFromSecret) {
     tokenFromSecret = envMpAccessToken().trim();
+    if (tokenFromSecret) tokenSource = 'env';
   }
 
   const rawToken = tokenFromSecret.trim();
   const resolvedToken = isValidTokenString(rawToken) ? rawToken : DEFAULT_TEST_ACCESS_TOKEN;
+  if (!isValidTokenString(rawToken)) {
+    tokenSource = 'default-master-test-token';
+  }
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
+
+  logger.info(
+    `[MercadoPago Auth] Store: ${storeId ?? 'default'} | Source: ${tokenSource} | Prefix: ${resolvedToken.substring(0, 9)}...`,
+  );
 
   return { accessToken: resolvedToken, webhook, baseUrl };
 }
