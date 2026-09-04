@@ -1,11 +1,4 @@
-import type { HeaderFontPreset, HeaderShadowPreset } from '@core/models/store-config.model';
-
-export interface ShadowPresetItem {
-  id: HeaderShadowPreset;
-  label: string;
-  description: string;
-  icon: string;
-}
+import type { HeaderFontPreset } from '@core/models/store-config.model';
 
 export interface FontPresetItem {
   id: HeaderFontPreset;
@@ -14,75 +7,42 @@ export interface FontPresetItem {
   fontFamily: string;
 }
 
-export const SHADOW_PRESETS: ShadowPresetItem[] = [
-  {
-    id: 'none',
-    label: 'Sin sombra',
-    description: 'Diseño plano y minimalista',
-    icon: 'bi-square',
-  },
-  {
-    id: 'border-bottom',
-    label: 'Línea inferior',
-    description: 'Delimitador sutil de 1px',
-    icon: 'bi-dash-lg',
-  },
-  {
-    id: 'subtle',
-    label: 'Sombra sutil',
-    description: 'Profundidad ligera y moderna',
-    icon: 'bi-layers',
-  },
-  {
-    id: 'medium',
-    label: 'Sombra media',
-    description: 'Mayor contraste y separación',
-    icon: 'bi-shadows',
-  },
-  {
-    id: 'floating',
-    label: 'Flotante',
-    description: 'Elevación pronunciada',
-    icon: 'bi-box-arrow-up',
-  },
-];
-
 export const FONT_PRESETS: FontPresetItem[] = [
   {
     id: 'system',
-    name: 'Sistema',
-    category: 'Nativo',
+    name: 'Predeterminada',
+    category: 'Sistema',
     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
   {
     id: 'inter',
     name: 'Inter',
-    category: 'Modern & Clean (Sans-serif)',
+    category: 'Moderna',
     fontFamily: "'Inter', sans-serif",
   },
   {
     id: 'montserrat',
     name: 'Montserrat',
-    category: 'Bold & Geometric (Sans-serif)',
+    category: 'Versátil',
     fontFamily: "'Montserrat', sans-serif",
   },
   {
     id: 'poppins',
     name: 'Poppins',
-    category: 'Friendly & Rounded (Sans-serif)',
+    category: 'Redondeada',
     fontFamily: "'Poppins', sans-serif",
-  },
-  {
-    id: 'playfair',
-    name: 'Playfair Display',
-    category: 'Classic & Luxury (Serif)',
-    fontFamily: "'Playfair Display', Georgia, serif",
   },
   {
     id: 'raleway',
     name: 'Raleway',
-    category: 'Elegant & Sophisticated (Sans-serif)',
+    category: 'Sofisticada',
     fontFamily: "'Raleway', sans-serif",
+  },
+  {
+    id: 'playfair',
+    name: 'Playfair Display',
+    category: 'Editorial',
+    fontFamily: "'Playfair Display', Georgia, serif",
   },
   {
     id: 'dancing-script',

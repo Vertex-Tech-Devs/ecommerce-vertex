@@ -1,6 +1,6 @@
 {
   "name": "ecommerce-vertex-functions",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "Cloud Functions for Firebase",
   "scripts": {
     "lint": "eslint . --ext .js,.ts",
