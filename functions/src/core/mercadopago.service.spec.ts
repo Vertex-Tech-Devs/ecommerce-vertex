@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ═══ Mocks de infraestructura ══════════════════════════════════════════════
-const { mockSecretAccess } = vi.hoisted(() => {
+const { mockSecretAccess, mockEnvToken } = vi.hoisted(() => {
   const mockSecretAccess = vi.fn();
-  return { mockSecretAccess };
+  const mockEnvToken = vi.fn(() => '');
+  return { mockSecretAccess, mockEnvToken };
 });
 
 vi.mock('@google-cloud/secret-manager', () => {
@@ -38,7 +39,7 @@ vi.mock('firebase-functions/logger', () => ({
 vi.mock('./config', () => ({
   singletonDoc: (storeId: string, _coll: string, _doc: string) =>
     `configuracion/store_${storeId}`,
-  envMpAccessToken: vi.fn(() => ''),
+  envMpAccessToken: mockEnvToken,
   envWebhookUrl: vi.fn(() => ''),
   envSiteUrl: vi.fn(() => 'https://ecommerce-vertex-dev.web.app'),
 }));
@@ -49,31 +50,39 @@ import { getMercadoPagoRuntimeConfig } from './mercadopago.service';
 describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla Vertex)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     // Secret Manager denegado por IAM (simula "At least one policy returned UNAUTHORIZED")
     mockSecretAccess.mockRejectedValue(new Error('At least one policy returned UNAUTHORIZED'));
   });
 
-  it('usa el token de prueba maestro de Develop si la tienda no tiene credenciales en Firestore ni secretos', async () => {
+  it('no resuelve token cuando NO hay ninguna fuente válida (fail-fast, nunca SDK con token roto)', async () => {
     const runtime = await getMercadoPagoRuntimeConfig(
-      'store-sin-credenciales',
+      'store-sin-nada',
       'https://mitienda.web.app',
       'vtx-sd-fallback',
     );
 
-    expect(runtime.accessToken).toBeTruthy();
-    expect(typeof runtime.accessToken).toBe('string');
+    // Sin secretos legibles, sin config y sin env TEST → accessToken vacío para que
+    // createPreference falle con error accionable (jamás un 401/403 enmascarado).
+    expect(runtime.accessToken).toBe('');
+  });
+
+  it('usa el token TEST de la env var cuando es el master de prueba (sandbox de desarrollo)', async () => {
+    vi.stubEnv(
+      'MERCADOPAGO_TEST_TOKEN',
+      'TEST-5735100067673516-090122-383792037bb2eb85f3baef5369c3a9d9-1793264666',
+    );
+    const runtime = await getMercadoPagoRuntimeConfig('store-dev-sandbox');
+
     expect(runtime.accessToken.startsWith('TEST-')).toBe(true);
     expect(runtime.accessToken.trim().length).toBeGreaterThanOrEqual(25);
   });
 
-  it('no entrega nunca un token undefined o vacío para instanciar el SDK', async () => {
-    const runtimeA = await getMercadoPagoRuntimeConfig('store-sin-nada-a');
-    const runtimeB = await getMercadoPagoRuntimeConfig('store-sin-nada-b');
+  it('NUNCA aplica un APP_USR de env a tiendas sin credenciales propias', async () => {
+    // Regla: producción únicamente cuando el cliente carga sus credenciales en el shard.
+    vi.stubEnv('MERCADOPAGO_ACCESSTOKEN', 'APP_USR-0a1832bd-24a6-499d-9379-8209e79f2b2c');
+    const runtime = await getMercadoPagoRuntimeConfig('store-sin-credenciales');
 
-    for (const r of [runtimeA, runtimeB]) {
-      expect(r.accessToken).toBeTruthy();
-      expect(typeof r.accessToken).toBe('string');
-      expect(r.accessToken.trim()).not.toBe('');
-    }
+    expect(runtime.accessToken).toBe('');
   });
 });
