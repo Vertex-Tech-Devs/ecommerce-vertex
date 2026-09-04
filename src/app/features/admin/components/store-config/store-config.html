@@ -1,183 +1,1030 @@
-<section class="config-management-wrapper" aria-label="Identidad corporativa y marca">
+<section class="config-management-wrapper" aria-label="Configuración de la tienda">
   <div class="container-fluid my-4">
     <header class="dashboard__header text-center mb-5">
-      <h1 class="dashboard__title">Identidad y Marca</h1>
-      <p class="text-soft mt-2">Gestioná el nombre, los activos y los colores de tu comercio.</p>
+      <h1 class="dashboard__title">Identidad de la Marca y Sucursales</h1>
+      <p class="text-soft mt-2">
+        Personalizá los datos de tu comercio, favicon corporativo y la logística de retiro en local.
+      </p>
       <hr />
     </header>
 
     @if (isLoading()) {
-      <div class="config-skeleton-wrapper" aria-busy="true" aria-label="Cargando identidad">
+      <div class="config-skeleton-wrapper" aria-busy="true" aria-label="Cargando configuración">
         <div class="glass-card mb-4 p-4">
           <div class="skeleton-box skeleton-box--subtitle mb-4"></div>
           <div class="row g-4">
-            <div class="col-md-6"><div class="skeleton-box skeleton-box--input"></div></div>
-            <div class="col-md-6"><div class="skeleton-box skeleton-box--input"></div></div>
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--input"></div>
+            </div>
+            <div class="col-md-6">
+              <div class="skeleton-box skeleton-box--label mb-2"></div>
+              <div class="skeleton-box skeleton-box--input"></div>
+            </div>
           </div>
         </div>
       </div>
     } @else {
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-        <div class="glass-card card-identity mb-4">
-          <div class="card-header border-0 fw-bold d-flex align-items-center">
-            <i class="bi bi-shop me-2 text-primary"></i> Identidad Corporativa y Marca
-          </div>
-          <div class="card-body">
-            <div class="row g-4 align-items-center mb-4">
-              <div class="col-12 col-md-6">
-                <label class="form-label text-label" for="storeNameInput">
-                  Nombre del comercio <span class="text-danger">*</span>
-                </label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-building"></i></span>
-                  <input
-                    id="storeNameInput"
-                    formControlName="storeName"
-                    type="text"
-                    class="form-control glass-input"
-                    placeholder="Mi Tienda"
-                  />
-                </div>
+        <div class="tab-content custom-tab-content mb-4">
+          <div class="tab-pane active" role="tabpanel">
+            <!-- 1. Identidad Corporativa & Marca -->
+            <div class="glass-card card-identity mb-4">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-shop me-2 text-primary"></i> Identidad Corporativa & Marca
               </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label text-label" for="brandDisplayModeSelect">
-                  Modo de visualización en cabecera
-                </label>
-                <div class="input-group">
-                  <span class="input-group-text"><i class="bi bi-eye"></i></span>
-                  <select
-                    id="brandDisplayModeSelect"
-                    formControlName="brandDisplayMode"
-                    class="form-select glass-input glass-select"
-                  >
-                    <option value="text">Solo nombre</option>
-                    <option value="both">Nombre y logo</option>
-                    <option value="logo">Solo logo</option>
-                  </select>
-                </div>
-                @if (!form.get('logoUrl')?.value && (form.get('brandDisplayMode')?.value === 'logo' || form.get('brandDisplayMode')?.value === 'both')) {
-                  <div class="form-text text-warning small mt-1">
-                    <i class="bi bi-exclamation-triangle me-1"></i> No se ha cargado un logotipo aún. Se mostrará el nombre hasta que subas un logo.
+              <div class="card-body">
+                <div class="row g-4 align-items-center mb-3">
+                  <!-- Nombre del comercio -->
+                  <div class="col-md-6">
+                    <label class="form-label text-label" for="storeNameInput">
+                      Nombre del comercio <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-building"></i></span>
+                      <input
+                        id="storeNameInput"
+                        formControlName="storeName"
+                        type="text"
+                        class="form-control glass-input"
+                        placeholder="Mi Tienda"
+                      />
+                    </div>
                   </div>
-                }
+
+                  <!-- Modo de Visualización en Cabecera -->
+                  <div class="col-md-6">
+                    <label class="form-label text-label" for="brandDisplayModeSelect">
+                      Modo de Visualización en Cabecera
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-eye"></i></span>
+                      <select
+                        id="brandDisplayModeSelect"
+                        formControlName="brandDisplayMode"
+                        class="form-select glass-input glass-select"
+                      >
+                        <option value="text">Texto (Solo nombre de tienda)</option>
+                        <option value="logo">Logotipo (Solo imagen de logo)</option>
+                        <option value="both">Logotipo y Nombre juntos</option>
+                      </select>
+                    </div>
+                    @if (!form.get('logoUrl')?.value) {
+                      <div class="form-text text-warning small mt-1">
+                        <i class="bi bi-exclamation-triangle me-1"></i> No se ha cargado un logotipo
+                        aún. Se mostrará únicamente el nombre por defecto.
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <div class="row g-4 align-items-center">
+                  <!-- Logotipo de Marca -->
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Logotipo de Marca (Header)</label>
+                    <div class="d-flex align-items-center gap-3">
+                      <!-- Preview avatar -->
+                      <div class="logo-preview-avatar">
+                        @if (form.get('logoUrl')?.value) {
+                          <img
+                            [src]="form.get('logoUrl')?.value"
+                            alt="Logo preview"
+                            class="logo-thumb"
+                          />
+                        } @else {
+                          <i class="bi bi-image text-muted fs-4"></i>
+                        }
+                      </div>
+
+                      <div class="d-flex flex-column gap-1 flex-grow-1">
+                        <input
+                          type="file"
+                          #logoFileInput
+                          (change)="onLogoUpload($event)"
+                          accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                          style="display: none"
+                        />
+                        <div class="d-flex align-items-center gap-2">
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                            (click)="logoFileInput.click()"
+                            [disabled]="isUploadingLogo()"
+                          >
+                            <i class="bi bi-upload me-1"></i>
+                            {{ form.get('logoUrl')?.value ? 'Cambiar logotipo' : 'Subir Logotipo' }}
+                          </button>
+
+                          @if (form.get('logoUrl')?.value) {
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm rounded-pill px-2"
+                              (click)="removeLogo()"
+                              title="Eliminar logotipo"
+                              aria-label="Eliminar logotipo"
+                            >
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          }
+                        </div>
+                        <span class="text-muted text-xs"
+                          >Formatos: PNG, SVG, JPG, WebP. Fondo transparente recomendado.</span
+                        >
+                      </div>
+                    </div>
+
+                    @if (isUploadingLogo()) {
+                      <div class="progress mt-2" style="height: 4px">
+                        <div
+                          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                          role="progressbar"
+                          [style.width.%]="logoUploadProgress()"
+                        ></div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Favicon e Isotipo (Pestaña Web) -->
+                  <div class="col-md-6">
+                    <label class="form-label text-label">Favicon e Isotipo (Pestaña Web)</label>
+                    <div class="d-flex align-items-center gap-3">
+                      <!-- Visual preview box -->
+                      <div class="favicon-preview-avatar">
+                        @if (form.get('faviconUrl')?.value) {
+                          <img
+                            [src]="form.get('faviconUrl')?.value"
+                            alt="Favicon preview"
+                            class="favicon-thumb"
+                          />
+                        } @else {
+                          <i class="bi bi-browser-chrome text-muted fs-4"></i>
+                        }
+                      </div>
+
+                      <div class="d-flex flex-column gap-1 flex-grow-1">
+                        <input
+                          type="file"
+                          #faviconFileInput
+                          (change)="onFaviconUpload($event)"
+                          accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
+                          style="display: none"
+                        />
+                        <div class="d-flex align-items-center gap-2">
+                          <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                            (click)="faviconFileInput.click()"
+                            [disabled]="faviconUploading()"
+                          >
+                            <i class="bi bi-upload me-1"></i>
+                            {{ form.get('faviconUrl')?.value ? 'Cambiar icono' : 'Subir Favicon' }}
+                          </button>
+
+                          @if (form.get('faviconUrl')?.value) {
+                            <button
+                              type="button"
+                              class="btn btn-outline-danger btn-sm rounded-pill px-2"
+                              (click)="removeFavicon()"
+                              title="Eliminar favicon"
+                              aria-label="Eliminar favicon"
+                            >
+                              <i class="bi bi-trash"></i>
+                            </button>
+                          }
+                        </div>
+                        <span class="text-muted text-xs"
+                          >Recomendado: 32x32 o 64x64 px (.png o .ico)</span
+                        >
+                      </div>
+                    </div>
+
+                    @if (faviconUploading()) {
+                      <div class="progress mt-2" style="height: 4px">
+                        <div
+                          class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                          role="progressbar"
+                          [style.width.%]="faviconProgress()"
+                        ></div>
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="row g-4 align-items-center">
-              <div class="col-12 col-md-6">
-                <label class="form-label text-label">Logotipo de Marca</label>
-                <div class="d-flex align-items-center gap-3">
-                  <div class="logo-preview-avatar">
-                    @if (form.get('logoUrl')?.value) {
-                      <img
-                        [src]="form.get('logoUrl')?.value"
-                        alt="Vista previa del logotipo"
-                        class="logo-thumb"
-                      />
-                    } @else {
-                      <i class="bi bi-image text-muted fs-4"></i>
-                    }
-                  </div>
-                  <div class="d-flex flex-column gap-1 flex-grow-1">
-                    <input
-                      type="file"
-                      #logoFileInput
-                      (change)="onLogoUpload($event)"
-                      accept="image/png,image/svg+xml,image/jpeg,image/webp"
-                      hidden
-                    />
-                    <div class="d-flex align-items-center gap-2">
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3"
-                        (click)="logoFileInput.click()"
-                        [disabled]="isUploadingLogo()"
-                      >
-                        <i class="bi bi-upload me-1"></i
-                        >{{ form.get('logoUrl')?.value ? 'Cambiar logotipo' : 'Subir logotipo' }}
-                      </button>
-                      @if (form.get('logoUrl')?.value) {
-                        <button
-                          type="button"
-                          class="btn btn-outline-danger btn-sm rounded-pill px-2"
-                          (click)="removeLogo()"
-                          title="Eliminar logotipo"
-                          aria-label="Eliminar logotipo"
-                        >
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      }
-                    </div>
-                    <span class="text-muted text-xs">PNG, SVG, JPG o WebP.</span>
-                  </div>
+            <!-- 2. Personalización del Header & Live Preview -->
+            <div class="glass-card card-header-customization mb-4" formGroupName="appearance">
+              <div
+                class="card-header border-0 fw-bold d-flex align-items-center justify-content-between"
+              >
+                <div>
+                  <i class="bi bi-layout-text-window-reverse me-2 text-primary"></i> Personalización
+                  del Header & Live Preview
                 </div>
-                @if (isUploadingLogo()) {
-                  <div class="progress mt-2" style="height: 4px">
-                    <div
-                      class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                      role="progressbar"
-                      [style.width.%]="logoUploadProgress()"
-                    ></div>
-                  </div>
-                }
+                <span
+                  class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 text-xs"
+                >
+                  <i class="bi bi-lightning-charge-fill me-1"></i> Tiempo Real
+                </span>
               </div>
+              <div class="card-body" formGroupName="header">
+                <!-- Mockup Live Preview Container -->
+                <div class="preview-browser-wrapper mb-4">
+                  <div
+                    class="preview-browser-header d-flex align-items-center justify-content-between px-3 py-2"
+                  >
+                    <div class="d-flex align-items-center gap-1">
+                      <span class="browser-dot browser-dot--red"></span>
+                      <span class="browser-dot browser-dot--yellow"></span>
+                      <span class="browser-dot browser-dot--green"></span>
+                    </div>
+                    <div class="browser-address-bar flex-grow-1 mx-3 text-center text-truncate">
+                      <i class="bi bi-lock-fill text-success me-1 text-xs"></i>
+                      <span class="text-xs text-soft"
+                        >{{ liveStoreName().toLowerCase().replace(' ', '') }}.mitienda.com</span
+                      >
+                    </div>
+                    <div class="d-flex align-items-center gap-2 text-soft text-xs">
+                      <i class="bi bi-arrow-clockwise"></i>
+                    </div>
+                  </div>
 
-              <div class="col-12 col-md-6">
-                <label class="form-label text-label">Isotipo / Favicon</label>
-                <div class="d-flex align-items-center gap-3">
-                  <div class="favicon-preview-avatar">
-                    @if (form.get('faviconUrl')?.value) {
-                      <img
-                        [src]="form.get('faviconUrl')?.value"
-                        alt="Vista previa del favicon"
-                        class="favicon-thumb"
+                  <div class="preview-browser-viewport p-0">
+                    <div class="mockup-header" [ngStyle]="liveHeaderStyles()">
+                      <div
+                        class="mockup-header__container d-flex align-items-center justify-content-between px-3 py-2"
+                      >
+                        <!-- Brand -->
+                        <div class="mockup-header__brand d-flex align-items-center gap-2">
+                          @if (
+                            (liveBrandDisplayMode() === 'logo' ||
+                              liveBrandDisplayMode() === 'both') &&
+                            liveLogoUrl()
+                          ) {
+                            <img
+                              [src]="liveLogoUrl()"
+                              [alt]="liveStoreName()"
+                              class="mockup-header__logo"
+                            />
+                          }
+                          @if (
+                            liveBrandDisplayMode() === 'text' ||
+                            liveBrandDisplayMode() === 'both' ||
+                            !liveLogoUrl()
+                          ) {
+                            <span class="mockup-header__brand-text fw-bold fs-6">{{
+                              liveStoreName()
+                            }}</span>
+                          }
+                        </div>
+
+                        <!-- Nav items -->
+                        <div class="mockup-header__nav d-none d-md-flex align-items-center gap-3">
+                          <span class="mockup-header__link mockup-header__link--active"
+                            >Inicio</span
+                          >
+                          <span class="mockup-header__link">Productos</span>
+                          <span class="mockup-header__link">Nosotros</span>
+                        </div>
+
+                        <!-- Actions (Search + Cart) -->
+                        <div class="mockup-header__actions d-flex align-items-center gap-3">
+                          <i class="bi bi-search mockup-header__action-icon"></i>
+                          <div
+                            class="mockup-header__cart position-relative d-inline-flex align-items-center"
+                          >
+                            <i class="bi bi-bag mockup-header__action-icon fs-5"></i>
+                            <span class="mockup-header__cart-badge">3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Simulated Hero/Content banner inside mockup -->
+                    <div class="mockup-body-placeholder p-4 text-center">
+                      <span
+                        class="badge bg-secondary bg-opacity-25 text-soft rounded-pill px-3 py-1 mb-2 text-xs"
+                      >
+                        Vista previa del diseño
+                      </span>
+                      <p class="text-soft small mb-0">
+                        Los cambios en colores y tipografía se reflejan al instante.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Form Controls: Colors, Typography -->
+                <div class="row g-4 mb-4">
+                  <!-- Color Pickers -->
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerBgColorInput">
+                      Color de Fondo <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerBgColorInput"
+                        type="color"
+                        formControlName="backgroundColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de fondo"
                       />
-                    } @else {
-                      <i class="bi bi-browser-chrome text-muted fs-4"></i>
+                      <input
+                        type="text"
+                        formControlName="backgroundColor"
+                        class="form-control glass-input"
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerTextColorInput">
+                      Color de Texto y Marca <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerTextColorInput"
+                        type="color"
+                        formControlName="textColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de texto"
+                      />
+                      <input
+                        type="text"
+                        formControlName="textColor"
+                        class="form-control glass-input"
+                        placeholder="#1f2937"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-4">
+                    <label class="form-label text-label" for="headerAccentColorInput">
+                      Color de Acento & Insignias <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group color-input-group">
+                      <input
+                        id="headerAccentColorInput"
+                        type="color"
+                        formControlName="accentColor"
+                        class="form-control form-control-color color-picker-input"
+                        title="Seleccionar color de acento"
+                      />
+                      <input
+                        type="text"
+                        formControlName="accentColor"
+                        class="form-control glass-input"
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Font Family Preset Dropdown & Info -->
+                <div class="row g-4 align-items-center">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-label" for="headerFontFamilySelect">
+                      Tipografía del Header <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-fonts"></i></span>
+                      <select
+                        id="headerFontFamilySelect"
+                        formControlName="fontFamily"
+                        class="form-select glass-input glass-select"
+                      >
+                        @for (font of fontPresets; track font.id) {
+                          <option [value]="font.id">{{ font.name }} ({{ font.category }})</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="form-text text-soft small mt-1">
+                      Las fuentes de Google Fonts se cargan automáticamente de forma optimizada.
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label class="form-label text-label">Muestra de Tipografía Activa</label>
+                    <div
+                      class="font-sample-card p-3 rounded-3"
+                      [style.fontFamily]="liveHeaderStyles()['--header-font-family']"
+                    >
+                      <div class="fw-bold text-white fs-6 mb-1">
+                        {{ liveStoreName() }} — Colección 2026
+                      </div>
+                      <div class="text-soft text-xs">ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Herramientas de Promoción y Conversión -->
+            <div class="glass-card card-conversion mb-4">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-megaphone me-2 text-warning"></i> Herramientas de Promoción y
+                Atención
+              </div>
+              <div class="card-body">
+                <div class="glass-switches-container d-flex flex-column gap-4">
+                  <!-- Barra de Anuncios Superior -->
+                  <div formGroupName="announcementBar">
+                    <div
+                      class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-2"
+                    >
+                      <label
+                        class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                        for="enableAnnouncementBar"
+                      >
+                        <i class="bi bi-broadcast me-2 text-warning"></i> Barra de Anuncios Superior
+                      </label>
+                      <input
+                        class="form-check-input ms-0 flex-shrink-0"
+                        type="checkbox"
+                        role="switch"
+                        id="enableAnnouncementBar"
+                        formControlName="enabled"
+                      />
+                    </div>
+
+                    @if (form.get('announcementBar.enabled')?.value) {
+                      <div class="ms-0 ms-md-4 mt-3">
+                        <div class="row g-3">
+                          <!-- Texto del anuncio -->
+                          <div class="col-12 col-md-8">
+                            <label class="form-label text-label" for="announcementText">
+                              Texto del anuncio <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                              <span class="input-group-text"
+                                ><i class="bi bi-chat-left-quote"></i
+                              ></span>
+                              <input
+                                id="announcementText"
+                                formControlName="text"
+                                type="text"
+                                class="form-control glass-input"
+                                placeholder="Ej: ¡15% OFF en tu primera compra abonando con transferencia!"
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Enlace opcional -->
+                          <div class="col-12 col-md-4">
+                            <label class="form-label text-label" for="announcementLink">
+                              Enlace de destino (opcional)
+                            </label>
+                            <div class="input-group">
+                              <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                              <input
+                                id="announcementLink"
+                                formControlName="link"
+                                type="text"
+                                class="form-control glass-input"
+                                placeholder="Ej: /catalog o https://..."
+                              />
+                            </div>
+                          </div>
+
+                          <!-- Selector de Colores -->
+                          <div class="col-12 col-md-6">
+                            <label class="form-label text-label" for="announcementBgColor">
+                              Color de fondo
+                            </label>
+                            <div class="input-group color-input-group">
+                              <input
+                                id="announcementBgColor"
+                                type="color"
+                                formControlName="backgroundColor"
+                                class="form-control form-control-color color-picker-input"
+                              />
+                              <input
+                                type="text"
+                                formControlName="backgroundColor"
+                                class="form-control glass-input"
+                                placeholder="#111827"
+                              />
+                            </div>
+                          </div>
+
+                          <div class="col-12 col-md-6">
+                            <label class="form-label text-label" for="announcementTextColor">
+                              Color de texto
+                            </label>
+                            <div class="input-group color-input-group">
+                              <input
+                                id="announcementTextColor"
+                                type="color"
+                                formControlName="textColor"
+                                class="form-control form-control-color color-picker-input"
+                              />
+                              <input
+                                type="text"
+                                formControlName="textColor"
+                                class="form-control glass-input"
+                                placeholder="#ffffff"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Live Announcement Preview -->
+                        <div class="mt-3">
+                          <span class="text-xs text-soft mb-1 d-block"
+                            >Vista previa del anuncio:</span
+                          >
+                          <div
+                            class="announcement-live-preview rounded-3 p-2 text-center text-xs fw-semibold shadow-sm"
+                            [style.backgroundColor]="
+                              form.get('announcementBar.backgroundColor')?.value || '#111827'
+                            "
+                            [style.color]="
+                              form.get('announcementBar.textColor')?.value || '#ffffff'
+                            "
+                          >
+                            <i class="bi bi-megaphone me-1"></i>
+                            {{
+                              form.get('announcementBar.text')?.value ||
+                                'Texto de ejemplo de la barra de anuncios'
+                            }}
+                            @if (form.get('announcementBar.link')?.value) {
+                              <span class="ms-2 text-decoration-underline"
+                                ><i class="bi bi-arrow-right-short"></i> Ver más</span
+                              >
+                            }
+                          </div>
+                        </div>
+                      </div>
                     }
                   </div>
-                  <div class="d-flex flex-column gap-1 flex-grow-1">
-                    <input
-                      type="file"
-                      #faviconFileInput
-                      (change)="onFaviconUpload($event)"
-                      accept="image/x-icon,image/png,image/svg+xml,image/jpeg"
-                      hidden
-                    />
-                    <div class="d-flex align-items-center gap-2">
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3"
-                        (click)="faviconFileInput.click()"
-                        [disabled]="faviconUploading()"
+
+                  <hr class="border-secondary border-opacity-25 my-1" />
+
+                  <!-- Botón Flotante de WhatsApp -->
+                  <div formGroupName="floatingWhatsApp">
+                    <div
+                      class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-2"
+                    >
+                      <label
+                        class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                        for="enableFloatingWhatsApp"
                       >
-                        <i class="bi bi-upload me-1"></i
-                        >{{ form.get('faviconUrl')?.value ? 'Cambiar icono' : 'Subir favicon' }}
-                      </button>
-                      @if (form.get('faviconUrl')?.value) {
+                        <i class="bi bi-whatsapp me-2 text-success"></i> Botón Flotante de WhatsApp
+                      </label>
+                      <input
+                        class="form-check-input ms-0 flex-shrink-0"
+                        type="checkbox"
+                        role="switch"
+                        id="enableFloatingWhatsApp"
+                        formControlName="enabled"
+                      />
+                    </div>
+
+                    @if (form.get('floatingWhatsApp.enabled')?.value) {
+                      <div class="ms-0 ms-md-4 mt-3">
+                        <div class="row g-3">
+                          <!-- Número de WhatsApp -->
+                          <div class="col-12 col-md-6">
+                            <label class="form-label text-label" for="whatsappPhoneNumber">
+                              Número de WhatsApp <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                              <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                              <input
+                                id="whatsappPhoneNumber"
+                                formControlName="phoneNumber"
+                                type="text"
+                                class="form-control glass-input"
+                                [class.is-invalid]="
+                                  form.get('floatingWhatsApp.phoneNumber')?.touched &&
+                                  form.get('floatingWhatsApp.phoneNumber')?.invalid
+                                "
+                                placeholder="Ej: 5492611234567 (Obligatorio)"
+                              />
+                            </div>
+                            @if (
+                              form.get('floatingWhatsApp.phoneNumber')?.touched &&
+                              form.get('floatingWhatsApp.phoneNumber')?.invalid
+                            ) {
+                              <div class="invalid-feedback d-block mt-1">
+                                El número de WhatsApp es obligatorio si el botón está activo.
+                              </div>
+                            }
+                          </div>
+
+                          <!-- Mensaje Predeterminado -->
+                          <div class="col-12 col-md-6">
+                            <label class="form-label text-label" for="whatsappDefaultMessage">
+                              Mensaje Predeterminado
+                            </label>
+                            <div class="input-group">
+                              <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                              <input
+                                id="whatsappDefaultMessage"
+                                formControlName="defaultMessage"
+                                type="text"
+                                class="form-control glass-input"
+                                placeholder="¡Hola! Tengo una consulta sobre un producto de la tienda"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Live WhatsApp Preview -->
+                        <div class="mt-3 d-flex align-items-center gap-2">
+                          <span class="text-xs text-soft">Vista previa botón flotante:</span>
+                          <div
+                            class="whatsapp-float-preview badge rounded-pill bg-success text-white px-3 py-2 d-inline-flex align-items-center gap-2 shadow-sm"
+                          >
+                            <i class="bi bi-whatsapp fs-6"></i>
+                            <span class="small fw-semibold">Contactar por WhatsApp</span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Métodos de Entrega & Sucursales -->
+            <div class="glass-card card-delivery card mb-4" formGroupName="deliveryMethods">
+              <div class="card-header border-0 fw-bold d-flex align-items-center">
+                <i class="bi bi-truck me-2 text-info"></i> Métodos de Entrega y Logística
+              </div>
+              <div class="card-body">
+                <div class="glass-switches-container d-flex flex-column gap-4">
+                  <!-- Envío a Domicilio -->
+                  <div>
+                    <div
+                      class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-2"
+                    >
+                      <label
+                        class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                        for="enableHomeDelivery"
+                      >
+                        <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A
+                        Coordinar)
+                      </label>
+                      <input
+                        class="form-check-input ms-0 flex-shrink-0"
+                        type="checkbox"
+                        role="switch"
+                        id="enableHomeDelivery"
+                        formControlName="enableHomeDelivery"
+                      />
+                    </div>
+
+                    @if (deliveryMethodsGroup.get('enableHomeDelivery')?.value) {
+                      <div class="ms-0 ms-md-4 mt-3">
+                        <label class="form-label text-label" for="homeDeliveryDescription">
+                          Descripción / Instrucciones de Envío y Costo
+                        </label>
+                        <div class="input-group">
+                          <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                          <input
+                            id="homeDeliveryDescription"
+                            formControlName="homeDeliveryDescription"
+                            type="text"
+                            class="form-control glass-input"
+                            placeholder="Coordinamos el envío y costo por WhatsApp"
+                          />
+                        </div>
+                        <div class="form-text text-soft small text-break mt-1">
+                          Ingresá la información o costo de entrega de referencia para los
+                          compradores.
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <hr class="border-secondary border-opacity-25 my-1" />
+
+                  <!-- Retiro en el Local (Store Pickup) -->
+                  <div>
+                    <div
+                      class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"
+                    >
+                      <div
+                        class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-0 flex-grow-1"
+                      >
+                        <label
+                          class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                          for="enableStorePickup"
+                        >
+                          <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en Sucursal /
+                          Local
+                        </label>
+                        <input
+                          class="form-check-input ms-0 flex-shrink-0"
+                          type="checkbox"
+                          role="switch"
+                          id="enableStorePickup"
+                          formControlName="enableStorePickup"
+                        />
+                      </div>
+
+                      @if (deliveryMethodsGroup.get('enableStorePickup')?.value) {
                         <button
                           type="button"
-                          class="btn btn-outline-danger btn-sm rounded-pill px-2"
-                          (click)="removeFavicon()"
-                          title="Eliminar favicon"
-                          aria-label="Eliminar favicon"
+                          class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold w-100 w-md-auto mt-2 mt-md-0 d-flex align-items-center justify-content-center"
+                          (click)="addPickupLocation()"
                         >
-                          <i class="bi bi-trash"></i>
+                          <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
                         </button>
                       }
                     </div>
-                    <span class="text-muted text-xs">Recomendado: 32x32 o 64x64 px.</span>
+
+                    @if (deliveryMethodsGroup.get('enableStorePickup')?.value) {
+                      <div class="ms-0 ms-md-4 mt-3" formArrayName="pickupLocations">
+                        @if (pickupLocationsArray.length === 0) {
+                          <div
+                            class="text-center p-4 border border-dashed rounded-3 border-secondary border-opacity-25 bg-dark bg-opacity-25 mb-3"
+                          >
+                            <i class="bi bi-geo-alt fs-3 text-secondary d-block mb-2"></i>
+                            <p class="text-soft mb-2">
+                              No tenés sucursales registradas para retiro.
+                            </p>
+                            <button
+                              type="button"
+                              class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 w-100 w-md-auto mt-2 d-inline-flex align-items-center justify-content-center"
+                              (click)="addPickupLocation()"
+                            >
+                              <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
+                            </button>
+                          </div>
+                        } @else {
+                          <div class="d-flex flex-column gap-3">
+                            @for (
+                              locGroup of pickupLocationsArray.controls;
+                              track locGroup.value.id || $index;
+                              let i = $index
+                            ) {
+                              <div
+                                [formGroupName]="i"
+                                class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 p-md-4 mb-3 shadow-sm position-relative"
+                              >
+                                <!-- Cabecera de la sucursal: Nombre de la tarjeta y Botón Eliminar -->
+                                <div
+                                  class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25"
+                                >
+                                  <span class="fw-bold text-white fs-6">
+                                    <i class="bi bi-geo-alt me-1 text-info"></i> Sucursal #{{
+                                      i + 1
+                                    }}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 store-delete-btn d-flex align-items-center justify-content-center gap-1"
+                                    (click)="removePickupLocation(i)"
+                                    title="Eliminar sucursal"
+                                    aria-label="Eliminar sucursal"
+                                  >
+                                    <i class="bi bi-trash"></i>
+                                    <span class="d-none d-sm-inline ms-1">Eliminar</span>
+                                  </button>
+                                </div>
+
+                                <!-- Fila 1: Nombre de la sucursal, Ciudad -->
+                                <div class="row g-3 mb-3">
+                                  <div class="col-12 col-md-6">
+                                    <label class="form-label text-label"
+                                      >Nombre de la sucursal
+                                      <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-building"></i
+                                      ></span>
+                                      <input
+                                        #locationNameInput
+                                        type="text"
+                                        formControlName="name"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Casa Central Palermo"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-md-6">
+                                    <label class="form-label text-label"
+                                      >Ciudad <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-geo-alt"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="city"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Buenos Aires"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 2: Dirección física completa -->
+                                <div class="row g-3 mb-3">
+                                  <div class="col-12">
+                                    <label class="form-label text-label"
+                                      >Dirección física completa
+                                      <span class="text-danger">*</span></label
+                                    >
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-pin-map"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="address"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Av. Corrientes 1234, Local 5"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 3: Días de Atención (Pill buttons selector) -->
+                                <div class="mb-3">
+                                  <label class="form-label text-label d-block">
+                                    Días de atención para retiro <span class="text-danger">*</span>
+                                  </label>
+                                  <div class="d-flex flex-wrap gap-2">
+                                    @for (day of weekDays; track day) {
+                                      <button
+                                        type="button"
+                                        class="btn btn-sm day-pill-btn"
+                                        [class.day-pill-btn--active]="isDaySelected(i, day)"
+                                        (click)="toggleDay(i, day)"
+                                      >
+                                        {{ day }}
+                                      </button>
+                                    }
+                                  </div>
+                                </div>
+
+                                <!-- Fila 4: Franjas horarias con intervalos de 30 min -->
+                                <div
+                                  class="p-3 rounded-2 bg-black bg-opacity-25 border border-secondary border-opacity-10 mb-3"
+                                >
+                                  <div class="row g-3 align-items-center mb-2">
+                                    <div class="col-12 col-md-3">
+                                      <span class="small fw-semibold text-white">
+                                        <i class="bi bi-clock me-1 text-primary"></i> Horario de
+                                        atención:
+                                      </span>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                      <div class="input-group input-group-sm">
+                                        <span class="input-group-text">De</span>
+                                        <select
+                                          formControlName="timeFrom1"
+                                          class="form-select glass-input text-white"
+                                          (change)="syncSchedule(i)"
+                                        >
+                                          @for (slot of timeSlots; track slot) {
+                                            <option [value]="slot">{{ slot }}</option>
+                                          }
+                                        </select>
+                                      </div>
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-md-4">
+                                      <div class="input-group input-group-sm">
+                                        <span class="input-group-text">A</span>
+                                        <select
+                                          formControlName="timeTo1"
+                                          class="form-select glass-input text-white"
+                                          (change)="syncSchedule(i)"
+                                        >
+                                          @for (slot of timeSlots; track slot) {
+                                            <option [value]="slot">{{ slot }}</option>
+                                          }
+                                        </select>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <!-- Switch Horario Cortado / Turno Partido -->
+                                  <div
+                                    class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mt-2 mb-2"
+                                  >
+                                    <label
+                                      class="form-check-label small text-soft cursor-pointer mb-0 me-auto"
+                                      [for]="'splitSwitch_' + i"
+                                    >
+                                      ¿Horario cortado / Turno partido?
+                                    </label>
+                                    <input
+                                      class="form-check-input ms-0 flex-shrink-0"
+                                      type="checkbox"
+                                      role="switch"
+                                      [id]="'splitSwitch_' + i"
+                                      formControlName="hasSplitSchedule"
+                                      (change)="syncSchedule(i)"
+                                    />
+                                  </div>
+
+                                  @if (locGroup.get('hasSplitSchedule')?.value) {
+                                    <div
+                                      class="row g-3 align-items-center mt-1 pt-2 border-top border-secondary border-opacity-10"
+                                    >
+                                      <div class="col-12 col-md-3">
+                                        <span class="small fw-semibold text-warning">
+                                          <i class="bi bi-sun me-1"></i> Segundo turno (Tarde):
+                                        </span>
+                                      </div>
+                                      <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="input-group input-group-sm">
+                                          <span class="input-group-text">De</span>
+                                          <select
+                                            formControlName="timeFrom2"
+                                            class="form-select glass-input text-white"
+                                            (change)="syncSchedule(i)"
+                                          >
+                                            @for (slot of timeSlots; track slot) {
+                                              <option [value]="slot">{{ slot }}</option>
+                                            }
+                                          </select>
+                                        </div>
+                                      </div>
+                                      <div class="col-12 col-sm-6 col-md-4">
+                                        <div class="input-group input-group-sm">
+                                          <span class="input-group-text">A</span>
+                                          <select
+                                            formControlName="timeTo2"
+                                            class="form-select glass-input text-white"
+                                            (change)="syncSchedule(i)"
+                                          >
+                                            @for (slot of timeSlots; track slot) {
+                                              <option [value]="slot">{{ slot }}</option>
+                                            }
+                                          </select>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  }
+
+                                  <div class="mt-2 text-xs text-muted">
+                                    Formato resultante:
+                                    <em>{{ locGroup.get('schedule')?.value }}</em>
+                                  </div>
+                                </div>
+
+                                <!-- Fila 5: Notas especiales -->
+                                <div class="row g-3 mb-3">
+                                  <div class="col-12">
+                                    <label class="form-label text-label">
+                                      Instrucciones / Notas especiales de retiro
+                                    </label>
+                                    <div class="input-group">
+                                      <span class="input-group-text"
+                                        ><i class="bi bi-info-circle"></i
+                                      ></span>
+                                      <input
+                                        type="text"
+                                        formControlName="notes"
+                                        class="form-control glass-input"
+                                        placeholder="Ej: Presentar DNI y número de orden"
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Controls: Switch Activo/Inactivo -->
+                                <div
+                                  class="d-flex align-items-center justify-content-between gap-3 pt-3 border-top border-secondary border-opacity-25"
+                                >
+                                  <div
+                                    class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-0 w-100"
+                                  >
+                                    <label
+                                      class="form-check-label small text-soft cursor-pointer mb-0 me-auto"
+                                      [for]="'pickupEnabled_' + i"
+                                    >
+                                      {{
+                                        locGroup.get('enabled')?.value
+                                          ? 'Sucursal activa'
+                                          : 'Sucursal inactiva'
+                                      }}
+                                    </label>
+                                    <input
+                                      class="form-check-input ms-0 flex-shrink-0"
+                                      type="checkbox"
+                                      role="switch"
+                                      [id]="'pickupEnabled_' + i"
+                                      formControlName="enabled"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
                   </div>
                 </div>
-                @if (faviconUploading()) {
-                  <div class="progress mt-2" style="height: 4px">
-                    <div
-                      class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                      role="progressbar"
-                      [style.width.%]="faviconProgress()"
-                    ></div>
-                  </div>
-                }
               </div>
             </div>
           </div>

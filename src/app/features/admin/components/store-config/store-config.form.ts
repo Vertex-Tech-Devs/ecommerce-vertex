@@ -16,8 +16,7 @@ export function createStoreConfigForm(fb: FormBuilder): FormGroup {
       header: fb.group({
         backgroundColor: ['#ffffff', Validators.required],
         textColor: ['#1f2937', Validators.required],
-        accentColor: ['#0d6efd', Validators.required],
-        shadowStyle: ['subtle', Validators.required],
+        accentColor: ['#000000', Validators.required],
         fontFamily: ['system', Validators.required],
       }),
     }),
