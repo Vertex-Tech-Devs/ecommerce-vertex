@@ -109,8 +109,10 @@ function resolveStoreBaseUrl(
   return envSiteUrl().replace(/\/+$/, '');
 }
 
-const DEFAULT_TEST_ACCESS_TOKEN =
-  'TEST-5735100067673516-090122-383792037bb2eb85f3baef5369c3a9d9-1793264666';
+// El master TEST de cada entorno vive en el Secret Manager del proyecto propio
+// (mp-access-token-default) o, para sandbox de desarrollo, en la env var
+// MERCADOPAGO_TEST_TOKEN. NO se hardcodea ningún token aquí: los tokens rotan y
+// un valor fijo termina revocado (401) o no autorizado (403 policy UNAUTHORIZED).
 
 function isValidTokenString(token: string): boolean {
   if (!token) return false;
@@ -200,23 +202,40 @@ export async function getMercadoPagoRuntimeConfig(
     tokenSource = 'firestore.accessToken';
   }
 
-  // 3. Fallback a variable de entorno o token de prueba maestro de Develop de Vertex
-  if (!tokenFromSecret) {
-    tokenFromSecret = envMpAccessToken().trim();
-    if (tokenFromSecret) tokenSource = 'env';
+  // 3. Variable de entorno: SOLO como master de prueba (TEST-). Un APP_USR de env
+  //    NUNCA se aplica a tiendas sin credenciales propias (regla Vertex: producción
+  //    únicamente cuando el cliente carga sus credenciales en el shard).
+  const envToken = envMpAccessToken().trim();
+  const candidate =
+    tokenFromSecret && isValidTokenString(tokenFromSecret) ? tokenFromSecret : envToken.startsWith('TEST-') ? envToken : '';
+  const resolvedToken = isValidTokenString(candidate) ? candidate : '';
+  if (!tokenFromSecret && envToken.startsWith('TEST-') && resolvedToken) {
+    tokenSource = 'env(master-test)';
   }
-
-  const rawToken = tokenFromSecret.trim();
-  const resolvedToken = isValidTokenString(rawToken) ? rawToken : DEFAULT_TEST_ACCESS_TOKEN;
-  if (!isValidTokenString(rawToken)) {
-    tokenSource = 'default-master-test-token';
+  if (!resolvedToken) {
+    tokenSource = 'none';
   }
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
   logger.info(
-    `[MercadoPago Auth] Store: ${storeId ?? 'default'} | Source: ${tokenSource} | Prefix: ${resolvedToken.substring(0, 9)}...`,
+    `[MercadoPago Auth] Store: ${storeId ?? 'default'} | Source: ${tokenSource} | Prefix: ${
+      resolvedToken ? resolvedToken.substring(0, 9) + '...' : '(sin token válido)'
+    }`,
   );
+
+  if (!resolvedToken) {
+    // Fail-fast accionable: NUNCA instanciar el SDK con un token vacío, revocado o
+    // con un APP_USR de entorno sin credenciales de cliente. Evita los 401/403
+    // ("At least one policy returned UNAUTHORIZED") enmascarados como error de conexión.
+    logger.error(
+      `[MercadoPago Auth Error] Store ${storeId ?? 'default'} sin token válido. ` +
+        `Configurar el secreto 'mp-access-token-default' (master TEST) en el proyecto propio ` +
+        `o cargar credenciales de producción del cliente en el shard (store_payments). ` +
+        `Fuentes probadas: secrets(shard+propio), firestore, env(TEST).`,
+    );
+    return { accessToken: '', webhook, baseUrl };
+  }
 
   return { accessToken: resolvedToken, webhook, baseUrl };
 }
