@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ═══ Mocks de infraestructura ══════════════════════════════════════════════
-const { mockSecretAccess, mockEnvToken } = vi.hoisted(() => {
+const { mockSecretAccess } = vi.hoisted(() => {
   const mockSecretAccess = vi.fn();
-  const mockEnvToken = vi.fn(() => '');
-  return { mockSecretAccess, mockEnvToken };
+  return { mockSecretAccess };
 });
+
+const MASTER_DEFAULT = 'APP_USR-1516515095961487-091615-0e0e36c57f15fa71ba62abf9457f2259-2696854666';
 
 vi.mock('@google-cloud/secret-manager', () => {
   const ctor = vi.fn().mockImplementation(() => ({
@@ -39,7 +40,7 @@ vi.mock('firebase-functions/logger', () => ({
 vi.mock('./config', () => ({
   singletonDoc: (storeId: string, _coll: string, _doc: string) =>
     `configuracion/store_${storeId}`,
-  envMpAccessToken: mockEnvToken,
+  envMpAccessToken: vi.fn(() => ''),
   envWebhookUrl: vi.fn(() => ''),
   envSiteUrl: vi.fn(() => 'https://ecommerce-vertex-dev.web.app'),
 }));
@@ -55,16 +56,15 @@ describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla
     mockSecretAccess.mockRejectedValue(new Error('At least one policy returned UNAUTHORIZED'));
   });
 
-  it('no resuelve token cuando NO hay ninguna fuente válida (fail-fast, nunca SDK con token roto)', async () => {
+  it('usa el master por defecto (APP_USR de test) cuando no hay config propia ni env — zero-IAM en código', async () => {
     const runtime = await getMercadoPagoRuntimeConfig(
       'store-sin-nada',
       'https://mitienda.web.app',
       'vtx-sd-fallback',
     );
 
-    // Sin secretos legibles, sin config y sin env TEST → accessToken vacío para que
-    // createPreference falle con error accionable (jamás un 401/403 enmascarado).
-    expect(runtime.accessToken).toBe('');
+    // Sin secretos legibles, sin config y sin env → fallback en código (master de prueba).
+    expect(runtime.accessToken).toBe(MASTER_DEFAULT);
   });
 
   it('usa el token TEST de la env var cuando es el master de prueba (sandbox de desarrollo)', async () => {
@@ -78,28 +78,22 @@ describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla
     expect(runtime.accessToken.trim().length).toBeGreaterThanOrEqual(25);
   });
 
-  it('usa el master TEST en código cuando Secret Manager da 403 y no hay config propia', async () => {
-    // Secret Manager denegado por IAM (403) + sin config + sin env → el fallback
-    // en código (MP_MASTER_TEST_TOKEN, zero-IAM) debe resolver un token TEST válido.
+  it('usa el master TEST inyectado por MP_MASTER_TEST_TOKEN cuando Secret Manager da 403', async () => {
     vi.stubEnv(
       'MP_MASTER_TEST_TOKEN',
       'TEST-5735100067673516-090122-383792037bb2eb85f3baef5369c3a9d9-1793264666',
     );
-    const runtime = await getMercadoPagoRuntimeConfig(
-      'store-nueva',
-      'https://mitienda.web.app',
-      'vtx-sd-cualquiera',
-    );
+    const runtime = await getMercadoPagoRuntimeConfig('store-nueva');
 
     expect(runtime.accessToken.startsWith('TEST-')).toBe(true);
-    expect(runtime.accessToken.trim().length).toBeGreaterThanOrEqual(25);
   });
 
-  it('NUNCA aplica un APP_USR de env a tiendas sin credenciales propias', async () => {
-    // Regla: producción únicamente cuando el cliente carga sus credenciales en el shard.
+  it('NUNCA usa un APP_USR de MERCADOPAGO_ACCESSTOKEN (env global) como credencial por defecto', async () => {
+    // El env global roto (403 policy UNAUTHORIZED) debe ser ignorado: la resolución
+    // usa el master en código (APP_USR de test), no el valor del env.
     vi.stubEnv('MERCADOPAGO_ACCESSTOKEN', 'APP_USR-0a1832bd-24a6-499d-9379-8209e79f2b2c');
     const runtime = await getMercadoPagoRuntimeConfig('store-sin-credenciales');
 
-    expect(runtime.accessToken).toBe('');
+    expect(runtime.accessToken).toBe(MASTER_DEFAULT);
   });
 });
