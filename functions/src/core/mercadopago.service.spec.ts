@@ -78,6 +78,23 @@ describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla
     expect(runtime.accessToken.trim().length).toBeGreaterThanOrEqual(25);
   });
 
+  it('usa el master TEST en código cuando Secret Manager da 403 y no hay config propia', async () => {
+    // Secret Manager denegado por IAM (403) + sin config + sin env → el fallback
+    // en código (MP_MASTER_TEST_TOKEN, zero-IAM) debe resolver un token TEST válido.
+    vi.stubEnv(
+      'MP_MASTER_TEST_TOKEN',
+      'TEST-5735100067673516-090122-383792037bb2eb85f3baef5369c3a9d9-1793264666',
+    );
+    const runtime = await getMercadoPagoRuntimeConfig(
+      'store-nueva',
+      'https://mitienda.web.app',
+      'vtx-sd-cualquiera',
+    );
+
+    expect(runtime.accessToken.startsWith('TEST-')).toBe(true);
+    expect(runtime.accessToken.trim().length).toBeGreaterThanOrEqual(25);
+  });
+
   it('NUNCA aplica un APP_USR de env a tiendas sin credenciales propias', async () => {
     // Regla: producción únicamente cuando el cliente carga sus credenciales en el shard.
     vi.stubEnv('MERCADOPAGO_ACCESSTOKEN', 'APP_USR-0a1832bd-24a6-499d-9379-8209e79f2b2c');
