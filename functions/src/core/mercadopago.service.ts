@@ -109,15 +109,25 @@ function resolveStoreBaseUrl(
   return envSiteUrl().replace(/\/+$/, '');
 }
 
-// El master TEST de cada entorno vive en el Secret Manager del proyecto propio
-// (mp-access-token-default) o, para sandbox de desarrollo, en la env var
-// MERCADOPAGO_TEST_TOKEN. NO se hardcodea ningún token aquí: los tokens rotan y
-// un valor fijo termina revocado (401) o no autorizado (403 policy UNAUTHORIZED).
+// Master TEST de Develop (zero-IAM, fallback en código): se inyecta por env var
+// MP_MASTER_TEST_TOKEN en el deploy (o como secreto mp-access-token-default en el
+// proyecto propio). NO se hardcodea un token: rotan y un valor fijo termina
+// revocado (401) o no autorizado (403 policy UNAUTHORIZED). Si no está inyectado,
+// la cadena falla con error accionable (nunca llama a MP con token inválido).
+function getMasterDevTestToken(): string {
+  return String(process.env.MP_MASTER_TEST_TOKEN || '').trim();
+}
 
 function isValidTokenString(token: string): boolean {
   if (!token) return false;
   const t = token.trim();
-  if (t.startsWith('${') || t.includes('YOUR_') || t.includes('placeholder') || t.length < 25) {
+  if (
+    t.startsWith('${') ||
+    t.includes('YOUR_') ||
+    t.includes('REEMPLAZAR') ||
+    t.includes('placeholder') ||
+    t.length < 25
+  ) {
     return false;
   }
   return t.startsWith('TEST-') || t.startsWith('APP_USR-');
@@ -207,11 +217,23 @@ export async function getMercadoPagoRuntimeConfig(
   //    únicamente cuando el cliente carga sus credenciales en el shard).
   const envToken = envMpAccessToken().trim();
   const candidate =
-    tokenFromSecret && isValidTokenString(tokenFromSecret) ? tokenFromSecret : envToken.startsWith('TEST-') ? envToken : '';
-  const resolvedToken = isValidTokenString(candidate) ? candidate : '';
+    tokenFromSecret && isValidTokenString(tokenFromSecret)
+      ? tokenFromSecret
+      : envToken.startsWith('TEST-')
+        ? envToken
+        : '';
+  let resolvedToken = isValidTokenString(candidate) ? candidate : '';
   if (!tokenFromSecret && envToken.startsWith('TEST-') && resolvedToken) {
     tokenSource = 'env(master-test)';
   }
+
+  // Fallback en código (zero-IAM): master TEST inyectado por env MP_MASTER_TEST_TOKEN.
+  const masterTest = getMasterDevTestToken();
+  if (!resolvedToken && isValidTokenString(masterTest)) {
+    resolvedToken = masterTest;
+    tokenSource = 'code(master-test)';
+  }
+
   if (!resolvedToken) {
     tokenSource = 'none';
   }
