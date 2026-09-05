@@ -10,7 +10,7 @@ import {
 import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
-import type { StoreConfig } from '@core/models/store-config.model';
+import type { StoreConfig, DeliveryMethodConfig } from '@core/models/store-config.model';
 import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 import { StoreConfigSchema } from '@vertex/contracts';
 
@@ -179,6 +179,19 @@ export class StoreConfigService {
     });
     await this.setDocData(docRef, cleanedPayload as Record<string, unknown>);
     this._storeConfig.set(data);
+  }
+
+  async updateDeliveryConfig(deliveryMethods: DeliveryMethodConfig): Promise<void> {
+    const docRef = this.getDocRef(tenantPath('configuracion'), storeDocId('store'));
+    const cleanedPayload = this.stripUndefined({
+      deliveryMethods,
+      updatedAt: new Date().toISOString(),
+    });
+    await this.setDocData(docRef, cleanedPayload as Record<string, unknown>);
+    const current = this._storeConfig();
+    if (current) {
+      this._storeConfig.set({ ...current, deliveryMethods });
+    }
   }
 
   private applyConfigToDom(config: StoreConfig): void {

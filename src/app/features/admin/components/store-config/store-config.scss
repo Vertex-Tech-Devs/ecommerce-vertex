@@ -73,34 +73,6 @@
     animation-delay: 0.15s;
   }
 
-  &.card-delivery {
-    --glow-rgb: 34, 197, 94;
-    animation-delay: 0.2s;
-
-    .input-group,
-    .form-control,
-    .form-select,
-    .form-text,
-    .glass-input {
-      max-width: 100%;
-      word-break: break-word;
-    }
-
-    @media (max-width: 480px) {
-      .glass-switches-container {
-        padding: 1rem;
-      }
-      .input-group-text {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.85rem;
-      }
-      .glass-input {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-      }
-    }
-  }
-
   &.card-contact {
     --glow-rgb: 236, 72, 153;
     animation-delay: 0.2s;
@@ -467,31 +439,6 @@
 .whatsapp-float-preview {
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
   transition: transform 0.2s ease;
-}
-
-.day-pill-btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #cbd5e1;
-  border-radius: 20px;
-  padding: 0.3rem 0.85rem;
-  font-size: 0.825rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.25);
-  }
-
-  &--active {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    border-color: #6366f1;
-    color: #ffffff;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
-  }
 }
 
 .text-xs {

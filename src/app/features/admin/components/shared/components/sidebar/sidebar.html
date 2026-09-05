@@ -4,127 +4,48 @@
   [class.sidebar--open]="isOpen"
   aria-label="Navegación principal del administrador"
 >
-  <ul class="sidebar__nav" role="list">
-    <li>
-      <a
-        routerLink="/admin/dashboard"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-speedometer2" aria-hidden="true"></i>
-        <span>Dashboard</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/products"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-box-seam" aria-hidden="true"></i>
-        <span>Productos</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/categories"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-tags" aria-hidden="true"></i>
-        <span>Categorías</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/attributes"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-rulers" aria-hidden="true"></i>
-        <span>Atributos</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/orders"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-receipt" aria-hidden="true"></i>
-        <span>Pedidos</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/customers"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-people" aria-hidden="true"></i>
-        <span>Clientes</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/home-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-house-gear" aria-hidden="true"></i>
-        <span>Gestión Home</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/about-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
-        <span>Gestión Nosotros</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/footer-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-window-dock" aria-hidden="true"></i>
-        <span>Gestión Footer</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/email-management"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-envelope-paper-fill" aria-hidden="true"></i>
-        <span>Gestión de Emails</span>
-      </a>
-    </li>
-    <li>
-      <a
-        routerLink="/admin/store-config"
-        routerLinkActive="sidebar__link--active"
-        class="sidebar__link"
-        (click)="onLinkClick()"
-      >
-        <i class="bi bi-gear" aria-hidden="true"></i>
-        <span>Configuración</span>
-      </a>
-    </li>
-  </ul>
+  <div class="sidebar__nav">
+    @for (section of navSections; track section.id) {
+      <div class="nav-section">
+        @if (section.collapsible) {
+          <button
+            type="button"
+            class="sidebar__section-header sidebar__section-header--button"
+            [attr.aria-expanded]="isSectionExpanded(section)"
+            (click)="toggleSection(section.id)"
+          >
+            <span class="sidebar__section-title">{{ section.title }}</span>
+            <i
+              class="bi bi-chevron-down sidebar__chevron"
+              [class.sidebar__chevron--expanded]="isSectionExpanded(section)"
+              aria-hidden="true"
+            ></i>
+          </button>
+        } @else {
+          <div class="sidebar__section-header">
+            <span class="sidebar__section-title">{{ section.title }}</span>
+          </div>
+        }
+
+        @if (isSectionExpanded(section)) {
+          <ul class="nav-section__items" role="list">
+            @for (item of section.items; track item.route) {
+              <li>
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                  class="sidebar__link"
+                  (click)="onLinkClick()"
+                >
+                  <i [class]="'bi ' + item.icon" aria-hidden="true"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
 </nav>

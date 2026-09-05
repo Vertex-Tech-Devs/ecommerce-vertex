@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { StoreConfigService } from './store-config.service';
 import { Firestore } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
-import type { StoreConfig } from '@core/models/store-config.model';
+import type { StoreConfig, DeliveryMethodConfig } from '@core/models/store-config.model';
 
 interface StoreConfigServiceWithPrivates {
   getDocRef: (path: string, ...segments: string[]) => DocumentReference;
@@ -133,6 +133,28 @@ describe('StoreConfigService', () => {
 
     await service.saveConfig(mockConfig);
     expect(service.storeConfig()).toEqual(mockConfig);
+  });
+
+  it('should update delivery config atomically and update signal', async () => {
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+    const setDocDataSpy = spyOn(privSvc, 'setDocData').and.returnValue(Promise.resolve());
+
+    // Set initial config
+    await service.saveConfig(mockConfig);
+
+    const deliveryPayload: DeliveryMethodConfig = {
+      enableHomeDelivery: true,
+      enableStorePickup: true,
+      homeDeliveryDescription: 'Envío express',
+      pickupLocations: [],
+    };
+
+    await service.updateDeliveryConfig(deliveryPayload);
+    expect(setDocDataSpy).toHaveBeenCalled();
+    expect(service.storeConfig()?.deliveryMethods).toEqual(deliveryPayload);
+    // Other fields should remain intact
+    expect(service.storeConfig()?.storeName).toBe('Test Store Name');
   });
 
   it('should trigger theme injection effect when config is updated', () => {
