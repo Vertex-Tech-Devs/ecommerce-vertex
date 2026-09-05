@@ -108,6 +108,11 @@ export const ADMIN_ROUTES: Routes = [
           import('./components/email-management/email-management').then((m) => m.EmailManagement),
       },
       {
+        path: 'delivery',
+        title: 'Sucursales & Entregas',
+        loadComponent: () => import('./components/delivery/delivery').then((m) => m.Delivery),
+      },
+      {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>

@@ -1,17 +1,7 @@
-import {
-  Component,
-  inject,
-  signal,
-  computed,
-  DestroyRef,
-  effect,
-  ViewChildren,
-  ElementRef,
-  type QueryList,
-} from '@angular/core';
+import { Component, inject, signal, computed, DestroyRef, effect } from '@angular/core';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import type { FormGroup, FormArray } from '@angular/forms';
+import type { FormGroup } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { StorageService } from '@core/services/storage.service';
@@ -19,20 +9,14 @@ import { SweetAlertService } from '@core/services/sweet-alert.service';
 import { AuthService } from '@core/services/auth.service';
 import type {
   StoreConfig as StoreConfigData,
-  StorePickupLocation,
   HeaderFontPreset,
 } from '@core/models/store-config.model';
-import {
-  DEFAULT_DELIVERY_METHOD_CONFIG,
-  DEFAULT_HEADER_APPEARANCE,
-  WEEK_DAYS,
-  TIME_SLOTS,
-} from '@core/models/store-config.model';
+import { DEFAULT_HEADER_APPEARANCE } from '@core/models/store-config.model';
 import { computeHeaderCustomProperties, loadGoogleFont } from '@core/utils/font-loader';
 import { resolveTenantId } from '@core/utils/tenant';
 import { RouterModule } from '@angular/router';
-import { FONT_PRESETS, formatSchedule } from './store-config.constants';
-import { createStoreConfigForm, createPickupLocationGroup } from './store-config.form';
+import { FONT_PRESETS } from './store-config.constants';
+import { createStoreConfigForm } from './store-config.form';
 
 @Component({
   selector: 'app-store-config',
@@ -49,13 +33,7 @@ export class StoreConfig {
   private authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
 
-  readonly weekDays = WEEK_DAYS;
-  readonly timeSlots = TIME_SLOTS;
-
   readonly fontPresets = FONT_PRESETS;
-
-  @ViewChildren('locationNameInput', { read: ElementRef })
-  locationNameInputs!: QueryList<ElementRef>;
 
   readonly isOwner = toSignal(this.authService.isOwner$, { initialValue: false });
   readonly isLoading = this.storeConfigService.isLoading;
@@ -98,92 +76,6 @@ export class StoreConfig {
     this.headerAppearanceGroup.patchValue({ fontFamily: font });
     this.headerAppearanceGroup.get('fontFamily')?.markAsDirty();
     this.form.markAsDirty();
-  }
-
-  get deliveryMethodsGroup(): FormGroup {
-    return this.form.get('deliveryMethods') as FormGroup;
-  }
-
-  get pickupLocationsArray(): FormArray {
-    return this.deliveryMethodsGroup.get('pickupLocations') as FormArray;
-  }
-
-  createPickupLocationGroup(location?: Partial<StorePickupLocation>): FormGroup {
-    return createPickupLocationGroup(this.fb, location);
-  }
-
-  formatSchedule(
-    days: string[],
-    from1: string,
-    to1: string,
-    hasSplit: boolean,
-    from2: string,
-    to2: string,
-  ): string {
-    return formatSchedule(days, from1, to1, hasSplit, from2, to2);
-  }
-
-  syncSchedule(index: number): void {
-    const group = this.pickupLocationsArray.at(index) as FormGroup;
-    if (!group) {
-      return;
-    }
-    const {
-      days = [],
-      timeFrom1 = '09:00',
-      timeTo1 = '18:00',
-      hasSplitSchedule = false,
-      timeFrom2 = '16:30',
-      timeTo2 = '20:30',
-    } = group.value;
-    group
-      .get('schedule')
-      ?.setValue(
-        this.formatSchedule(days, timeFrom1, timeTo1, hasSplitSchedule, timeFrom2, timeTo2),
-      );
-    group.markAsDirty();
-    this.form.markAsDirty();
-  }
-
-  toggleDay(locationIndex: number, day: string): void {
-    const group = this.pickupLocationsArray.at(locationIndex) as FormGroup;
-    if (!group) {
-      return;
-    }
-    const currentDays: string[] = [...(group.get('days')?.value ?? [])];
-    const dayIdx = currentDays.indexOf(day);
-    if (dayIdx > -1) {
-      currentDays.splice(dayIdx, 1);
-    } else {
-      currentDays.push(day);
-    }
-    group.get('days')?.setValue(currentDays);
-    this.syncSchedule(locationIndex);
-  }
-
-  isDaySelected(locationIndex: number, day: string): boolean {
-    return (this.pickupLocationsArray.at(locationIndex)?.get('days')?.value ?? []).includes(day);
-  }
-
-  addPickupLocation(): void {
-    this.pickupLocationsArray.push(this.createPickupLocationGroup());
-    this.form.markAsDirty();
-    setTimeout(() => this.locationNameInputs.last?.nativeElement.focus(), 50);
-  }
-
-  removePickupLocation(index: number): void {
-    this.pickupLocationsArray.removeAt(index);
-    this.form.markAsDirty();
-  }
-
-  togglePickupLocationStatus(index: number): void {
-    const group = this.pickupLocationsArray.at(index) as FormGroup;
-    const enabledCtrl = group?.get('enabled');
-    if (enabledCtrl) {
-      enabledCtrl.setValue(!enabledCtrl.value);
-      enabledCtrl.markAsDirty();
-      this.form.markAsDirty();
-    }
   }
 
   removeFavicon(): void {
@@ -241,11 +133,9 @@ export class StoreConfig {
 
   private populateFormFromConfig(cfg: StoreConfigData | null): void {
     const currentTenant = resolveTenantId();
-    const delivery = cfg?.deliveryMethods ?? DEFAULT_DELIVERY_METHOD_CONFIG;
 
     this.patchGeneralSettings(cfg, currentTenant);
     this.patchBrandingAndSocial(cfg);
-    this.patchDeliverySettings(delivery);
   }
 
   private patchGeneralSettings(cfg: StoreConfigData | null, currentTenant: string): void {
@@ -340,22 +230,6 @@ export class StoreConfig {
     });
 
     phoneCtrl?.updateValueAndValidity();
-  }
-
-  private patchDeliverySettings(delivery: typeof DEFAULT_DELIVERY_METHOD_CONFIG): void {
-    this.form.patchValue({
-      deliveryMethods: {
-        enableHomeDelivery: delivery.enableHomeDelivery ?? true,
-        enableStorePickup: delivery.enableStorePickup ?? false,
-        homeDeliveryDescription:
-          delivery.homeDeliveryDescription ?? 'Coordinamos el envío y costo por WhatsApp',
-      },
-    });
-
-    this.pickupLocationsArray.clear();
-    (delivery.pickupLocations ?? []).forEach((loc) => {
-      this.pickupLocationsArray.push(this.createPickupLocationGroup(loc));
-    });
   }
 
   onFaviconUpload(event: Event): void {

@@ -1,0 +1,417 @@
+<section class="delivery-management-wrapper">
+  <div class="container-fluid">
+    <div class="dashboard__header">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h1 class="dashboard__title mb-1">
+            <i class="bi bi-geo-alt me-2 text-info"></i>Sucursales & Entregas
+          </h1>
+          <p class="text-soft mb-0 small">
+            Configurá tus opciones logísticas, sucursales físicas para retiro y métodos de envío a
+            domicilio.
+          </p>
+        </div>
+        @if (loading()) {
+          <div class="spinner-border spinner-border-sm text-info" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        }
+      </div>
+      <hr />
+    </div>
+
+    @if (!loading()) {
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="glass-card card-delivery card mb-4">
+          <div class="card-header border-0 fw-bold d-flex align-items-center">
+            <i class="bi bi-truck me-2 text-info"></i> Métodos de Entrega y Logística
+          </div>
+          <div class="card-body">
+            <div class="glass-switches-container d-flex flex-column gap-4">
+              <!-- Envío a Domicilio -->
+              <div>
+                <div
+                  class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-2"
+                >
+                  <label
+                    class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                    for="enableHomeDelivery"
+                  >
+                    <i class="bi bi-house-door me-2 text-info"></i> Envío a Domicilio (A Coordinar)
+                  </label>
+                  <input
+                    class="form-check-input ms-0 flex-shrink-0"
+                    type="checkbox"
+                    role="switch"
+                    id="enableHomeDelivery"
+                    formControlName="enableHomeDelivery"
+                  />
+                </div>
+
+                @if (form.get('enableHomeDelivery')?.value) {
+                  <div class="ms-0 ms-md-4 mt-3">
+                    <label class="form-label text-label" for="homeDeliveryDescription">
+                      Descripción / Instrucciones de Envío y Costo
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text"><i class="bi bi-chat-text"></i></span>
+                      <input
+                        id="homeDeliveryDescription"
+                        formControlName="homeDeliveryDescription"
+                        type="text"
+                        class="form-control glass-input"
+                        placeholder="Coordinamos el envío y costo por WhatsApp"
+                      />
+                    </div>
+                    <div class="form-text text-soft small text-break mt-1">
+                      Ingresá la información o costo de entrega de referencia para los compradores.
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <hr class="border-secondary border-opacity-25 my-1" />
+
+              <!-- Retiro en Sucursal / Local -->
+              <div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                  <div
+                    class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-0 flex-grow-1"
+                  >
+                    <label
+                      class="form-check-label fw-bold text-white fs-6 cursor-pointer mb-0 me-auto"
+                      for="enableStorePickup"
+                    >
+                      <i class="bi bi-shop-window me-2 text-warning"></i> Retiro en Sucursal / Local
+                    </label>
+                    <input
+                      class="form-check-input ms-0 flex-shrink-0"
+                      type="checkbox"
+                      role="switch"
+                      id="enableStorePickup"
+                      formControlName="enableStorePickup"
+                    />
+                  </div>
+
+                  @if (form.get('enableStorePickup')?.value) {
+                    <button
+                      type="button"
+                      class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold w-100 w-md-auto mt-2 mt-md-0 d-flex align-items-center justify-content-center"
+                      (click)="addPickupLocation()"
+                    >
+                      <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
+                    </button>
+                  }
+                </div>
+
+                @if (form.get('enableStorePickup')?.value) {
+                  <div class="ms-0 ms-md-4 mt-3" formArrayName="pickupLocations">
+                    @if (pickupLocationsArray.length === 0) {
+                      <div
+                        class="text-center p-4 border border-dashed rounded-3 border-secondary border-opacity-25 bg-dark bg-opacity-25 mb-3"
+                      >
+                        <i class="bi bi-geo-alt fs-3 text-secondary d-block mb-2"></i>
+                        <p class="text-soft mb-2">No tenés sucursales registradas para retiro.</p>
+                        <button
+                          type="button"
+                          class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 w-100 w-md-auto mt-2 d-inline-flex align-items-center justify-content-center"
+                          (click)="addPickupLocation()"
+                        >
+                          <i class="bi bi-plus-lg me-1"></i> + Agregar Sucursal
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="d-flex flex-column gap-3">
+                        @for (
+                          locGroup of pickupLocationsArray.controls;
+                          track locGroup.value.id || $index;
+                          let i = $index
+                        ) {
+                          <div
+                            [formGroupName]="i"
+                            class="card bg-dark bg-opacity-50 border border-secondary border-opacity-25 rounded-3 p-3 p-md-4 mb-3 shadow-sm position-relative"
+                          >
+                            <!-- Cabecera de la sucursal -->
+                            <div
+                              class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary border-opacity-25"
+                            >
+                              <span class="fw-bold text-white fs-6">
+                                <i class="bi bi-geo-alt me-1 text-info"></i> Sucursal #{{ i + 1 }}
+                              </span>
+                              <button
+                                type="button"
+                                class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 d-flex align-items-center justify-content-center gap-1"
+                                (click)="removePickupLocation(i)"
+                                title="Eliminar sucursal"
+                                aria-label="Eliminar sucursal"
+                              >
+                                <i class="bi bi-trash"></i>
+                                <span class="d-none d-sm-inline ms-1">Eliminar</span>
+                              </button>
+                            </div>
+
+                            <!-- Fila 1: Nombre de la sucursal, Ciudad -->
+                            <div class="row g-3 mb-3">
+                              <div class="col-12 col-md-6">
+                                <label class="form-label text-label" [for]="'locName_' + i">
+                                  Nombre de la sucursal <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                  <span class="input-group-text"
+                                    ><i class="bi bi-building"></i
+                                  ></span>
+                                  <input
+                                    #locationNameInput
+                                    [id]="'locName_' + i"
+                                    type="text"
+                                    formControlName="name"
+                                    class="form-control glass-input"
+                                    placeholder="Ej: Casa Central Palermo"
+                                  />
+                                </div>
+                              </div>
+                              <div class="col-12 col-md-6">
+                                <label class="form-label text-label" [for]="'locCity_' + i">
+                                  Ciudad <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                  <span class="input-group-text"
+                                    ><i class="bi bi-geo-alt"></i
+                                  ></span>
+                                  <input
+                                    [id]="'locCity_' + i"
+                                    type="text"
+                                    formControlName="city"
+                                    class="form-control glass-input"
+                                    placeholder="Ej: Buenos Aires"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Fila 2: Dirección física completa -->
+                            <div class="row g-3 mb-3">
+                              <div class="col-12">
+                                <label class="form-label text-label" [for]="'locAddress_' + i">
+                                  Dirección física completa <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                  <span class="input-group-text"
+                                    ><i class="bi bi-pin-map"></i
+                                  ></span>
+                                  <input
+                                    [id]="'locAddress_' + i"
+                                    type="text"
+                                    formControlName="address"
+                                    class="form-control glass-input"
+                                    placeholder="Ej: Av. Corrientes 1234, Local 5"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Fila 3: Días de Atención -->
+                            <div class="mb-3">
+                              <label class="form-label text-label d-block">
+                                Días de atención para retiro <span class="text-danger">*</span>
+                              </label>
+                              <div class="d-flex flex-wrap gap-2">
+                                @for (day of weekDays; track day) {
+                                  <button
+                                    type="button"
+                                    class="btn btn-sm day-pill-btn"
+                                    [class.day-pill-btn--active]="isDaySelected(i, day)"
+                                    (click)="toggleDay(i, day)"
+                                  >
+                                    {{ day }}
+                                  </button>
+                                }
+                              </div>
+                            </div>
+
+                            <!-- Fila 4: Franjas horarias -->
+                            <div
+                              class="p-3 rounded-2 bg-black bg-opacity-25 border border-secondary border-opacity-10 mb-3"
+                            >
+                              <div class="row g-3 align-items-center mb-2">
+                                <div class="col-12 col-md-3">
+                                  <span class="small fw-semibold text-white">
+                                    <i class="bi bi-clock me-1 text-primary"></i> Horario de
+                                    atención:
+                                  </span>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                  <div class="input-group input-group-sm">
+                                    <span class="input-group-text">De</span>
+                                    <select
+                                      formControlName="timeFrom1"
+                                      class="form-select glass-input text-white"
+                                      (change)="syncSchedule(i)"
+                                    >
+                                      @for (slot of timeSlots; track slot) {
+                                        <option [value]="slot">{{ slot }}</option>
+                                      }
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4">
+                                  <div class="input-group input-group-sm">
+                                    <span class="input-group-text">A</span>
+                                    <select
+                                      formControlName="timeTo1"
+                                      class="form-select glass-input text-white"
+                                      (change)="syncSchedule(i)"
+                                    >
+                                      @for (slot of timeSlots; track slot) {
+                                        <option [value]="slot">{{ slot }}</option>
+                                      }
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Switch Horario Cortado -->
+                              <div
+                                class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mt-2 mb-2"
+                              >
+                                <label
+                                  class="form-check-label small text-soft cursor-pointer mb-0 me-auto"
+                                  [for]="'splitSwitch_' + i"
+                                >
+                                  ¿Horario cortado / Turno partido?
+                                </label>
+                                <input
+                                  class="form-check-input ms-0 flex-shrink-0"
+                                  type="checkbox"
+                                  role="switch"
+                                  [id]="'splitSwitch_' + i"
+                                  formControlName="hasSplitSchedule"
+                                  (change)="syncSchedule(i)"
+                                />
+                              </div>
+
+                              @if (locGroup.get('hasSplitSchedule')?.value) {
+                                <div
+                                  class="row g-3 align-items-center mt-1 pt-2 border-top border-secondary border-opacity-10"
+                                >
+                                  <div class="col-12 col-md-3">
+                                    <span class="small fw-semibold text-warning">
+                                      <i class="bi bi-sun me-1"></i> Segundo turno (Tarde):
+                                    </span>
+                                  </div>
+                                  <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text">De</span>
+                                      <select
+                                        formControlName="timeFrom2"
+                                        class="form-select glass-input text-white"
+                                        (change)="syncSchedule(i)"
+                                      >
+                                        @for (slot of timeSlots; track slot) {
+                                          <option [value]="slot">{{ slot }}</option>
+                                        }
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div class="col-12 col-sm-6 col-md-4">
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text">A</span>
+                                      <select
+                                        formControlName="timeTo2"
+                                        class="form-select glass-input text-white"
+                                        (change)="syncSchedule(i)"
+                                      >
+                                        @for (slot of timeSlots; track slot) {
+                                          <option [value]="slot">{{ slot }}</option>
+                                        }
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+
+                              <div class="mt-2 text-xs text-muted">
+                                Formato resultante:
+                                <em>{{ locGroup.get('schedule')?.value }}</em>
+                              </div>
+                            </div>
+
+                            <!-- Fila 5: Notas especiales -->
+                            <div class="row g-3 mb-3">
+                              <div class="col-12">
+                                <label class="form-label text-label" [for]="'locNotes_' + i">
+                                  Instrucciones / Notas especiales de retiro
+                                </label>
+                                <div class="input-group">
+                                  <span class="input-group-text"
+                                    ><i class="bi bi-info-circle"></i
+                                  ></span>
+                                  <input
+                                    [id]="'locNotes_' + i"
+                                    type="text"
+                                    formControlName="notes"
+                                    class="form-control glass-input"
+                                    placeholder="Ej: Presentar DNI y número de orden"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Controls: Switch Activo/Inactivo -->
+                            <div
+                              class="d-flex align-items-center justify-content-between gap-3 pt-3 border-top border-secondary border-opacity-25"
+                            >
+                              <div
+                                class="form-check form-switch custom-glass-switch d-flex align-items-center justify-content-between gap-3 ps-0 mb-0 w-100"
+                              >
+                                <label
+                                  class="form-check-label small text-soft cursor-pointer mb-0 me-auto"
+                                  [for]="'pickupEnabled_' + i"
+                                >
+                                  {{
+                                    locGroup.get('enabled')?.value
+                                      ? 'Sucursal activa'
+                                      : 'Sucursal inactiva'
+                                  }}
+                                </label>
+                                <input
+                                  class="form-check-input ms-0 flex-shrink-0"
+                                  type="checkbox"
+                                  role="switch"
+                                  [id]="'pickupEnabled_' + i"
+                                  formControlName="enabled"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="save-action-container mt-4">
+          <button
+            type="submit"
+            class="btn-save-primary ms-auto"
+            [disabled]="saving() || form.invalid || form.pristine"
+          >
+            @if (saving()) {
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            }
+            <i class="bi bi-check2-circle me-2" [class.d-none]="saving()"></i>
+            {{ saving() ? 'Guardando...' : 'Guardar Métodos de Entrega' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</section>

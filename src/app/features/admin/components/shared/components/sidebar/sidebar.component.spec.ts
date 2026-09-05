@@ -23,6 +23,7 @@ describe('Sidebar', () => {
           { path: 'admin/home-management', component: Sidebar },
           { path: 'admin/about-management', component: Sidebar },
           { path: 'admin/footer-management', component: Sidebar },
+          { path: 'admin/delivery', component: Sidebar },
           { path: 'admin/store-config', component: Sidebar },
           { path: 'admin/email-management', component: Sidebar },
           { path: '**', component: Sidebar },
@@ -129,6 +130,11 @@ describe('Sidebar', () => {
     ]);
 
     expect(configuracion.items).toEqual([
+      {
+        label: 'Sucursales & Entregas',
+        route: '/admin/delivery',
+        icon: 'bi-geo-alt',
+      },
       {
         label: 'Ajustes Generales',
         route: '/admin/store-config',
@@ -255,7 +261,7 @@ describe('Sidebar', () => {
     expect(newComp.isSectionExpanded(onlineStoreSection)).toBeTrue();
   });
 
-  it('should render 6 navigation links initially and all 11 when collapsible sections are expanded', () => {
+  it('should render 6 navigation links initially and all 12 when collapsible sections are expanded', () => {
     // Initially, only PRINCIPAL (3) and CATÁLOGO (3) are visible
     let linkElements = fixture.debugElement.queryAll(By.directive(RouterLink));
     expect(linkElements.length).toBe(6);
@@ -266,7 +272,7 @@ describe('Sidebar', () => {
     fixture.detectChanges();
 
     linkElements = fixture.debugElement.queryAll(By.directive(RouterLink));
-    expect(linkElements.length).toBe(11);
+    expect(linkElements.length).toBe(12);
 
     const allExpectedRoutes = component.navSections.flatMap((s) => s.items.map((i) => i.route));
     const renderedRoutes = linkElements.map((el) => {

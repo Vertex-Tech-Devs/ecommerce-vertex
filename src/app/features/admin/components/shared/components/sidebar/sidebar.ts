@@ -110,6 +110,11 @@ export class Sidebar {
       collapsible: true,
       items: [
         {
+          label: 'Sucursales & Entregas',
+          route: '/admin/delivery',
+          icon: 'bi-geo-alt',
+        },
+        {
           label: 'Ajustes Generales',
           route: '/admin/store-config',
           icon: 'bi-gear',
@@ -119,7 +124,6 @@ export class Sidebar {
           route: '/admin/email-management',
           icon: 'bi-envelope',
         },
-        // TODO: Acoplar "Sucursales & Entregas" (/admin/branches) en el siguiente commit
       ],
     },
   ];
