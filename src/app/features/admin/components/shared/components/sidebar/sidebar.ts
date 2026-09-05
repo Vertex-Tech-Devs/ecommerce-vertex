@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, Output, EventEmitter, Input, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { filter } from 'rxjs';
 
 export interface NavItem {
   readonly label: string;
@@ -10,7 +12,9 @@ export interface NavItem {
 }
 
 export interface NavSection {
+  readonly id: string;
   readonly title: string;
+  readonly collapsible?: boolean;
   readonly items: readonly NavItem[];
 }
 
@@ -25,9 +29,18 @@ export class Sidebar {
   @Input() isOpen: boolean = false;
   @Output() linkClicked = new EventEmitter<void>();
 
+  private readonly router = inject(Router);
+
+  readonly expandedSections = signal<Record<string, boolean>>({
+    'online-store': false,
+    config: false,
+  });
+
   readonly navSections: readonly NavSection[] = [
     {
+      id: 'principal',
       title: 'PRINCIPAL',
+      collapsible: false,
       items: [
         {
           label: 'Dashboard',
@@ -48,7 +61,9 @@ export class Sidebar {
       ],
     },
     {
+      id: 'catalog',
       title: 'CATÁLOGO',
+      collapsible: false,
       items: [
         {
           label: 'Productos',
@@ -68,7 +83,9 @@ export class Sidebar {
       ],
     },
     {
+      id: 'online-store',
       title: 'TIENDA ONLINE',
+      collapsible: true,
       items: [
         {
           label: 'Inicio / Portada',
@@ -88,7 +105,9 @@ export class Sidebar {
       ],
     },
     {
+      id: 'config',
       title: 'CONFIGURACIÓN',
+      collapsible: true,
       items: [
         {
           label: 'Ajustes Generales',
@@ -105,11 +124,65 @@ export class Sidebar {
     },
   ];
 
+  constructor() {
+    this.checkAndExpandActiveSection(this.router.url);
+
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.checkAndExpandActiveSection(event.urlAfterRedirects || event.url);
+      });
+  }
+
+  toggleSection(sectionId: string): void {
+    this.expandedSections.update((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  }
+
+  isSectionExpanded(section: NavSection): boolean {
+    if (!section.collapsible) {
+      return true;
+    }
+    return !!this.expandedSections()[section.id];
+  }
+
   onLinkClick(): void {
     this.linkClicked.emit();
   }
 
   onBackdropClick(): void {
     this.linkClicked.emit();
+  }
+
+  private checkAndExpandActiveSection(url: string): void {
+    if (!url) {
+      return;
+    }
+    const cleanUrl = url.split('?')[0].split('#')[0];
+
+    for (const section of this.navSections) {
+      if (!section.collapsible) {
+        continue;
+      }
+
+      const hasActiveItem = section.items.some((item) => {
+        if (item.exact) {
+          return cleanUrl === item.route;
+        }
+        return cleanUrl === item.route || cleanUrl.startsWith(`${item.route}/`);
+      });
+
+      if (hasActiveItem && !this.expandedSections()[section.id]) {
+        this.expandedSections.update((prev) => ({
+          ...prev,
+          [section.id]: true,
+        }));
+      }
+    }
   }
 }

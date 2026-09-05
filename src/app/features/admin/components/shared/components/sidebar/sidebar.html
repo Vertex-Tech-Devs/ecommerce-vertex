@@ -5,25 +5,46 @@
   aria-label="Navegación principal del administrador"
 >
   <div class="sidebar__nav">
-    @for (section of navSections; track section.title) {
+    @for (section of navSections; track section.id) {
       <div class="nav-section">
-        <span class="nav-section-title">{{ section.title }}</span>
-        <ul class="nav-section__items" role="list">
-          @for (item of section.items; track item.route) {
-            <li>
-              <a
-                [routerLink]="item.route"
-                routerLinkActive="active"
-                [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
-                class="sidebar__link"
-                (click)="onLinkClick()"
-              >
-                <i [class]="'bi ' + item.icon" aria-hidden="true"></i>
-                <span>{{ item.label }}</span>
-              </a>
-            </li>
-          }
-        </ul>
+        @if (section.collapsible) {
+          <button
+            type="button"
+            class="sidebar__section-header sidebar__section-header--button"
+            [attr.aria-expanded]="isSectionExpanded(section)"
+            (click)="toggleSection(section.id)"
+          >
+            <span class="sidebar__section-title">{{ section.title }}</span>
+            <i
+              class="bi bi-chevron-down sidebar__chevron"
+              [class.sidebar__chevron--expanded]="isSectionExpanded(section)"
+              aria-hidden="true"
+            ></i>
+          </button>
+        } @else {
+          <div class="sidebar__section-header">
+            <span class="sidebar__section-title">{{ section.title }}</span>
+          </div>
+        }
+
+        @if (isSectionExpanded(section)) {
+          <ul class="nav-section__items" role="list">
+            @for (item of section.items; track item.route) {
+              <li>
+                <a
+                  [routerLink]="item.route"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                  class="sidebar__link"
+                  (click)="onLinkClick()"
+                >
+                  <i [class]="'bi ' + item.icon" aria-hidden="true"></i>
+                  <span>{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
       </div>
     }
   </div>
