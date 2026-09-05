@@ -1,6 +1,7 @@
 import { type ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { signal, type ElementRef, type QueryList } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
 import type { DeliveryMethodConfig, StoreConfig } from '@core/models/store-config.model';
@@ -245,5 +246,60 @@ describe('Delivery Component', () => {
       'No se pudo guardar la configuración de entrega.',
     );
     expect(component.saving()).toBeFalse();
+  });
+
+  describe('Save button UI and interaction', () => {
+    it('should render the save button in save-action-container with correct classes and initial text', () => {
+      const container = fixture.debugElement.query(By.css('.save-action-container'));
+      expect(container).toBeTruthy();
+
+      const button = container.query(By.css('button.btn-save-primary'));
+      expect(button).toBeTruthy();
+      expect(button.nativeElement.textContent).toContain('Guardar Métodos de Entrega');
+
+      const icon = button.query(By.css('i.bi-check2-circle'));
+      expect(icon).toBeTruthy();
+      expect(icon.nativeElement.classList.contains('d-none')).toBeFalse();
+    });
+
+    it('should be disabled when form is pristine', () => {
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.dirty).toBeFalse();
+      expect(button.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should be enabled when form is dirty and valid', () => {
+      component.form.markAsDirty();
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.valid).toBeTrue();
+      expect(button.nativeElement.disabled).toBeFalse();
+    });
+
+    it('should be disabled when form is invalid even if dirty', () => {
+      component.addPickupLocation();
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.dirty).toBeTrue();
+      expect(component.form.invalid).toBeTrue();
+      expect(button.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should show spinner and "Guardando..." when saving signal is true', () => {
+      component.saving.set(true);
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(button.nativeElement.disabled).toBeTrue();
+      expect(button.nativeElement.textContent).toContain('Guardando...');
+
+      const spinner = button.query(By.css('.spinner-border'));
+      expect(spinner).toBeTruthy();
+
+      const icon = button.query(By.css('i.bi-check2-circle'));
+      expect(icon.nativeElement.classList.contains('d-none')).toBeTrue();
+    });
   });
 });

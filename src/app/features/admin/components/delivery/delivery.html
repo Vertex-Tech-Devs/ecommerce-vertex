@@ -394,11 +394,11 @@
           </div>
         </div>
 
-        <div class="save-action-container mt-4">
+        <div class="save-action-container">
           <button
             type="submit"
-            class="btn-save-primary ms-auto"
-            [disabled]="saving() || form.invalid || form.pristine"
+            class="btn-save-primary"
+            [disabled]="saving() || form.invalid || !form.dirty"
           >
             @if (saving()) {
               <span
