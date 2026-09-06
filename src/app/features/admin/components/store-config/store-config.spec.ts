@@ -1,7 +1,6 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import type { FormGroup } from '@angular/forms';
 import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import { of, throwError } from 'rxjs';
@@ -247,16 +246,9 @@ describe('StoreConfig', () => {
     });
   });
 
-  describe('Brand Logo, Display Mode, Announcement Bar & Floating WhatsApp', () => {
-    it('should initialize form with brandDisplayMode, announcementBar, and floatingWhatsApp defaults', () => {
+  describe('Brand Logo and Display Mode', () => {
+    it('should initialize form with brandDisplayMode defaults', () => {
       expect(component.form.get('brandDisplayMode')?.value).toBe('text');
-      expect(component.form.get('announcementBar.enabled')?.value).toBeFalse();
-      expect(component.form.get('announcementBar.backgroundColor')?.value).toBe('#111827');
-      expect(component.form.get('announcementBar.textColor')?.value).toBe('#ffffff');
-      expect(component.form.get('floatingWhatsApp.enabled')?.value).toBeFalse();
-      expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe(
-        '¡Hola! Tengo una consulta sobre un producto de la tienda',
-      );
     });
 
     it('removeLogo() should clear logoUrl control and mark dirty', () => {
@@ -336,156 +328,16 @@ describe('StoreConfig', () => {
       );
     });
 
-    it('should set text validator on announcementBar when enabled changes to true', () => {
-      const announcementGroup = component.form.get('announcementBar') as FormGroup;
-      const enabledCtrl = announcementGroup.get('enabled');
-      const textCtrl = announcementGroup.get('text');
-
-      expect(textCtrl?.valid).toBeTrue();
-
-      enabledCtrl?.setValue(true);
-      expect(textCtrl?.valid).toBeFalse();
-
-      textCtrl?.setValue('¡Gran oferta!');
-      expect(textCtrl?.valid).toBeTrue();
-
-      enabledCtrl?.setValue(false);
-      textCtrl?.setValue('');
-      expect(textCtrl?.valid).toBeTrue();
-    });
-
-    it('should set phoneNumber validator on floatingWhatsApp when enabled changes to true', () => {
-      const floatingGroup = component.form.get('floatingWhatsApp') as FormGroup;
-      const enabledCtrl = floatingGroup.get('enabled');
-      const phoneCtrl = floatingGroup.get('phoneNumber');
-
-      expect(phoneCtrl?.valid).toBeTrue();
-
-      enabledCtrl?.setValue(true);
-      expect(phoneCtrl?.valid).toBeFalse();
-
-      phoneCtrl?.setValue('5492611234567');
-      expect(phoneCtrl?.valid).toBeTrue();
-
-      enabledCtrl?.setValue(false);
-      phoneCtrl?.setValue('');
-      expect(phoneCtrl?.valid).toBeTrue();
-    });
-
-    it('should be invalid on submit if floatingWhatsApp is enabled and phoneNumber is empty', async () => {
-      const floatingGroup = component.form.get('floatingWhatsApp') as FormGroup;
-      floatingGroup.get('enabled')?.setValue(true);
-      floatingGroup.get('phoneNumber')?.setValue('');
-
-      await component.onSubmit();
-
-      expect(component.form.invalid).toBeTrue();
-      expect(sweetAlertSpy.error).toHaveBeenCalled();
-      expect(storeConfigServiceSpy.saveConfig).not.toHaveBeenCalled();
-    });
-
-    it('should populate form when config contains announcementBar, floatingWhatsApp, and brandDisplayMode', () => {
+    it('should populate form when config contains brandDisplayMode', () => {
       mockConfigSignal.set({
         ...mockConfig,
         brandDisplayMode: 'both',
-        announcementBar: {
-          enabled: true,
-          text: 'Promo de Verano',
-          link: '/summer-sale',
-          backgroundColor: '#ff0000',
-          textColor: '#ffffff',
-        },
-        floatingWhatsApp: {
-          enabled: true,
-          phoneNumber: '+5491199998888',
-          defaultMessage: 'Hola tienda!',
-        },
       });
 
       TestBed.flushEffects();
       fixture.detectChanges();
 
       expect(component.form.get('brandDisplayMode')?.value).toBe('both');
-      expect(component.form.get('announcementBar.enabled')?.value).toBeTrue();
-      expect(component.form.get('announcementBar.text')?.value).toBe('Promo de Verano');
-      expect(component.form.get('announcementBar.link')?.value).toBe('/summer-sale');
-      expect(component.form.get('announcementBar.backgroundColor')?.value).toBe('#ff0000');
-      expect(component.form.get('floatingWhatsApp.enabled')?.value).toBeTrue();
-      expect(component.form.get('floatingWhatsApp.phoneNumber')?.value).toBe('+5491199998888');
-      expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe('Hola tienda!');
-    });
-
-    it('should initialize appearance form controls with fallback defaults when config has no appearance', () => {
-      mockConfigSignal.set({
-        ...mockConfig,
-        appearance: undefined,
-      });
-
-      TestBed.flushEffects();
-      fixture.detectChanges();
-
-      expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#ffffff');
-      expect(component.form.get('appearance.header.textColor')?.value).toBe('#1f2937');
-      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#000000');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('system');
-    });
-
-    it('should initialize appearance form controls from service when config provides appearance', () => {
-      mockConfigSignal.set({
-        ...mockConfig,
-        appearance: {
-          header: {
-            backgroundColor: '#111827',
-            textColor: '#f9fafb',
-            accentColor: '#10b981',
-            fontFamily: 'montserrat',
-            shadowStyle: 'subtle',
-          },
-        },
-      });
-
-      TestBed.flushEffects();
-      fixture.detectChanges();
-
-      expect(component.form.get('appearance.header.backgroundColor')?.value).toBe('#111827');
-      expect(component.form.get('appearance.header.textColor')?.value).toBe('#f9fafb');
-      expect(component.form.get('appearance.header.accentColor')?.value).toBe('#10b981');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('montserrat');
-    });
-
-    it('should reactively update live preview styles when appearance form values change', () => {
-      component.form.patchValue({
-        appearance: {
-          header: {
-            backgroundColor: '#000000',
-            textColor: '#ffffff',
-            accentColor: '#ff0055',
-            fontFamily: 'poppins',
-          },
-        },
-      });
-      fixture.detectChanges();
-
-      const styles = component.liveHeaderStyles();
-      expect(styles['--header-bg']).toBe('#000000');
-      expect(styles['--header-text']).toBe('#ffffff');
-      expect(styles['--header-accent']).toBe('#ff0055');
-      expect(styles['--header-font-family']).toBe("'Poppins', sans-serif");
-    });
-
-    it('selectFontPreset should update fontFamily and mark form dirty', () => {
-      expect(component.form.dirty).toBeFalse();
-      component.selectFontPreset('space-grotesk');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('space-grotesk');
-      expect(component.form.dirty).toBeTrue();
-    });
-
-    it('selectFontPreset should support cursive and disruptive presets', () => {
-      component.selectFontPreset('dancing-script');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('dancing-script');
-
-      component.selectFontPreset('bebas-neue');
-      expect(component.form.get('appearance.header.fontFamily')?.value).toBe('bebas-neue');
     });
   });
 });

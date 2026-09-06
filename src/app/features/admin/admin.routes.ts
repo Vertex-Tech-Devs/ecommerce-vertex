@@ -113,6 +113,14 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () => import('./components/delivery/delivery').then((m) => m.Delivery),
       },
       {
+        path: 'header-announcements',
+        title: 'Encabezado y Anuncios',
+        loadComponent: () =>
+          import('./components/header-announcements/header-announcements').then(
+            (m) => m.HeaderAnnouncements,
+          ),
+      },
+      {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>

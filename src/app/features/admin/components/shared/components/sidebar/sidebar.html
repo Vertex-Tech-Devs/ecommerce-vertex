@@ -10,8 +10,10 @@
         @if (section.collapsible) {
           <button
             type="button"
+            [id]="'btn-section-' + section.id"
             class="sidebar__section-header sidebar__section-header--button"
             [attr.aria-expanded]="isSectionExpanded(section)"
+            [attr.aria-controls]="'region-' + section.id"
             (click)="toggleSection(section.id)"
           >
             <span class="sidebar__section-title">{{ section.title }}</span>
@@ -21,13 +23,37 @@
               aria-hidden="true"
             ></i>
           </button>
+
+          <div
+            [id]="'region-' + section.id"
+            role="region"
+            [attr.aria-labelledby]="'btn-section-' + section.id"
+            class="nav-section__collapse"
+            [class.nav-section__collapse--expanded]="isSectionExpanded(section)"
+            [inert]="!isSectionExpanded(section)"
+          >
+            <ul class="nav-section__items nav-section__items--nested" role="list">
+              @for (item of section.items; track item.route) {
+                <li>
+                  <a
+                    [routerLink]="item.route"
+                    routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                    class="sidebar__link"
+                    (click)="onLinkClick()"
+                  >
+                    <i [class]="'bi ' + item.icon" aria-hidden="true"></i>
+                    <span>{{ item.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
         } @else {
           <div class="sidebar__section-header">
             <span class="sidebar__section-title">{{ section.title }}</span>
           </div>
-        }
 
-        @if (isSectionExpanded(section)) {
           <ul class="nav-section__items" role="list">
             @for (item of section.items; track item.route) {
               <li>

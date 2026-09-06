@@ -2,7 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { StoreConfigService } from './store-config.service';
 import { Firestore } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
-import type { StoreConfig, DeliveryMethodConfig } from '@core/models/store-config.model';
+import type {
+  StoreConfig,
+  DeliveryMethodConfig,
+  HeaderAppearanceConfig,
+} from '@core/models/store-config.model';
 
 interface StoreConfigServiceWithPrivates {
   getDocRef: (path: string, ...segments: string[]) => DocumentReference;
@@ -155,6 +159,71 @@ describe('StoreConfigService', () => {
     expect(service.storeConfig()?.deliveryMethods).toEqual(deliveryPayload);
     // Other fields should remain intact
     expect(service.storeConfig()?.storeName).toBe('Test Store Name');
+  });
+
+  it('should update header and announcements atomically and update signal with deep spread in appearance', async () => {
+    const privSvc = service as unknown as StoreConfigServiceWithPrivates;
+    spyOn(privSvc, 'getDocRef').and.returnValue({} as unknown as DocumentReference);
+    const setDocDataSpy = spyOn(privSvc, 'setDocData').and.returnValue(Promise.resolve());
+
+    // Initialize with mock config
+    await service.saveConfig({
+      ...mockConfig,
+      appearance: {
+        header: {
+          backgroundColor: '#000000',
+          textColor: '#ffffff',
+          accentColor: '#10b981',
+          fontFamily: 'inter',
+          shadowStyle: 'subtle',
+        },
+      },
+    });
+
+    const headerPayload: HeaderAppearanceConfig = {
+      backgroundColor: '#1f2937',
+      textColor: '#f9fafb',
+      accentColor: '#6366f1',
+      fontFamily: 'poppins',
+      shadowStyle: 'medium',
+    };
+
+    const announcementsPayload = {
+      announcementBar: {
+        enabled: true,
+        text: '¡Descuentos del 20%!',
+        link: '/promociones',
+        backgroundColor: '#000000',
+        textColor: '#ffff00',
+      },
+      floatingWhatsApp: {
+        enabled: true,
+        phoneNumber: '5492611234567',
+        defaultMessage: 'Hola, consulta de producto',
+      },
+    };
+
+    await service.updateHeaderAndAnnouncements(headerPayload, announcementsPayload);
+
+    expect(setDocDataSpy).toHaveBeenCalledWith(
+      jasmine.any(Object),
+      jasmine.objectContaining({
+        appearance: {
+          header: headerPayload,
+        },
+        announcementBar: announcementsPayload.announcementBar,
+        floatingWhatsApp: announcementsPayload.floatingWhatsApp,
+        updatedAt: jasmine.any(String),
+      }),
+    );
+
+    const updatedConfig = service.storeConfig();
+    expect(updatedConfig?.appearance?.header).toEqual(headerPayload);
+    expect(updatedConfig?.announcementBar).toEqual(announcementsPayload.announcementBar);
+    expect(updatedConfig?.floatingWhatsApp).toEqual(announcementsPayload.floatingWhatsApp);
+    // Preserves existing fields intact
+    expect(updatedConfig?.storeName).toBe('Test Store Name');
+    expect(updatedConfig?.logoUrl).toBe('https://logo.url');
   });
 
   it('should trigger theme injection effect when config is updated', () => {
