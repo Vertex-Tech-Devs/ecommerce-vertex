@@ -1,19 +1,36 @@
 @use 'sass:color';
 @use 'variables' as vars;
 
+// =============================================================================
+// DESIGN TOKENS LOCALES — SIDEBAR COMPACTO SAAS
+// =============================================================================
+$sb-bg: #0b0f19;
+$sb-border: rgba(255, 255, 255, 0.06);
+$sb-text-muted: #64748b;
+$sb-text-regular: rgba(241, 245, 249, 0.72);
+$sb-text-hover: #ffffff;
+$sb-accent: #3b82f6;
+$sb-accent-light: #60a5fa;
+$sb-active-bg: rgba(37, 99, 235, 0.14);
+$sb-active-border: rgba(59, 130, 246, 0.28);
+$sb-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+// =============================================================================
+// CONTENEDOR PRINCIPAL
+// =============================================================================
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   width: vars.$sidebar-width-desktop;
   height: 100vh;
-  background: #0f172a;
+  background: $sb-bg;
   display: flex;
   flex-direction: column;
   z-index: 1000;
-  transition: transform var(--transition-slow);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  transition: transform vars.$transition-slow;
+  border-right: 1px solid $sb-border;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
 
   &::after {
     content: '';
@@ -22,12 +39,12 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.4), transparent);
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.35), transparent);
   }
 }
 
 .sidebar__nav {
-  padding: var(--space-6, 1.5rem) 0;
+  padding: 0.75rem 0;
   margin: 0;
   flex-grow: 1;
   display: flex;
@@ -35,9 +52,9 @@
   overflow-y: auto;
   overflow-x: hidden;
 
+  // Scrollbar minimalista ultra-delgado
   &::-webkit-scrollbar {
-    width: 5px;
-    transition: width 0.3s ease;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-track {
@@ -45,52 +62,44 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background: linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.1) 0%,
-      rgba(79, 70, 229, 0.4) 50%,
-      rgba(6, 182, 212, 0.1) 100%
-    );
-    border-radius: 100px;
-    transition: all 0.4s ease;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
   }
 
-  &:hover {
-    &::-webkit-scrollbar {
-      width: 7px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #2563eb 0%, #4f46e5 50%, #0ea5e9 100%);
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.4);
-    }
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.4);
   }
 
   scrollbar-width: thin;
-  scrollbar-color: #4f46e5 transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
+// =============================================================================
+// SECCIONES Y ENCABEZADOS
+// =============================================================================
 .nav-section {
   display: flex;
   flex-direction: column;
 
   &:not(:first-child) {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
   }
 }
 
 .sidebar__section-header {
-  padding: 0.5rem 1rem;
+  padding: 0.3rem 0.85rem;
   display: flex;
   align-items: center;
 
   &--button {
-    background: none;
+    background: transparent;
     border: none;
-    padding: 0.5rem 1rem;
-    width: 100%;
+    padding: 0.3rem 0.85rem;
+    width: calc(100% - 1.2rem);
+    margin: 0 0.6rem;
     cursor: pointer;
     text-align: left;
     display: flex;
@@ -100,39 +109,41 @@
     border-radius: 6px;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.035);
 
       .sidebar__section-title {
-        color: #f1f5f9;
+        color: #cbd5e1;
       }
 
       .sidebar__chevron {
-        color: #f1f5f9;
+        color: #cbd5e1;
       }
     }
 
     &:focus-visible {
-      outline: 2px solid #3b82f6;
-      outline-offset: -2px;
+      outline: none;
+      box-shadow:
+        0 0 0 2px $sb-bg,
+        0 0 0 4px rgba(59, 130, 246, 0.65);
     }
   }
 }
 
 .sidebar__section-title {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: $sb-text-muted;
   user-select: none;
   transition: color 0.15s ease;
 }
 
 .sidebar__chevron {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.6875rem;
+  color: $sb-text-muted;
   transition:
-    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s $sb-ease,
     color 0.15s ease;
 
   &--expanded {
@@ -140,80 +151,154 @@
   }
 }
 
+// =============================================================================
+// TRANSICIÓN CSS GRID DEL COLAPSABLE (60FPS MATEMÁTICO)
+// =============================================================================
+.nav-section__collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s $sb-ease;
+
+  > ul {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  &--expanded {
+    grid-template-rows: 1fr;
+  }
+}
+
+// =============================================================================
+// LISTA DE ÍTEMS Y SUB-ÁRBOL JERÁRQUICO
+// =============================================================================
 .nav-section__items {
   list-style: none;
   padding: 0;
-  margin: 0.25rem 0 0;
+  margin: 0.2rem 0 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+
+  // Efecto Árbol / Rail conector en secciones colapsables
+  &--nested {
+    position: relative;
+    padding-left: 0.45rem;
+    margin-left: 0.85rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+
+    .sidebar__link {
+      margin: 0 0.4rem 0 0.2rem;
+      padding: 0.32rem 0.65rem;
+
+      i {
+        font-size: 0.9375rem;
+      }
+    }
+  }
 }
 
+// =============================================================================
+// ENLACES DE NAVEGACIÓN (.sidebar__link)
+// =============================================================================
 .sidebar__link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.55rem 0.85rem;
-  margin: 0 0.75rem;
+  gap: 0.65rem;
+  padding: 0.375rem 0.75rem;
+  margin: 0 0.6rem;
   text-decoration: none;
-  color: rgba(241, 245, 249, 0.65);
+  color: $sb-text-regular;
   border-radius: 6px;
-  transition: all 0.15s ease-in-out;
   position: relative;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
 
   i {
-    font-size: 1.15rem;
-    width: 20px;
+    font-size: 1rem;
+    width: 18px;
     text-align: center;
-    transition: transform var(--transition-fast, 0.15s ease);
+    color: #818cf8;
+    opacity: 0.75;
     flex-shrink: 0;
+    transition:
+      transform 0.15s $sb-ease,
+      color 0.15s ease,
+      opacity 0.15s ease;
   }
 
   span {
-    font-size: 0.875rem;
-    font-weight: vars.$font-weight-medium;
+    font-size: 0.8125rem;
+    font-weight: 450;
+    line-height: 1.3;
     white-space: nowrap;
+    letter-spacing: -0.01em;
   }
 
+  // Hover
   &:hover:not(.active):not(.sidebar__link--active) {
-    background: rgba(255, 255, 255, 0.05);
-    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.045);
+    color: $sb-text-hover;
 
     i {
-      color: #3b82f6;
+      color: $sb-accent-light;
+      opacity: 1;
       transform: translateX(2px);
     }
   }
 
+  // Active / Press
+  &:active {
+    transform: scale(0.985);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  // Focus accesible
+  &:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px $sb-bg,
+      0 0 0 4px rgba(59, 130, 246, 0.65);
+  }
+
+  // Estado Seleccionado (.active)
   &.active,
   &--active {
-    background: rgba(37, 99, 235, 0.14);
-    color: #3b82f6;
-    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.25);
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.04) 100%);
+    color: $sb-accent-light;
+    box-shadow: inset 0 0 0 1px $sb-active-border;
 
     span {
-      font-weight: vars.$font-weight-semibold;
+      font-weight: 600;
+      color: #ffffff;
     }
 
     i {
-      color: #3b82f6;
-      filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.5));
+      color: $sb-accent-light;
+      opacity: 1;
+      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.45));
     }
 
+    // Pill de acento izquierdo refinado
     &::before {
       content: '';
       position: absolute;
-      left: -0.75rem;
-      top: 15%;
-      bottom: 15%;
-      width: 4px;
-      background: linear-gradient(180deg, #2563eb, #0ea5e9);
+      left: -0.6rem;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      background: linear-gradient(180deg, #3b82f6, #0ea5e9);
       border-radius: 0 4px 4px 0;
-      box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
     }
   }
 }
 
+// =============================================================================
+// RESPONSIVE OVERLAY (Mobile & Tablet)
+// =============================================================================
 @media (max-width: 1024px) {
   .sidebar {
     width: vars.$sidebar-width-mobile-overlay;

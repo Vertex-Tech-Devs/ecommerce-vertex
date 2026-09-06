@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, Output, EventEmitter, Input, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
@@ -30,6 +30,7 @@ export class Sidebar {
   @Output() linkClicked = new EventEmitter<void>();
 
   private readonly router = inject(Router);
+  private readonly document = inject(DOCUMENT);
 
   readonly expandedSections = signal<Record<string, boolean>>({
     'online-store': false,
@@ -147,10 +148,35 @@ export class Sidebar {
   }
 
   toggleSection(sectionId: string): void {
-    this.expandedSections.update((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
+    const isCurrentlyExpanded = !!this.expandedSections()[sectionId];
+    const willExpand = !isCurrentlyExpanded;
+
+    if (willExpand) {
+      const currentUrl = this.router.url;
+      const nextState: Record<string, boolean> = {};
+
+      for (const section of this.navSections) {
+        if (!section.collapsible) {
+          continue;
+        }
+
+        if (section.id === sectionId) {
+          nextState[section.id] = true;
+        } else {
+          const containsActiveRoute = this.sectionContainsUrl(section, currentUrl);
+          nextState[section.id] = containsActiveRoute;
+        }
+      }
+
+      this.expandedSections.set(nextState);
+    } else {
+      this.handleFocusOnCollapse(sectionId);
+
+      this.expandedSections.update((prev) => ({
+        ...prev,
+        [sectionId]: false,
+      }));
+    }
   }
 
   isSectionExpanded(section: NavSection): boolean {
@@ -168,23 +194,44 @@ export class Sidebar {
     this.linkClicked.emit();
   }
 
+  private handleFocusOnCollapse(sectionId: string): void {
+    const activeEl = this.document.activeElement;
+    if (!activeEl) {
+      return;
+    }
+
+    const regionEl = this.document.getElementById(`region-${sectionId}`);
+    if (regionEl?.contains(activeEl)) {
+      const triggerBtn = this.document.getElementById(`btn-section-${sectionId}`);
+      triggerBtn?.focus();
+    }
+  }
+
+  private sectionContainsUrl(section: NavSection, url: string): boolean {
+    if (!url) {
+      return false;
+    }
+    const cleanUrl = url.split('?')[0].split('#')[0];
+
+    return section.items.some((item) => {
+      if (item.exact) {
+        return cleanUrl === item.route;
+      }
+      return cleanUrl === item.route || cleanUrl.startsWith(`${item.route}/`);
+    });
+  }
+
   private checkAndExpandActiveSection(url: string): void {
     if (!url) {
       return;
     }
-    const cleanUrl = url.split('?')[0].split('#')[0];
 
     for (const section of this.navSections) {
       if (!section.collapsible) {
         continue;
       }
 
-      const hasActiveItem = section.items.some((item) => {
-        if (item.exact) {
-          return cleanUrl === item.route;
-        }
-        return cleanUrl === item.route || cleanUrl.startsWith(`${item.route}/`);
-      });
+      const hasActiveItem = this.sectionContainsUrl(section, url);
 
       if (hasActiveItem && !this.expandedSections()[section.id]) {
         this.expandedSections.update((prev) => ({
