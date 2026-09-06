@@ -10,7 +10,11 @@ import {
 import { Title, Meta } from '@angular/platform-browser';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 import type { DocumentReference, DocumentSnapshot } from '@angular/fire/firestore';
-import type { StoreConfig, DeliveryMethodConfig } from '@core/models/store-config.model';
+import type {
+  StoreConfig,
+  DeliveryMethodConfig,
+  HeaderAppearanceConfig,
+} from '@core/models/store-config.model';
 import { tenantPath, storeDocId, resolveTenantId } from '@core/utils/tenant';
 import { StoreConfigSchema } from '@vertex/contracts';
 
@@ -192,6 +196,50 @@ export class StoreConfigService {
     if (current) {
       this._storeConfig.set({ ...current, deliveryMethods });
     }
+  }
+
+  async updateHeaderAndAnnouncements(
+    headerConfig: HeaderAppearanceConfig,
+    announcementsConfig: {
+      announcementBar?: StoreConfig['announcementBar'];
+      floatingWhatsApp?: StoreConfig['floatingWhatsApp'];
+    },
+  ): Promise<void> {
+    const docRef = this.getDocRef(tenantPath('configuracion'), storeDocId('store'));
+    const current = this._storeConfig();
+
+    const appearance = {
+      ...(current?.appearance ?? {}),
+      header: headerConfig,
+    };
+
+    const cleanedPayload = this.stripUndefined({
+      appearance,
+      announcementBar: announcementsConfig.announcementBar,
+      floatingWhatsApp: announcementsConfig.floatingWhatsApp,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await this.setDocData(docRef, cleanedPayload as Record<string, unknown>);
+
+    this._storeConfig.update((curr) => {
+      if (!curr) {
+        return curr;
+      }
+      return {
+        ...curr,
+        appearance: {
+          ...(curr.appearance ?? {}),
+          header: headerConfig,
+        },
+        ...(announcementsConfig.announcementBar !== undefined
+          ? { announcementBar: announcementsConfig.announcementBar }
+          : {}),
+        ...(announcementsConfig.floatingWhatsApp !== undefined
+          ? { floatingWhatsApp: announcementsConfig.floatingWhatsApp }
+          : {}),
+      };
+    });
   }
 
   private applyConfigToDom(config: StoreConfig): void {
