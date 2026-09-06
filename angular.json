@@ -148,6 +148,7 @@
               "src/app/core/handlers/**",
               "src/app/features/admin/components/store-config-management/**",
               "src/app/features/admin/components/store-config/**",
+              "src/app/features/admin/components/header-announcements/**",
               "src/app/features/admin/components/products/product-create/**",
               "src/app/features/admin/components/home-management/hero-image-uploader.service.ts",
               "src/app/core/services/image-validation.service.ts",

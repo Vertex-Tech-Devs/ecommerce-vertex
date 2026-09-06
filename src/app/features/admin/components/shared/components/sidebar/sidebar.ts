@@ -88,6 +88,11 @@ export class Sidebar {
       collapsible: true,
       items: [
         {
+          label: 'Encabezado y Anuncios',
+          route: '/admin/header-announcements',
+          icon: 'bi-window-stack',
+        },
+        {
           label: 'Inicio / Portada',
           route: '/admin/home-management',
           icon: 'bi-window',
