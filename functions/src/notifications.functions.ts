@@ -116,6 +116,7 @@ function buildEmailShell(body: string, opts: { storeName: string; subject: strin
         <td style="background-color:#1e1b4b;background-image:linear-gradient(135deg,#312e81 0%,#4f46e5 50%,#06b6d4 100%);padding:28px 32px;">
           <div style="font-size:22px;line-height:1.25;color:#ffffff;font-weight:800;letter-spacing:-0.3px;">${opts.storeName}</div>
           <div style="margin-top:6px;font-size:13px;line-height:1.4;color:rgba(255,255,255,0.9);">${opts.subject}</div>
+          <div style="margin-top:12px;display:inline-block;background-color:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.35);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:600;color:#ffffff;letter-spacing:0.02em;">🔒 Compra Protegida con Encriptación SSL</div>
         </td>
       </tr>
       <tr>
@@ -125,6 +126,7 @@ function buildEmailShell(body: string, opts: { storeName: string; subject: strin
         <td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.5;text-align:center;">
           ${footer ? `<div style="margin-bottom:8px;font-weight:500;color:#475569;">${footer}</div>` : ''}
           <div>Este es un correo automático generado por la tienda.</div>
+          <div style="margin-top:8px;font-weight:600;color:#475569;">Procesado de forma segura por Vertex Platform</div>
         </td>
       </tr>
     </table>
