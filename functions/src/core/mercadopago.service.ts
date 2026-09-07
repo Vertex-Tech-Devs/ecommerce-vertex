@@ -159,31 +159,72 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
   // de la tienda viven en el Firestore del shard (store_payments/{slug} o configuracion/store_{slug}).
   const db = shardProjectId ? resolveTenantDb(shardProjectId) : getFirestore();
 
+  /**
+   * Extrae el bloque de config de MP desde CUALQUIER path donde Platform haya
+   * persistido credenciales de la tienda (regla: nunca depender de un solo shape).
+   */
+  const extractMpConfig = (docData: Record<string, any> | null | undefined): Record<string, any> | undefined => {
+    if (!docData) return undefined;
+    const candidates: unknown[] = [
+      docData['mercadoPago'],
+      docData['payments']?.['mercadoPago'],
+      docData['payments'],
+      docData['settings']?.['mercadoPago'],
+      docData['integrations']?.['mercadoPago'],
+      docData['paymentConfig']?.['mercadoPago'],
+    ];
+    for (const c of candidates) {
+      if (c && typeof c === 'object') {
+        const maybe = c as Record<string, any>;
+        // El bloque es de MP si trae campos de token/webhook o cuelga directo un accessToken.
+        if (
+          maybe['accessToken'] !== undefined ||
+          maybe['access_token'] !== undefined ||
+          maybe['secretRef'] !== undefined ||
+          maybe['accessTokenSecret'] !== undefined ||
+          maybe['webhookUrl'] !== undefined ||
+          maybe['_sandboxFallbackToken'] !== undefined
+        ) {
+          return maybe;
+        }
+      }
+    }
+    // Último recurso: el propio doc con un accessToken plano (paymentConfig directo).
+    if (
+      docData['accessToken'] !== undefined ||
+      docData['access_token'] !== undefined ||
+      docData['secretRef'] !== undefined
+    ) {
+      return docData as Record<string, any>;
+    }
+    return undefined;
+  };
+
   let mpConfig: Record<string, any> | undefined;
 
   if (storeId) {
     // 1. store_payments/{storeId}
     const paymentsSnap = await db.collection('store_payments').doc(storeId).get().catch(() => null);
     const paymentsData = paymentsSnap?.exists ? (paymentsSnap.data() as Record<string, any>) : null;
-    mpConfig = paymentsData?.['mercadoPago'] as Record<string, any> | undefined;
+    mpConfig = extractMpConfig(paymentsData);
 
     // 2. configuracion/store_{storeId}
     if (!mpConfig) {
       const legacySnap = await db.doc(singletonDoc(storeId, 'configuracion', 'store')).get().catch(() => null);
       const legacyData = legacySnap?.exists ? (legacySnap.data() as Record<string, any>) : null;
-      mpConfig = (legacyData?.['payments']?.['mercadoPago'] || legacyData?.['payments']) as Record<string, any> | undefined;
+      mpConfig = extractMpConfig(legacyData);
     }
 
     // 3. configuracion/store
     if (!mpConfig) {
       const rootConfigSnap = await db.collection('configuracion').doc('store').get().catch(() => null);
       const rootData = rootConfigSnap?.exists ? (rootConfigSnap.data() as Record<string, any>) : null;
-      mpConfig = (rootData?.['payments']?.['mercadoPago'] || rootData?.['payments']) as Record<string, any> | undefined;
+      mpConfig = extractMpConfig(rootData);
     }
   } else {
     const configSnap = await db.collection('configuracion').doc('store').get().catch(() => null);
     const data = configSnap?.exists ? (configSnap.data() as Record<string, any>) : null;
-    mpConfig = (data?.['payments']?.['mercadoPago'] || data?.['payments']) as Record<string, any> | undefined;
+    mpConfig = extractMpConfig(data);
   }
 
   // Resolución de token en 3 niveles de resiliencia:
@@ -213,20 +254,37 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
     tokenFromSecret = await readStoreSecret(`mp-access-token-${storeId}`);
     if (tokenFromSecret) tokenSource = `secret:mp-access-token-${storeId}`;
   }
+
+  // 2. Credenciales de la TIENDA persistidas en Firestore (plaintext). Se resuelven
+  //    ANTES del fallback maestro: si la tienda cargó su propio token (APP_USR- de
+  //    producción o TEST- propio), NUNCA debe operar con el master de Vertex.
+  if (!tokenFromSecret && mpConfig?.['_sandboxFallbackToken']) {
+    const fb = String(mpConfig['_sandboxFallbackToken']).trim();
+    if (isValidTokenString(fb)) {
+      tokenFromSecret = fb;
+      tokenSource = 'firestore._sandboxFallbackToken';
+    }
+  }
+  if (!tokenFromSecret && mpConfig?.['accessToken']) {
+    const at = String(mpConfig['accessToken']).trim();
+    if (isValidTokenString(at)) {
+      tokenFromSecret = at;
+      tokenSource = 'firestore.accessToken';
+    }
+  }
+  if (!tokenFromSecret && mpConfig?.['access_token']) {
+    const at2 = String(mpConfig['access_token']).trim();
+    if (isValidTokenString(at2)) {
+      tokenFromSecret = at2;
+      tokenSource = 'firestore.access_token';
+    }
+  }
+
+  // 3. Fallback maestro: SOLO si la tienda NO tiene credenciales propias.
   if (!tokenFromSecret) {
     // El fallback maestro SIEMPRE se lee del proyecto propio de la función (master).
     tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
     if (tokenFromSecret) tokenSource = 'secret:mp-access-token-default';
-  }
-
-  // 2. Fallback persistido en Firestore (_sandboxFallbackToken o accessToken)
-  if (!tokenFromSecret && mpConfig?.['_sandboxFallbackToken']) {
-    tokenFromSecret = String(mpConfig['_sandboxFallbackToken']).trim();
-    tokenSource = '_sandboxFallbackToken';
-  }
-  if (!tokenFromSecret && mpConfig?.['accessToken']) {
-    tokenFromSecret = String(mpConfig['accessToken']).trim();
-    tokenSource = 'firestore.accessToken';
   }
 
   // 3. Variable de entorno: SOLO como master de prueba (TEST-). Un APP_USR de env
@@ -258,9 +316,9 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
   logger.info(
-    `[MercadoPago Auth] Store: ${storeId ?? 'default'} | Source: ${tokenSource} | Prefix: ${
-      resolvedToken ? resolvedToken.substring(0, 9) + '...' : '(sin token válido)'
-    }`,
+    `[MP Resolution] Store: ${storeId ?? 'default'} | Path/Source: ${tokenSource} | Prefix: ${
+      resolvedToken ? resolvedToken.substring(0, 10) + '...' : '(sin token válido)'
+    } | IsProd: ${resolvedToken?.startsWith('APP_USR-') ?? false}`,
   );
 
   if (!resolvedToken) {
