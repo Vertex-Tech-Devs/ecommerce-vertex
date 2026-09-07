@@ -45,7 +45,7 @@ vi.mock('./config', () => ({
   envSiteUrl: vi.fn(() => 'https://ecommerce-vertex-dev.web.app'),
 }));
 
-import { getMercadoPagoRuntimeConfig } from './mercadopago.service';
+import { getMercadoPagoRuntimeConfig, buildNotificationUrl } from './mercadopago.service';
 
 // ═══ Tests ═════════════════════════════════════════════════════════════════
 describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla Vertex)', () => {
@@ -95,5 +95,26 @@ describe('getMercadoPagoRuntimeConfig — resolución defensiva del token (regla
     const runtime = await getMercadoPagoRuntimeConfig('store-sin-credenciales');
 
     expect(runtime.accessToken).toBe(MASTER_DEFAULT);
+  });
+});
+
+describe('buildNotificationUrl — webhook automático en la preferencia', () => {
+  it('inyecta SIEMPRE tenant y storeId (fallback al endpoint maestro si no hay webhook configurado)', () => {
+    const url = buildNotificationUrl('', 'locura');
+    expect(url).toContain('mercadoPagoWebhookHandler');
+    expect(url).toContain('tenant=locura');
+    expect(url).toContain('storeId=locura');
+  });
+
+  it('reutiliza el webhook configurado agregando parámetros', () => {
+    const url = buildNotificationUrl('https://api.mitienda.com/hook', 'garbarino');
+    expect(url).toBe('https://api.mitienda.com/hook?tenant=garbarino&storeId=garbarino');
+    const url2 = buildNotificationUrl('https://hook.com/x?a=1', 'demo');
+    expect(url2).toBe('https://hook.com/x?a=1&tenant=demo&storeId=demo');
+  });
+
+  it('escapa correctamente el tenant', () => {
+    const url = buildNotificationUrl('', 'mi tienda/ñ');
+    expect(url).toContain('tenant=mi%20tienda%2F%C3%B1');
   });
 });
