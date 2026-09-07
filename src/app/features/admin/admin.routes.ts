@@ -108,6 +108,19 @@ export const ADMIN_ROUTES: Routes = [
           import('./components/email-management/email-management').then((m) => m.EmailManagement),
       },
       {
+        path: 'delivery',
+        title: 'Sucursales & Entregas',
+        loadComponent: () => import('./components/delivery/delivery').then((m) => m.Delivery),
+      },
+      {
+        path: 'header-announcements',
+        title: 'Encabezado y Anuncios',
+        loadComponent: () =>
+          import('./components/header-announcements/header-announcements').then(
+            (m) => m.HeaderAnnouncements,
+          ),
+      },
+      {
         path: 'store-config',
         title: 'Configuración',
         loadComponent: () =>
