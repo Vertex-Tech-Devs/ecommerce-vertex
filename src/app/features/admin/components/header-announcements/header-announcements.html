@@ -75,7 +75,9 @@
                         class="mockup-header__container d-flex align-items-center justify-content-between px-3 py-2"
                       >
                         <!-- Brand -->
-                        <div class="mockup-header__brand d-flex align-items-center gap-2">
+                        <div
+                          class="mockup-header__brand d-flex align-items-center gap-2 text-truncate"
+                        >
                           @if (
                             (liveBrandDisplayMode() === 'logo' ||
                               liveBrandDisplayMode() === 'both') &&
@@ -84,7 +86,7 @@
                             <img
                               [src]="liveLogoUrl()"
                               [alt]="liveStoreName()"
-                              class="mockup-header__logo"
+                              class="mockup-header__logo flex-shrink-0"
                             />
                           }
                           @if (
@@ -92,7 +94,7 @@
                             liveBrandDisplayMode() === 'both' ||
                             !liveLogoUrl()
                           ) {
-                            <span class="mockup-header__brand-text fw-bold fs-6">{{
+                            <span class="mockup-header__brand-text fw-bold fs-6 text-truncate">{{
                               liveStoreName()
                             }}</span>
                           }
@@ -135,11 +137,16 @@
                 </div>
 
                 <!-- Form Controls: Colors, Typography -->
-                <div class="row g-4 mb-4">
-                  <!-- Color Pickers -->
-                  <div class="col-12 col-md-4">
-                    <label class="form-label text-label" for="headerBgColorInput">
-                      Color de Fondo <span class="text-danger">*</span>
+                <div class="row g-2 g-md-4 mb-4">
+                  <!-- Color Pickers (Responsive 3-Column Compact Grid) -->
+                  <div class="col-4 col-md-4">
+                    <label
+                      class="form-label text-label text-truncate d-block"
+                      for="headerBgColorInput"
+                      title="Color de Fondo"
+                    >
+                      <span class="d-none d-sm-inline">Color de </span>Fondo
+                      <span class="text-danger">*</span>
                     </label>
                     <div class="input-group color-input-group">
                       <input
@@ -158,9 +165,14 @@
                     </div>
                   </div>
 
-                  <div class="col-12 col-md-4">
-                    <label class="form-label text-label" for="headerTextColorInput">
-                      Color de Texto y Marca <span class="text-danger">*</span>
+                  <div class="col-4 col-md-4">
+                    <label
+                      class="form-label text-label text-truncate d-block"
+                      for="headerTextColorInput"
+                      title="Color de Texto y Marca"
+                    >
+                      Texto<span class="d-none d-sm-inline"> y Marca</span>
+                      <span class="text-danger">*</span>
                     </label>
                     <div class="input-group color-input-group">
                       <input
@@ -179,9 +191,14 @@
                     </div>
                   </div>
 
-                  <div class="col-12 col-md-4">
-                    <label class="form-label text-label" for="headerAccentColorInput">
-                      Color de Acento & Insignias <span class="text-danger">*</span>
+                  <div class="col-4 col-md-4">
+                    <label
+                      class="form-label text-label text-truncate d-block"
+                      for="headerAccentColorInput"
+                      title="Color de Acento & Insignias"
+                    >
+                      Acento<span class="d-none d-sm-inline"> & Insignias</span>
+                      <span class="text-danger">*</span>
                     </label>
                     <div class="input-group color-input-group">
                       <input
@@ -416,7 +433,9 @@
                                 id="whatsappPhoneNumber"
                                 #whatsappPhoneInput
                                 formControlName="phoneNumber"
-                                type="text"
+                                type="tel"
+                                inputmode="tel"
+                                autocomplete="tel"
                                 class="form-control glass-input"
                                 [class.is-invalid]="
                                   form.get('floatingWhatsApp.phoneNumber')?.touched &&
