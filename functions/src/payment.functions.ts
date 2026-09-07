@@ -457,6 +457,7 @@ export const createPaymentPreference = onCall(
           status: 'PENDING_PAYMENT',
           paymentStatus: 'pending',
           stockDecremented: false,
+          isPaid: false,
           checkoutStartedAt: new Date(),
         });
 
@@ -660,6 +661,7 @@ export const mercadoPagoWebhookHandler = onRequest(
               'paymentDetails.paymentId': paymentId,
               status: 'processing',
               paymentStatus: 'approved',
+              isPaid: true,
               paidAt: new Date(),
             });
             return;
@@ -717,6 +719,7 @@ export const mercadoPagoWebhookHandler = onRequest(
             'paymentDetails.paymentId': paymentId,
             status: 'processing',
             paymentStatus: 'approved',
+            isPaid: true,
             paidAt: new Date(),
             stockDecremented: true,
             stockDeductedAt: new Date(),
@@ -773,5 +776,135 @@ export const mercadoPagoWebhookHandler = onRequest(
       // Responder HTTP 200 OK para evitar bucles de reintento en webhooks de Mercado Pago
       response.status(200).send('Webhook procesado con observaciones.');
     }
+  },
+);
+
+/**
+ * executeStockAndMetricsRestorationAdmin — Saneamiento nativo en la nube (sin ADC local).
+ * Restituye inventario de órdenes que quedaron con stock descontado SIN pago aprobado
+ * (legacy checkout) y las marca CANCELLED_UNPAID. Si la tienda vive en un shard, se
+ * ejecuta con la SA del proyecto desplegado (orchestrator), sin credenciales locales.
+ *
+ * Guard: admin (vertex.tech.dev@gmail.com o claim platformAdmin) o secret token admin.
+ * Params: { tenantProjectId?: string; storeId?: string; dryRun?: boolean }
+ * - tenantProjectId: shard Firestore de la tienda (se resuelve solo si se omite y se
+ *   pasa storeId: busca el doc en 'stores' del proyecto propio).
+ * - dryRun: default false (ejecuta la restitución).
+ * Reporte: [{ orderId, restoredItems: [{ productId, qty }] }]
+ */
+export const executeStockAndMetricsRestorationAdmin = onCall(
+  { timeoutSeconds: 300, memory: '512MiB', cors: true, invoker: 'public' },
+  async (request) => {
+    const email = String(request.auth?.token?.email || '');
+    const isAdmin =
+      email === 'vertex.tech.dev@gmail.com' || Boolean(request.auth?.token?.['platformAdmin']);
+    const rawHeaders = (request as any).rawRequest?.headers || {};
+    const adminSecret = String(
+      rawHeaders['x-admin-token'] || rawHeaders['admin-token'] || rawHeaders['X-Admin-Token'] || '',
+    );
+    const masterSecret = String(process.env.RESTORE_ADMIN_TOKEN || '');
+    if (!request.auth || (!isAdmin && (!masterSecret || adminSecret !== masterSecret))) {
+      throw new HttpsError('permission-denied', 'Operación restringida a administradores.');
+    }
+
+    const { tenantProjectId, storeId, dryRun = false } = (request.data || {}) as {
+      tenantProjectId?: string;
+      storeId?: string;
+      dryRun?: boolean;
+    };
+
+    // Descubrimiento del shard: doc de la tienda en el proyecto propio (ecommerce master).
+    let shardProjectId = String(tenantProjectId || '').trim();
+    if (!shardProjectId && storeId) {
+      const storeSnap = await getFirestore()
+        .collection('stores')
+        .doc(String(storeId))
+        .get()
+        .catch(() => null);
+      const storeData = storeSnap?.exists ? storeSnap.data() : null;
+      shardProjectId = String(
+        storeData?.['shardProjectId'] || storeData?.['projectId'] || storeData?.['runtimeProjectId'] || '',
+      ).trim();
+    }
+
+    if (!shardProjectId) {
+      throw new HttpsError(
+        'invalid-argument',
+        'No se pudo resolver el shard de la tienda. Enviar tenantProjectId o storeId válido.',
+      );
+    }
+
+    const tenantDb = resolveTenantDb(shardProjectId);
+    const ordersRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS));
+    const liveStates = new Set(['pending', 'processing', 'PENDING_PAYMENT']);
+    const paidStatuses = new Set(['approved', 'paid']);
+    const report: Array<{ orderId: string; restoredItems: Array<{ productId: string; qty: number }> }> = [];
+
+    const snap = await ordersRef.where('stockDecremented', '==', true).limit(500).get();
+
+    for (const doc of snap.docs) {
+      const o = doc.data() as Record<string, any>;
+      const status = String(o.status || '');
+      const paymentStatus = String(o.paymentStatus || '');
+      if (!liveStates.has(status)) continue;
+      if (paidStatuses.has(paymentStatus) || o.paidAt) continue;
+      if ((o.paymentDetails as any)?.paymentId) continue; // pagada en legacy (webhook confirmó)
+
+      const items: any[] = Array.isArray(o.items) ? o.items : [];
+      const restoredItems: Array<{ productId: string; qty: number }> = [];
+      for (const it of items) {
+        const productId = it.productId;
+        const qty = Number(it.quantity || 0);
+        if (!productId || qty <= 0) continue;
+        restoredItems.push({ productId, qty });
+      }
+
+      if (dryRun) {
+        report.push({ orderId: doc.id, restoredItems });
+        continue;
+      }
+
+      await tenantDb.runTransaction(async (tx) => {
+        const fresh = await tx.get(doc.ref);
+        const freshData = fresh.data();
+        if (!freshData) return;
+        if (freshData.stockDecremented !== true) return;
+        const fs = String(freshData.status || '');
+        if (!liveStates.has(fs)) return;
+        if (freshData.paymentStatus && paidStatuses.has(String(freshData.paymentStatus))) return;
+        if (freshData.paidAt) return;
+        if (freshData.paymentDetails?.paymentId) return;
+
+        for (const it of items) {
+          const productId = it.productId;
+          const variantId = it.variantId || 'default';
+          const qty = Number(it.quantity || 0);
+          if (!productId || qty <= 0) continue;
+          const productRef = tenantDb.collection(collectionPath(COLLECTIONS.PRODUCTS)).doc(productId);
+          const variantRef = productRef.collection('variants').doc(variantId);
+          const [pDoc, vDoc] = await Promise.all([tx.get(productRef), tx.get(variantRef)]);
+          if (vDoc.exists) {
+            tx.update(variantRef, { stock: FieldValue.increment(qty) });
+          }
+          if (pDoc.exists) {
+            tx.update(productRef, { totalStock: FieldValue.increment(qty) });
+          }
+        }
+        tx.update(doc.ref, {
+          status: 'CANCELLED_UNPAID',
+          paymentStatus: 'cancelled',
+          stockDecremented: false,
+          isPaid: false,
+          restoredAt: new Date(),
+          notes: 'Stock restituido por executeStockAndMetricsRestorationAdmin (pedido nunca pagado).',
+        });
+      });
+      report.push({ orderId: doc.id, restoredItems });
+    }
+
+    logger.info(
+      `[StockRestoration] Shard ${shardProjectId} | dryRun=${dryRun} | ordenes saneadas: ${report.length}`,
+    );
+    return { success: true, shardProjectId, dryRun, restored: report };
   },
 );
