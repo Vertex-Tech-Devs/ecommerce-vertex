@@ -137,8 +137,21 @@ function isValidTokenString(token: string): boolean {
   return t.startsWith('TEST-') || t.startsWith('APP_USR-');
 }
 
-export async function getMercadoPagoRuntimeConfig(
-  storeId?: string,
+/**
+ * buildNotificationUrl — URL de webhook/IPN SIEMPRE presente en la preferencia.
+ * Usa el webhook configurado o el endpoint maestro por defecto, y agrega tenant
+ * y storeId para que el handler confirme la orden sin configuración manual del
+ * comerciante (regla Vertex: pagos automáticos end-to-end en cualquier shard).
+ */
+export function buildNotificationUrl(webhook: string, tenant: string): string {
+  const base =
+    (webhook || '').trim() ||
+    'https://us-central1-ecommerce-vertex.cloudfunctions.net/mercadoPagoWebhookHandler';
+  const sep = base.includes('?') ? '&' : '?';
+  return `${base}${sep}tenant=${encodeURIComponent(tenant)}&storeId=${encodeURIComponent(tenant)}`;
+}
+
+export async function getMercadoPagoRuntimeConfig(  storeId?: string,
   clientSiteUrl?: string,
   shardProjectId?: string,
 ): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
@@ -328,6 +341,10 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
       }
     : undefined;
 
+  const notificationUrl = buildNotificationUrl(
+    runtime.webhook,
+    tenantId || '',
+  );
   const preferenceBody = {
     items: items.map((item) => ({
       id: item.variantId,
@@ -338,10 +355,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     })),
     payer: payerObject,
     external_reference,
-    notification_url:
-      runtime.webhook +
-      (runtime.webhook.includes('?') ? '&' : '?') +
-      `tenant=${encodeURIComponent(tenantId || '')}`,
+    notification_url: notificationUrl,
     metadata: {
       tenant_id: tenantId || '',
       project_id: data.projectId || '',
