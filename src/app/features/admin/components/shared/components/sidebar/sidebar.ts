@@ -32,10 +32,7 @@ export class Sidebar {
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
 
-  readonly expandedSections = signal<Record<string, boolean>>({
-    'online-store': false,
-    config: false,
-  });
+  readonly activeExpandedSectionId = signal<string | null>(null);
 
   readonly navSections: readonly NavSection[] = [
     {
@@ -148,34 +145,16 @@ export class Sidebar {
   }
 
   toggleSection(sectionId: string): void {
-    const isCurrentlyExpanded = !!this.expandedSections()[sectionId];
-    const willExpand = !isCurrentlyExpanded;
+    const targetSection = this.navSections.find((section) => section.id === sectionId);
+    if (!targetSection?.collapsible) {
+      return;
+    }
 
-    if (willExpand) {
-      const currentUrl = this.router.url;
-      const nextState: Record<string, boolean> = {};
-
-      for (const section of this.navSections) {
-        if (!section.collapsible) {
-          continue;
-        }
-
-        if (section.id === sectionId) {
-          nextState[section.id] = true;
-        } else {
-          const containsActiveRoute = this.sectionContainsUrl(section, currentUrl);
-          nextState[section.id] = containsActiveRoute;
-        }
-      }
-
-      this.expandedSections.set(nextState);
-    } else {
+    if (this.activeExpandedSectionId() === sectionId) {
       this.handleFocusOnCollapse(sectionId);
-
-      this.expandedSections.update((prev) => ({
-        ...prev,
-        [sectionId]: false,
-      }));
+      this.activeExpandedSectionId.set(null);
+    } else {
+      this.activeExpandedSectionId.set(sectionId);
     }
   }
 
@@ -183,7 +162,7 @@ export class Sidebar {
     if (!section.collapsible) {
       return true;
     }
-    return !!this.expandedSections()[section.id];
+    return this.activeExpandedSectionId() === section.id;
   }
 
   onLinkClick(): void {
@@ -226,19 +205,12 @@ export class Sidebar {
       return;
     }
 
-    for (const section of this.navSections) {
-      if (!section.collapsible) {
-        continue;
-      }
+    const activeSection = this.navSections.find(
+      (section) => section.collapsible && this.sectionContainsUrl(section, url),
+    );
 
-      const hasActiveItem = this.sectionContainsUrl(section, url);
-
-      if (hasActiveItem && !this.expandedSections()[section.id]) {
-        this.expandedSections.update((prev) => ({
-          ...prev,
-          [section.id]: true,
-        }));
-      }
+    if (activeSection) {
+      this.activeExpandedSectionId.set(activeSection.id);
     }
   }
 }
