@@ -206,6 +206,28 @@ describe('Header', () => {
       expect(component.isExternalLink('/catalog')).toBeFalse();
       expect(component.isExternalLink(undefined)).toBeFalse();
     });
+
+    it('should render marquee track when isMarquee is enabled', () => {
+      mockStoreConfigSignal.set({
+        announcementBar: {
+          enabled: true,
+          text: '¡Envío gratis en compras mayores a $5000!',
+          isMarquee: true,
+          backgroundColor: '#ff0000',
+          textColor: '#ffffff',
+        },
+      } as StoreConfig);
+      fixture.detectChanges();
+
+      const bar = fixture.debugElement.query(By.css('.announcement-bar'));
+      expect(bar).not.toBeNull();
+      expect(bar.nativeElement.classList.contains('announcement-bar--marquee')).toBeTrue();
+      const track = fixture.debugElement.query(By.css('.announcement-bar__track'));
+      expect(track).not.toBeNull();
+      const items = fixture.debugElement.queryAll(By.css('.announcement-bar__item'));
+      expect(items.length).toBe(2);
+      expect(items[1].attributes['aria-hidden']).toBe('true');
+    });
   });
 
   describe('menu toggle', () => {

@@ -541,9 +541,162 @@
   transition: font-family 0.3s ease;
 }
 
+// ── Chips / Pills Interactivos (Presets y Rutas) ──────────────────────────
+.preset-chips-container {
+  max-height: 140px;
+  overflow-y: auto;
+  padding-bottom: 2px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+}
+
+.preset-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+  &__emoji {
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+
+  &__label {
+    letter-spacing: 0.01em;
+  }
+
+  &__badge {
+    background: rgba(245, 158, 11, 0.25);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    margin-left: 0.2rem;
+  }
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(129, 140, 248, 0.5);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.route-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
+  border-radius: 12px;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.75rem;
+    color: #818cf8;
+  }
+
+  &:hover {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(129, 140, 248, 0.5);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+// ── Mockup Announcement Bar & Marquee Animation ───────────────────────────
+.mockup-announcement-bar {
+  width: 100%;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  position: relative;
+  z-index: 3;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+
+  &--marquee {
+    overflow: hidden;
+  }
+
+  &__content {
+    letter-spacing: 0.01em;
+  }
+}
+
 .announcement-live-preview {
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
+
+  &--marquee {
+    overflow: hidden;
+  }
+}
+
+.marquee-track-wrapper {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  white-space: nowrap;
+}
+
+.marquee-track {
+  display: inline-flex;
+  gap: 3rem;
+  animation: marquee-scroll 22s linear infinite;
+  will-change: transform;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus-within {
+    animation-play-state: paused;
+  }
+}
+
+.marquee-content {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+    overflow-x: auto;
+  }
 }
 
 .whatsapp-float-preview {

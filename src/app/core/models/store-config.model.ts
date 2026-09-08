@@ -120,6 +120,7 @@ export interface StoreConfig {
   announcementBar?: {
     enabled: boolean;
     text: string;
+    isMarquee?: boolean;
     link?: string;
     backgroundColor?: string;
     textColor?: string;
@@ -186,6 +187,7 @@ export const DEFAULT_STORE_CONFIG: StoreConfig = {
   announcementBar: {
     enabled: false,
     text: '',
+    isMarquee: false,
   },
   floatingWhatsApp: {
     enabled: false,

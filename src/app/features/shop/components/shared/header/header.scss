@@ -32,6 +32,37 @@
   justify-content: center;
   align-items: center;
 
+  &--marquee {
+    overflow: hidden;
+    padding: 0.5rem 0;
+  }
+
+  &__track-wrapper {
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    white-space: nowrap;
+  }
+
+  &__track {
+    display: inline-flex;
+    gap: 4rem;
+    animation: announcement-marquee 22s linear infinite;
+    will-change: transform;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus-within {
+      animation-play-state: paused;
+    }
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
   &__link {
     color: inherit;
     text-decoration: underline;
@@ -44,6 +75,22 @@
 
   &__text {
     color: inherit;
+  }
+}
+
+@keyframes announcement-marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-bar__track {
+    animation: none !important;
+    overflow-x: auto;
   }
 }
 

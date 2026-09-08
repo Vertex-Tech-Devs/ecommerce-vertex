@@ -22,13 +22,14 @@ export function createHeaderAnnouncementsForm(fb: FormBuilder): FormGroup {
     announcementBar: fb.group({
       enabled: [false],
       text: [''],
-      link: [''],
+      isMarquee: [false],
+      link: ['', [Validators.pattern(/^(https?:\/\/|\/).*$/)]],
       backgroundColor: ['#111827'],
       textColor: ['#ffffff'],
     }),
     floatingWhatsApp: fb.group({
       enabled: [false],
-      phoneNumber: [''],
+      phoneNumber: ['', [Validators.pattern(/^[0-9]+$/), Validators.minLength(10)]],
       defaultMessage: ['¡Hola! Tengo una consulta sobre un producto de la tienda'],
     }),
   });

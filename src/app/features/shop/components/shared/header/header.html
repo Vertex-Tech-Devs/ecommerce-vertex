@@ -7,26 +7,79 @@
   @if (announcementBar()?.enabled && announcementBar()?.text) {
     <div
       class="announcement-bar"
+      [class.announcement-bar--marquee]="announcementBar()?.isMarquee"
       [style.background-color]="announcementBar()?.backgroundColor || '#111827'"
       [style.color]="announcementBar()?.textColor || '#ffffff'"
     >
-      @if (announcementBar()?.link) {
-        @if (isExternalLink(announcementBar()?.link)) {
-          <a
-            [href]="announcementBar()?.link"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="announcement-bar__link"
-          >
-            {{ announcementBar()?.text }}
-          </a>
-        } @else {
-          <a [routerLink]="announcementBar()?.link" class="announcement-bar__link">
-            {{ announcementBar()?.text }}
-          </a>
-        }
+      @if (announcementBar()?.isMarquee) {
+        <div class="announcement-bar__track-wrapper">
+          <div class="announcement-bar__track">
+            <div class="announcement-bar__item">
+              @if (announcementBar()?.link) {
+                @if (isExternalLink(announcementBar()?.link)) {
+                  <a
+                    [href]="announcementBar()?.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="announcement-bar__link"
+                  >
+                    {{ announcementBar()?.text }}
+                  </a>
+                } @else {
+                  <a [routerLink]="announcementBar()?.link" class="announcement-bar__link">
+                    {{ announcementBar()?.text }}
+                  </a>
+                }
+              } @else {
+                <span class="announcement-bar__text">{{ announcementBar()?.text }}</span>
+              }
+            </div>
+            <div class="announcement-bar__item" aria-hidden="true">
+              @if (announcementBar()?.link) {
+                @if (isExternalLink(announcementBar()?.link)) {
+                  <a
+                    [href]="announcementBar()?.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabindex="-1"
+                    class="announcement-bar__link"
+                  >
+                    {{ announcementBar()?.text }}
+                  </a>
+                } @else {
+                  <a
+                    [routerLink]="announcementBar()?.link"
+                    tabindex="-1"
+                    class="announcement-bar__link"
+                  >
+                    {{ announcementBar()?.text }}
+                  </a>
+                }
+              } @else {
+                <span class="announcement-bar__text">{{ announcementBar()?.text }}</span>
+              }
+            </div>
+          </div>
+        </div>
       } @else {
-        <span class="announcement-bar__text">{{ announcementBar()?.text }}</span>
+        @if (announcementBar()?.link) {
+          @if (isExternalLink(announcementBar()?.link)) {
+            <a
+              [href]="announcementBar()?.link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="announcement-bar__link"
+            >
+              {{ announcementBar()?.text }}
+            </a>
+          } @else {
+            <a [routerLink]="announcementBar()?.link" class="announcement-bar__link">
+              {{ announcementBar()?.text }}
+            </a>
+          }
+        } @else {
+          <span class="announcement-bar__text">{{ announcementBar()?.text }}</span>
+        }
       }
     </div>
   }
