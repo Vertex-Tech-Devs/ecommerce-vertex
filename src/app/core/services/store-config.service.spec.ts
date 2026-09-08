@@ -29,6 +29,7 @@ describe('StoreConfigService', () => {
     announcementBar: {
       enabled: false,
       text: '',
+      isMarquee: false,
     },
     floatingWhatsApp: {
       enabled: false,

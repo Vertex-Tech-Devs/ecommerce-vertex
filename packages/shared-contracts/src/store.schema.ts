@@ -51,6 +51,7 @@ export const StoreConfigSchema = z
       .object({
         enabled: z.boolean().default(false).catch(false),
         text: z.string().default('').catch(''),
+        isMarquee: z.boolean().optional().default(false).catch(false),
         link: z.string().optional(),
         backgroundColor: z.string().optional(),
         textColor: z.string().optional(),

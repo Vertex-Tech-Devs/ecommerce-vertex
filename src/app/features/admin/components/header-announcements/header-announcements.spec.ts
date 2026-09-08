@@ -2,7 +2,7 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import type { FormGroup } from '@angular/forms';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import { HeaderAnnouncements } from './header-announcements';
@@ -14,6 +14,11 @@ import {
   createAnnouncementItemForm,
   createHeaderAnnouncementsForm,
 } from './header-announcements.form';
+import {
+  ANNOUNCEMENT_PRESETS,
+  QUICK_ROUTE_PRESETS,
+  WHATSAPP_MESSAGE_PRESETS,
+} from './header-announcements.constants';
 
 describe('HeaderAnnouncements', () => {
   let component: HeaderAnnouncements;
@@ -206,11 +211,12 @@ describe('HeaderAnnouncements', () => {
     const phoneCtrl = floatingGroup.get('phoneNumber');
 
     // Initially true from mock
-    expect(phoneCtrl?.validator).toBeTruthy();
+    expect(phoneCtrl?.hasValidator(Validators.required)).toBeTrue();
 
-    // Disable
+    // Disable (removes required but keeps defensive format validators)
     enabledCtrl?.setValue(false);
-    expect(phoneCtrl?.validator).toBeNull();
+    expect(phoneCtrl?.hasValidator(Validators.required)).toBeFalse();
+    expect(phoneCtrl?.validator).toBeTruthy();
 
     // Enable again and test autofocus
     const mockInput = document.createElement('input');
@@ -220,7 +226,7 @@ describe('HeaderAnnouncements', () => {
     enabledCtrl?.setValue(true);
     tick();
 
-    expect(phoneCtrl?.validator).toBeTruthy();
+    expect(phoneCtrl?.hasValidator(Validators.required)).toBeTrue();
     expect(mockInput.focus).toHaveBeenCalled();
   }));
 
@@ -310,11 +316,196 @@ describe('HeaderAnnouncements', () => {
     expect(itemForm.get('enabled')?.value).toBeTrue();
   });
 
-  it('createHeaderAnnouncementsForm should instantiate with default values', () => {
+  it('createHeaderAnnouncementsForm should instantiate with default values and support isMarquee', () => {
     const fb = new FormBuilder();
     const headerForm = createHeaderAnnouncementsForm(fb);
     expect(headerForm.get('appearance.header.backgroundColor')?.value).toBe('#ffffff');
     expect(headerForm.get('announcementBar.enabled')?.value).toBeFalse();
+    expect(headerForm.get('announcementBar.isMarquee')?.value).toBeFalse();
     expect(headerForm.get('floatingWhatsApp.enabled')?.value).toBeFalse();
+  });
+
+  it('createHeaderAnnouncementsForm should validate link format (empty, relative or absolute)', () => {
+    const fb = new FormBuilder();
+    const headerForm = createHeaderAnnouncementsForm(fb);
+    const linkCtrl = headerForm.get('announcementBar.link');
+
+    // Empty is valid
+    linkCtrl?.setValue('');
+    expect(linkCtrl?.valid).toBeTrue();
+
+    // Relative link starting with / is valid
+    linkCtrl?.setValue('/catalog');
+    expect(linkCtrl?.valid).toBeTrue();
+
+    // Absolute link starting with https:// is valid
+    linkCtrl?.setValue('https://vertex.dev');
+    expect(linkCtrl?.valid).toBeTrue();
+
+    // Absolute link starting with http:// is valid
+    linkCtrl?.setValue('http://vertex.dev');
+    expect(linkCtrl?.valid).toBeTrue();
+
+    // Invalid formats
+    linkCtrl?.setValue('catalog');
+    expect(linkCtrl?.invalid).toBeTrue();
+    expect(linkCtrl?.hasError('pattern')).toBeTrue();
+
+    linkCtrl?.setValue('javascript:alert(1)');
+    expect(linkCtrl?.invalid).toBeTrue();
+    expect(linkCtrl?.hasError('pattern')).toBeTrue();
+  });
+
+  it('createHeaderAnnouncementsForm should validate phoneNumber format defensively', () => {
+    const fb = new FormBuilder();
+    const headerForm = createHeaderAnnouncementsForm(fb);
+    const phoneCtrl = headerForm.get('floatingWhatsApp.phoneNumber');
+
+    // Empty is valid when not required
+    phoneCtrl?.setValue('');
+    expect(phoneCtrl?.valid).toBeTrue();
+
+    // Valid digits with length >= 10
+    phoneCtrl?.setValue('5492611234567');
+    expect(phoneCtrl?.valid).toBeTrue();
+
+    // Invalid length (< 10 digits)
+    phoneCtrl?.setValue('123456789');
+    expect(phoneCtrl?.invalid).toBeTrue();
+    expect(phoneCtrl?.hasError('minlength')).toBeTrue();
+
+    // Invalid format (contains non-digits)
+    phoneCtrl?.setValue('549261123456a');
+    expect(phoneCtrl?.invalid).toBeTrue();
+    expect(phoneCtrl?.hasError('pattern')).toBeTrue();
+  });
+
+  it('should expose all commercial and quick presets in constants', () => {
+    expect(ANNOUNCEMENT_PRESETS.length).toBe(8);
+    expect(QUICK_ROUTE_PRESETS.length).toBe(3);
+    expect(WHATSAPP_MESSAGE_PRESETS.length).toBe(3);
+
+    const firstPreset = ANNOUNCEMENT_PRESETS[0];
+    expect(firstPreset.id).toBe('free-shipping-national');
+    expect(firstPreset.category).toBe('Envíos');
+    expect(firstPreset.suggestedLink).toBe('/catalog');
+
+    const firstRoute = QUICK_ROUTE_PRESETS[0];
+    expect(firstRoute.path).toBe('/catalog');
+
+    const firstWaMsg = WHATSAPP_MESSAGE_PRESETS[0];
+    expect(firstWaMsg.message).toContain('Tengo una consulta');
+  });
+
+  it('applyAnnouncementPreset should enable switch if disabled, set text, suggested link, dirty flag and focus', fakeAsync(() => {
+    component.form.patchValue({
+      announcementBar: {
+        enabled: false,
+        text: '',
+        link: '',
+      },
+    });
+    component.form.markAsPristine();
+
+    const mockInput = document.createElement('input');
+    spyOn(mockInput, 'focus');
+    spyOn(mockInput, 'select');
+    component.announcementTextInput = { nativeElement: mockInput };
+
+    const preset = ANNOUNCEMENT_PRESETS[0]; // Free shipping national ($100k, /catalog)
+    component.applyAnnouncementPreset(preset);
+    tick();
+
+    expect(component.form.get('announcementBar.enabled')?.value).toBeTrue();
+    expect(component.form.get('announcementBar.text')?.value).toBe(preset.text);
+    expect(component.form.get('announcementBar.link')?.value).toBe('/catalog');
+    expect(component.form.dirty).toBeTrue();
+    expect(mockInput.focus).toHaveBeenCalled();
+    expect(mockInput.select).toHaveBeenCalled();
+  }));
+
+  it('applyAnnouncementPreset should not overwrite existing link if already present', fakeAsync(() => {
+    component.form.patchValue({
+      announcementBar: {
+        enabled: true,
+        text: '',
+        link: '/custom-destination',
+      },
+    });
+
+    const preset = ANNOUNCEMENT_PRESETS[0]; // Has suggestedLink = '/catalog'
+    component.applyAnnouncementPreset(preset);
+    tick();
+
+    expect(component.form.get('announcementBar.text')?.value).toBe(preset.text);
+    expect(component.form.get('announcementBar.link')?.value).toBe('/custom-destination');
+  }));
+
+  it('applyQuickRoute should patch announcementBar.link and mark form as dirty', () => {
+    component.form.markAsPristine();
+    component.applyQuickRoute('/about');
+
+    expect(component.form.get('announcementBar.link')?.value).toBe('/about');
+    expect(component.form.get('announcementBar.link')?.dirty).toBeTrue();
+    expect(component.form.dirty).toBeTrue();
+  });
+
+  it('applyWhatsAppMessagePreset should patch floatingWhatsApp.defaultMessage and mark dirty', () => {
+    component.form.markAsPristine();
+    const presetMsg = '¡Hola! Quería consultar disponibilidad de stock.';
+    component.applyWhatsAppMessagePreset(presetMsg);
+
+    expect(component.form.get('floatingWhatsApp.defaultMessage')?.value).toBe(presetMsg);
+    expect(component.form.get('floatingWhatsApp.defaultMessage')?.dirty).toBeTrue();
+    expect(component.form.dirty).toBeTrue();
+  });
+
+  it('liveWhatsAppTestUrl should compute URL reactively or return null for invalid phone', () => {
+    // Empty phone -> null
+    component.form.patchValue({
+      floatingWhatsApp: {
+        phoneNumber: '',
+        defaultMessage: 'Hola',
+      },
+    });
+    expect(component.liveWhatsAppTestUrl()).toBeNull();
+
+    // Less than 10 digits -> null
+    component.form.patchValue({
+      floatingWhatsApp: {
+        phoneNumber: '12345',
+        defaultMessage: 'Hola',
+      },
+    });
+    expect(component.liveWhatsAppTestUrl()).toBeNull();
+
+    // Valid 13-digit phone -> wa.me URL
+    component.form.patchValue({
+      floatingWhatsApp: {
+        phoneNumber: '5492611234567',
+        defaultMessage: '¡Hola! Tengo una consulta',
+      },
+    });
+    const url = component.liveWhatsAppTestUrl();
+    expect(url).toContain('https://wa.me/5492611234567?text=');
+    expect(url).toContain(encodeURIComponent('¡Hola! Tengo una consulta'));
+  });
+
+  it('liveAnnouncementIsMarquee should react to isMarquee changes', () => {
+    expect(component.liveAnnouncementIsMarquee()).toBeFalse();
+
+    component.form.patchValue({
+      announcementBar: {
+        isMarquee: true,
+      },
+    });
+    expect(component.liveAnnouncementIsMarquee()).toBeTrue();
+
+    component.form.patchValue({
+      announcementBar: {
+        isMarquee: false,
+      },
+    });
+    expect(component.liveAnnouncementIsMarquee()).toBeFalse();
   });
 });

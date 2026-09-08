@@ -23,7 +23,13 @@ import type {
 } from '@core/models/store-config.model';
 import { DEFAULT_HEADER_APPEARANCE } from '@core/models/store-config.model';
 import { computeHeaderCustomProperties, loadGoogleFont } from '@core/utils/font-loader';
-import { FONT_PRESETS } from './header-announcements.constants';
+import {
+  FONT_PRESETS,
+  ANNOUNCEMENT_PRESETS,
+  QUICK_ROUTE_PRESETS,
+  WHATSAPP_MESSAGE_PRESETS,
+} from './header-announcements.constants';
+import type { AnnouncementPreset } from './header-announcements.constants';
 import { createHeaderAnnouncementsForm } from './header-announcements.form';
 
 @Component({
@@ -41,6 +47,9 @@ export class HeaderAnnouncements {
   private destroyRef = inject(DestroyRef);
 
   readonly fontPresets = FONT_PRESETS;
+  readonly announcementPresets = ANNOUNCEMENT_PRESETS;
+  readonly quickRoutePresets = QUICK_ROUTE_PRESETS;
+  readonly whatsappMessagePresets = WHATSAPP_MESSAGE_PRESETS;
 
   saving = signal(false);
   loading = signal(true);
@@ -76,8 +85,85 @@ export class HeaderAnnouncements {
     () => this.formValue()?.appearance?.header?.accentColor ?? '#000000',
   );
 
+  readonly liveAnnouncement = computed(() => this.formValue()?.announcementBar);
+  readonly liveAnnouncementText = computed(() => this.liveAnnouncement()?.text ?? '');
+  readonly liveAnnouncementLink = computed(() => this.liveAnnouncement()?.link ?? '');
+  readonly liveAnnouncementBg = computed(
+    () => this.liveAnnouncement()?.backgroundColor ?? '#111827',
+  );
+  readonly liveAnnouncementTextColor = computed(
+    () => this.liveAnnouncement()?.textColor ?? '#ffffff',
+  );
+  readonly liveAnnouncementIsMarquee = computed(() => Boolean(this.liveAnnouncement()?.isMarquee));
+
+  readonly liveWhatsApp = computed(() => this.formValue()?.floatingWhatsApp);
+  readonly liveWhatsAppPhone = computed(() => this.liveWhatsApp()?.phoneNumber ?? '');
+  readonly liveWhatsAppMsg = computed(() => this.liveWhatsApp()?.defaultMessage ?? '');
+  readonly liveWhatsAppTestUrl = computed<string | null>(() => {
+    const rawPhone = this.liveWhatsAppPhone();
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      return null;
+    }
+    const msg = this.liveWhatsAppMsg().trim();
+    return msg
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`
+      : `https://wa.me/${cleanPhone}`;
+  });
+
   get headerAppearanceGroup(): FormGroup {
     return this.form.get('appearance.header') as FormGroup;
+  }
+
+  applyAnnouncementPreset(preset: AnnouncementPreset): void {
+    const announcementGroup = this.form.get('announcementBar') as FormGroup;
+    if (!announcementGroup) {
+      return;
+    }
+
+    if (!announcementGroup.get('enabled')?.value) {
+      announcementGroup.get('enabled')?.setValue(true);
+    }
+
+    const textCtrl = announcementGroup.get('text');
+    textCtrl?.setValue(preset.text);
+    textCtrl?.markAsDirty();
+
+    const linkCtrl = announcementGroup.get('link');
+    const currentLink = linkCtrl?.value?.trim();
+    if (!currentLink && preset.suggestedLink) {
+      linkCtrl?.setValue(preset.suggestedLink);
+      linkCtrl?.markAsDirty();
+    }
+
+    this.form.markAsDirty();
+    announcementGroup.markAsDirty();
+
+    setTimeout(() => {
+      const input = this.announcementTextInput?.nativeElement;
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    });
+  }
+
+  applyQuickRoute(path: string): void {
+    const linkCtrl = this.form.get('announcementBar.link');
+    if (linkCtrl) {
+      linkCtrl.setValue(path);
+      linkCtrl.markAsDirty();
+      this.form.markAsDirty();
+    }
+  }
+
+  applyWhatsAppMessagePreset(message: string): void {
+    const msgCtrl = this.form.get('floatingWhatsApp.defaultMessage');
+    if (msgCtrl) {
+      msgCtrl.setValue(message);
+      msgCtrl.markAsDirty();
+      this.form.markAsDirty();
+    }
   }
 
   constructor() {
@@ -110,12 +196,12 @@ export class HeaderAnnouncements {
       .subscribe((enabled: boolean) => {
         const textCtrl = announcementGroup.get('text');
         if (enabled) {
-          textCtrl?.setValidators([Validators.required]);
+          textCtrl?.addValidators(Validators.required);
           setTimeout(() => {
             this.announcementTextInput?.nativeElement?.focus();
           });
         } else {
-          textCtrl?.clearValidators();
+          textCtrl?.removeValidators(Validators.required);
         }
         textCtrl?.updateValueAndValidity();
       });
@@ -127,12 +213,12 @@ export class HeaderAnnouncements {
       .subscribe((enabled: boolean) => {
         const phoneCtrl = floatingWhatsAppGroup.get('phoneNumber');
         if (enabled) {
-          phoneCtrl?.setValidators([Validators.required]);
+          phoneCtrl?.addValidators(Validators.required);
           setTimeout(() => {
             this.whatsappPhoneInput?.nativeElement?.focus();
           });
         } else {
-          phoneCtrl?.clearValidators();
+          phoneCtrl?.removeValidators(Validators.required);
         }
         phoneCtrl?.updateValueAndValidity();
       });
@@ -151,15 +237,15 @@ export class HeaderAnnouncements {
     const textCtrl = this.form.get('announcementBar.text');
 
     if (isFloatingEnabled) {
-      phoneCtrl?.setValidators([Validators.required]);
+      phoneCtrl?.addValidators(Validators.required);
     } else {
-      phoneCtrl?.clearValidators();
+      phoneCtrl?.removeValidators(Validators.required);
     }
 
     if (cfg.announcementBar?.enabled) {
-      textCtrl?.setValidators([Validators.required]);
+      textCtrl?.addValidators(Validators.required);
     } else {
-      textCtrl?.clearValidators();
+      textCtrl?.removeValidators(Validators.required);
     }
 
     this.form.patchValue({
@@ -174,6 +260,7 @@ export class HeaderAnnouncements {
       announcementBar: {
         enabled: cfg.announcementBar?.enabled ?? false,
         text: cfg.announcementBar?.text ?? '',
+        isMarquee: cfg.announcementBar?.isMarquee ?? false,
         link: cfg.announcementBar?.link ?? '',
         backgroundColor: cfg.announcementBar?.backgroundColor ?? '#111827',
         textColor: cfg.announcementBar?.textColor ?? '#ffffff',
