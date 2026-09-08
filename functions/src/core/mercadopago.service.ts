@@ -454,11 +454,19 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
     );
   }
 
-  const tokenPrefix = runtime.accessToken.slice(0, 8);
-  const isSandbox =
-    runtime.accessToken.startsWith('TEST-') || runtime.accessToken.startsWith('APP_USR-');
+  const tokenPrefix = runtime.accessToken.slice(0, 9);
+  const modeLabel = runtime.accessToken.startsWith('TEST-')
+    ? 'TEST (pruebas)'
+    : runtime.tokenSource === 'code(master-test)' ||
+        runtime.tokenSource === 'secret:mp-access-token-default' ||
+        runtime.tokenSource === 'env(master-test)'
+      ? 'MASTER-TEST (solo tarjetas de prueba)'
+      : runtime.accessToken.startsWith('APP_USR-')
+        ? 'PRODUCCIÓN (APP_USR-)'
+        : 'DESCONOCIDO';
   logger.info(
-    `[MercadoPago:Preference] Initializing preference for order ${external_reference} (Tenant: ${tenantId ?? 'default'}, Token Prefix: ${tokenPrefix}..., Mode: ${isSandbox ? 'SANDBOX / TEST' : 'PRODUCTION'})`,
+    `[MercadoPago:Preference] Initializing preference for order ${external_reference} ` +
+      `(Tenant: ${tenantId ?? 'default'}, Token Prefix: ${tokenPrefix}..., Source: ${runtime.tokenSource || 'n/a'}, Mode: ${modeLabel})`,
   );
 
   const payerData = data.payer;
