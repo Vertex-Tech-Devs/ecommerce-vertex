@@ -242,7 +242,14 @@ async function revertStockOnFailure(orderId: string, projectId?: string) {
 
       if (!orderData.stockDecremented) {
         logger.info(`Stock para pedido ${orderId} no fue decrementado. No se revierte.`);
-        transaction.update(orderRef, { status: 'cancelled' });
+        transaction.update(orderRef, {
+          status: 'CANCELLED_UNPAID',
+          paymentStatus: orderData.paymentStatus && orderData.paymentStatus !== 'pending'
+            ? orderData.paymentStatus
+            : 'cancelled',
+          isPaid: false,
+          notes: 'Pago rechazado, cancelado o expirado. Sin impacto en inventario ni métricas.',
+        });
         return;
       }
 
@@ -279,8 +286,12 @@ async function revertStockOnFailure(orderId: string, projectId?: string) {
       }
 
       transaction.update(orderRef, {
-        status: 'cancelled',
+        status: 'CANCELLED_UNPAID',
+        paymentStatus: orderData.paymentStatus && orderData.paymentStatus !== 'pending'
+          ? orderData.paymentStatus
+          : 'cancelled',
         stockDecremented: false,
+        isPaid: false,
         notes: 'Pago rechazado o cancelado. Stock devuelto.',
       });
 
@@ -331,10 +342,29 @@ export const createPaymentPreference = onCall(
           typeof orderData['mercadopago_preference_id'] === 'string' &&
           typeof orderData['mercadopago_init_point'] === 'string';
 
-        // Re-entrancia: si la orden ya tiene preferencia (refresh del checkout o
+        // Una preferencia vencida NO se reutiliza: si el cliente vuelve después de la
+        // expiración (24 h), se genera una nueva (en vez de devolverle un link muerto).
+        let preferenceIsValid = true;
+        const expRaw = orderData['mercadopago_expiration_date'] as unknown;
+        if (expRaw) {
+          let expMillis = NaN;
+          if (expRaw instanceof Date) expMillis = expRaw.getTime();
+          else if (typeof expRaw === 'object' && expRaw !== null && 'toMillis' in expRaw) {
+            expMillis = (expRaw as { toMillis(): number }).toMillis();
+          } else if (typeof expRaw === 'string') expMillis = new Date(expRaw).getTime();
+          if (Number.isFinite(expMillis) && expMillis < Date.now()) {
+            preferenceIsValid = false;
+            logger.info(
+              `Pedido ${orderId}: preferencia previa vencida. Se generará una nueva.`,
+            );
+          }
+        }
+
+        // Re-entrancia: si la orden ya tiene una preferencia VIGENTE (refresh del checkout o
         // reintento de red), se retorna SIEMPRE la misma — nunca duplicar links de pago.
         if (
           hasExistingPreference &&
+          preferenceIsValid &&
           (orderStatus === 'pending' ||
             orderStatus === 'PENDING_PAYMENT' ||
             orderStatus === 'processing')
