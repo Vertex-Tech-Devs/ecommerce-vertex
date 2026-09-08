@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Storage } from '@angular/fire/storage';
 import type { StorageReference, UploadTask, UploadTaskSnapshot } from 'firebase/storage';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Observable, from, race, share, throwError, timer } from 'rxjs';
+import { Observable, from, race, share, shareReplay, throwError, timer } from 'rxjs';
+import { map as rxMap, mergeMap } from 'rxjs/operators';
 import { catchError, map } from 'rxjs/operators';
 import { SweetAlertService } from './sweet-alert.service';
 import { resolveTenantId } from '@core/utils/tenant';
@@ -35,7 +36,53 @@ export class StorageService {
     return deleteObject(storageRef);
   }
 
+  private isHeic(file: File): boolean {
+    return (
+      /\.heic$/i.test(file.name) ||
+      /\.heif$/i.test(file.name) ||
+      file.type === 'image/heic' ||
+      file.type === 'image/heif'
+    );
+  }
+
+  /**
+   * Convierte HEIC/HEIF a WebP (calidad 0.85) en el cliente mediante heic2any
+   * (carga lazy). Devuelve el archivo original si no es HEIC/HEIF.
+   */
+  async prepareUploadFile(file: File, onStatus?: (label: string) => void): Promise<File> {
+    if (!this.isHeic(file)) {
+      return file;
+    }
+    onStatus?.('Optimizando imagen de alta resolución...');
+    const { default: heic2any } = await import('heic2any');
+    const result = (await heic2any({
+      blob: file,
+      toType: 'image/webp',
+      quality: 0.85,
+    })) as Blob | Blob[];
+    const out = Array.isArray(result) ? result[0] : result;
+    const name = file.name.replace(/\.(heic|heif)$/i, '') + '.webp';
+    return new File([out], name, { type: 'image/webp' });
+  }
+
+  /**
+   * Sube un archivo; si es HEIC/HEIF lo convierte a WebP (0.85) antes de subir.
+   */
   uploadFile(file: File, path: string): Upload {
+    if (!this.isHeic(file)) {
+      return this.startUpload(file, path);
+    }
+    const prepared$ = from(this.prepareUploadFile(file)).pipe(
+      rxMap((converted) => this.startUpload(converted, path)),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    return {
+      progress$: prepared$.pipe(mergeMap((u) => u.progress$)),
+      downloadUrl$: prepared$.pipe(mergeMap((u) => u.downloadUrl$)),
+    };
+  }
+
+  private startUpload(file: File, path: string): Upload {
     // Namespace multi-tenant: stores/{storeId}/... (validado en storage.rules)
     const storeId = resolveTenantId() || 'store';
     const filePath = `stores/${storeId}/${path}/${Date.now()}_${this.sanitizeFileName(file.name)}`;
