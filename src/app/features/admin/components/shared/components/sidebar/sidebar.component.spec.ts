@@ -204,8 +204,7 @@ describe('Sidebar', () => {
     expect(onlineStore.collapsible).toBeTrue();
     expect(config.collapsible).toBeTrue();
 
-    expect(component.expandedSections()['online-store']).toBeFalse();
-    expect(component.expandedSections()['config']).toBeFalse();
+    expect(component.activeExpandedSectionId()).toBeNull();
 
     expect(component.isSectionExpanded(onlineStore)).toBeFalse();
     expect(component.isSectionExpanded(config)).toBeFalse();
@@ -220,20 +219,20 @@ describe('Sidebar', () => {
     });
   });
 
-  it('should toggle expandedSections signal and aria-expanded when clicking collapsible section button', () => {
+  it('should toggle activeExpandedSectionId signal and aria-expanded when clicking collapsible section button', () => {
     const onlineStore = component.navSections.find((s) => s.id === 'online-store')!;
     const buttons = fixture.debugElement.queryAll(By.css('.sidebar__section-header--button'));
     const onlineStoreButton = buttons[0];
 
     expect(onlineStoreButton.nativeElement.textContent).toContain('TIENDA ONLINE');
-    expect(component.expandedSections()['online-store']).toBeFalse();
+    expect(component.activeExpandedSectionId()).toBeNull();
     expect(onlineStoreButton.attributes['aria-expanded']).toBe('false');
 
     // Click to expand
     onlineStoreButton.nativeElement.click();
     fixture.detectChanges();
 
-    expect(component.expandedSections()['online-store']).toBeTrue();
+    expect(component.activeExpandedSectionId()).toBe('online-store');
     expect(component.isSectionExpanded(onlineStore)).toBeTrue();
     expect(onlineStoreButton.attributes['aria-expanded']).toBe('true');
 
@@ -244,7 +243,7 @@ describe('Sidebar', () => {
     onlineStoreButton.nativeElement.click();
     fixture.detectChanges();
 
-    expect(component.expandedSections()['online-store']).toBeFalse();
+    expect(component.activeExpandedSectionId()).toBeNull();
     expect(component.isSectionExpanded(onlineStore)).toBeFalse();
     expect(onlineStoreButton.attributes['aria-expanded']).toBe('false');
 
@@ -304,36 +303,55 @@ describe('Sidebar', () => {
   });
 
   it('should enforce Single-Expansion Accordion behavior when route does not belong to the other section', () => {
+    const onlineStoreSection = component.navSections.find((s) => s.id === 'online-store')!;
+    const configSection = component.navSections.find((s) => s.id === 'config')!;
+
     // Open online-store first
     component.toggleSection('online-store');
     fixture.detectChanges();
 
-    expect(component.expandedSections()['online-store']).toBeTrue();
-    expect(component.expandedSections()['config']).toBeFalse();
+    expect(component.activeExpandedSectionId()).toBe('online-store');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeTrue();
+    expect(component.isSectionExpanded(configSection)).toBeFalse();
 
     // Open config (active route is /admin/dashboard or default, not online-store)
     component.toggleSection('config');
     fixture.detectChanges();
 
     // online-store should automatically collapse
-    expect(component.expandedSections()['online-store']).toBeFalse();
-    expect(component.expandedSections()['config']).toBeTrue();
+    expect(component.activeExpandedSectionId()).toBe('config');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeFalse();
+    expect(component.isSectionExpanded(configSection)).toBeTrue();
   });
 
-  it('should retain both sections expanded in accordion if other section holds the active route', async () => {
+  it('should close previously active section when opening another section even if holding active route', async () => {
     // Navigate to a route inside online-store
     await router.navigateByUrl('/admin/header-announcements');
     fixture.detectChanges();
 
-    expect(component.expandedSections()['online-store']).toBeTrue();
+    const onlineStoreSection = component.navSections.find((s) => s.id === 'online-store')!;
+    const configSection = component.navSections.find((s) => s.id === 'config')!;
+
+    expect(component.activeExpandedSectionId()).toBe('online-store');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeTrue();
+    expect(component.isSectionExpanded(configSection)).toBeFalse();
 
     // Open config while user is currently inside online-store route
     component.toggleSection('config');
     fixture.detectChanges();
 
-    // Both sections should remain open because online-store holds the active route
-    expect(component.expandedSections()['online-store']).toBeTrue();
-    expect(component.expandedSections()['config']).toBeTrue();
+    // Strict exclusive accordion: only config is open, online-store is closed
+    expect(component.activeExpandedSectionId()).toBe('config');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeFalse();
+    expect(component.isSectionExpanded(configSection)).toBeTrue();
+  });
+
+  it('should collapse active section to null when toggling an already active section', () => {
+    component.toggleSection('online-store');
+    expect(component.activeExpandedSectionId()).toBe('online-store');
+
+    component.toggleSection('online-store');
+    expect(component.activeExpandedSectionId()).toBeNull();
   });
 
   it('should return focus to header trigger button when child element inside collapsing section is active', () => {
@@ -361,18 +379,39 @@ describe('Sidebar', () => {
 
   it('should auto-expand CONFIGURACIÓN when simulated navigation occurs to /admin/store-config', async () => {
     const configSection = component.navSections.find((s) => s.id === 'config')!;
+    const onlineStoreSection = component.navSections.find((s) => s.id === 'online-store')!;
     expect(component.isSectionExpanded(configSection)).toBeFalse();
 
     await router.navigateByUrl('/admin/store-config');
     fixture.detectChanges();
 
-    expect(component.expandedSections()['config']).toBeTrue();
+    expect(component.activeExpandedSectionId()).toBe('config');
     expect(component.isSectionExpanded(configSection)).toBeTrue();
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeFalse();
 
     const configButton = fixture.debugElement.queryAll(
       By.css('.sidebar__section-header--button'),
     )[1];
     expect(configButton.attributes['aria-expanded']).toBe('true');
+  });
+
+  it('should activate only parent section when navigating between internal collapsible routes', async () => {
+    await router.navigateByUrl('/admin/home-management');
+    fixture.detectChanges();
+
+    const onlineStoreSection = component.navSections.find((s) => s.id === 'online-store')!;
+    const configSection = component.navSections.find((s) => s.id === 'config')!;
+
+    expect(component.activeExpandedSectionId()).toBe('online-store');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeTrue();
+    expect(component.isSectionExpanded(configSection)).toBeFalse();
+
+    await router.navigateByUrl('/admin/delivery');
+    fixture.detectChanges();
+
+    expect(component.activeExpandedSectionId()).toBe('config');
+    expect(component.isSectionExpanded(onlineStoreSection)).toBeFalse();
+    expect(component.isSectionExpanded(configSection)).toBeTrue();
   });
 
   it('should auto-expand matching section upon initial creation if router url already matches', async () => {
@@ -382,8 +421,10 @@ describe('Sidebar', () => {
     newFixture.detectChanges();
 
     const onlineStoreSection = newComp.navSections.find((s) => s.id === 'online-store')!;
-    expect(newComp.expandedSections()['online-store']).toBeTrue();
+    const configSection = newComp.navSections.find((s) => s.id === 'config')!;
+    expect(newComp.activeExpandedSectionId()).toBe('online-store');
     expect(newComp.isSectionExpanded(onlineStoreSection)).toBeTrue();
+    expect(newComp.isSectionExpanded(configSection)).toBeFalse();
   });
 
   it('should emit linkClicked when a navigation link is clicked in DOM', () => {
@@ -518,50 +559,59 @@ describe('Sidebar', () => {
     describe('toggleSection edge cases', () => {
       it('should safely ignore non-collapsible sections when expanding', () => {
         component.toggleSection('principal');
-        expect(component.expandedSections()['online-store']).toBeFalse();
-        expect(component.expandedSections()['config']).toBeFalse();
+        expect(component.activeExpandedSectionId()).toBeNull();
+      });
+
+      it('should safely ignore non-existent section id when expanding', () => {
+        component.toggleSection('non-existent');
+        expect(component.activeExpandedSectionId()).toBeNull();
       });
     });
 
     describe('checkAndExpandActiveSection', () => {
       it('should return immediately when url is empty or falsy', () => {
-        const updateSpy = spyOn(component.expandedSections, 'update');
+        const setSpy = spyOn(component.activeExpandedSectionId, 'set');
         internal.checkAndExpandActiveSection('');
         internal.checkAndExpandActiveSection(null as unknown as string);
-        expect(updateSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
       });
 
-      it('should not update expandedSections signal if section is already expanded', () => {
-        component.toggleSection('config');
-        expect(component.expandedSections()['config']).toBeTrue();
-
-        const updateSpy = spyOn(component.expandedSections, 'update');
+      it('should set activeExpandedSectionId when matching collapsible section is found', () => {
+        expect(component.activeExpandedSectionId()).toBeNull();
         internal.checkAndExpandActiveSection('/admin/store-config');
-        expect(updateSpy).not.toHaveBeenCalled();
+        expect(component.activeExpandedSectionId()).toBe('config');
+      });
+
+      it('should keep current activeExpandedSectionId when route does not belong to any collapsible section', () => {
+        component.toggleSection('config');
+        expect(component.activeExpandedSectionId()).toBe('config');
+
+        internal.checkAndExpandActiveSection('/admin/dashboard');
+        expect(component.activeExpandedSectionId()).toBe('config');
       });
     });
 
     describe('router event stream and fallback', () => {
       it('should fallback to event.url when event.urlAfterRedirects is empty or falsy', () => {
         const routerEvents = (router as unknown as RouterWithEvents)._events;
-        expect(component.expandedSections()['config']).toBeFalse();
+        expect(component.activeExpandedSectionId()).toBeNull();
 
         if (routerEvents) {
           routerEvents.next(new NavigationEnd(42, '/admin/store-config', ''));
-          expect(component.expandedSections()['config']).toBeTrue();
+          expect(component.activeExpandedSectionId()).toBe('config');
         } else {
           internal.checkAndExpandActiveSection('/admin/store-config');
-          expect(component.expandedSections()['config']).toBeTrue();
+          expect(component.activeExpandedSectionId()).toBe('config');
         }
       });
 
       it('should ignore router events that are not NavigationEnd instances', () => {
         const routerEvents = (router as unknown as RouterWithEvents)._events;
-        const updateSpy = spyOn(component.expandedSections, 'update');
+        const setSpy = spyOn(component.activeExpandedSectionId, 'set');
 
         if (routerEvents) {
           routerEvents.next(new NavigationStart(43, '/admin/store-config'));
-          expect(updateSpy).not.toHaveBeenCalled();
+          expect(setSpy).not.toHaveBeenCalled();
         }
       });
     });
