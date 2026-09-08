@@ -168,15 +168,21 @@ export async function getMercadoPagoRuntimeConfig(
   let resolvedShard = String(shardProjectId || '').trim();
   if (!resolvedShard && storeId) {
     try {
-      const storeSnap = await getFirestore().collection('stores').doc(storeId).get();
+      const storesCol = getFirestore().collection('stores');
+      // 1) doc directo (id interno) y 2) registro por slug/tenantId (lo usan las notificaciones).
+      let storeSnap = await storesCol.doc(storeId).get();
+      if (!storeSnap.exists) {
+        const bySlug = await storesCol.where('slug', '==', storeId).limit(1).get();
+        if (!bySlug.empty) storeSnap = bySlug.docs[0];
+      }
       const sd = storeSnap.exists ? storeSnap.data() : null;
       resolvedShard = String(
-        sd?.['runtimeProjectId'] || sd?.['shardProjectId'] || sd?.['projectId'] || '',
+        sd?.['runtimeProjectId'] || sd?.['shardProjectId'] || sd?.['projectId'] || sd?.['firebaseProjectId'] || '',
       ).trim();
       if (resolvedShard) {
-        logger.info(
-          `[MP Resolution] Shard autodetectado para ${storeId}: ${resolvedShard}`,
-        );
+        logger.info(`[MP Resolution] Shard autodetectado para ${storeId}: ${resolvedShard}`);
+      } else {
+        logger.warn(`[MP Resolution] Registro de ${storeId} sin proyecto runtime (shard).`);
       }
     } catch (e) {
       logger.warn(`[MP Resolution] No se pudo autodetectar shard de ${storeId}:`, e);
