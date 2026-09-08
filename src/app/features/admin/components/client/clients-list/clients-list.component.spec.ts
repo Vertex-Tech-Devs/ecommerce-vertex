@@ -38,7 +38,7 @@ describe('ClientsList', () => {
       providers: [
         provideRouter([]),
         { provide: ClientService, useValue: clientServiceSpy },
-        { provide: AuthService, useValue: { isSuperAdmin$: of(false) } },
+        { provide: AuthService, useValue: { isAdmin$: of(false) } },
         { provide: Functions, useValue: {} },
       ],
     }).compileComponents();

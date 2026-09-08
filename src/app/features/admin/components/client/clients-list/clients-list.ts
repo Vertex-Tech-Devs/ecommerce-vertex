@@ -49,7 +49,7 @@ export class ClientsList implements OnInit {
   private _clientService = inject(ClientService);
   private _auth = inject(AuthService);
   private _functions = inject(Functions);
-  readonly isSuperAdmin = signal(false);
+  readonly isAdmin = signal(false);
   readonly deleteTarget = signal<Client | null>(null);
   readonly deleteArmed = signal(false);
   readonly deletingId = signal<string | null>(null);
@@ -58,9 +58,9 @@ export class ClientsList implements OnInit {
 
   ngOnInit(): void {
     this.loadClients();
-    this._auth.isSuperAdmin$
+    this._auth.isAdmin$
       ?.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((v) => this.isSuperAdmin.set(v));
+      .subscribe((v) => this.isAdmin.set(v));
 
     this.clients$ = combineLatest([
       this.rawClients$,
