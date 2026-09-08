@@ -333,3 +333,17 @@ reemplazo de los IDs largos (20+ chars) de Firestore. Ver `generateShortOrderId(
   no son mockeables con jasmine/Karma; los specs se enfocan en servicios delegados, pipes y
   componentes con servicios mockeados).
 - `npm run build` — build de producción limpio.
+
+
+---
+
+## Order & Payment Integrity (Checkout → IPN)
+
+- An order is created as `pending`, then moved by `createPaymentPreference` to **`PENDING_PAYMENT`** (`paymentStatus: 'pending'`, `stockDecremented: false`, `isPaid: false`). **No inventory is reserved and no revenue counter fires at checkout** — an abandoned checkout is never a sale.
+- **Stock is deducted atomically only by the IPN webhook** (`mercadoPagoWebhookHandler`) when Mercado Pago reports `payment.status === 'approved'`: an in-transaction idempotency guard (`stockDecremented === true` → no-op) plus a non-negative safety (`min(currentStock, qty)`); the order is then marked `status:'processing'`, `paymentStatus:'approved'`, `isPaid:true`, `paidAt`.
+- Rejected / cancelled / expired payments never touch inventory and are moved to `cancelled` / `CANCELLED_UNPAID`.
+- Sales metrics only include statuses reachable via an approved payment (`processing`, `shipped`, `delivered`) — phantom/unpaid orders stay out of dashboards.
+- **Legacy cleanup:** orders deducted before this contract (unpaid, with `stockDecremented === true` and no `paymentDetails.paymentId`) can be restored in the cloud with the administrative callable `executeStockAndMetricsRestorationAdmin` (guard: `vertex.tech.dev@gmail.com` / `platformAdmin` claim, or `x-admin-token` header matching env `RESTORE_ADMIN_TOKEN`; supports `dryRun` and per-shard `tenantProjectId` discovery). Local equivalent: `npx tsx scripts/restore-unpaid-stock.ts` with `FIREBASE_SERVICE_ACCOUNT`/`FIREBASE_SERVICE_ACCOUNT_DEV`.
+- Mercado Pago credential resolution prefers the store's own token (per-store secret or Firestore `store_payments/{storeId}` across all documented paths) and only then falls back to the Vertex master test token; an `APP_USR-` env token is never applied to a store without its own credentials. Redirect is always `init_point` for `APP_USR-`, `sandbox_init_point` for `TEST-`.
+
+_Procesado de forma segura por Vertex Platform._

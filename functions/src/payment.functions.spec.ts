@@ -260,10 +260,21 @@ describe('createPaymentPreference', () => {
       id: 'pref-mp-456',
       init_point: 'https://mercadopago.com/checkout/456',
     });
-    // Verifies that totalStock of product was decremented
+    // REGLA VERTEX: el stock NO se descuenta al crear la preferencia. La orden
+    // queda PENDING_PAYMENT + stockDecremented:false; el descuento ocurre solo
+    // en el webhook con pago 'approved'.
     expect(mockTransaction.update).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'prod-simple-1' }),
-      expect.objectContaining({ totalStock: expect.anything() }),
+      expect.objectContaining({ id: 'order-456' }),
+      expect.objectContaining({
+        status: 'PENDING_PAYMENT',
+        paymentStatus: 'pending',
+        stockDecremented: false,
+      }),
     );
+    // Verifica que NO se tocó el stock del producto durante la creación.
+    const productUpdates = mockTransaction.update.mock.calls.filter(
+      (c: any[]) => c[0]?.id === 'prod-simple-1',
+    );
+    expect(productUpdates).toHaveLength(0);
   });
 });

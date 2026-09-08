@@ -325,22 +325,31 @@ export const createPaymentPreference = onCall(
         const orderData = orderDoc.data();
         if (!orderData) throw new HttpsError('internal', 'Datos de orden corruptos.');
 
-        if (orderData.status !== 'pending') {
-          if (
-            orderData.status === 'processing' &&
-            typeof orderData['mercadopago_init_point'] === 'string' &&
-            typeof orderData['mercadopago_preference_id'] === 'string'
-          ) {
-            logger.info(
-              `Pedido ${orderId} ya tenía preferencia creada. Retornando preferencia existente.`,
-            );
-            return {
-              id: orderData['mercadopago_preference_id'] as string,
-              init_point: orderData['mercadopago_init_point'] as string,
-              date_of_expiration: undefined,
-            };
-          }
-          logger.warn(`Pedido ${orderId} ya procesado o en proceso. Estado: ${orderData.status}`);
+        const orderStatus = String(orderData.status || '');
+        const hasExistingPreference =
+          typeof orderData['mercadopago_preference_id'] === 'string' &&
+          typeof orderData['mercadopago_init_point'] === 'string';
+
+        // Re-entrancia: si la orden ya tiene preferencia (refresh del checkout o
+        // reintento de red), se retorna SIEMPRE la misma — nunca duplicar links de pago.
+        if (
+          hasExistingPreference &&
+          (orderStatus === 'pending' ||
+            orderStatus === 'PENDING_PAYMENT' ||
+            orderStatus === 'processing')
+        ) {
+          logger.info(
+            `Pedido ${orderId} ya tenía preferencia creada. Retornando preferencia existente.`,
+          );
+          return {
+            id: orderData['mercadopago_preference_id'] as string,
+            init_point: orderData['mercadopago_init_point'] as string,
+            date_of_expiration: undefined,
+          };
+        }
+
+        if (orderStatus !== 'pending' && orderStatus !== 'PENDING_PAYMENT') {
+          logger.warn(`Pedido ${orderId} ya procesado o en proceso. Estado: ${orderStatus}`);
           throw new HttpsError('failed-precondition', 'Este pedido ya fue procesado.');
         }
 
@@ -427,30 +436,16 @@ export const createPaymentPreference = onCall(
           }
         }
 
-        for (const item of paymentData.items) {
-          const productRef = tenantDb
-            .collection(collectionPath(COLLECTIONS.PRODUCTS))
-            .doc(item.productId);
-          const variantRef = productRef.collection('variants').doc(item.variantId);
-          const variantDoc = await transaction.get(variantRef);
-
-          if (variantDoc.exists) {
-            transaction.update(variantRef, {
-              stock: FieldValue.increment(-item.quantity),
-            });
-          }
-          transaction.update(productRef, {
-            totalStock: FieldValue.increment(-item.quantity),
-          });
-        }
-
+        // REGLA VERTEX (stock integro): el inventario NUNCA se descuenta al crear la
+        // preferencia/link de pago. La única ventana de descuento es el webhook con
+        // pago 'approved'. La orden queda PENDING_PAYMENT + stockDecremented:false.
         const storeId = (orderData as Record<string, unknown>)['storeId'] as string | undefined;
         const mpPreference = await createPreference(
           { ...paymentData, items: serverItems },
           storeId,
         );
         logger.info(
-          `[MercadoPago:Preference] Preferencia ${mpPreference.id} creada exitosamente para pedido ${orderId}. Total items: ${serverItems.length}`,
+          `[MercadoPago:Preference] Preferencia ${mpPreference.id} creada exitosamente para pedido ${orderId}. Total items: ${serverItems.length}. Stock NO descontado (se descuenta en webhook approved).`,
         );
 
         transaction.update(orderRef, {
@@ -459,8 +454,11 @@ export const createPaymentPreference = onCall(
           mercadopago_expiration_date: mpPreference.date_of_expiration
             ? Timestamp.fromDate(new Date(mpPreference.date_of_expiration))
             : null,
-          status: 'processing',
-          stockDecremented: true,
+          status: 'PENDING_PAYMENT',
+          paymentStatus: 'pending',
+          stockDecremented: false,
+          isPaid: false,
+          checkoutStartedAt: new Date(),
         });
 
         return mpPreference;
@@ -643,59 +641,98 @@ export const mercadoPagoWebhookHandler = onRequest(
       const orderRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS)).doc(orderId);
 
       if (paymentStatus === 'approved') {
-        logger.info(`Pago ${paymentId} (pedido ${orderId}) aprobado. Stock ya fue descontado.`);
+        logger.info(
+          `Pago ${paymentId} (pedido ${orderId}) aprobado. Descontando stock (única ventana de descuento).`,
+        );
 
-        const orderDoc = await orderRef.get();
-        if (orderDoc.exists && !orderDoc.data()?.stockDecremented) {
-          logger.warn(
-            `El pago ${paymentId} fue aprobado, pero el stock no estaba marcado como descontado. Re-ejecutando lógica de descuento.`,
-          );
+        await tenantDb.runTransaction(async (transaction) => {
+          const freshOrderDoc = await transaction.get(orderRef);
+          if (!freshOrderDoc.exists) {
+            logger.error(`Pedido ${orderId} no existe en webhook approved.`);
+            return;
+          }
+          const orderData = freshOrderDoc.data();
+          if (!orderData) return;
 
-          await tenantDb.runTransaction(async (transaction) => {
-            const orderData = orderDoc.data();
-            if (!orderData) return;
-
-            for (const item of orderData.items) {
-              const itemValidation = OrderItemSchema.safeParse(item);
-              if (!itemValidation.success) continue;
-              const validItem = itemValidation.data;
-
-              const productRef = tenantDb
-                .collection(collectionPath(COLLECTIONS.PRODUCTS))
-                .doc(validItem.productId);
-              const variantRef = productRef
-                .collection('variants')
-                .doc(validItem.variantId);
-
-              const [productDoc, variantDoc] = await Promise.all([
-                transaction.get(productRef),
-                transaction.get(variantRef),
-              ]);
-
-              if (variantDoc.exists) {
-                transaction.update(variantRef, {
-                  stock: FieldValue.increment(-validItem.quantity),
-                });
-              }
-              if (productDoc.exists) {
-                transaction.update(productRef, {
-                  totalStock: FieldValue.increment(-validItem.quantity),
-                });
-              }
-            }
-
+          // Idempotencia estricta DENTRO de la transacción: si ya se descontó
+          // (webhook duplicado o reintento de MP), solo registrar el paymentId.
+          if (orderData.stockDecremented === true) {
             transaction.update(orderRef, {
               'paymentDetails.paymentId': paymentId,
               status: 'processing',
-              stockDecremented: true,
+              paymentStatus: 'approved',
+              isPaid: true,
+              paidAt: new Date(),
             });
-          });
-        } else {
-          await orderRef.update({
+            return;
+          }
+
+          const shortfall: string[] = [];
+          for (const item of orderData.items) {
+            const itemValidation = OrderItemSchema.safeParse(item);
+            if (!itemValidation.success) continue;
+            const validItem = itemValidation.data;
+
+            const productRef = tenantDb
+              .collection(collectionPath(COLLECTIONS.PRODUCTS))
+              .doc(validItem.productId);
+            const variantRef = productRef
+              .collection('variants')
+              .doc(validItem.variantId);
+
+            const [productDoc, variantDoc] = await Promise.all([
+              transaction.get(productRef),
+              transaction.get(variantRef),
+            ]);
+
+            if (variantDoc.exists) {
+              const variantStock = Number(variantDoc.data()?.['stock'] ?? 0);
+              const variantToDeduct = Math.max(0, Math.min(validItem.quantity, variantStock));
+              if (variantToDeduct > 0) {
+                transaction.update(variantRef, {
+                  stock: FieldValue.increment(-variantToDeduct),
+                });
+              }
+              if (variantToDeduct < validItem.quantity) {
+                shortfall.push(
+                  `${validItem.productName || validItem.variantId} (variante, faltan ${validItem.quantity - variantToDeduct})`,
+                );
+              }
+            }
+            if (productDoc.exists) {
+              const productStock = Number(productDoc.data()?.['totalStock'] ?? 0);
+              const productToDeduct = Math.max(0, Math.min(validItem.quantity, productStock));
+              if (productToDeduct > 0) {
+                transaction.update(productRef, {
+                  totalStock: FieldValue.increment(-productToDeduct),
+                });
+              }
+              if (productToDeduct < validItem.quantity) {
+                shortfall.push(
+                  `${validItem.productName || validItem.productId} (producto, faltan ${validItem.quantity - productToDeduct})`,
+                );
+              }
+            }
+          }
+
+          const update: Record<string, unknown> = {
             'paymentDetails.paymentId': paymentId,
             status: 'processing',
-          });
-        }
+            paymentStatus: 'approved',
+            isPaid: true,
+            paidAt: new Date(),
+            stockDecremented: true,
+            stockDeductedAt: new Date(),
+          };
+          if (shortfall.length > 0) {
+            update['stockShortfall'] = shortfall;
+            logger.error(
+              `[Stock Shortfall] Pedido ${orderId} aprobado sin stock suficiente: ${shortfall.join('; ')}. ` +
+                'El stock disponible fue descontado sin generar negativos. Revisar inventario.',
+            );
+          }
+          transaction.update(orderRef, update);
+        });
 
         // Enviar notificaciones por email al comprador y vendedor
         try {
@@ -739,5 +776,135 @@ export const mercadoPagoWebhookHandler = onRequest(
       // Responder HTTP 200 OK para evitar bucles de reintento en webhooks de Mercado Pago
       response.status(200).send('Webhook procesado con observaciones.');
     }
+  },
+);
+
+/**
+ * executeStockAndMetricsRestorationAdmin — Saneamiento nativo en la nube (sin ADC local).
+ * Restituye inventario de órdenes que quedaron con stock descontado SIN pago aprobado
+ * (legacy checkout) y las marca CANCELLED_UNPAID. Si la tienda vive en un shard, se
+ * ejecuta con la SA del proyecto desplegado (orchestrator), sin credenciales locales.
+ *
+ * Guard: admin (vertex.tech.dev@gmail.com o claim platformAdmin) o secret token admin.
+ * Params: { tenantProjectId?: string; storeId?: string; dryRun?: boolean }
+ * - tenantProjectId: shard Firestore de la tienda (se resuelve solo si se omite y se
+ *   pasa storeId: busca el doc en 'stores' del proyecto propio).
+ * - dryRun: default false (ejecuta la restitución).
+ * Reporte: [{ orderId, restoredItems: [{ productId, qty }] }]
+ */
+export const executeStockAndMetricsRestorationAdmin = onCall(
+  { timeoutSeconds: 300, memory: '512MiB', cors: true, invoker: 'public' },
+  async (request) => {
+    const email = String(request.auth?.token?.email || '');
+    const isAdmin =
+      email === 'vertex.tech.dev@gmail.com' || Boolean(request.auth?.token?.['platformAdmin']);
+    const rawHeaders = (request as any).rawRequest?.headers || {};
+    const adminSecret = String(
+      rawHeaders['x-admin-token'] || rawHeaders['admin-token'] || rawHeaders['X-Admin-Token'] || '',
+    );
+    const masterSecret = String(process.env.RESTORE_ADMIN_TOKEN || '');
+    if (!request.auth || (!isAdmin && (!masterSecret || adminSecret !== masterSecret))) {
+      throw new HttpsError('permission-denied', 'Operación restringida a administradores.');
+    }
+
+    const { tenantProjectId, storeId, dryRun = false } = (request.data || {}) as {
+      tenantProjectId?: string;
+      storeId?: string;
+      dryRun?: boolean;
+    };
+
+    // Descubrimiento del shard: doc de la tienda en el proyecto propio (ecommerce master).
+    let shardProjectId = String(tenantProjectId || '').trim();
+    if (!shardProjectId && storeId) {
+      const storeSnap = await getFirestore()
+        .collection('stores')
+        .doc(String(storeId))
+        .get()
+        .catch(() => null);
+      const storeData = storeSnap?.exists ? storeSnap.data() : null;
+      shardProjectId = String(
+        storeData?.['shardProjectId'] || storeData?.['projectId'] || storeData?.['runtimeProjectId'] || '',
+      ).trim();
+    }
+
+    if (!shardProjectId) {
+      throw new HttpsError(
+        'invalid-argument',
+        'No se pudo resolver el shard de la tienda. Enviar tenantProjectId o storeId válido.',
+      );
+    }
+
+    const tenantDb = resolveTenantDb(shardProjectId);
+    const ordersRef = tenantDb.collection(collectionPath(COLLECTIONS.ORDERS));
+    const liveStates = new Set(['pending', 'processing', 'PENDING_PAYMENT']);
+    const paidStatuses = new Set(['approved', 'paid']);
+    const report: Array<{ orderId: string; restoredItems: Array<{ productId: string; qty: number }> }> = [];
+
+    const snap = await ordersRef.where('stockDecremented', '==', true).limit(500).get();
+
+    for (const doc of snap.docs) {
+      const o = doc.data() as Record<string, any>;
+      const status = String(o.status || '');
+      const paymentStatus = String(o.paymentStatus || '');
+      if (!liveStates.has(status)) continue;
+      if (paidStatuses.has(paymentStatus) || o.paidAt) continue;
+      if ((o.paymentDetails as any)?.paymentId) continue; // pagada en legacy (webhook confirmó)
+
+      const items: any[] = Array.isArray(o.items) ? o.items : [];
+      const restoredItems: Array<{ productId: string; qty: number }> = [];
+      for (const it of items) {
+        const productId = it.productId;
+        const qty = Number(it.quantity || 0);
+        if (!productId || qty <= 0) continue;
+        restoredItems.push({ productId, qty });
+      }
+
+      if (dryRun) {
+        report.push({ orderId: doc.id, restoredItems });
+        continue;
+      }
+
+      await tenantDb.runTransaction(async (tx) => {
+        const fresh = await tx.get(doc.ref);
+        const freshData = fresh.data();
+        if (!freshData) return;
+        if (freshData.stockDecremented !== true) return;
+        const fs = String(freshData.status || '');
+        if (!liveStates.has(fs)) return;
+        if (freshData.paymentStatus && paidStatuses.has(String(freshData.paymentStatus))) return;
+        if (freshData.paidAt) return;
+        if (freshData.paymentDetails?.paymentId) return;
+
+        for (const it of items) {
+          const productId = it.productId;
+          const variantId = it.variantId || 'default';
+          const qty = Number(it.quantity || 0);
+          if (!productId || qty <= 0) continue;
+          const productRef = tenantDb.collection(collectionPath(COLLECTIONS.PRODUCTS)).doc(productId);
+          const variantRef = productRef.collection('variants').doc(variantId);
+          const [pDoc, vDoc] = await Promise.all([tx.get(productRef), tx.get(variantRef)]);
+          if (vDoc.exists) {
+            tx.update(variantRef, { stock: FieldValue.increment(qty) });
+          }
+          if (pDoc.exists) {
+            tx.update(productRef, { totalStock: FieldValue.increment(qty) });
+          }
+        }
+        tx.update(doc.ref, {
+          status: 'CANCELLED_UNPAID',
+          paymentStatus: 'cancelled',
+          stockDecremented: false,
+          isPaid: false,
+          restoredAt: new Date(),
+          notes: 'Stock restituido por executeStockAndMetricsRestorationAdmin (pedido nunca pagado).',
+        });
+      });
+      report.push({ orderId: doc.id, restoredItems });
+    }
+
+    logger.info(
+      `[StockRestoration] Shard ${shardProjectId} | dryRun=${dryRun} | ordenes saneadas: ${report.length}`,
+    );
+    return { success: true, shardProjectId, dryRun, restored: report };
   },
 );
