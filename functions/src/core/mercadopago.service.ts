@@ -359,7 +359,19 @@ export async function getMercadoPagoRuntimeConfig(
         ? 'APP_USR'
         : 'unknown'
     : 'none';
-  const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
+  // Webhook SIEMPRE canónico según el entorno real de esta función. Ignoramos cualquier
+  // webhookUrl persistido/ambiente que apunte a otro entorno (p.ej. la env MERCADOPAGO_WEBHOOK_URL
+  // apuntaba a ecommerce-vertex-dev en producción) o a un host sin funciones (vtx-*.cloudfunctions.net),
+  // porque Mercado Pago notificaría a una URL muerta y nunca se confirmaría el pago.
+  const selfProject = process.env.GCLOUD_PROJECT || '';
+  const canonicalWebhook = selfProject.includes('ecommerce-vertex')
+    ? 'https://us-central1-ecommerce-vertex.cloudfunctions.net/mercadoPagoWebhookHandler'
+    : 'https://us-central1-ecommerce-vertex-dev.cloudfunctions.net/mercadoPagoWebhookHandler';
+  const configuredWebhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
+  const webhook = configuredWebhook &&
+    !configuredWebhook.includes('cloudfunctions.net')
+    ? configuredWebhook
+    : canonicalWebhook;
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
   logger.info(

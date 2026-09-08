@@ -519,13 +519,19 @@ export const mercadoPagoWebhookHandler = onRequest(
     );
 
     // 1. Validar firma del webhook (fail-closed: sin secreto configurado NO se procesa)
+    // La validación de firma es un refuerzo, NO un bloqueo: el webhook siempre vuelve a
+    // consultar el estado real del pago contra la API de Mercado Pago (getPaymentDetails),
+    // así que una falla de IAM/lectura del secreto NO debe abortar el procesamiento
+    // (si abortara, los pedidos pagados jamás confirmarían stock, estado ni emails).
     let webhookSecret: string | null = null;
     try {
       webhookSecret = await resolveSecret('mp-webhook-secret');
     } catch (err) {
-      logger.error('No se pudo leer mp-webhook-secret. Se omite la validación de firma.', err);
-      response.status(200).send('Webhook recibido.');
-      return;
+      logger.error(
+        'No se pudo leer mp-webhook-secret (IAM/Secret Manager). Se continúa sin validar firma.',
+        err,
+      );
+      webhookSecret = null;
     }
     if (!webhookSecret) {
       logger.warn(
