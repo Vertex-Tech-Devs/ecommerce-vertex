@@ -280,16 +280,13 @@ export async function sendOrderNotificationEmailsDirect(
     const config = await getEmailConfig(effectiveStoreId, tenantDb);
     const attributeMap = await getAttributeMap(effectiveStoreId, tenantDb);
 
-    const selfProject = process.env.GCLOUD_PROJECT || '';
-    const fromDomain = selfProject.includes('vertex-platform-app')
-      ? 'vertex-platform-app.web.app'
-      : selfProject.includes('ecommerce-vertex')
-        ? 'ecommerce-vertex.web.app'
-        : 'vertex-platform-dev.firebaseapp.com';
-    const defaultFromEmail = `no-reply@${fromDomain}`;
+    // Deliverabilidad: el remitente DEBE ser la cuenta SMTP autenticada (Gmail aplica SPF/DKIM
+    // sobre el envelope). Un dominio no autenticado (no-reply@ecommerce-vertex…) rompe la
+    // alineación y los mails caen en SPAM. El nombre visible sigue siendo el de la tienda.
+    const smtpUser = (process.env.SMTP_USER || 'vertex.tech.dev@gmail.com').trim();
     const storeName = (config?.['storeName'] as string) || 'Vertex Store';
     const senderName = (config?.['emailSenderName'] as string) || storeName;
-    const fromAddress = `${senderName} <${defaultFromEmail}>`;
+    const fromAddress = `"${senderName.replace(/"/g, '')}" <${smtpUser}>`;
     const emailSignature = ((config?.['emailSignature'] as string) || '').trim();
 
     let adminSent = false;
