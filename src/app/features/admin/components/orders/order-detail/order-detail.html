@@ -12,10 +12,10 @@
           >
             <i class="bi bi-arrow-left"></i>
           </button>
-          <div class="flex-grow-1 min-w-0">
-            <h1 class="h4 mb-0 text-truncate">{{ pageTitle }}</h1>
+          <div class="page-title-container flex-grow-1 min-w-0">
+            <h1 class="card-title h4 mb-0 text-truncate">{{ pageTitle }}</h1>
             @if (order$ | async; as order) {
-              <p class="text-muted small mb-0">Identificador del pedido: #{{ order.id }}</p>
+              <p class="order-id-subtitle small mb-0">Identificador del pedido: #{{ order.id }}</p>
             }
           </div>
         </div>
