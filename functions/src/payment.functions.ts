@@ -8,6 +8,7 @@ import { COLLECTIONS, collectionPath } from './core/config';
 import { OrderItemSchema, OrderSchema } from './core/order.model';
 import { resolveTenantDb } from './core/tenant-db';
 import { sendOrderNotificationEmailsDirect } from './notifications.functions';
+import { upsertClientFromOrder } from './client-registry';
 import * as crypto from 'crypto';
 
 const db = getFirestore();
@@ -740,11 +741,22 @@ export const mercadoPagoWebhookHandler = onRequest(
           transaction.update(orderRef, update);
         });
 
-        // Enviar notificaciones por email al comprador y vendedor
+        // Registrar/actualizar cliente en el SHARD (la sección Clientes del dashboard)
+        // y enviar notificaciones por email al comprador y vendedor.
         try {
           const updatedOrderDoc = await orderRef.get();
           if (updatedOrderDoc.exists) {
             const rawData = updatedOrderDoc.data();
+            if (rawData) {
+              try {
+                await upsertClientFromOrder(tenantDb, orderId, rawData);
+              } catch (clientErr) {
+                logger.warn(
+                  `[Webhook] No se pudo registrar cliente para pedido #${orderId}:`,
+                  clientErr,
+                );
+              }
+            }
             if (rawData && !rawData['notificationsSent']) {
               const parsed = OrderSchema.safeParse({ id: orderId, ...rawData });
               if (parsed.success) {
