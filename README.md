@@ -347,3 +347,22 @@ reemplazo de los IDs largos (20+ chars) de Firestore. Ver `generateShortOrderId(
 - Mercado Pago credential resolution prefers the store's own token (per-store secret or Firestore `store_payments/{storeId}` across all documented paths) and only then falls back to the Vertex master test token; an `APP_USR-` env token is never applied to a store without its own credentials. Redirect is always `init_point` for `APP_USR-`, `sandbox_init_point` for `TEST-`.
 
 _Procesado de forma segura por Vertex Platform._
+
+
+---
+
+## Runbooks y arquitectura (Enterprise)
+
+### Super Admin & limpieza de tiendas
+- **Purga masiva** (plataforma, tienda → Orquestación → “Limpieza de datos de prueba”): elimina pedidos, clientes, catálogo y/o contenido **solo de esa tienda** (filtro por tenant), sin tocar configuración/credenciales.
+- **Borrado puntual con auditoría**: clientes (por email) y pedidos (por orderId) desde el admin de la tienda o la plataforma. Cada borrado queda en `admin_audit` (quién, cuándo, entidad, stock restituido). Los pedidos con stock descontado devuelven inventario automáticamente.
+- Permisos: admins de tienda (claim `admin` del tenant) y super admins (Juan/Lihue/Vertex o claims `platformAdmin`/`superAdmin`).
+
+### Ciclo de vida de órdenes
+1. Checkout crea la orden → **`PENDING_PAYMENT`** (`stockDecremented:false`, `isPaid:false`): nunca es una venta.
+2. Mercado Pago notifica al webhook (URL canónica con `tenant`+`projectId` del shard) → solo con `approved` se descuenta stock de forma atómica (idempotente, no-negativo), se marca `processing` + `approved`, se crea/actualiza el cliente y se envían los mails (remitente SMTP autenticado = deliverabilidad).
+3. Rechazadas/canceladas/expiradas → `CANCELLED_UNPAID`, sin inventario ni métricas afectadas.
+4. Reconciliación automática (platform, cada 60 min) cancela abandonadas, restaura fantasmas legacy y hace backfill de clientes.
+
+### Pipeline de imágenes (HEIC/HEIF → WebP)
+`StorageService.uploadFile` es el único punto de subida: si el archivo es `.heic/.heif` o `image/heic`/`image/heif`, lo convierte a **WebP (calidad 0.85)** en el cliente con `heic2any` (carga lazy) antes de Firebase Storage. Cualquier otro formato sigue el camino original sin cambios.
