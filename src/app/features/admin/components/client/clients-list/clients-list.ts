@@ -6,6 +6,10 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { ClientService } from '../../../../../core/services/client.service';
+import { AuthService } from '../../../../../core/services/auth.service';
+import { Functions, httpsCallable } from '@angular/fire/functions';
+import { environment } from '../../../../../../environments/environment';
+import { resolveTenantId } from '@core/utils/tenant';
 import type { Client } from '../../../../../core/models/client.model';
 import type { Observable } from 'rxjs';
 import {
@@ -43,11 +47,20 @@ export class ClientsList implements OnInit {
   private rawClients$ = new BehaviorSubject<Client[]>([]);
 
   private _clientService = inject(ClientService);
+  private _auth = inject(AuthService);
+  private _functions = inject(Functions);
+  readonly isSuperAdmin = signal(false);
+  readonly deleteTarget = signal<Client | null>(null);
+  readonly deleteArmed = signal(false);
+  readonly deletingId = signal<string | null>(null);
   private _router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
     this.loadClients();
+    this._auth.isSuperAdmin$
+      ?.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((v) => this.isSuperAdmin.set(v));
 
     this.clients$ = combineLatest([
       this.rawClients$,
@@ -113,6 +126,40 @@ export class ClientsList implements OnInit {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPageSubject.next(page);
     }
+  }
+
+  async deleteClientFlow(client: Client): Promise<void> {
+    if (!client?.id) {
+      return;
+    }
+    if (this.deleteArmed() && this.deleteTarget()?.id === client.id) {
+      // segundo click: borrar de verdad
+      this.deletingId.set(client.id);
+      try {
+        const fn = httpsCallable<
+          { tenantProjectId: string; storeId: string; clientDocId: string },
+          { success: boolean }
+        >(this._functions, 'adminDeleteClient');
+        await fn({
+          tenantProjectId: environment.firebaseConfig.projectId,
+          storeId: resolveTenantId(),
+          clientDocId: client.id,
+        });
+        this.loadClients();
+      } finally {
+        this.deletingId.set(null);
+        this.deleteArmed.set(false);
+        this.deleteTarget.set(null);
+      }
+      return;
+    }
+    this.deleteTarget.set(client);
+    this.deleteArmed.set(true);
+  }
+
+  cancelDelete(): void {
+    this.deleteArmed.set(false);
+    this.deleteTarget.set(null);
   }
 
   viewClientHistory(email: string): void {

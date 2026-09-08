@@ -398,3 +398,41 @@
     background-position: -200% 0;
   }
 }
+
+.btn-glass-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.28);
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.confirm-pulse {
+  animation: confirm-pulse 0.8s ease infinite alternate;
+}
+
+@keyframes confirm-pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.12);
+  }
+}

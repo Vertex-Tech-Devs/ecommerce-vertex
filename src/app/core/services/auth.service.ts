@@ -37,6 +37,28 @@ export class AuthService {
 
   currentUser$ = user(this.auth);
 
+  /** True solo para super admins de la plataforma (Juan, Lihue, Vertex o claims globales). */
+  isSuperAdmin$: Observable<boolean> = this.currentUser$.pipe(
+    switchMap((currentUser) => {
+      if (!currentUser) {
+        return of(false);
+      }
+      return from(currentUser.getIdTokenResult());
+    }),
+    map((tokenResult) => {
+      const claims =
+        tokenResult && typeof tokenResult === 'object' && tokenResult.claims
+          ? (tokenResult.claims as Record<string, unknown>)
+          : {};
+      const email = String(claims['email'] ?? '').toLowerCase();
+      return (
+        claims['superAdmin'] === true ||
+        claims['platformAdmin'] === true ||
+        PLATFORM_DEV_EMAILS.includes(email)
+      );
+    }),
+  );
+
   isAdmin$: Observable<boolean> = this.currentUser$.pipe(
     switchMap((currentUser) => {
       if (!currentUser) {

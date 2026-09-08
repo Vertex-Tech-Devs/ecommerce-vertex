@@ -4,6 +4,8 @@ import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ClientsList } from './clients-list';
 import { ClientService } from '@core/services/client.service';
+import { AuthService } from '@core/services/auth.service';
+import { Functions } from '@angular/fire/functions';
 import type { Client } from '@core/models/client.model';
 
 describe('ClientsList', () => {
@@ -33,7 +35,12 @@ describe('ClientsList', () => {
 
     await TestBed.configureTestingModule({
       imports: [ClientsList],
-      providers: [provideRouter([]), { provide: ClientService, useValue: clientServiceSpy }],
+      providers: [
+        provideRouter([]),
+        { provide: ClientService, useValue: clientServiceSpy },
+        { provide: AuthService, useValue: { isSuperAdmin$: of(false) } },
+        { provide: Functions, useValue: {} },
+      ],
     }).compileComponents();
 
     router = TestBed.inject(Router);

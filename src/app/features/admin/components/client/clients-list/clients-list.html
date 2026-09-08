@@ -113,6 +113,37 @@
                           >
                             <i class="bi bi-eye" aria-hidden="true"></i>
                           </button>
+                          @if (isSuperAdmin()) {
+                            <button
+                              class="m-0"
+                              [class.btn-glass-danger]="true"
+                              [class.confirm-pulse]="
+                                deleteArmed() && deleteTarget()?.id === client.id
+                              "
+                              (click)="deleteClientFlow(client)"
+                              [disabled]="deletingId() === client.id"
+                              [title]="
+                                deleteArmed() && deleteTarget()?.id === client.id
+                                  ? 'Confirmar borrado'
+                                  : 'Eliminar cliente'
+                              "
+                            >
+                              @if (deletingId() === client.id) {
+                                <span class="spinner-border spinner-border-sm"></span>
+                              } @else {
+                                <i
+                                  class="bi"
+                                  [class.bi-trash-fill]="
+                                    deleteArmed() && deleteTarget()?.id === client.id
+                                  "
+                                  [class.bi-trash]="
+                                    !(deleteArmed() && deleteTarget()?.id === client.id)
+                                  "
+                                  aria-hidden="true"
+                                ></i>
+                              }
+                            </button>
+                          }
                         </div>
                       </td>
                     </tr>
