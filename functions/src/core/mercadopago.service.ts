@@ -276,12 +276,26 @@ export async function getMercadoPagoRuntimeConfig(
   const secretIdToTry = secretRef.includes('/') ? secretRef.split('/').pop() || '' : secretRef || secretName;
 
   // Intenta primero el proyecto del shard y cae al propio si el IAM no lo permite.
+  // IMPORTANTE: PERMISSION_DENIED/403 debe tratarse como "no legible", NO como fallo fatal:
+  // si el secreto no se puede leer, el flujo continúa hacia el token real espejado en
+  // Firestore del shard (store_payments) en lugar de abortar el webhook.
   const readStoreSecret = async (name: string): Promise<string> => {
-    if (resolvedShard) {
-      const fromShard = await resolveAccessTokenFromSecret(name, resolvedShard);
-      if (fromShard) return fromShard;
+    try {
+      if (resolvedShard) {
+        const fromShard = await resolveAccessTokenFromSecret(name, resolvedShard);
+        if (fromShard) return fromShard;
+      }
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      logger.warn(`[MP Resolution] No se pudo leer secreto ${name} del shard ${resolvedShard}: ${m}`);
     }
-    return resolveAccessTokenFromSecret(name);
+    try {
+      return await resolveAccessTokenFromSecret(name);
+    } catch (e) {
+      const m = e instanceof Error ? e.message : String(e);
+      logger.warn(`[MP Resolution] No se pudo leer secreto ${name} del proyecto propio: ${m}`);
+      return '';
+    }
   };
 
   let tokenSource = 'none';
