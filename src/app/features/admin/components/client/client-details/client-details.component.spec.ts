@@ -5,6 +5,9 @@ import { of, throwError } from 'rxjs';
 import { ClientDetails } from './client-details';
 import { ClientService } from '@core/services/client.service';
 import { OrderService } from '@core/services/order.service';
+import { AuthService } from '@core/services/auth.service';
+import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { Functions } from '@angular/fire/functions';
 import type { Client } from '@core/models/client.model';
 import type { Order } from '@core/models/order.model';
 
@@ -26,6 +29,10 @@ describe('ClientDetails', () => {
     { id: 'o1', total: 1500 } as Order,
     { id: 'o2', total: 3500 } as Order,
   ];
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+  });
 
   beforeEach(async () => {
     spyOn(console, 'error');
@@ -53,6 +60,12 @@ describe('ClientDetails', () => {
         },
         { provide: ClientService, useValue: clientServiceMock },
         { provide: OrderService, useValue: orderServiceMock },
+        { provide: AuthService, useValue: { isAdmin$: of(true) } },
+        {
+          provide: SweetAlertService,
+          useValue: { confirm: jasmine.createSpy('confirm').and.resolveTo(false) },
+        },
+        { provide: Functions, useValue: {} },
       ],
     }).compileComponents();
   });

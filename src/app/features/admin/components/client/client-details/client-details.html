@@ -70,6 +70,22 @@
       </div>
     }
 
+    @if (isAdmin()) {
+      <div class="d-flex justify-content-end mb-3">
+        <button
+          class="btn btn-outline-danger"
+          [disabled]="deletingClient()"
+          (click)="deleteClient()"
+        >
+          @if (deletingClient()) {
+            <span class="spinner-border spinner-border-sm me-1"></span> Eliminando…
+          } @else {
+            <i class="bi bi-trash me-1"></i> Eliminar Cliente
+          }
+        </button>
+      </div>
+    }
+
     <div class="glass-card mb-4 card-orders">
       <div class="card-header border-bottom-glass">
         <h5 class="mb-0 section-subtitle">
@@ -119,6 +135,20 @@
                       >
                         <i class="bi bi-eye" aria-hidden="true"></i>
                       </button>
+                      @if (isAdmin()) {
+                        <button
+                          class="btn-glass-danger m-0 ms-2"
+                          [disabled]="deletingOrderId() === order.id"
+                          (click)="deleteOrder(order.id)"
+                          title="Eliminar pedido"
+                        >
+                          @if (deletingOrderId() === order.id) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                          }
+                        </button>
+                      }
                     </td>
                   </tr>
                 } @empty {
