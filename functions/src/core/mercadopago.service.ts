@@ -151,13 +151,40 @@ export function buildNotificationUrl(webhook: string, tenant: string): string {
   return `${base}${sep}tenant=${encodeURIComponent(tenant)}&storeId=${encodeURIComponent(tenant)}`;
 }
 
-export async function getMercadoPagoRuntimeConfig(  storeId?: string,
+export async function getMercadoPagoRuntimeConfig(
+  storeId?: string,
   clientSiteUrl?: string,
   shardProjectId?: string,
-): Promise<{ accessToken: string; webhook: string; baseUrl: string }> {
+): Promise<{
+  accessToken: string;
+  webhook: string;
+  baseUrl: string;
+  tokenSource?: string;
+  tokenPrefix?: string;
+}> {
+  // Autodetección del shard: si no nos pasaron el projectId (p.ej. webhook/getPaymentDetails),
+  // lo buscamos en el registro maestro de tiendas para NO resolver credenciales contra el
+  // proyecto equivocado (falla "una de las partes es de prueba" cuando se usa el master TEST).
+  let resolvedShard = String(shardProjectId || '').trim();
+  if (!resolvedShard && storeId) {
+    try {
+      const storeSnap = await getFirestore().collection('stores').doc(storeId).get();
+      const sd = storeSnap.exists ? storeSnap.data() : null;
+      resolvedShard = String(
+        sd?.['runtimeProjectId'] || sd?.['shardProjectId'] || sd?.['projectId'] || '',
+      ).trim();
+      if (resolvedShard) {
+        logger.info(
+          `[MP Resolution] Shard autodetectado para ${storeId}: ${resolvedShard}`,
+        );
+      }
+    } catch (e) {
+      logger.warn(`[MP Resolution] No se pudo autodetectar shard de ${storeId}:`, e);
+    }
+  }
   // Leer el config desde el proyecto del shard: las credenciales
   // de la tienda viven en el Firestore del shard (store_payments/{slug} o configuracion/store_{slug}).
-  const db = shardProjectId ? resolveTenantDb(shardProjectId) : getFirestore();
+  const db = resolvedShard ? resolveTenantDb(resolvedShard) : getFirestore();
 
   /**
    * Extrae el bloque de config de MP desde CUALQUIER path donde Platform haya
@@ -237,8 +264,8 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
 
   // Intenta primero el proyecto del shard y cae al propio si el IAM no lo permite.
   const readStoreSecret = async (name: string): Promise<string> => {
-    if (shardProjectId) {
-      const fromShard = await resolveAccessTokenFromSecret(name, shardProjectId);
+    if (resolvedShard) {
+      const fromShard = await resolveAccessTokenFromSecret(name, resolvedShard);
       if (fromShard) return fromShard;
     }
     return resolveAccessTokenFromSecret(name);
@@ -255,33 +282,46 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
     if (tokenFromSecret) tokenSource = `secret:mp-access-token-${storeId}`;
   }
 
-  // 2. Credenciales de la TIENDA persistidas en Firestore (plaintext). Se resuelven
-  //    ANTES del fallback maestro: si la tienda cargó su propio token (APP_USR- de
-  //    producción o TEST- propio), NUNCA debe operar con el master de Vertex.
-  if (!tokenFromSecret && mpConfig?.['_sandboxFallbackToken']) {
-    const fb = String(mpConfig['_sandboxFallbackToken']).trim();
-    if (isValidTokenString(fb)) {
-      tokenFromSecret = fb;
-      tokenSource = 'firestore._sandboxFallbackToken';
-    }
+  // 2. Credenciales de la TIENDA persistidas en Firestore (plaintext). El token REAL del
+  //    cliente (accessToken / access_token) SIEMPRE gana sobre cualquier fallback de prueba
+  //    (_sandboxFallbackToken) y sobre el master de Vertex.
+  const firestoreRealToken =
+    (mpConfig && String(mpConfig['accessToken'] || '').trim()) ||
+    (mpConfig && String(mpConfig['access_token'] || '').trim()) ||
+    '';
+  if (!tokenFromSecret && firestoreRealToken && isValidTokenString(firestoreRealToken)) {
+    tokenFromSecret = firestoreRealToken;
+    tokenSource = mpConfig?.['accessToken'] ? 'firestore.accessToken' : 'firestore.access_token';
   }
-  if (!tokenFromSecret && mpConfig?.['accessToken']) {
-    const at = String(mpConfig['accessToken']).trim();
-    if (isValidTokenString(at)) {
-      tokenFromSecret = at;
-      tokenSource = 'firestore.accessToken';
-    }
+  if (
+    !tokenFromSecret &&
+    mpConfig?.['_sandboxFallbackToken'] &&
+    isValidTokenString(String(mpConfig['_sandboxFallbackToken']).trim())
+  ) {
+    tokenFromSecret = String(mpConfig['_sandboxFallbackToken']).trim();
+    tokenSource = 'firestore._sandboxFallbackToken';
   }
-  if (!tokenFromSecret && mpConfig?.['access_token']) {
-    const at2 = String(mpConfig['access_token']).trim();
-    if (isValidTokenString(at2)) {
-      tokenFromSecret = at2;
-      tokenSource = 'firestore.access_token';
-    }
+
+  // Fail-fast anti-mezcla: si la tienda declaró un secreto propio (accessTokenSecret/secretRef)
+  // pero NO se pudo leer (IAM/Secret Manager) y tampoco hay token real en Firestore,
+  // PROHIBIDO caer al master TEST: produciría el error "una de las partes es de prueba".
+  const storeDeclaredSecret = Boolean(
+    storeId && mpConfig && (mpConfig['accessTokenSecret'] || mpConfig['secretRef']),
+  );
+  const skipMasterFallback = Boolean(
+    storeDeclaredSecret && !tokenFromSecret && !firestoreRealToken,
+  );
+  if (skipMasterFallback) {
+    logger.error(
+      `[MP Resolution] Store ${storeId}: tiene credenciales propias configuradas ` +
+        `(${secretIdToTry}) pero su secreto no pudo leerse desde este entorno (IAM/Secret Manager) ` +
+        `y no hay token real en Firestore. NO se aplica el fallback maestro para evitar mezclar ` +
+        `producción con pruebas. Verificá los permisos del Service Account sobre el shard ${resolvedShard || '(desconocido)'}.`,
+    );
   }
 
   // 3. Fallback maestro: SOLO si la tienda NO tiene credenciales propias.
-  if (!tokenFromSecret) {
+  if (!tokenFromSecret && !skipMasterFallback) {
     // El fallback maestro SIEMPRE se lee del proyecto propio de la función (master).
     tokenFromSecret = await resolveAccessTokenFromSecret('mp-access-token-default');
     if (tokenFromSecret) tokenSource = 'secret:mp-access-token-default';
@@ -290,7 +330,7 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
   // 3. Variable de entorno: SOLO como master de prueba (TEST-). Un APP_USR de env
   //    NUNCA se aplica a tiendas sin credenciales propias (regla Vertex: producción
   //    únicamente cuando el cliente carga sus credenciales en el shard).
-  const envToken = envMpAccessToken().trim();
+  const envToken = skipMasterFallback ? '' : envMpAccessToken().trim();
   const candidate =
     tokenFromSecret && isValidTokenString(tokenFromSecret)
       ? tokenFromSecret
@@ -312,6 +352,13 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
   if (!resolvedToken) {
     tokenSource = 'none';
   }
+  const resolvedPrefix = resolvedToken
+    ? resolvedToken.startsWith('TEST-')
+      ? 'TEST'
+      : resolvedToken.startsWith('APP_USR-')
+        ? 'APP_USR'
+        : 'unknown'
+    : 'none';
   const webhook = (mpConfig?.['webhookUrl'] || envWebhookUrl() || '').trim();
   const baseUrl = resolveStoreBaseUrl(storeId, mpConfig, clientSiteUrl);
 
@@ -331,10 +378,16 @@ export async function getMercadoPagoRuntimeConfig(  storeId?: string,
         `o cargar credenciales de producción del cliente en el shard (store_payments). ` +
         `Fuentes probadas: secrets(shard+propio), firestore, env(TEST).`,
     );
-    return { accessToken: '', webhook, baseUrl };
+    return { accessToken: '', webhook, baseUrl, tokenSource: 'none', tokenPrefix: 'none' };
   }
 
-  return { accessToken: resolvedToken, webhook, baseUrl };
+  return {
+    accessToken: resolvedToken,
+    webhook,
+    baseUrl,
+    tokenSource,
+    tokenPrefix: resolvedPrefix,
+  };
 }
 
 export async function createPreference(data: PaymentRequestData, tenantId?: string) {
