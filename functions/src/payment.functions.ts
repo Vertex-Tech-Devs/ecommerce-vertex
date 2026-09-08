@@ -623,9 +623,13 @@ export const mercadoPagoWebhookHandler = onRequest(
 
     try {
       // El tenant (tienda) viene en el query del notification_url (configurado por
-      // createPreference) — necesario para resolver el access token de MP de la tienda.
+      // createPreference) junto al projectId del shard — necesario para resolver el access
+      // token REAL de la tienda antes de consultar el pago.
       const tenantFromQuery = String(request.query.tenant || request.query.tenantId || '');
-      const payment = await getPaymentDetails(paymentId, tenantFromQuery);
+      const projectFromQuery = String(
+        request.query.projectId || request.query.tenantProjectId || '',
+      ).trim();
+      const payment = await getPaymentDetails(paymentId, tenantFromQuery, projectFromQuery || undefined);
       if (!payment) {
         throw new Error(`Detalles del pago ${paymentId} no encontrados.`);
       }

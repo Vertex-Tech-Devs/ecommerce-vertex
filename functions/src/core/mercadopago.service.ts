@@ -143,12 +143,19 @@ function isValidTokenString(token: string): boolean {
  * y storeId para que el handler confirme la orden sin configuración manual del
  * comerciante (regla Vertex: pagos automáticos end-to-end en cualquier shard).
  */
-export function buildNotificationUrl(webhook: string, tenant: string): string {
+export function buildNotificationUrl(
+  webhook: string,
+  tenant: string,
+  projectId?: string,
+): string {
   const base =
     (webhook || '').trim() ||
     'https://us-central1-ecommerce-vertex.cloudfunctions.net/mercadoPagoWebhookHandler';
   const sep = base.includes('?') ? '&' : '?';
-  return `${base}${sep}tenant=${encodeURIComponent(tenant)}&storeId=${encodeURIComponent(tenant)}`;
+  const url = `${base}${sep}tenant=${encodeURIComponent(tenant)}&storeId=${encodeURIComponent(tenant)}`;
+  // El projectId del shard viaja en la URL para que el webhook sepa DÓNDE leer el token
+  // real de la tienda antes de consultar el pago (evita resolver contra el master).
+  return projectId ? `${url}&projectId=${encodeURIComponent(projectId)}` : url;
 }
 
 export async function getMercadoPagoRuntimeConfig(
@@ -473,6 +480,7 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   const notificationUrl = buildNotificationUrl(
     runtime.webhook,
     tenantId || '',
+    data.projectId || undefined,
   );
   const preferenceBody = {
     items: items.map((item) => ({
@@ -537,7 +545,11 @@ export async function createPreference(data: PaymentRequestData, tenantId?: stri
   }
 }
 
-export async function getPaymentDetails(paymentId: string, tenantId?: string) {
+export async function getPaymentDetails(
+  paymentId: string,
+  tenantId?: string,
+  shardProjectId?: string,
+) {
   logger.info(`Obteniendo detalles del pago: ${paymentId}`);
 
   if (
@@ -558,7 +570,7 @@ export async function getPaymentDetails(paymentId: string, tenantId?: string) {
     };
   }
 
-  const runtime = await getMercadoPagoRuntimeConfig(tenantId);
+  const runtime = await getMercadoPagoRuntimeConfig(tenantId, undefined, shardProjectId);
   if (!runtime.accessToken) {
     return {
       id: paymentId,
