@@ -280,11 +280,13 @@ export async function sendOrderNotificationEmailsDirect(
     const config = await getEmailConfig(effectiveStoreId, tenantDb);
     const attributeMap = await getAttributeMap(effectiveStoreId, tenantDb);
 
-    const projectId = tenantProjectId || process.env.GCLOUD_PROJECT || 'vertex-platform-dev';
-    const defaultFromDomain = projectId.includes('vertex-platform-app')
+    const selfProject = process.env.GCLOUD_PROJECT || '';
+    const fromDomain = selfProject.includes('vertex-platform-app')
       ? 'vertex-platform-app.web.app'
-      : 'vertex-platform-dev.firebaseapp.com';
-    const defaultFromEmail = `no-reply@${defaultFromDomain}`;
+      : selfProject.includes('ecommerce-vertex')
+        ? 'ecommerce-vertex.web.app'
+        : 'vertex-platform-dev.firebaseapp.com';
+    const defaultFromEmail = `no-reply@${fromDomain}`;
     const storeName = (config?.['storeName'] as string) || 'Vertex Store';
     const senderName = (config?.['emailSenderName'] as string) || storeName;
     const fromAddress = `${senderName} <${defaultFromEmail}>`;
@@ -347,7 +349,9 @@ export async function sendOrderNotificationEmailsDirect(
 
       adminSent = adminResult.success;
       logger.info(
-        `[OrderNotifications] Email a vendedor (${adminEmail}): ${adminResult.success ? 'ENVIADO' : 'FALLÓ'}`,
+        `[OrderNotifications] Email a vendedor (${adminEmail}): ${
+          adminResult.success ? 'ENVIADO' : 'FALLÓ'
+        }${adminResult.success ? '' : adminResult.skipped ? ' (SMTP no configurado)' : ' (error de envío)'}`,
       );
     } else {
       logger.warn(
@@ -404,7 +408,9 @@ export async function sendOrderNotificationEmailsDirect(
 
       customerSent = custResult.success;
       logger.info(
-        `[OrderNotifications] Email a comprador (${orderData.clientEmail}): ${custResult.success ? 'ENVIADO' : 'FALLÓ'}`,
+        `[OrderNotifications] Email a comprador (${orderData.clientEmail}): ${
+          custResult.success ? 'ENVIADO' : 'FALLÓ'
+        }${custResult.success ? '' : custResult.skipped ? ' (SMTP no configurado)' : ' (error de envío)'}`,
       );
     } else {
       logger.warn(`[OrderNotifications] El pedido #${orderId} no tiene clientEmail.`);
@@ -412,10 +418,16 @@ export async function sendOrderNotificationEmailsDirect(
 
     try {
       await orderRef.update({
-        notificationsSent: true,
+        notificationsSent: adminSent || customerSent,
         emailDirectSent: adminSent || customerSent,
         emailDispatchState: adminSent || customerSent ? 'sent' : 'failed',
         notificationsSentAt: new Date(),
+        ...(adminSent || customerSent
+          ? {}
+          : {
+              emailDispatchError:
+                'No se pudo enviar ningún email. Verificá SMTP (secreto SMTP_PASSWORD) y destinatarios de la tienda en logs [EmailService]/[OrderNotifications].',
+            }),
       });
     } catch (updateErr) {
       logger.warn(
