@@ -282,68 +282,67 @@
 
 .save-action-container {
   display: flex;
-  animation: float-in 0.6s ease-out backwards;
-  animation-delay: 0.6s;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
 
   @media (min-width: 768px) {
-    justify-content: flex-end;
     margin-bottom: 3rem;
   }
 
   @media (max-width: 767px) {
-    position: fixed;
-    bottom: 0;
-    left: 0;
     width: 100%;
-    padding: 1rem 1rem env(safe-area-inset-bottom, 1rem);
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    z-index: 1000;
-    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
+    margin-bottom: 2rem;
   }
 }
 
 .btn-save-primary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 1rem 3rem;
   border-radius: 16px;
   font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: all 0.4s ease;
 
   @media (max-width: 767px) {
-    padding: 1rem;
+    width: 100%;
+    padding: 1.15rem;
     border-radius: 12px;
-    flex: 1;
   }
 
-  &:not(:disabled) {
-    background: #6366f1;
-    border: 1px solid #818cf8;
-    color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-    cursor: pointer;
+  &:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #6ee7b7;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
 
-    &:hover {
-      background: #4f46e5;
-      border-color: #6366f1;
-      transform: translateY(-4px);
-      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+    i {
+      color: #6ee7b7;
     }
   }
 
+  &:focus-visible,
+  &:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.35);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.25);
+  }
+
   &:disabled {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
-    box-shadow: none;
   }
 }
 
