@@ -1,6 +1,6 @@
 # Changelog — ecommerce-vertex (storefront)
 
-## [Unreleased]
+## [0.9.0] - 2026-09-09
 
 ### Added
 - Conversión HEIC/HEIF → WebP en navegador (punto único `StorageService.uploadFile`).

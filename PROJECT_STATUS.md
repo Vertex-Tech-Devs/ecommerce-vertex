@@ -22,3 +22,7 @@
 
 ## 🔲 Deuda técnica residual (no bloqueante)
 - Validación HEIC en galerías/logos heredados que no pasen por `StorageService.uploadFile` (pendiente de barrido visual).
+
+
+## 📦 Release: 0.9.0 (Producción)
+- Versión cerrada y taggeada **v0.9.0**.
