@@ -12,6 +12,7 @@ import { AuthService } from '@core/services/auth.service';
 import type { StoreConfig as StoreConfigModel } from '@core/models/store-config.model';
 
 import { RouterTestingModule } from '@angular/router/testing';
+import { By } from '@angular/platform-browser';
 
 describe('StoreConfig', () => {
   let component: StoreConfig;
@@ -338,6 +339,63 @@ describe('StoreConfig', () => {
       fixture.detectChanges();
 
       expect(component.form.get('brandDisplayMode')?.value).toBe('both');
+    });
+  });
+
+  describe('Save button UI and interaction', () => {
+    it('should render the save button in save-action-container with correct classes and initial text', () => {
+      const container = fixture.debugElement.query(By.css('.save-action-container'));
+      expect(container).toBeTruthy();
+
+      const button = container.query(By.css('button.btn-save-primary'));
+      expect(button).toBeTruthy();
+      expect(button.nativeElement.classList.contains('ms-auto')).toBeFalse();
+      expect(button.nativeElement.textContent).toContain('Guardar Identidad de Marca');
+
+      const icon = button.query(By.css('i.bi-check2-circle'));
+      expect(icon).toBeTruthy();
+      expect(icon.nativeElement.classList.contains('d-none')).toBeFalse();
+    });
+
+    it('should be disabled when form is pristine', () => {
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.pristine).toBeTrue();
+      expect(button.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should be enabled when form is dirty and valid', () => {
+      component.form.markAsDirty();
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.valid).toBeTrue();
+      expect(button.nativeElement.disabled).toBeFalse();
+    });
+
+    it('should be disabled when form is invalid even if dirty', () => {
+      component.form.patchValue({ storeName: '' });
+      component.form.markAsDirty();
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(component.form.dirty).toBeTrue();
+      expect(component.form.invalid).toBeTrue();
+      expect(button.nativeElement.disabled).toBeTrue();
+    });
+
+    it('should show spinner and "Guardando..." when isSubmitting signal is true', () => {
+      component.isSubmitting.set(true);
+      fixture.detectChanges();
+
+      const button = fixture.debugElement.query(By.css('.btn-save-primary'));
+      expect(button.nativeElement.disabled).toBeTrue();
+      expect(button.nativeElement.textContent).toContain('Guardando...');
+
+      const spinner = button.query(By.css('.spinner-border'));
+      expect(spinner).toBeTruthy();
+
+      const icon = button.query(By.css('i.bi-check2-circle'));
+      expect(icon.nativeElement.classList.contains('d-none')).toBeTrue();
     });
   });
 });
