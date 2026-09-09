@@ -5,7 +5,7 @@
       <hr />
     </header>
 
-    @if (isLoading) {
+    @if (isLoading()) {
       <div class="text-center p-5">
         <div class="spinner-border text-primary" role="status">
           <span class="visually-hidden">Cargando datos del footer...</span>
@@ -29,11 +29,13 @@
                     ><i class="bi bi-envelope" aria-hidden="true"></i
                   ></span>
                   <input
+                    #firstInput
                     type="email"
                     id="contactEmail"
                     class="form-control glass-input"
                     formControlName="contactEmail"
                     [class.is-invalid]="email.invalid && email.touched"
+                    placeholder="ejemplo@mitienda.com"
                   />
                 </div>
                 @if (email.invalid && email.touched) {
@@ -60,7 +62,7 @@
                     id="contactPhone"
                     class="form-control glass-input"
                     formControlName="contactPhone"
-                    placeholder="(Ej: +54 9 261..."
+                    placeholder="+54 9 261 123-4567"
                   />
                 </div>
               </div>
@@ -89,7 +91,7 @@
                     id="socialInstagramUrl"
                     class="form-control glass-input"
                     formControlName="socialInstagramUrl"
-                    placeholder="https://instagram.com/usuario"
+                    placeholder="https://instagram.com/tutienda"
                   />
                 </div>
                 @if (instagram.invalid && instagram.touched) {
@@ -109,7 +111,7 @@
                     id="socialFacebookUrl"
                     class="form-control glass-input"
                     formControlName="socialFacebookUrl"
-                    placeholder="https://facebook.com/pagina"
+                    placeholder="https://facebook.com/tutienda"
                   />
                 </div>
                 @if (facebook.invalid && facebook.touched) {
@@ -129,12 +131,12 @@
                     id="socialWhatsAppUrl"
                     class="form-control glass-input"
                     formControlName="socialWhatsAppUrl"
-                    placeholder="https://wa.me/549..."
+                    placeholder="https://wa.me/5492611234567"
                   />
                 </div>
                 @if (whatsapp.invalid && whatsapp.touched) {
                   <div class="invalid-feedback d-block mt-2">
-                    La URL debe ser válida. Dejar vacío si no aplica.
+                    La URL o número debe ser válido. Dejar vacío si no aplica.
                   </div>
                 }
               </div>
@@ -156,10 +158,10 @@
                 id="copyrightText"
                 class="form-control glass-input"
                 formControlName="copyrightText"
-                placeholder="Mi tienda. Todos los derechos reservados."
+                placeholder="Mi Tienda. Todos los derechos reservados."
               />
               <div class="form-text mt-2 text-soft small">
-                El año (Ej: © 2025) se añadirá automáticamente en la tienda.
+                El año (Ej: © 2026) se añadirá automáticamente en la tienda.
               </div>
               @if (copyright.invalid && copyright.touched) {
                 <div class="invalid-feedback d-block mt-2">
@@ -175,7 +177,7 @@
             type="button"
             class="btn-reset-secondary"
             (click)="resetForm()"
-            [disabled]="!footerForm.dirty"
+            [disabled]="isSaving() || !footerForm.dirty"
           >
             <i class="bi bi-arrow-counterclockwise me-2"></i> Deshacer
           </button>
@@ -183,17 +185,17 @@
           <button
             type="submit"
             class="btn-save-primary"
-            [disabled]="isSubmitting || footerForm.invalid || !footerForm.dirty"
+            [disabled]="isSaving() || footerForm.invalid || !footerForm.dirty"
           >
-            @if (isSubmitting) {
+            @if (isSaving()) {
               <span
                 class="spinner-border spinner-border-sm me-2"
                 role="status"
                 aria-hidden="true"
               ></span>
             }
-            <i class="bi bi-check2-circle me-2" [class.d-none]="isSubmitting"></i>
-            {{ isSubmitting ? 'Guardando...' : 'Guardar Cambios' }}
+            <i class="bi bi-check2-circle me-2" [class.d-none]="isSaving()"></i>
+            {{ isSaving() ? 'Guardando...' : 'Guardar Cambios' }}
           </button>
         </div>
       </form>
