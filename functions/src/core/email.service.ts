@@ -131,7 +131,8 @@ export async function sendEmail(
       },
     });
 
-    const fromAddress = options.from || defaultFrom || user;
+    const fromAddress =
+      options.from || defaultFrom || `"Vertex" <${user}>`;
     const textBody = (options.text || '').trim() || htmlToText(options.html);
 
     const mailPayload: nodemailer.SendMailOptions = {
@@ -143,8 +144,10 @@ export async function sendEmail(
       headers: {
         // Cabecera estándar para correos transaccionales (evita auto-respuestas de Exchange).
         'X-Auto-Response-Suppress': 'All',
-        // No se inyectan X-Priority/Importance: no mejoran la entrega y aumentan
-        // el score bayesiano de spam (la pestaña "Importantes" de Gmail es heurística del usuario).
+        // Indica que es un correo automático legítimo evitando bucles y reduciendo spam score
+        'Auto-Submitted': 'auto-generated',
+        // Canal oficial de reporte de abuso
+        'X-Report-Abuse': 'mailto:vertex.tech.dev@gmail.com',
       },
     };
     if (options.replyTo && String(options.replyTo).trim()) {

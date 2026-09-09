@@ -107,8 +107,12 @@ function escapeHtml(value: unknown): string {
  * (tablas + estilos inline = email-safe en Gmail/Outlook/Apple Mail).
  * `body` ya viene con HTML; `footer` típicamente la firma de la tienda.
  */
-function buildEmailShell(body: string, opts: { storeName: string; subject: string; footer?: string }): string {
+function buildEmailShell(
+  body: string,
+  opts: { storeName: string; subject: string; footer?: string; storeSupportEmail?: string },
+): string {
   const footer = (opts.footer || '').trim();
+  const supportEmail = (opts.storeSupportEmail || '').trim();
   return `
   <div style="background-color:#f1f5f9;padding:32px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background-color:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 4px 16px rgba(15,23,42,0.04);">
@@ -125,7 +129,8 @@ function buildEmailShell(body: string, opts: { storeName: string; subject: strin
       <tr>
         <td style="padding:20px 32px;background-color:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.5;text-align:center;">
           ${footer ? `<div style="margin-bottom:8px;font-weight:500;color:#475569;">${footer}</div>` : ''}
-          <div>Este es un correo automático generado por la tienda.</div>
+          <div style="margin-bottom:4px;">Recibiste este correo porque realizaste una compra en <strong>${opts.storeName}</strong> a través de la plataforma Vertex.</div>
+          ${supportEmail ? `<div style="margin-bottom:6px;">Contacto de soporte de la tienda: <a href="mailto:${supportEmail}" style="color:#4f46e5;text-decoration:underline;">${supportEmail}</a></div>` : ''}
           <div style="margin-top:8px;font-weight:600;color:#475569;">Procesado de forma segura por Vertex Platform</div>
         </td>
       </tr>
@@ -285,9 +290,11 @@ export async function sendOrderNotificationEmailsDirect(
     // alineación y los mails caen en SPAM. El nombre visible sigue siendo el de la tienda.
     const smtpUser = (process.env.SMTP_USER || 'vertex.tech.dev@gmail.com').trim();
     const storeName = (config?.['storeName'] as string) || 'Vertex Store';
-    const senderName = (config?.['emailSenderName'] as string) || storeName;
-    const fromAddress = `"${senderName.replace(/"/g, '')}" <${smtpUser}>`;
+    const cleanStoreName = storeName.replace(/"/g, '').trim();
+    const fromAddress = `"${cleanStoreName} | Vertex" <${smtpUser}>`;
     const emailSignature = ((config?.['emailSignature'] as string) || '').trim();
+    const storeSupportEmail =
+      ((config?.['storeOwnerEmail'] as string) || (config?.['notificationEmail'] as string) || '').trim();
 
     let adminSent = false;
     let customerSent = false;
@@ -306,7 +313,7 @@ export async function sendOrderNotificationEmailsDirect(
         showManageButton?: boolean;
         showWhatsappButton?: boolean;
       }) || {
-        subject: `Nueva venta aprobada #${orderId}`,
+        subject: `Nueva venta aprobada #${orderId} - ${cleanStoreName}`,
         template: `<p>Has recibido una nueva venta aprobada para el pedido #{orderId} de {clientName}.</p><p>Total: $${orderData.total}</p>{itemsList}`,
         showManageButton: true,
         showWhatsappButton: true,
@@ -329,13 +336,19 @@ export async function sendOrderNotificationEmailsDirect(
         orderId,
         attributeMap,
         { manageButtonUrl, whatsappUrl },
-        { storeName, subject: `Nueva venta #${orderId}`, footer: emailSignature },
+        {
+          storeName: cleanStoreName,
+          subject: `Nueva venta #${orderId} - ${cleanStoreName}`,
+          footer: emailSignature,
+          storeSupportEmail,
+        },
       );
 
-      const adminSubject = (adminConfig.subject || `Nueva venta aprobada #${orderId}`).replace(
-        /{orderId}/g,
-        orderId,
-      );
+      const rawAdminSubject =
+        adminConfig.subject || `Nueva venta aprobada #${orderId} - ${cleanStoreName}`;
+      const adminSubject = rawAdminSubject
+        .replace(/{orderId}/g, orderId)
+        .replace(/{storeName}/g, cleanStoreName);
 
       const adminResult = await sendEmail({
         to: adminEmail,
@@ -363,7 +376,7 @@ export async function sendOrderNotificationEmailsDirect(
         template?: string;
         showWhatsappButton?: boolean;
       }) || {
-        subject: `Confirmación de tu compra #${orderId}`,
+        subject: `Pedido #${orderId} confirmado - ${cleanStoreName}`,
         template: `<p>¡Hola {clientName}! Gracias por tu compra.</p><p>Tu pedido #{orderId} fue recibido y se está procesando.</p>{itemsList}`,
         showWhatsappButton: true,
       };
@@ -389,12 +402,19 @@ export async function sendOrderNotificationEmailsDirect(
         orderId,
         attributeMap,
         { whatsappUrl },
-        { storeName, subject: `Confirmación de compra #${orderId}`, footer: emailSignature },
+        {
+          storeName: cleanStoreName,
+          subject: `Pedido #${orderId} confirmado - ${cleanStoreName}`,
+          footer: emailSignature,
+          storeSupportEmail,
+        },
       );
 
-      const customerSubject = (
-        customerConfig.subject || `Confirmación de tu compra #${orderId}`
-      ).replace(/{orderId}/g, orderId);
+      const rawCustomerSubject =
+        customerConfig.subject || `Pedido #${orderId} confirmado - ${cleanStoreName}`;
+      const customerSubject = rawCustomerSubject
+        .replace(/{orderId}/g, orderId)
+        .replace(/{storeName}/g, cleanStoreName);
 
       const custResult = await sendEmail({
         to: orderData.clientEmail,

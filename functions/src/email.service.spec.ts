@@ -127,6 +127,8 @@ describe('Email Service', () => {
     const payload = mockSendMail.mock.calls[0][0];
     expect(payload.headers).toEqual({
       'X-Auto-Response-Suppress': 'All',
+      'Auto-Submitted': 'auto-generated',
+      'X-Report-Abuse': 'mailto:vertex.tech.dev@gmail.com',
     });
     expect(payload.headers).not.toHaveProperty('X-Priority');
     expect(payload.headers).not.toHaveProperty('Importance');
