@@ -144,7 +144,12 @@ function buildEmailHtml(
   orderId: string,
   attributeMap: Map<string, string>,
   extras: { manageButtonUrl?: string | null; whatsappUrl?: string | null } = {},
-  shell: { storeName: string; subject: string; footer?: string } = {
+  shell: {
+    storeName: string;
+    subject: string;
+    footer?: string;
+    storeSupportEmail?: string;
+  } = {
     storeName: 'Vertex Store',
     subject: 'Notificación de pedido',
   },
@@ -236,6 +241,7 @@ function buildEmailHtml(
     storeName: shell.storeName,
     subject: shell.subject,
     footer: shell.footer,
+    storeSupportEmail: shell.storeSupportEmail,
   });
 }
 
