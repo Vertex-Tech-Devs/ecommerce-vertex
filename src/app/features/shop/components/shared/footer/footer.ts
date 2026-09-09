@@ -3,12 +3,17 @@ import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { StoreConfigService } from '@core/services/store-config.service';
 import { FooterService } from '@core/services/footer.service';
+import {
+  normalizeInstagramUrl,
+  normalizeFacebookUrl,
+  normalizeWhatsAppUrl,
+} from '@core/utils/url.utils';
 import { version as pkgVersion } from '../../../../../../../package.json';
 
 function getCoalesced(...values: (string | undefined)[]): string {
   for (const v of values) {
-    if (v !== undefined && v !== null) {
-      return v;
+    if (v !== undefined && v !== null && v.trim() !== '') {
+      return v.trim();
     }
   }
   return '';
@@ -32,6 +37,9 @@ export class Footer {
 
   private readonly footerData = toSignal(this.footerService.getFooterData());
 
+  /** Reactive signal exposing the raw FooterData or undefined */
+  readonly footer = this.footerData;
+
   readonly viewData = computed(() => {
     const config = this.storeConfig.storeConfig();
     const footer = this.footerData();
@@ -41,6 +49,22 @@ export class Footer {
       ? `${storeNameVal}. Todos los derechos reservados.`
       : 'Todos los derechos reservados.';
 
+    const rawInstagram = getCoalesced(
+      footer?.socialInstagramUrl,
+      config?.socialInstagramUrl,
+      contact?.instagram,
+    );
+    const rawFacebook = getCoalesced(
+      footer?.socialFacebookUrl,
+      config?.socialFacebookUrl,
+      contact?.facebook,
+    );
+    const rawWhatsApp = getCoalesced(
+      footer?.socialWhatsAppUrl,
+      config?.socialWhatsAppUrl,
+      contact?.whatsApp,
+    );
+
     return {
       contactPhone: getCoalesced(
         footer?.contactPhone,
@@ -49,21 +73,9 @@ export class Footer {
         contact?.whatsApp,
       ),
       contactEmail: getCoalesced(footer?.contactEmail, config?.contactEmail, contact?.email),
-      socialInstagramUrl: getCoalesced(
-        footer?.socialInstagramUrl,
-        config?.socialInstagramUrl,
-        contact?.instagram,
-      ),
-      socialFacebookUrl: getCoalesced(
-        footer?.socialFacebookUrl,
-        config?.socialFacebookUrl,
-        contact?.facebook,
-      ),
-      socialWhatsAppUrl: getCoalesced(
-        footer?.socialWhatsAppUrl,
-        config?.socialWhatsAppUrl,
-        contact?.whatsApp,
-      ),
+      socialInstagramUrl: normalizeInstagramUrl(rawInstagram),
+      socialFacebookUrl: normalizeFacebookUrl(rawFacebook),
+      socialWhatsAppUrl: normalizeWhatsAppUrl(rawWhatsApp),
       copyrightText: getCoalesced(footer?.copyrightText, config?.copyrightText, defaultCopyright),
     };
   });

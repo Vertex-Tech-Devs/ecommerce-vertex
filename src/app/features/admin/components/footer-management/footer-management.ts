@@ -1,14 +1,18 @@
-import type { OnInit } from '@angular/core';
-import { Component, inject, DestroyRef, ChangeDetectorRef } from '@angular/core';
+import type { OnInit, ElementRef } from '@angular/core';
+import { Component, inject, DestroyRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import type { FormGroup, AbstractControl } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import type { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { take } from 'rxjs';
 import type { FooterData } from '@core/models/footer.model';
 import { FooterService } from '@core/services/footer.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import {
+  normalizeInstagramUrl,
+  normalizeFacebookUrl,
+  normalizeWhatsAppUrl,
+} from '@core/utils/url.utils';
 
 @Component({
   selector: 'app-footer-management',
@@ -22,17 +26,24 @@ export class FooterManagement implements OnInit {
   private footerService = inject(FooterService);
   private alertService = inject(SweetAlertService);
   private destroyRef = inject(DestroyRef);
-  private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('firstInput') firstInput?: ElementRef<HTMLInputElement>;
 
   footerForm!: FormGroup;
-  data$: Observable<FooterData | undefined>;
-  isLoading = true;
-  isSubmitting = false;
 
-  private urlPattern = /^(|https?:\/\/[^\s$.?#].[^\s]*)$/;
+  readonly isLoading = signal(false);
+  readonly isSaving = signal(false);
+
+  /** Getter for backwards-compatibility */
+  get isSubmitting(): boolean {
+    return this.isSaving();
+  }
+
+  // Permissive pattern that allows full URLs, wa.me URLs, @handles, domain paths, or phone numbers
+  private urlPattern =
+    /^(|https?:\/\/[^\s$.?#].[^\s]*|wa\.me\/[^\s]+|@[\w.-]+|[\w.-]+\.[a-z]{2,}[^\s]*|\+?[0-9\s()-]{6,})$/i;
 
   constructor() {
-    this.data$ = this.footerService.getFooterData();
     this.buildForm();
   }
 
@@ -54,26 +65,38 @@ export class FooterManagement implements OnInit {
   }
 
   private loadDataIntoForm(): void {
-    this.isLoading = true;
-    this.data$.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (data) => {
-        if (data) {
-          this.buildForm(data);
-        } else {
+    this.isLoading.set(true);
+    this.footerService
+      .getFooterData()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (data) => {
+          if (data) {
+            this.buildForm(data);
+          } else {
+            this.buildForm();
+          }
+          this.isLoading.set(false);
+          this.scheduleAutofocus();
+        },
+        error: (err) => {
+          console.error('Error loading Footer data:', err);
           this.buildForm();
-        }
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading Footer data:', err);
-        this.buildForm(); // Initialize with empty values on error
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-    });
+          this.isLoading.set(false);
+          this.scheduleAutofocus();
+        },
+      });
   }
 
+  private scheduleAutofocus(): void {
+    setTimeout(() => {
+      this.firstInput?.nativeElement?.focus();
+    }, 0);
+  }
+
+  get contactPhone(): AbstractControl {
+    return this.footerForm.get('contactPhone')!;
+  }
   get email(): AbstractControl {
     return this.footerForm.get('contactEmail')!;
   }
@@ -100,10 +123,18 @@ export class FooterManagement implements OnInit {
       return;
     }
 
-    this.isSubmitting = true;
+    this.isSaving.set(true);
     this.alertService.loading('Actualizando Footer...');
 
-    const formData = this.footerForm.value as FooterData;
+    const rawData = this.footerForm.value;
+    const formData: FooterData = {
+      contactPhone: rawData.contactPhone ?? '',
+      contactEmail: rawData.contactEmail ?? '',
+      socialInstagramUrl: normalizeInstagramUrl(rawData.socialInstagramUrl),
+      socialFacebookUrl: normalizeFacebookUrl(rawData.socialFacebookUrl),
+      socialWhatsAppUrl: normalizeWhatsAppUrl(rawData.socialWhatsAppUrl),
+      copyrightText: rawData.copyrightText ?? '',
+    };
 
     this.footerService
       .saveFooterData(formData)
@@ -116,7 +147,7 @@ export class FooterManagement implements OnInit {
         this.alertService.error('Error', 'No se pudieron guardar los cambios.');
       })
       .finally(() => {
-        this.isSubmitting = false;
+        this.isSaving.set(false);
       });
   }
 

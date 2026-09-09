@@ -56,7 +56,7 @@
   a {
     color: var(--text-secondary);
     text-decoration: none;
-    transition: color var(--transition-base);
+    transition: color var(--transition-base, 0.2s ease);
 
     &:hover {
       color: var(--text-primary);
@@ -90,19 +90,28 @@
     color: var(--text-secondary);
     font-size: 1.25rem;
     transition:
-      color var(--transition-base),
-      transform var(--transition-base);
-    display: flex;
+      color var(--transition-base, 0.2s ease),
+      background-color var(--transition-base, 0.2s ease),
+      transform var(--transition-base, 0.2s ease),
+      box-shadow var(--transition-base, 0.2s ease);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     background: transparent;
 
     &:hover {
       color: var(--text-primary);
+      background-color: rgba(0, 0, 0, 0.05);
       transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 2px;
     }
   }
 }
@@ -112,27 +121,34 @@
 // ============================================
 @media (max-width: 768px) {
   .footer__container {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      'contact social'
-      'copyright copyright';
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     gap: var(--space-6);
     padding: 0 var(--space-4);
   }
 
   .footer__contact {
-    grid-area: contact;
+    align-items: center;
+    text-align: center;
+    width: 100%;
   }
 
-  .footer__social {
-    grid-area: social;
-    justify-self: end;
+  .footer__item {
+    justify-content: center;
+    word-break: break-word;
   }
 
   .footer__copyright {
-    grid-area: copyright;
     text-align: center;
+    width: 100%;
+  }
+
+  .footer__social {
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: var(--space-3);
   }
 }

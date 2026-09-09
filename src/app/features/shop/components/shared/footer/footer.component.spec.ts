@@ -2,6 +2,7 @@ import type { WritableSignal } from '@angular/core';
 import { signal } from '@angular/core';
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { Footer } from './footer';
 import { StoreConfigService } from '@core/services/store-config.service';
@@ -70,6 +71,7 @@ describe('Footer', () => {
     expect(component).toBeTruthy();
     expect(component.currentYear).toBe(new Date().getFullYear());
     expect(component.storeVersion).toMatch(/^v\d+\.\d+\.\d+/);
+    expect(component.footer()).toEqual(mockFooterData);
   });
 
   it('should compute viewData prioritizing footerData when available', () => {
@@ -114,9 +116,9 @@ describe('Footer', () => {
     const view = component.viewData();
     expect(view.contactPhone).toBe('12345');
     expect(view.contactEmail).toBe('test@test.com');
-    expect(view.socialInstagramUrl).toBe('instatest');
-    expect(view.socialFacebookUrl).toBe('fbtest');
-    expect(view.socialWhatsAppUrl).toBe('12345');
+    expect(view.socialInstagramUrl).toBe('https://instagram.com/instatest');
+    expect(view.socialFacebookUrl).toBe('https://facebook.com/fbtest');
+    expect(view.socialWhatsAppUrl).toBe('https://wa.me/12345');
     expect(view.copyrightText).toBe('Tienda Test. Todos los derechos reservados.');
   });
 
@@ -128,5 +130,60 @@ describe('Footer', () => {
 
     const view = component.viewData();
     expect(view.copyrightText).toBe('Todos los derechos reservados.');
+  });
+
+  it('should normalize @handle and raw phone numbers in viewData', () => {
+    footerServiceSpy.getFooterData.and.returnValue(
+      of({
+        contactPhone: '',
+        contactEmail: '',
+        socialInstagramUrl: '@mitienda_ig',
+        socialFacebookUrl: '@mitienda_fb',
+        socialWhatsAppUrl: '+54 9 261 123-4567',
+        copyrightText: '',
+      } as FooterData),
+    );
+    mockStoreConfigSignal.set(null);
+
+    setupComponent();
+
+    const view = component.viewData();
+    expect(view.socialInstagramUrl).toBe('https://instagram.com/mitienda_ig');
+    expect(view.socialFacebookUrl).toBe('https://facebook.com/mitienda_fb');
+    expect(view.socialWhatsAppUrl).toBe('https://wa.me/5492611234567');
+  });
+
+  it('should render social links with proper attributes (target, rel, aria-label)', () => {
+    setupComponent();
+
+    const instagramLink = fixture.debugElement.query(
+      By.css('a[href="https://instagram.com/footer"]'),
+    );
+    expect(instagramLink).toBeTruthy();
+    expect(instagramLink.attributes['target']).toBe('_blank');
+    expect(instagramLink.attributes['rel']).toBe('noopener noreferrer');
+    expect(instagramLink.attributes['aria-label']).toBe('Instagram');
+
+    const icon = instagramLink.query(By.css('i.bi.bi-instagram'));
+    expect(icon).toBeTruthy();
+  });
+
+  it('should not render social links when URLs are empty', () => {
+    footerServiceSpy.getFooterData.and.returnValue(
+      of({
+        contactPhone: '',
+        contactEmail: '',
+        socialInstagramUrl: '',
+        socialFacebookUrl: '',
+        socialWhatsAppUrl: '',
+        copyrightText: 'Test',
+      } as FooterData),
+    );
+    mockStoreConfigSignal.set(null);
+
+    setupComponent();
+
+    const socialNav = fixture.debugElement.query(By.css('.footer__social'));
+    expect(socialNav).toBeNull();
   });
 });

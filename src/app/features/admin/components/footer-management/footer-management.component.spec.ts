@@ -46,25 +46,49 @@ describe('FooterManagement', () => {
     fixture.detectChanges();
   });
 
-  it('should create footer management component and populate form with loaded data', () => {
+  it('should create footer management component and populate form with loaded data', fakeAsync(() => {
+    tick();
     expect(component).toBeTruthy();
-    expect(component.isLoading).toBeFalse();
+    expect(component.isLoading()).toBeFalse();
+    expect(component.isSubmitting).toBeFalse();
     expect(component.email.value).toBe('admin@vertex.com');
     expect(component.copyright.value).toBe('Copyright Vertex 2026');
     expect(component.instagram.value).toBe('https://instagram.com/vertex');
     expect(component.facebook.value).toBe('https://facebook.com/vertex');
     expect(component.whatsapp.value).toBe('https://wa.me/1122334455');
-  });
+  }));
 
-  it('should handle error when loading footer data', () => {
+  it('should build empty form when getFooterData emits undefined', fakeAsync(() => {
+    footerServiceSpy.getFooterData.and.returnValue(of(undefined));
+    const emptyFixture = TestBed.createComponent(FooterManagement);
+    emptyFixture.detectChanges();
+    tick();
+
+    expect(emptyFixture.componentInstance.isLoading()).toBeFalse();
+    expect(emptyFixture.componentInstance.email.value).toBe('');
+    expect(emptyFixture.componentInstance.copyright.value).toBe('');
+  }));
+
+  it('should build form with defaults when getFooterData emits empty object', fakeAsync(() => {
+    footerServiceSpy.getFooterData.and.returnValue(of({} as FooterData));
+    const emptyObjFixture = TestBed.createComponent(FooterManagement);
+    emptyObjFixture.detectChanges();
+    tick();
+
+    expect(emptyObjFixture.componentInstance.email.value).toBe('');
+    expect(emptyObjFixture.componentInstance.contactPhone.value).toBe('');
+  }));
+
+  it('should handle error when loading footer data', fakeAsync(() => {
     footerServiceSpy.getFooterData.and.returnValue(throwError(() => new Error('Load err')));
     const errFixture = TestBed.createComponent(FooterManagement);
     const errComp = errFixture.componentInstance;
     errFixture.detectChanges();
+    tick();
 
-    expect(errComp.isLoading).toBeFalse();
+    expect(errComp.isLoading()).toBeFalse();
     expect(errComp.email.value).toBe('');
-  });
+  }));
 
   it('should show warning on submit if form is invalid', fakeAsync(() => {
     component.footerForm.patchValue({ contactEmail: 'invalid-email' });
@@ -87,7 +111,32 @@ describe('FooterManagement', () => {
     expect(sweetAlertServiceSpy.loading).toHaveBeenCalledWith('Actualizando Footer...');
     expect(footerServiceSpy.saveFooterData).toHaveBeenCalledWith(mockFooterData);
     expect(sweetAlertServiceSpy.success).toHaveBeenCalledWith('¡Actualizado!', jasmine.any(String));
-    expect(component.isSubmitting).toBeFalse();
+    expect(component.isSaving()).toBeFalse();
+  }));
+
+  it('should handle submit when form values contain nulls', fakeAsync(() => {
+    footerServiceSpy.saveFooterData.and.returnValue(Promise.resolve());
+
+    component.footerForm.setValue({
+      contactPhone: null,
+      contactEmail: 'admin@vertex.com',
+      socialInstagramUrl: null,
+      socialFacebookUrl: null,
+      socialWhatsAppUrl: null,
+      copyrightText: 'Copyright Vertex 2026',
+    });
+
+    component.onSubmit();
+    tick();
+
+    expect(footerServiceSpy.saveFooterData).toHaveBeenCalledWith({
+      contactPhone: '',
+      contactEmail: 'admin@vertex.com',
+      socialInstagramUrl: '',
+      socialFacebookUrl: '',
+      socialWhatsAppUrl: '',
+      copyrightText: 'Copyright Vertex 2026',
+    });
   }));
 
   it('should handle error when saveFooterData fails', fakeAsync(() => {
@@ -97,7 +146,7 @@ describe('FooterManagement', () => {
     tick();
 
     expect(sweetAlertServiceSpy.error).toHaveBeenCalledWith('Error', jasmine.any(String));
-    expect(component.isSubmitting).toBeFalse();
+    expect(component.isSaving()).toBeFalse();
   }));
 
   it('should reset form when user confirms resetForm', fakeAsync(() => {
@@ -119,5 +168,26 @@ describe('FooterManagement', () => {
     tick();
 
     expect(component.email.value).toBe('changed@vertex.com');
+  }));
+
+  it('should focus firstInput when data loading completes', fakeAsync(() => {
+    fixture.detectChanges();
+    tick();
+
+    expect(component.firstInput).toBeDefined();
+    if (component.firstInput) {
+      spyOn(component.firstInput.nativeElement, 'focus');
+      (component as unknown as { scheduleAutofocus: () => void }).scheduleAutofocus();
+      tick();
+      expect(component.firstInput.nativeElement.focus).toHaveBeenCalled();
+    }
+  }));
+
+  it('should gracefully handle scheduleAutofocus when firstInput is undefined', fakeAsync(() => {
+    component.firstInput = undefined;
+    expect(() => {
+      (component as unknown as { scheduleAutofocus: () => void }).scheduleAutofocus();
+      tick();
+    }).not.toThrow();
   }));
 });
