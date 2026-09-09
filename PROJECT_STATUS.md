@@ -16,3 +16,13 @@
 
 ## Referencia de producción
 - Funciones/hosting desplegados por CI en `main`; tiendas reales entregadas: `kasakalle`, `vidrios-emilia`.
+
+## ✅ Cierre master 0.9.0+ (sync)
+- HEIC/HEIF → WebP, borrado con auditoría, estados `CANCELLED_UNPAID`, reconciliación por shard, mails desde cuenta autenticada. Todo en verde y sincronizado (0 divergencia).
+
+## 🔲 Deuda técnica residual (no bloqueante)
+- Validación HEIC en galerías/logos heredados que no pasen por `StorageService.uploadFile` (pendiente de barrido visual).
+
+
+## 📦 Release: 0.9.0 (Producción)
+- Versión cerrada y taggeada **v0.9.0**.

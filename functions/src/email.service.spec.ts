@@ -77,4 +77,75 @@ describe('Email Service', () => {
       }),
     );
   });
+
+  it('always includes a multipart text/plain version derived from html', async () => {
+    mockAccessSecretVersion.mockResolvedValueOnce([
+      { payload: { data: Buffer.from('my-smtp-password') } },
+    ]);
+
+    const res = await sendEmail({
+      to: 'customer@test.com',
+      subject: 'Test Subject',
+      html: '<p>Hola <b>Juan</b> &amp; Co</p><br/><p>Segundo párrafo</p>',
+    });
+
+    expect(res.success).toBe(true);
+    expect(mockSendMail).toHaveBeenCalledTimes(1);
+    const payload = mockSendMail.mock.calls[0][0];
+    expect(payload.text).toContain('Hola Juan & Co');
+    expect(payload.text).toContain('Segundo párrafo');
+  });
+
+  it('preserves an explicit text version when provided', async () => {
+    mockAccessSecretVersion.mockResolvedValueOnce([
+      { payload: { data: Buffer.from('my-smtp-password') } },
+    ]);
+
+    await sendEmail({
+      to: 'customer@test.com',
+      subject: 'Test Subject',
+      html: '<p>HTML only</p>',
+      text: 'Texto plano explícito',
+    });
+
+    expect(mockSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'Texto plano explícito' }),
+    );
+  });
+
+  it('sends clean transactional headers and never aggressive priority headers', async () => {
+    mockAccessSecretVersion.mockResolvedValueOnce([
+      { payload: { data: Buffer.from('my-smtp-password') } },
+    ]);
+
+    await sendEmail({
+      to: 'customer@test.com',
+      subject: 'Test Subject',
+      html: '<p>Hello</p>',
+    });
+
+    const payload = mockSendMail.mock.calls[0][0];
+    expect(payload.headers).toEqual({
+      'X-Auto-Response-Suppress': 'All',
+    });
+    expect(payload.headers).not.toHaveProperty('X-Priority');
+    expect(payload.headers).not.toHaveProperty('Importance');
+  });
+
+  it('sets replyTo when a store contact is configured', async () => {
+    mockAccessSecretVersion.mockResolvedValueOnce([
+      { payload: { data: Buffer.from('my-smtp-password') } },
+    ]);
+
+    await sendEmail({
+      to: 'customer@test.com',
+      subject: 'Test Subject',
+      html: '<p>Hello</p>',
+      replyTo: 'contacto@tienda.com',
+    });
+
+    expect(mockSendMail).toHaveBeenCalledWith(
+      expect.objectContaining({ replyTo: 'contacto@tienda.com' }),
+    );
+  });
 });

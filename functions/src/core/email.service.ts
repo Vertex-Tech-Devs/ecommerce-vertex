@@ -6,7 +6,29 @@ export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
+  text?: string;
   from?: string;
+  replyTo?: string;
+}
+
+/**
+ * Convierte HTML básico en texto plano legible (multipart MIME).
+ * Cubre saltos de línea, tags y entidades típicas de los templates existentes.
+ */
+export function htmlToText(html: string): string {
+  return String(html || '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|tr|li|h[1-6]|section|article)>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 let cachedSmtpPassword: string | null = null;
@@ -110,13 +132,26 @@ export async function sendEmail(
     });
 
     const fromAddress = options.from || defaultFrom || user;
+    const textBody = (options.text || '').trim() || htmlToText(options.html);
 
-    await transporter.sendMail({
+    const mailPayload: nodemailer.SendMailOptions = {
       from: fromAddress,
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       html: options.html,
-    });
+      text: textBody,
+      headers: {
+        // Cabecera estándar para correos transaccionales (evita auto-respuestas de Exchange).
+        'X-Auto-Response-Suppress': 'All',
+        // No se inyectan X-Priority/Importance: no mejoran la entrega y aumentan
+        // el score bayesiano de spam (la pestaña "Importantes" de Gmail es heurística del usuario).
+      },
+    };
+    if (options.replyTo && String(options.replyTo).trim()) {
+      mailPayload.replyTo = String(options.replyTo).trim();
+    }
+
+    await transporter.sendMail(mailPayload);
 
     logger.info(`[EmailService] Email enviado exitosamente a ${options.to} (${options.subject})`);
     return { success: true };
