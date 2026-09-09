@@ -2,90 +2,104 @@
  * Utility functions for URL sanitization and normalization.
  */
 
+const PLATFORM_CONFIG = {
+  instagram: {
+    domain: 'instagram.com',
+    allowedHosts: new Set(['instagram.com', 'www.instagram.com']),
+  },
+  facebook: {
+    domain: 'facebook.com',
+    allowedHosts: new Set(['facebook.com', 'www.facebook.com']),
+  },
+} as const;
+
 /**
- * Normalizes an Instagram username, handle, or URL into a full HTTPS link.
- * Handles inputs like `@user`, `instagram.com/user`, `http://instagram.com/user`, or `user`.
+ * Normalizes a social media profile URL or handle for Instagram or Facebook.
+ * Enforces strict hostname boundary verification using the WHATWG URL parser to prevent
+ * incomplete URL substring sanitization vulnerabilities (e.g. `instagram.com.attacker.com`).
  */
-export function normalizeInstagramUrl(value?: string | null): string {
+function normalizeSocialUrl(
+  value: string | null | undefined,
+  platform: 'instagram' | 'facebook',
+): string {
   if (!value || typeof value !== 'string') {
     return '';
   }
 
-  let trimmed = value.trim();
+  const trimmed = value.trim();
   if (!trimmed) {
     return '';
   }
 
-  // Handle @username
+  const { domain, allowedHosts } = PLATFORM_CONFIG[platform];
+
+  // Handle @handle
   if (trimmed.startsWith('@')) {
     const handle = trimmed.slice(1).trim();
-    return handle ? `https://instagram.com/${handle}` : '';
+    return handle ? `https://${domain}/${handle}` : '';
   }
 
-  // Upgrade http:// to https://
-  if (trimmed.startsWith('http://')) {
-    trimmed = 'https://' + trimmed.slice(7);
-  }
-
-  // If starts with https://@handle
+  // Handle https://@handle
   if (trimmed.startsWith('https://@')) {
     const handle = trimmed.slice(9).trim();
-    return handle ? `https://instagram.com/${handle}` : '';
+    return handle ? `https://${domain}/${handle}` : '';
   }
 
-  // If already starts with https://
-  if (trimmed.startsWith('https://')) {
-    return trimmed;
+  // Clean leading slashes e.g. /handle or ///
+  const cleanCandidate = trimmed.replace(/^\/+/, '');
+  if (!cleanCandidate) {
+    return '';
   }
 
-  // If starts with instagram.com or www.instagram.com
-  if (trimmed.startsWith('instagram.com') || trimmed.startsWith('www.instagram.com')) {
-    return `https://${trimmed}`;
+  // Check if it's a simple raw handle without domain dots, slashes, or colons
+  if (
+    !cleanCandidate.includes('.') &&
+    !cleanCandidate.includes('/') &&
+    !cleanCandidate.includes(':')
+  ) {
+    return `https://${domain}/${cleanCandidate}`;
   }
 
-  // Fallback: treat as username/handle
-  const cleanHandle = trimmed.replace(/^\/+/, '');
-  return cleanHandle ? `https://instagram.com/${cleanHandle}` : '';
+  // Attempt to parse as full URL or domain with path
+  let candidate = trimmed;
+  if (candidate.startsWith('http://')) {
+    candidate = 'https://' + candidate.slice(7);
+  } else if (!candidate.startsWith('https://')) {
+    candidate = 'https://' + candidate;
+  }
+
+  try {
+    const parsed = new URL(candidate);
+    const hostname = parsed.hostname.toLowerCase();
+    if (allowedHosts.has(hostname)) {
+      parsed.protocol = 'https:';
+      const pathAndSearch =
+        (parsed.pathname === '/' ? '' : parsed.pathname) + parsed.search + parsed.hash;
+      return `https://${hostname}${pathAndSearch}`;
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
+/**
+ * Normalizes an Instagram username, handle, or URL into a full HTTPS link.
+ * Handles inputs like `@user`, `instagram.com/user`, `http://instagram.com/user`, or `user`.
+ * Rejects deceptive hostnames like `instagram.com.attacker.com`.
+ */
+export function normalizeInstagramUrl(value?: string | null): string {
+  return normalizeSocialUrl(value, 'instagram');
 }
 
 /**
  * Normalizes a Facebook username, page, or URL into a full HTTPS link.
  * Handles inputs like `@page`, `facebook.com/page`, `http://facebook.com/page`, or `page`.
+ * Rejects deceptive hostnames like `facebook.com.malicious.net`.
  */
 export function normalizeFacebookUrl(value?: string | null): string {
-  if (!value || typeof value !== 'string') {
-    return '';
-  }
-
-  let trimmed = value.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  // Handle @page
-  if (trimmed.startsWith('@')) {
-    const handle = trimmed.slice(1).trim();
-    return handle ? `https://facebook.com/${handle}` : '';
-  }
-
-  // Upgrade http:// to https://
-  if (trimmed.startsWith('http://')) {
-    trimmed = 'https://' + trimmed.slice(7);
-  }
-
-  // If already starts with https://
-  if (trimmed.startsWith('https://')) {
-    return trimmed;
-  }
-
-  // If starts with facebook.com or www.facebook.com
-  if (trimmed.startsWith('facebook.com') || trimmed.startsWith('www.facebook.com')) {
-    return `https://${trimmed}`;
-  }
-
-  // Fallback: treat as page handle
-  const cleanHandle = trimmed.replace(/^\/+/, '');
-  return cleanHandle ? `https://facebook.com/${cleanHandle}` : '';
+  return normalizeSocialUrl(value, 'facebook');
 }
 
 /**

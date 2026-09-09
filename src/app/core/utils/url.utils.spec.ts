@@ -13,6 +13,13 @@ describe('url.utils', () => {
     it('should normalize @username to https://instagram.com/username', () => {
       expect(normalizeInstagramUrl('@tienda_oficial')).toBe('https://instagram.com/tienda_oficial');
       expect(normalizeInstagramUrl('@')).toBe('');
+      expect(normalizeInstagramUrl('@   ')).toBe('');
+    });
+
+    it('should handle https://@user properly', () => {
+      expect(normalizeInstagramUrl('https://@tienda')).toBe('https://instagram.com/tienda');
+      expect(normalizeInstagramUrl('https://@')).toBe('');
+      expect(normalizeInstagramUrl('https://@   ')).toBe('');
     });
 
     it('should normalize username without scheme to https://instagram.com/username', () => {
@@ -34,15 +41,26 @@ describe('url.utils', () => {
       );
     });
 
-    it('should preserve already valid https://instagram.com/ urls', () => {
+    it('should preserve already valid https://instagram.com/ urls including params', () => {
       expect(normalizeInstagramUrl('https://instagram.com/tienda')).toBe(
         'https://instagram.com/tienda',
       );
+      expect(normalizeInstagramUrl('https://instagram.com/')).toBe('https://instagram.com');
+      expect(normalizeInstagramUrl('https://instagram.com/tienda?ref=web#section')).toBe(
+        'https://instagram.com/tienda?ref=web#section',
+      );
     });
 
-    it('should handle https://@user properly', () => {
-      expect(normalizeInstagramUrl('https://@tienda')).toBe('https://instagram.com/tienda');
-      expect(normalizeInstagramUrl('https://@')).toBe('');
+    it('should reject deceptive/spoofed hostnames and return empty string', () => {
+      expect(normalizeInstagramUrl('instagram.com.attacker.com/fake')).toBe('');
+      expect(normalizeInstagramUrl('https://instagram.com.attacker.com/fake')).toBe('');
+      expect(normalizeInstagramUrl('https://attacker.com/instagram.com')).toBe('');
+      expect(normalizeInstagramUrl('https://fake-instagram.com/user')).toBe('');
+      expect(normalizeInstagramUrl('instagram.com@attacker.com')).toBe('');
+    });
+
+    it('should handle malformed URLs gracefully by returning empty string', () => {
+      expect(normalizeInstagramUrl('http://%2')).toBe('');
     });
   });
 
@@ -58,6 +76,13 @@ describe('url.utils', () => {
     it('should normalize @page to https://facebook.com/page', () => {
       expect(normalizeFacebookUrl('@tienda_fb')).toBe('https://facebook.com/tienda_fb');
       expect(normalizeFacebookUrl('@')).toBe('');
+      expect(normalizeFacebookUrl('@   ')).toBe('');
+    });
+
+    it('should handle https://@page properly', () => {
+      expect(normalizeFacebookUrl('https://@tienda_fb')).toBe('https://facebook.com/tienda_fb');
+      expect(normalizeFacebookUrl('https://@')).toBe('');
+      expect(normalizeFacebookUrl('https://@   ')).toBe('');
     });
 
     it('should normalize page handle without scheme to https://facebook.com/page', () => {
@@ -79,10 +104,26 @@ describe('url.utils', () => {
       );
     });
 
-    it('should preserve valid https://facebook.com/ urls', () => {
+    it('should preserve valid https://facebook.com/ urls including params', () => {
       expect(normalizeFacebookUrl('https://facebook.com/tienda')).toBe(
         'https://facebook.com/tienda',
       );
+      expect(normalizeFacebookUrl('https://facebook.com/')).toBe('https://facebook.com');
+      expect(normalizeFacebookUrl('https://facebook.com/tienda?ref=web#section')).toBe(
+        'https://facebook.com/tienda?ref=web#section',
+      );
+    });
+
+    it('should reject deceptive/spoofed hostnames and return empty string', () => {
+      expect(normalizeFacebookUrl('facebook.com.malicious.net/fake')).toBe('');
+      expect(normalizeFacebookUrl('https://facebook.com.malicious.net/fake')).toBe('');
+      expect(normalizeFacebookUrl('https://malicious.net/facebook.com')).toBe('');
+      expect(normalizeFacebookUrl('https://fake-facebook.com/page')).toBe('');
+      expect(normalizeFacebookUrl('facebook.com@attacker.com')).toBe('');
+    });
+
+    it('should handle malformed URLs gracefully by returning empty string', () => {
+      expect(normalizeFacebookUrl('http://%2')).toBe('');
     });
   });
 
