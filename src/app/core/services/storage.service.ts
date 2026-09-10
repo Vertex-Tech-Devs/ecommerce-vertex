@@ -59,18 +59,6 @@ export class StorageService {
     }) as Promise<Blob | Blob[]>;
   }
 
-  /**
-   * Convierte HEIC/HEIF a WebP (calidad 0.85) en el cliente mediante heic2any
-   * (carga lazy). Devuelve el archivo original si no es HEIC/HEIF.
-   *
-   * Incluye doble blindaje:
-   * 1. Guard Clause: Si el archivo tiene extensión .heic/.heif pero su MIME type ya es
-   *    legible por el navegador (ej. image/jpeg, image/png, image/webp), no ejecuta
-   *    heic2any y retorna el archivo directamente (normalizando la extensión).
-   * 2. Catch Defensivo: Si heic2any es invocado y captura excepción code 1 / 'already browser readable',
-   *    recupera el archivo original sin lanzar error para continuar la subida.
-   * 3. Manejo de Blob Array: Si heic2any devuelve Blob[] (secuencias), toma el primer elemento.
-   */
   async prepareUploadFile(file: File, onStatus?: (label: string) => void): Promise<File> {
     if (!this.isHeic(file)) {
       return file;
