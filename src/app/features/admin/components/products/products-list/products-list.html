@@ -62,9 +62,9 @@
           @for (product of products; track product.id) {
             <div class="glass-card product-card" (click)="goToDetail(product.id)">
               <div class="product-card__image-wrapper">
-                @if (product.images && product.images.length > 0) {
+                @if (product.image || product.images?.[0]) {
                   <img
-                    [src]="product.images[0]"
+                    [src]="product.image || product.images?.[0]"
                     [alt]="product.name"
                     class="product-card__image"
                     loading="lazy"
