@@ -36,33 +36,85 @@ export class StorageService {
     return deleteObject(storageRef);
   }
 
+  private static readonly BROWSER_READABLE_EXTENSIONS: Record<string, string> = {
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+  };
+
   private isHeic(file: File): boolean {
     return (
-      /\.heic$/i.test(file.name) ||
-      /\.heif$/i.test(file.name) ||
-      file.type === 'image/heic' ||
-      file.type === 'image/heif'
+      /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif'
     );
   }
 
-  /**
-   * Convierte HEIC/HEIF a WebP (calidad 0.85) en el cliente mediante heic2any
-   * (carga lazy). Devuelve el archivo original si no es HEIC/HEIF.
-   */
+  protected async convertHeicBlob(file: File): Promise<Blob | Blob[]> {
+    const { default: heic2any } = await import('heic2any');
+    return heic2any({
+      blob: file,
+      toType: 'image/webp',
+      quality: 0.85,
+    }) as Promise<Blob | Blob[]>;
+  }
+
   async prepareUploadFile(file: File, onStatus?: (label: string) => void): Promise<File> {
     if (!this.isHeic(file)) {
       return file;
     }
+
+    // 1. Guard Clause: Si el archivo ya tiene un MIME legible por el navegador
+    const normalizedMime = file.type ? file.type.toLowerCase().trim() : '';
+    const readableExt = StorageService.BROWSER_READABLE_EXTENSIONS[normalizedMime];
+    if (readableExt) {
+      const normalizedName = file.name.replace(/\.(heic|heif)$/i, readableExt);
+      return new File([file], normalizedName, {
+        type: file.type,
+        lastModified: file.lastModified,
+      });
+    }
+
     onStatus?.('Optimizando imagen de alta resolución...');
-    const { default: heic2any } = await import('heic2any');
-    const result = (await heic2any({
-      blob: file,
-      toType: 'image/webp',
-      quality: 0.85,
-    })) as Blob | Blob[];
-    const out = Array.isArray(result) ? result[0] : result;
-    const name = file.name.replace(/\.(heic|heif)$/i, '') + '.webp';
-    return new File([out], name, { type: 'image/webp' });
+
+    try {
+      const result = await this.convertHeicBlob(file);
+      // Manejo de Blob Array (secuencias de imágenes HEIC/HEIF)
+      const blob = Array.isArray(result) ? result[0] : result;
+      const name = file.name.replace(/\.(heic|heif)$/i, '') + '.webp';
+      return new File([blob], name, { type: 'image/webp', lastModified: file.lastModified });
+    } catch (error: unknown) {
+      // 2. Catch Defensivo: Si heic2any arroja excepción de imagen ya legible
+      const err = error as { code?: number | string; message?: string } | undefined;
+      const errorMessage =
+        typeof err?.message === 'string' ? err.message : typeof error === 'string' ? error : '';
+      const isAlreadyReadable =
+        err?.code === 1 ||
+        err?.code === '1' ||
+        errorMessage.toLowerCase().includes('already browser readable');
+
+      if (isAlreadyReadable) {
+        console.warn(
+          'heic2any: La imagen ya es legible por el navegador. Usando archivo original:',
+          error,
+        );
+        let resolvedType = file.type;
+        if (!resolvedType || resolvedType === 'image/heic' || resolvedType === 'image/heif') {
+          const match = errorMessage.match(/image\/(jpeg|jpg|png|webp|gif)/i);
+          resolvedType = match ? match[0].toLowerCase() : 'image/jpeg';
+        }
+        const ext =
+          StorageService.BROWSER_READABLE_EXTENSIONS[resolvedType.toLowerCase()] || '.jpg';
+        const fallbackName = file.name.replace(/\.(heic|heif)$/i, ext);
+        return new File([file], fallbackName, {
+          type: resolvedType,
+          lastModified: file.lastModified,
+        });
+      }
+
+      console.error('Error al convertir imagen HEIC con heic2any:', error);
+      throw error;
+    }
   }
 
   /**
