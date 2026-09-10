@@ -49,7 +49,12 @@ export class ProductMediaService {
           return throwError(() => err);
         }),
       )
-      .subscribe(onComplete);
+      .subscribe({
+        next: onComplete,
+        error: () => {
+          // Error registrado en consola y notificado con SweetAlert
+        },
+      });
     return progress$;
   }
 
@@ -88,7 +93,12 @@ export class ProductMediaService {
           return throwError(() => err);
         }),
       )
-      .subscribe(onComplete);
+      .subscribe({
+        next: onComplete,
+        error: () => {
+          // Error registrado en consola y notificado con SweetAlert
+        },
+      });
     return progress$;
   }
 
