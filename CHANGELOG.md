@@ -1,5 +1,12 @@
 # Changelog — ecommerce-vertex (storefront)
 
+## [0.9.1] - 2026-09-11
+
+### Fixed
+- Soporte extendido para imágenes HEIC/HEIF y manejo seguro de errores no controlados en subidas a Storage.
+- Corrección de tamaño y espaciado de badge en tiempo real en encabezado móvil de anuncios en el panel admin.
+- Priorización de imagen primaria en la lista de productos del panel de administración.
+
 ## [0.9.0] - 2026-09-09
 
 ### Added
