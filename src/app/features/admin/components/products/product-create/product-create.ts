@@ -399,7 +399,11 @@ export class ProductCreate implements OnInit, AfterViewInit {
       return;
     }
     this.isSubmitting = true;
-    const formValue = this.productForm.value as ProductFormValue;
+    const formValue = this.productForm.getRawValue() as ProductFormValue;
+    const totalStock = (formValue.variants || []).reduce(
+      (sum, v) => sum + (Number(v.stock) || 0),
+      0,
+    );
     try {
       if (this.isEditMode && this.productId) {
         const { toUpdate, toAdd, toDelete } = this.variantFormService.buildEditChanges(
@@ -409,10 +413,6 @@ export class ProductCreate implements OnInit, AfterViewInit {
         );
         const { name, description, price, categoryId, image, images, variantAttributes } =
           formValue;
-        const totalStock = (formValue.variants || []).reduce(
-          (sum, v) => sum + (Number(v.stock) || 0),
-          0,
-        );
         await this.productService.updateProductWithVariants(
           this.productId,
           {

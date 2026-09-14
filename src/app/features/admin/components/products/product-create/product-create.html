@@ -495,7 +495,9 @@
               <button
                 type="submit"
                 class="btn-glass-primary"
-                [disabled]="productForm.invalid || isSubmitting"
+                [disabled]="
+                  productForm.invalid || isSubmitting || (isEditMode && productForm.pristine)
+                "
               >
                 @if (isSubmitting) {
                   <span

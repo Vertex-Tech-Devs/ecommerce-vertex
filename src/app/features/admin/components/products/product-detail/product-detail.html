@@ -69,13 +69,12 @@
                     <span
                       class="badge stock-badge"
                       [ngClass]="{
-                        'bg-success text-white': data.product.totalStock > 10,
-                        'bg-warning text-dark':
-                          data.product.totalStock > 0 && data.product.totalStock <= 10,
-                        'bg-danger text-white': data.product.totalStock === 0,
+                        'bg-success text-white': totalStock() > 10,
+                        'bg-warning text-dark': totalStock() > 0 && totalStock() <= 10,
+                        'bg-danger text-white': totalStock() === 0,
                       }"
                     >
-                      {{ data.product.totalStock }} unidades
+                      {{ totalStock() }} unidades
                     </span>
                   </dd>
                 </div>

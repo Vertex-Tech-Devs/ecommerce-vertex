@@ -1,5 +1,5 @@
 import type { OnInit } from '@angular/core';
-import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import type { Product, ProductVariant } from '@core/models/product.model';
@@ -33,6 +33,25 @@ export class ProductDetail implements OnInit {
   currentPage = signal<number>(1);
   pageSize = 10;
 
+  readonly product = signal<Product | null>(null);
+  readonly variants = signal<ProductVariant[]>([]);
+
+  readonly totalStock = computed<number>(() => {
+    const prod = this.product();
+    const vars = this.variants();
+    const variantStockSum = vars.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+
+    if (typeof prod?.totalStock === 'number' && prod.totalStock > 0) {
+      return prod.totalStock;
+    }
+    if (vars.length > 0) {
+      return variantStockSum;
+    }
+    return typeof prod?.totalStock === 'number' && prod.totalStock >= 0
+      ? prod.totalStock
+      : variantStockSum;
+  });
+
   private sweetAlertService = inject(SweetAlertService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -59,6 +78,8 @@ export class ProductDetail implements OnInit {
                 throw new Error('Producto no encontrado');
               }
               const { product, variants } = data;
+              this.product.set(product);
+              this.variants.set(variants);
               const category = categories.find((c) => c.id === product.categoryId);
 
               const attributeData = product.variantAttributes.map((attrId) => {

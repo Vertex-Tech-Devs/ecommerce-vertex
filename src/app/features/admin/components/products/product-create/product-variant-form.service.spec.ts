@@ -115,6 +115,29 @@ describe('ProductVariantFormService', () => {
     expect(data.createdAt).toBeInstanceOf(Date);
   });
 
+  it('should build product data object and calculate totalStock from variants', () => {
+    const formValue: ProductFormValue = {
+      name: 'Remera',
+      description: 'Descripción',
+      price: 2500,
+      categoryId: 'cat-1',
+      image: 'http://example.com/img.jpg',
+      images: ['http://example.com/img2.jpg'],
+      variantAttributes: ['color'],
+      variants: [
+        { id: 'v1', attributes: { color: 'Rojo' }, stock: 8 },
+        { id: null, attributes: { color: 'Azul' }, stock: 12 },
+      ],
+    };
+
+    const data = service.buildProductData(formValue);
+
+    expect(data.name).toBe('Remera');
+    expect(data.price).toBe(2500);
+    expect(data.totalStock).toBe(20);
+    expect(data.createdAt).toBeInstanceOf(Date);
+  });
+
   it('should sync variant attributes on variants FormGroups', () => {
     const vGroup1 = service.createVariantGroup(['color', 'size']);
     const vGroup2 = service.createVariantGroup(['color', 'material']);
@@ -132,7 +155,7 @@ describe('ProductVariantFormService', () => {
     expect(ag2.get('brand')).toBeTruthy();
   });
 
-  it('should populate edit form with existing product and variants data', () => {
+  it('should populate edit form with existing product and variants data and keep it pristine and untouched', () => {
     const form = service.createProductForm();
     const product: Product = {
       id: 'p1',
@@ -154,5 +177,7 @@ describe('ProductVariantFormService', () => {
     expect((form.get('images') as FormArray).length).toBe(1);
     expect((form.get('variantAttributes') as FormArray).length).toBe(1);
     expect((form.get('variants') as FormArray).length).toBe(1);
+    expect(form.pristine).toBeTrue();
+    expect(form.untouched).toBeTrue();
   });
 });

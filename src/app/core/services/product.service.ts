@@ -177,9 +177,11 @@ export class ProductService {
 
     const explicitTotalStock = (product as Record<string, unknown>)['totalStock'];
     const totalStock =
-      typeof explicitTotalStock === 'number' && explicitTotalStock >= 0
-        ? explicitTotalStock
-        : computedTotalStock;
+      variants.length > 0
+        ? computedTotalStock
+        : typeof explicitTotalStock === 'number' && explicitTotalStock >= 0
+          ? explicitTotalStock
+          : computedTotalStock;
 
     batch.set(newProductRef, {
       ...(product as Record<string, unknown>),
@@ -263,9 +265,11 @@ export class ProductService {
     });
 
     const totalStock =
-      typeof productData.totalStock === 'number' && productData.totalStock >= 0
-        ? productData.totalStock
-        : computedTotalStock;
+      allRemainingVariants.length > 0
+        ? computedTotalStock
+        : typeof productData.totalStock === 'number' && productData.totalStock >= 0
+          ? productData.totalStock
+          : computedTotalStock;
 
     batch.update(productRef, {
       ...productData,
