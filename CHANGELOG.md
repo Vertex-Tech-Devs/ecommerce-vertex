@@ -1,5 +1,11 @@
 # Changelog — ecommerce-vertex (storefront)
 
+## [0.9.2] - 2026-09-14
+
+### Fixed
+- Cálculo consistente y reactivo del stock acumulado total para productos y variantes en detalle (`ProductDetail`) y servicio de formulario (`ProductVariantFormService`).
+- Preservación del estado pristine del formulario en modo edición de producto y deshabilitación del botón de guardar cuando no hay cambios.
+
 ## [0.9.1] - 2026-09-11
 
 ### Fixed
