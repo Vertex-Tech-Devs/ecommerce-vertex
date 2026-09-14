@@ -81,8 +81,27 @@ describe('ProductDetail', () => {
       expect(data.category?.name).toBe('Deportes');
       expect(data.variants.length).toBe(2);
       expect(component.variantAttributes()).toEqual([{ id: 'attr-1', name: 'Talle' }]);
+      expect(component.totalStock()).toBe(20);
       done();
     });
+  });
+
+  it('should calculate totalStock with resilience fallback when product.totalStock is 0 but variants have stock', () => {
+    component.product.set({ ...mockProduct, totalStock: 0 });
+    component.variants.set(mockVariants);
+    expect(component.totalStock()).toBe(20);
+  });
+
+  it('should return product.totalStock when greater than 0', () => {
+    component.product.set({ ...mockProduct, totalStock: 35 });
+    component.variants.set(mockVariants);
+    expect(component.totalStock()).toBe(35);
+  });
+
+  it('should return 0 when both product and variants have 0 stock', () => {
+    component.product.set({ ...mockProduct, totalStock: 0 });
+    component.variants.set([]);
+    expect(component.totalStock()).toBe(0);
   });
 
   it('should return variant attribute value or fallback', () => {

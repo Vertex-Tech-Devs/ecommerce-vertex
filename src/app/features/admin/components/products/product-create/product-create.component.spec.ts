@@ -380,6 +380,21 @@ describe('ProductCreate in Edit Mode', () => {
     expect(component.isEditMode).toBeTrue();
     expect(component.productId).toBe('p1');
     expect(component.pageTitle).toBe('Editar: Remera Azul Edit');
+    expect(component.productForm.pristine).toBeTrue();
+  });
+
+  it('should keep form pristine after loading product for edit and disable save button until dirty', () => {
+    expect(component.productForm.pristine).toBeTrue();
+    const submitBtn: HTMLButtonElement =
+      fixture.nativeElement.querySelector('button[type="submit"]');
+    expect(submitBtn.disabled).toBeTrue();
+
+    component.productForm.patchValue({ name: 'Nombre Modificado' });
+    component.productForm.markAsDirty();
+    fixture.detectChanges();
+
+    expect(component.productForm.pristine).toBeFalse();
+    expect(submitBtn.disabled).toBeFalse();
   });
 
   it('should update product on submit in edit mode', fakeAsync(() => {

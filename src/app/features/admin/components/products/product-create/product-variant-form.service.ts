@@ -96,6 +96,10 @@ export class ProductVariantFormService {
   }
 
   buildProductData(formValue: ProductFormValue): WithFieldValue<Omit<Product, 'id'>> {
+    const totalStock = (formValue.variants ?? []).reduce(
+      (sum, v) => sum + (Number(v.stock) || 0),
+      0,
+    );
     return {
       name: formValue.name,
       description: formValue.description,
@@ -105,7 +109,7 @@ export class ProductVariantFormService {
       images: formValue.images ?? [],
       variantAttributes: formValue.variantAttributes ?? [],
       createdAt: new Date(),
-      totalStock: 0,
+      totalStock,
       inStockAttributes: {},
     };
   }
@@ -126,23 +130,28 @@ export class ProductVariantFormService {
   }
 
   populateEditForm(form: FormGroup, product: Product, variants: ProductVariant[]): void {
-    form.patchValue({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      categoryId: product.categoryId,
-      image: product.image,
-    });
+    form.patchValue(
+      {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        categoryId: product.categoryId,
+        image: product.image,
+      },
+      { emitEvent: false },
+    );
     const imgControls = (product.images ?? []).map((img) =>
       this.fb.control(img, [Validators.required, Validators.pattern('https?://.+')]),
     );
-    form.setControl('images', this.fb.array(imgControls));
+    form.setControl('images', this.fb.array(imgControls), { emitEvent: false });
     const attrControls = (product.variantAttributes ?? []).map((attrId) => this.fb.control(attrId));
     form.setControl('variantAttributes', this.fb.array(attrControls), { emitEvent: false });
     const vControls = variants.map((v) =>
       this.createVariantGroup(product.variantAttributes ?? [], v),
     );
     form.setControl('variants', this.fb.array(vControls), { emitEvent: false });
-    form.updateValueAndValidity();
+    form.updateValueAndValidity({ emitEvent: false });
+    form.markAsPristine();
+    form.markAsUntouched();
   }
 }
