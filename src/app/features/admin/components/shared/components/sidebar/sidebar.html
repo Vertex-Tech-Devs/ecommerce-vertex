@@ -5,7 +5,7 @@
   aria-label="Navegación principal del administrador"
 >
   <div class="sidebar__nav">
-    @for (section of navSections; track section.id) {
+    @for (section of visibleNavSections(); track section.id) {
       <div class="nav-section">
         @if (section.collapsible) {
           <button

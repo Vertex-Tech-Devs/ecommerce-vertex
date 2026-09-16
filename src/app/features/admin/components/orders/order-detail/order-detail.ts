@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { SumItemsPipe } from '../../shared/pipes/sum-items/sum-items.pipe';
 import { ReceiptModal } from '../receipt-modal/receipt-modal';
 
+import { AuthService } from '@core/services/auth.service';
+
 @Component({
   selector: 'app-order-details',
   standalone: true,
@@ -31,6 +33,9 @@ export class OrderDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orderService = inject(OrderService);
+  private authService = inject(AuthService);
+
+  readonly isStaff = this.authService.isStaff;
 
   showReceipt = false;
   receiptOrder: Order | undefined;

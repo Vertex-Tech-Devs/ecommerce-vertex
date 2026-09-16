@@ -14,6 +14,7 @@ import { combineLatest, map, catchError, of } from 'rxjs';
 import { ProductService } from '@core/services/product.service';
 import { OrderService } from '@core/services/order.service';
 import { ClientService } from '@core/services/client.service';
+import { AuthService } from '@core/services/auth.service';
 import type { Order } from '@core/models/order.model';
 import type { Product } from '@core/models/product.model';
 import type { Client } from '@core/models/client.model';
@@ -30,6 +31,9 @@ export class Dashboard implements OnInit {
   private productService = inject(ProductService);
   private orderService = inject(OrderService);
   private clientService = inject(ClientService);
+  private authService = inject(AuthService);
+
+  readonly isStaff = this.authService.isStaff;
 
   activeTab = signal<'orders' | 'clients' | 'products'>('orders');
   screenWidth = signal<number>(window.innerWidth);

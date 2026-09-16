@@ -6,6 +6,7 @@ import { Dashboard } from './dashboard';
 import { ProductService } from '@core/services/product.service';
 import { OrderService } from '@core/services/order.service';
 import { ClientService } from '@core/services/client.service';
+import { AuthService } from '@core/services/auth.service';
 import type { Order } from '@core/models/order.model';
 import type { Product } from '@core/models/product.model';
 import type { Client } from '@core/models/client.model';
@@ -58,6 +59,14 @@ describe('Dashboard', () => {
       imports: [Dashboard],
       providers: [
         provideRouter([]),
+        {
+          provide: AuthService,
+          useValue: {
+            isAdmin$: of(true),
+            isStaff$: of(false),
+            isStaff: () => false,
+          },
+        },
         { provide: ProductService, useValue: productServiceSpy },
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: ClientService, useValue: clientServiceSpy },

@@ -3,8 +3,10 @@ import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, NavigationStart, provideRouter, Router, RouterLink } from '@angular/router';
 import type { Subject } from 'rxjs';
+import { of } from 'rxjs';
 import { Sidebar } from './sidebar';
 import type { NavSection } from './sidebar';
+import { AuthService } from '@core/services/auth.service';
 
 interface SidebarInternal {
   handleFocusOnCollapse(sectionId: string): void;
@@ -25,6 +27,14 @@ describe('Sidebar', () => {
     await TestBed.configureTestingModule({
       imports: [Sidebar],
       providers: [
+        {
+          provide: AuthService,
+          useValue: {
+            isAdmin$: of(true),
+            isStaff$: of(false),
+            isStaff: () => false,
+          },
+        },
         provideRouter([
           { path: 'admin/dashboard', component: Sidebar },
           { path: 'admin/orders', component: Sidebar },

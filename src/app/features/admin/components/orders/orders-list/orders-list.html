@@ -81,7 +81,9 @@
                   <th scope="col">Cliente</th>
                   <th scope="col">Fecha</th>
                   <th scope="col" class="text-center">Método Entrega</th>
-                  <th scope="col" class="text-end">Total</th>
+                  @if (!isStaff()) {
+                    <th scope="col" class="text-end">Total</th>
+                  }
                   <th scope="col" class="text-center">Estado</th>
                   <th scope="col" class="text-end">Acciones</th>
                 </tr>
@@ -99,9 +101,11 @@
                     <td data-label="Entrega" class="text-center">
                       <div class="skeleton-box skeleton-box--status mx-auto"></div>
                     </td>
-                    <td data-label="Total" class="text-end">
-                      <div class="skeleton-box skeleton-box--total ms-auto"></div>
-                    </td>
+                    @if (!isStaff()) {
+                      <td data-label="Total" class="text-end">
+                        <div class="skeleton-box skeleton-box--total ms-auto"></div>
+                      </td>
+                    }
                     <td data-label="Estado" class="text-center">
                       <div class="skeleton-box skeleton-box--status mx-auto"></div>
                     </td>
@@ -151,7 +155,9 @@
                     <th scope="col">Cliente</th>
                     <th scope="col">Fecha</th>
                     <th scope="col" class="text-center">Método Entrega</th>
-                    <th scope="col" class="text-end">Total</th>
+                    @if (!isStaff()) {
+                      <th scope="col" class="text-end">Total</th>
+                    }
                     <th scope="col" class="text-center">Estado</th>
                     <th scope="col" class="text-end">Acciones</th>
                   </tr>
@@ -175,9 +181,11 @@
                           <span>{{ badge.label }}</span>
                         </span>
                       </td>
-                      <td data-label="Total" class="order-total text-end fw-bold">
-                        {{ order.total | currency: 'ARS' : '$' }}
-                      </td>
+                      @if (!isStaff()) {
+                        <td data-label="Total" class="order-total text-end fw-bold">
+                          {{ order.total | currency: 'ARS' : '$' }}
+                        </td>
+                      }
                       <td data-label="Estado" class="text-center order-status">
                         <span
                           class="badge glass-badge"

@@ -1,11 +1,13 @@
 import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 import * as logger from 'firebase-functions/logger';
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import { COLLECTIONS, collectionPath, singletonDoc } from './core/config';
 
 const db = getFirestore();
+const auth = getAuth();
 
-type StaffRole = 'admin' | 'owner';
+type StaffRole = 'admin' | 'owner' | 'staff';
 
 interface StaffMember {
   email: string;
@@ -34,7 +36,9 @@ function formatTimestamp(value: unknown): string | undefined {
 }
 
 function roleLabel(role: StaffRole): string {
-  return role === 'admin' ? 'Store Admin' : role;
+  if (role === 'admin') return 'Store Admin';
+  if (role === 'staff') return 'Operador / Staff';
+  return role;
 }
 
 // Escapa valores interpolados en plantillas HTML para prevenir inyección de HTML
@@ -108,7 +112,7 @@ export const getAdminStaff = onCall({ cors: true, invoker: 'public' }, async (re
     const role = String(data['role'] || '')
       .trim()
       .toLowerCase();
-    if (role !== 'admin' && role !== 'owner') {
+    if (role !== 'admin' && role !== 'owner' && role !== 'staff') {
       return null;
     }
 
@@ -150,8 +154,8 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
     throw new HttpsError('invalid-argument', 'A valid email is required.');
   }
 
-  if (role !== 'admin' && role !== 'owner') {
-    throw new HttpsError('invalid-argument', 'Only owner or admin roles are supported.');
+  if (role !== 'admin' && role !== 'owner' && role !== 'staff') {
+    throw new HttpsError('invalid-argument', 'Only owner, admin, or staff roles are supported.');
   }
 
   const tenantId = resolveTenantId(request);
@@ -171,6 +175,23 @@ export const upsertAdminStaff = onCall({ cors: true, invoker: 'public' }, async 
     },
     { merge: true },
   );
+
+  // Asignar inmediatamente los custom claims si el usuario ya existe en Auth
+  try {
+    const userRecord = await auth.getUserByEmail(email);
+    if (userRecord?.uid) {
+      await auth.setCustomUserClaims(userRecord.uid, {
+        admin: true,
+        tenantId,
+        role,
+      });
+      logger.info(`[upsertAdminStaff] Claims set for ${email}: tenantId=${tenantId}, role=${role}`);
+    }
+  } catch (err: any) {
+    if (err.code !== 'auth/user-not-found') {
+      logger.warn(`[upsertAdminStaff] Could not set claims immediately for ${email}:`, err);
+    }
+  }
 
   const storeConfig = await db.doc(singletonDoc(tenantId, 'configuracion', 'store')).get();
   const storeName =

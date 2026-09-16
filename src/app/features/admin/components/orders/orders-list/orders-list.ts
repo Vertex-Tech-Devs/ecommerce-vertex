@@ -17,6 +17,7 @@ import { BehaviorSubject, combineLatest, from, of } from 'rxjs';
 import { map, debounceTime, distinctUntilChanged, catchError } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { AuthService } from '@core/services/auth.service';
 import { AdminSearchBar } from '@shared/components/admin-search-bar/admin-search-bar';
 import { AdminPagination } from '@shared/components/admin-pagination/admin-pagination';
 
@@ -41,8 +42,11 @@ export class OrdersList implements OnInit {
   private _orderService = inject(OrderService);
   private _router = inject(Router);
   private _sweetAlertService = inject(SweetAlertService);
+  private _authService = inject(AuthService);
   private destroyRef = inject(DestroyRef);
   private injector = inject(Injector);
+
+  readonly isStaff = this._authService.isStaff;
 
   currentPageSubject = new BehaviorSubject<number>(1);
   itemsPerPageSubject = new BehaviorSubject<number>(10);
