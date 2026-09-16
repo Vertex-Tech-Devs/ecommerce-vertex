@@ -1,7 +1,7 @@
-<section class="about-us-wrapper" aria-label="Gestión de página nosotros">
+<section class="about-us-wrapper" aria-label="Gestión de sección 'Nosotros'">
   <div class="container-fluid my-4">
     <header class="dashboard__header text-center mb-5">
-      <h1 class="dashboard__title">Gestión de Página "Nosotros"</h1>
+      <h1 class="dashboard__title">Gestión de Sección 'Nosotros'</h1>
       <hr />
     </header>
 
@@ -55,17 +55,21 @@
                     id="bannerTitle"
                     class="form-control glass-input"
                     formControlName="bannerTitle"
+                    maxlength="120"
                     [class.is-invalid]="
                       aboutUsForm.get('bannerTitle')?.invalid &&
                       aboutUsForm.get('bannerTitle')?.touched
                     "
                   />
+                  <div class="form-text mt-1 text-soft small">Opcional</div>
                   @if (
                     aboutUsForm.get('bannerTitle')?.invalid &&
                     aboutUsForm.get('bannerTitle')?.touched
                   ) {
                     <div class="invalid-feedback d-block mt-2">
-                      El título del banner es obligatorio.
+                      @if (aboutUsForm.get('bannerTitle')?.errors?.['maxlength']) {
+                        <span>No debe exceder los 120 caracteres.</span>
+                      }
                     </div>
                   }
                 </div>
@@ -299,7 +303,7 @@
               <button
                 type="button"
                 class="btn-glass-action btn-add-success btn-sm-icon m-0"
-                (click)="$event.stopPropagation(); addFeatureCard()"
+                (click)="$event.stopPropagation(); addFeatureCard(undefined, true)"
                 [disabled]="featureCards.length >= 3"
               >
                 <i class="bi bi-plus-lg" aria-hidden="true"></i

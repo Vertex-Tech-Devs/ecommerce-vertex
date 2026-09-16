@@ -182,7 +182,7 @@ describe('AboutUsManagement', () => {
   }));
 
   it('should show error on submit if form is invalid', () => {
-    component.aboutUsForm.patchValue({ bannerTitle: '' });
+    component.aboutUsForm.patchValue({ centralTitle: '' });
     component.onSubmit();
 
     expect(sweetAlertServiceSpy.error).toHaveBeenCalledWith(
@@ -190,6 +190,33 @@ describe('AboutUsManagement', () => {
       jasmine.any(String),
     );
   });
+
+  it('should allow bannerTitle to be empty (optional)', () => {
+    component.aboutUsForm.patchValue({ bannerTitle: '' });
+    expect(component.aboutUsForm.get('bannerTitle')?.valid).toBeTrue();
+    expect(component.aboutUsForm.valid).toBeTrue();
+  });
+
+  it('should invalidate bannerTitle when exceeding 120 characters', () => {
+    component.aboutUsForm.patchValue({ bannerTitle: 'a'.repeat(121) });
+    expect(component.aboutUsForm.get('bannerTitle')?.invalid).toBeTrue();
+    expect(component.aboutUsForm.get('bannerTitle')?.errors?.['maxlength']).toBeTruthy();
+  });
+
+  it('should focus newly added card title when autofocus is enabled', fakeAsync(() => {
+    const focusSpy = jasmine.createSpy('focus');
+    spyOn(document, 'getElementById').and.callFake((id: string) => {
+      if (id === 'cardTitle2') {
+        return { focus: focusSpy } as unknown as HTMLElement;
+      }
+      return null;
+    });
+
+    component.addFeatureCard(undefined, true);
+    tick(60);
+
+    expect(focusSpy).toHaveBeenCalled();
+  }));
 
   it('should handle error when saveAboutUsData fails', fakeAsync(() => {
     aboutUsServiceSpy.saveAboutUsData.and.returnValue(Promise.reject(new Error('Save error')));
