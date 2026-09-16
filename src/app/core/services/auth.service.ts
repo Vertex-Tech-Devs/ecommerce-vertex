@@ -1,4 +1,5 @@
-import { inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
+import { computed, inject, Injectable, Injector, runInInjectionContext } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import type { User, UserCredential } from '@angular/fire/auth';
 import {
@@ -86,6 +87,37 @@ export class AuthService {
       return false;
     }),
   );
+
+  userRole$: Observable<'owner' | 'admin' | 'staff' | null> = this.currentUser$.pipe(
+    switchMap((currentUser) => {
+      if (!currentUser) {
+        return of(null);
+      }
+      return from(currentUser.getIdTokenResult());
+    }),
+    map((tokenResult) => {
+      if (tokenResult && typeof tokenResult === 'object') {
+        const email = ((tokenResult.claims['email'] as string) || '').toLowerCase();
+        if (
+          tokenResult.claims['superAdmin'] === true ||
+          tokenResult.claims['platformAdmin'] === true ||
+          PLATFORM_DEV_EMAILS.includes(email)
+        ) {
+          return 'owner';
+        }
+        const role = String(tokenResult.claims['role'] ?? '').toLowerCase();
+        if (role === 'owner' || role === 'admin' || role === 'staff') {
+          return role as 'owner' | 'admin' | 'staff';
+        }
+      }
+      return null;
+    }),
+  );
+
+  readonly userRole = toSignal(this.userRole$, { initialValue: null });
+  readonly isStaff = computed(() => this.userRole() === 'staff');
+
+  isStaff$: Observable<boolean> = this.userRole$.pipe(map((role) => role === 'staff'));
 
   isOwner$: Observable<boolean> = this.currentUser$.pipe(
     switchMap((currentUser) => {

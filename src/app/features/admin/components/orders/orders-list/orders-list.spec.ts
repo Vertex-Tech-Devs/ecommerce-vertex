@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { OrdersList } from './orders-list';
 import { OrderService } from '@core/services/order.service';
 import { SweetAlertService } from '@core/services/sweet-alert.service';
+import { AuthService } from '@core/services/auth.service';
 import type { Order } from '@core/models/order.model';
 
 describe('OrdersList', () => {
@@ -115,6 +116,14 @@ describe('OrdersList', () => {
         provideRouter([]),
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: SweetAlertService, useValue: sweetAlertServiceSpy },
+        {
+          provide: AuthService,
+          useValue: {
+            isAdmin$: of(true),
+            isStaff$: of(false),
+            isStaff: () => false,
+          },
+        },
       ],
     }).compileComponents();
 

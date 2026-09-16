@@ -9,7 +9,7 @@ import { COLLECTIONS } from './core/config';
 
 const auth = getAuth();
 const db = getFirestore();
-const AUTHORIZED_ROLES = new Set(['admin', 'owner']);
+const AUTHORIZED_ROLES = new Set(['admin', 'owner', 'staff']);
 
 const DEFAULT_DEV_EMAILS = [
   'juan.l.espeche@gmail.com',

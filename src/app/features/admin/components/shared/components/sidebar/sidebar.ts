@@ -1,8 +1,9 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, Output, EventEmitter, Input, inject, signal } from '@angular/core';
+import { Component, Output, EventEmitter, Input, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { filter } from 'rxjs';
+import { AuthService } from '@core/services/auth.service';
 
 export interface NavItem {
   readonly label: string;
@@ -31,6 +32,9 @@ export class Sidebar {
 
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
+  private readonly authService = inject(AuthService);
+
+  readonly isStaff = this.authService.isStaff;
 
   readonly activeExpandedSectionId = signal<string | null>(null);
 
@@ -130,6 +134,13 @@ export class Sidebar {
       ],
     },
   ];
+
+  readonly visibleNavSections = computed(() => {
+    if (this.isStaff()) {
+      return this.navSections.filter((section) => section.id !== 'config');
+    }
+    return this.navSections;
+  });
 
   constructor() {
     this.checkAndExpandActiveSection(this.router.url);

@@ -30,6 +30,8 @@ describe('Admin', () => {
     const authServiceSpy = jasmine.createSpyObj('AuthService', ['logout'], {
       currentUser$: of(null),
       isAdmin$: of(true),
+      isStaff$: of(false),
+      isStaff: signal(false),
     });
     const authSpy = jasmine.createSpyObj('Auth', ['type']);
 

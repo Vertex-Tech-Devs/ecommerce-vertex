@@ -7,6 +7,7 @@ import { BehaviorSubject, of } from 'rxjs';
 import { OrderDetail } from './order-detail';
 import { OrderService } from '@core/services/order.service';
 import { StoreConfigService } from '@core/services/store-config.service';
+import { AuthService } from '@core/services/auth.service';
 import type { Order, OrderItem } from '@core/models/order.model';
 import type { StoreConfig } from '@core/models/store-config.model';
 
@@ -119,6 +120,14 @@ describe('OrderDetail', () => {
       providers: [
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: StoreConfigService, useValue: storeConfigServiceSpy },
+        {
+          provide: AuthService,
+          useValue: {
+            isAdmin$: of(true),
+            isStaff$: of(false),
+            isStaff: () => false,
+          },
+        },
         {
           provide: ActivatedRoute,
           useValue: {

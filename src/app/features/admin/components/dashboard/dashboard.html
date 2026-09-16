@@ -11,15 +11,17 @@
         @if ({ monthly: monthlyMetrics$ | async, global: globalMetrics$ | async }; as metrics) {
           @if (metrics.monthly && metrics.global) {
             <div class="dashboard__summary-grid">
-              <div class="summary-card card-sales">
-                <div class="summary-card__icon"><i class="bi bi-currency-dollar"></i></div>
-                <div class="summary-card__content">
-                  <span class="summary-card__label">Ventas Mes</span>
-                  <h3 class="summary-card__value">
-                    {{ metrics.monthly.sales | currency: 'ARS' : '$' : '1.0-0' }}
-                  </h3>
+              @if (!isStaff()) {
+                <div class="summary-card card-sales">
+                  <div class="summary-card__icon"><i class="bi bi-currency-dollar"></i></div>
+                  <div class="summary-card__content">
+                    <span class="summary-card__label">Ventas Mes</span>
+                    <h3 class="summary-card__value">
+                      {{ metrics.monthly.sales | currency: 'ARS' : '$' : '1.0-0' }}
+                    </h3>
+                  </div>
                 </div>
-              </div>
+              }
               <div class="summary-card card-orders">
                 <div class="summary-card__icon"><i class="bi bi-cart-check"></i></div>
                 <div class="summary-card__content">
@@ -34,15 +36,17 @@
                   <h3 class="summary-card__value">{{ metrics.monthly.newClients }}</h3>
                 </div>
               </div>
-              <div class="summary-card card-total-sales">
-                <div class="summary-card__icon"><i class="bi bi-graph-up-arrow"></i></div>
-                <div class="summary-card__content">
-                  <span class="summary-card__label">Total Ventas</span>
-                  <h3 class="summary-card__value">
-                    {{ metrics.global.totalSales | currency: 'ARS' : '$' : '1.0-0' }}
-                  </h3>
+              @if (!isStaff()) {
+                <div class="summary-card card-total-sales">
+                  <div class="summary-card__icon"><i class="bi bi-graph-up-arrow"></i></div>
+                  <div class="summary-card__content">
+                    <span class="summary-card__label">Total Ventas</span>
+                    <h3 class="summary-card__value">
+                      {{ metrics.global.totalSales | currency: 'ARS' : '$' : '1.0-0' }}
+                    </h3>
+                  </div>
                 </div>
-              </div>
+              }
               <div class="summary-card card-total-orders">
                 <div class="summary-card__icon"><i class="bi bi-clipboard-data"></i></div>
                 <div class="summary-card__content">
@@ -233,10 +237,12 @@
                       <li class="list-group-item bg-transparent">
                         <div class="item-content text-truncate">
                           <span class="fw-bold">{{ order.clientName }}</span>
-                          <small class="text-muted"
-                            >{{ order.total | currency: 'ARS' : '$' : '1.0-0' }} -
-                            {{ order.orderDate | date: 'short' }}</small
-                          >
+                          <small class="text-muted">
+                            @if (!isStaff()) {
+                              {{ order.total | currency: 'ARS' : '$' : '1.0-0' }} -
+                            }
+                            {{ order.orderDate | date: 'short' }}
+                          </small>
                         </div>
                         <a
                           [routerLink]="['/admin/orders', order.id]"

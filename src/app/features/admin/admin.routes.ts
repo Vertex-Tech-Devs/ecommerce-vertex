@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 import { Admin } from './admin';
 import { DevGuard } from '@core/guards/dev.guard';
+import { NonStaffGuard } from '@core/guards/non-staff.guard';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -104,12 +105,14 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'email-management',
         title: 'Gestión de Emails',
+        canActivate: [NonStaffGuard],
         loadComponent: () =>
           import('./components/email-management/email-management').then((m) => m.EmailManagement),
       },
       {
         path: 'delivery',
         title: 'Sucursales & Entregas',
+        canActivate: [NonStaffGuard],
         loadComponent: () => import('./components/delivery/delivery').then((m) => m.Delivery),
       },
       {
@@ -123,6 +126,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'store-config',
         title: 'Configuración',
+        canActivate: [NonStaffGuard],
         loadComponent: () =>
           import('./components/store-config/store-config').then((m) => m.StoreConfig),
       },
