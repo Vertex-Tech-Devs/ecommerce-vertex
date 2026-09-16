@@ -232,16 +232,18 @@ describe('Catalog', () => {
 
       expect(component.totalPages).toBe(3);
       expect(component.currentPage).toBe(1);
-      expect(component.pages).toEqual([1, 2, 3]);
+      expect(component.pages()).toEqual([1, 2, 3]);
     });
 
-    it('should navigate to valid page via goToPage()', () => {
+    it('should navigate to valid page via goToPage() and scroll to top', () => {
+      const scrollToSpy = spyOn(window, 'scrollTo');
       const products = Array.from({ length: 25 }, (_, i) => makeProduct({ id: `p${i}` }));
       component.allProducts.set(products);
       component.itemsPerPage.set(10);
 
       component.goToPage(2);
       expect(component.page()).toBe(2);
+      expect(scrollToSpy as jasmine.Spy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
       component.goToPage(0); // Out of bounds lower
       expect(component.page()).toBe(2);
@@ -272,6 +274,19 @@ describe('Catalog', () => {
       expect(component.searchTerm()).toBe('');
       expect(component.page()).toBe(1);
       expect(component.hasActiveFilters).toBeFalse();
+    });
+
+    it('should render empty state button and call clearFilters when clicked', () => {
+      component.allProducts.set([]);
+      fixture.detectChanges();
+
+      const emptyBtn = fixture.nativeElement.querySelector('.catalog__empty-btn');
+      expect(emptyBtn).toBeTruthy();
+      expect(emptyBtn.textContent.trim()).toBe('Limpiar filtros');
+
+      spyOn(component, 'clearFilters');
+      emptyBtn.click();
+      expect(component.clearFilters).toHaveBeenCalled();
     });
   });
 

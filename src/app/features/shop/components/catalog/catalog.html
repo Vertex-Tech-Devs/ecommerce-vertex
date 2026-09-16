@@ -36,31 +36,29 @@
 
         <div class="filter-group">
           <h5 class="filter-group__title">Categorías</h5>
-          @if (categories$ | async; as categories) {
+          <div class="filter-check">
+            <input
+              class="filter-check__input"
+              type="radio"
+              name="category"
+              id="cat-all"
+              value="all"
+              formControlName="category"
+            />
+            <label class="filter-check__label" for="cat-all">Todas</label>
+          </div>
+          @for (cat of categoriesSignal(); track cat.id) {
             <div class="filter-check">
               <input
                 class="filter-check__input"
                 type="radio"
                 name="category"
-                id="cat-all"
-                value="all"
+                [id]="'cat-' + cat.id"
+                [value]="cat.id"
                 formControlName="category"
               />
-              <label class="filter-check__label" for="cat-all">Todas</label>
+              <label class="filter-check__label" [for]="'cat-' + cat.id">{{ cat.name }}</label>
             </div>
-            @for (cat of categories; track cat.id) {
-              <div class="filter-check">
-                <input
-                  class="filter-check__input"
-                  type="radio"
-                  name="category"
-                  [id]="'cat-' + cat.id"
-                  [value]="cat.id"
-                  formControlName="category"
-                />
-                <label class="filter-check__label" [for]="'cat-' + cat.id">{{ cat.name }}</label>
-              </div>
-            }
           }
         </div>
 
@@ -152,69 +150,70 @@
           }
           <span class="visually-hidden">Cargando productos...</span>
         </div>
-      } @else if (paginatedProducts$ | async; as products) {
-        @if (products.length > 0) {
-          <div class="product-grid">
-            @for (product of products; track product.id) {
-              <a [routerLink]="['/product', product.id]" class="product-card">
-                <div class="product-card__image-wrap">
-                  <img
-                    [src]="product.image"
-                    [alt]="product.name"
-                    class="product-card__image"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="product-card__body">
-                  <h3 class="product-card__name">{{ product.name }}</h3>
-                  <p class="product-card__price">{{ product.price | currency: 'ARS' : '$' }}</p>
-                </div>
-              </a>
-            }
-          </div>
+      } @else {
+        <div class="product-grid">
+          @for (product of paginatedProductsSignal(); track product.id) {
+            <a [routerLink]="['/product', product.id]" class="product-card">
+              <div class="product-card__image-wrap">
+                <img
+                  [src]="product.image"
+                  [alt]="product.name"
+                  class="product-card__image"
+                  loading="lazy"
+                />
+              </div>
+              <div class="product-card__body">
+                <h3 class="product-card__name">{{ product.name }}</h3>
+                <p class="product-card__price">{{ product.price | currency: 'ARS' : '$' }}</p>
+              </div>
+            </a>
+          } @empty {
+            <div class="catalog__empty" role="status">
+              <i class="bi bi-search" aria-hidden="true"></i>
+              <p>No se encontraron productos con los filtros seleccionados.</p>
+              <button type="button" class="catalog__empty-btn" (click)="clearFilters()">
+                Limpiar filtros
+              </button>
+            </div>
+          }
+        </div>
 
-          @if (totalPages > 1) {
-            <nav class="pagination" aria-label="Paginación de productos">
-              <ul class="pagination__list">
-                <li class="pagination__item" [class.pagination__item--disabled]="currentPage === 1">
-                  <a
-                    class="pagination__link"
-                    (click)="goToPage(currentPage - 1); $event.preventDefault()"
-                    aria-label="Anterior"
-                  >
-                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                  </a>
-                </li>
-                @for (page of pages; track page) {
-                  <li
-                    class="pagination__item"
-                    [class.pagination__item--active]="currentPage === page"
-                  >
-                    <a class="pagination__link" (click)="goToPage(page); $event.preventDefault()">{{
-                      page
-                    }}</a>
-                  </li>
-                }
+        @if (totalPages > 1) {
+          <nav class="pagination" aria-label="Paginación de productos">
+            <ul class="pagination__list">
+              <li class="pagination__item" [class.pagination__item--disabled]="currentPage === 1">
+                <a
+                  class="pagination__link"
+                  (click)="goToPage(currentPage - 1); $event.preventDefault()"
+                  aria-label="Anterior"
+                >
+                  <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </a>
+              </li>
+              @for (page of pages(); track page) {
                 <li
                   class="pagination__item"
-                  [class.pagination__item--disabled]="currentPage === totalPages"
+                  [class.pagination__item--active]="currentPage === page"
                 >
-                  <a
-                    class="pagination__link"
-                    (click)="goToPage(currentPage + 1); $event.preventDefault()"
-                    aria-label="Siguiente"
-                  >
-                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                  </a>
+                  <a class="pagination__link" (click)="goToPage(page); $event.preventDefault()">{{
+                    page
+                  }}</a>
                 </li>
-              </ul>
-            </nav>
-          }
-        } @else {
-          <div class="catalog__empty" role="status">
-            <i class="bi bi-search" aria-hidden="true"></i>
-            <p>No se encontraron productos con los filtros seleccionados.</p>
-          </div>
+              }
+              <li
+                class="pagination__item"
+                [class.pagination__item--disabled]="currentPage === totalPages"
+              >
+                <a
+                  class="pagination__link"
+                  (click)="goToPage(currentPage + 1); $event.preventDefault()"
+                  aria-label="Siguiente"
+                >
+                  <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
         }
       }
     </main>

@@ -141,10 +141,29 @@
 .filter-check {
   padding-left: 0;
   margin-bottom: var(--space-3);
+  position: relative;
 }
 
 .filter-check__input {
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+  pointer-events: none;
+
+  &:focus-visible + .filter-check__label {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  &:focus-visible + .filter-check__label::before {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .filter-check__label {
@@ -381,7 +400,7 @@
 
 .product-card__image-wrap {
   width: 100%;
-  height: 280px;
+  aspect-ratio: 1 / 1;
   padding: var(--space-4);
   background: #fafafa;
   overflow: hidden;
@@ -393,7 +412,7 @@
 .product-card__image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -408,9 +427,12 @@
   font-size: 0.9rem;
   font-weight: 600;
   margin: 0 0 var(--space-1);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  min-height: 2.6em;
+  line-height: 1.3;
 }
 
 .product-card__price {
@@ -485,6 +507,7 @@
 // STATES
 // ============================================
 .catalog__empty {
+  grid-column: 1 / -1;
   text-align: center;
   padding: var(--space-16) var(--space-6);
   color: var(--text-muted);
@@ -497,7 +520,24 @@
 
   p {
     font-size: 1rem;
-    margin: 0;
+    margin: 0 0 var(--space-4);
+  }
+
+  .catalog__empty-btn {
+    padding: var(--space-3) var(--space-6);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    background: var(--text-primary);
+    color: #fff;
+    border: 1px solid var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
   }
 }
 
@@ -620,7 +660,10 @@
   pointer-events: none;
 
   .product-card__image-wrap {
-    height: 220px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    object-fit: cover;
   }
 
   .skeleton-box--title {
