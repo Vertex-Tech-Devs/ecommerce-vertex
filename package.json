@@ -75,7 +75,7 @@
     "@typescript-eslint/eslint-plugin": "^8.70.0",
     "@typescript-eslint/parser": "^8.61.1",
     "cypress": "^15.21.1",
-    "eslint": "^10.5.0",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "firebase-tools": "^15.30.0",
     "http-proxy-agent": "^9.1.0",
