@@ -1,65 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Title, Meta } from '@angular/platform-browser';
-import { Injectable, inject } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
-export class SeoService {
-  private titleService = inject(Title);
-  private metaService = inject(Meta);
-
-  setTitle(title: string): void {
-    this.titleService.setTitle(title);
-  }
-
-  setMetaDescription(description: string): void {
-    this.metaService.updateTag({ name: 'description', content: description });
-  }
-
-  setOpenGraphTags(options: {
-    title?: string;
-    description?: string;
-    image?: string;
-    url?: string;
-  }): void {
-    if (options.title) {
-      this.metaService.updateTag({ property: 'og:title', content: options.title });
-    }
-    if (options.description) {
-      this.metaService.updateTag({ property: 'og:description', content: options.description });
-    }
-    if (options.image) {
-      this.metaService.updateTag({ property: 'og:image', content: options.image });
-    }
-    if (options.url) {
-      this.metaService.updateTag({ property: 'og:url', content: options.url });
-    }
-  }
-
-  setTwitterTags(options: {
-    card?: string;
-    title?: string;
-    description?: string;
-    image?: string;
-  }): void {
-    if (options.card) {
-      this.metaService.updateTag({ name: 'twitter:card', content: options.card });
-    }
-    if (options.title) {
-      this.metaService.updateTag({ name: 'twitter:title', content: options.title });
-    }
-    if (options.description) {
-      this.metaService.updateTag({ name: 'twitter:description', content: options.description });
-    }
-    if (options.image) {
-      this.metaService.updateTag({ name: 'twitter:image', content: options.image });
-    }
-  }
-
-  resetDefaults(): void {
-    this.setTitle('Vertex Store');
-    this.setMetaDescription('Tienda online oficial');
-  }
-}
+import { SeoService } from './seo.service';
 
 describe('SeoService', () => {
   let service: SeoService;
@@ -100,6 +42,7 @@ describe('SeoService', () => {
       description: 'OG Desc',
       image: 'http://img.jpg',
       url: 'http://store.com',
+      type: 'website',
     });
 
     expect(metaSpy.updateTag).toHaveBeenCalledWith({ property: 'og:title', content: 'OG Title' });
@@ -114,6 +57,10 @@ describe('SeoService', () => {
     expect(metaSpy.updateTag).toHaveBeenCalledWith({
       property: 'og:url',
       content: 'http://store.com',
+    });
+    expect(metaSpy.updateTag).toHaveBeenCalledWith({
+      property: 'og:type',
+      content: 'website',
     });
   });
 
