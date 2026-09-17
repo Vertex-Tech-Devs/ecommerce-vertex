@@ -66,7 +66,7 @@ export class AboutUsManagement implements OnInit {
   private buildForm(data: AboutUsData | null = null): void {
     const d = data ?? ({} as Partial<AboutUsData>);
     this.aboutUsForm = this.fb.group({
-      bannerTitle: [d.bannerTitle ?? '', Validators.required],
+      bannerTitle: [d.bannerTitle ?? '', [Validators.maxLength(120)]],
       bannerSubtitle: [d.bannerSubtitle ?? ''],
       bannerImageUrl: [d.bannerImageUrl ?? '', [Validators.pattern('https?://.+')]],
       centralTitle: [d.centralTitle ?? '', Validators.required],
@@ -139,12 +139,19 @@ export class AboutUsManagement implements OnInit {
     }
   }
 
-  addFeatureCard(cardData?: AboutUsFeatureCard): void {
+  addFeatureCard(cardData?: AboutUsFeatureCard, autoFocus = false): void {
     if (this.featureCards.length >= 3) {
       return;
     }
     const cardGroup = this.createFeatureCardGroup(cardData ?? null);
     this.featureCards.push(cardGroup);
+    if (autoFocus) {
+      const newIndex = this.featureCards.length - 1;
+      setTimeout(() => {
+        const input = document.getElementById(`cardTitle${newIndex}`);
+        input?.focus();
+      }, 50);
+    }
   }
 
   removeFeatureCard(index: number): void {
@@ -161,6 +168,11 @@ export class AboutUsManagement implements OnInit {
         if (confirmed) {
           this.featureCards.removeAt(index);
           this.aboutUsForm.markAsDirty();
+          const targetIndex = Math.max(0, index - 1);
+          setTimeout(() => {
+            const input = document.getElementById(`cardTitle${targetIndex}`);
+            input?.focus();
+          }, 50);
         }
       });
   }

@@ -11,10 +11,9 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import type { FormGroup, FormControl } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
-import type { Observable } from 'rxjs';
 import { take, of } from 'rxjs';
 import { startWith, debounceTime, catchError } from 'rxjs/operators';
-import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import type { Product } from '@core/models/product.model';
 import type { Category } from '@core/models/category.model';
@@ -57,10 +56,6 @@ export class Catalog implements OnInit {
   readonly maxPrice = signal<number | null>(null);
   readonly dynamicAttributesFilter = signal<Record<string, Record<string, boolean>>>({});
   readonly selectedCategoryId = signal<string | null | undefined>(undefined);
-
-  // Properties mapped to observables for template async pipe
-  readonly paginatedProducts$: Observable<Product[]>;
-  readonly categories$ = toObservable(this.categoriesSignal);
 
   filterForm: FormGroup;
   isSidebarOpen = false;
@@ -179,16 +174,21 @@ export class Catalog implements OnInit {
     return products.slice(startIndex, endIndex);
   });
 
+  readonly totalPagesSignal = computed(() =>
+    Math.ceil(this.sortedProducts().length / this.itemsPerPage()),
+  );
+
   get totalPages(): number {
-    return Math.ceil(this.sortedProducts().length / this.itemsPerPage());
+    return this.totalPagesSignal();
   }
 
   get currentPage(): number {
     return this.page();
   }
 
+  readonly pages = computed(() => Array.from({ length: this.totalPagesSignal() }, (_, i) => i + 1));
+
   constructor() {
-    this.paginatedProducts$ = toObservable(this.paginatedProductsSignal);
     this.filterForm = this.fb.group({
       category: [null],
       minPrice: [null],
@@ -331,11 +331,10 @@ export class Catalog implements OnInit {
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.page.set(page);
+      if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
-  }
-
-  get pages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   get hasActiveFilters(): boolean {

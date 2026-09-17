@@ -1,17 +1,26 @@
-@if (data$ | async; as pageData) {
+@if (about(); as pageData) {
   <div class="about">
     <section
       class="about-hero"
       [style.background-image]="'url(' + pageData.bannerImageUrl + ')'"
       aria-label="Banner"
     >
-      <div class="about-hero__content">
-        <h1 class="about-hero__title">{{ pageData.bannerTitle }}</h1>
-        @if (pageData.bannerSubtitle) {
-          <p class="about-hero__subtitle">{{ pageData.bannerSubtitle }}</p>
-        }
-      </div>
+      @if (about()?.bannerTitle?.trim() || about()?.bannerSubtitle?.trim()) {
+        <div class="about-hero__overlay" aria-hidden="true"></div>
+        <div class="about-hero__content">
+          @if (about()?.bannerTitle?.trim()) {
+            <h1 class="about-hero__title">{{ about()?.bannerTitle }}</h1>
+          }
+          @if (about()?.bannerSubtitle?.trim()) {
+            <p class="about-hero__subtitle">{{ about()?.bannerSubtitle }}</p>
+          }
+        </div>
+      }
     </section>
+
+    @if (!about()?.bannerTitle?.trim()) {
+      <h1 class="visually-hidden">{{ pageData.centralTitle || 'Sobre Nosotros' }}</h1>
+    }
 
     <div class="about__container">
       <section class="about__section" aria-label="Nuestra historia">

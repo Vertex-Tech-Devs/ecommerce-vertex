@@ -33,7 +33,7 @@ export const ABOUT_US_CARD_ICONS: readonly AboutUsIconOption[] = [
 ];
 
 export interface AboutUsData {
-  bannerTitle: string;
+  bannerTitle?: string;
   bannerSubtitle: string;
   bannerImageUrl: string;
 
