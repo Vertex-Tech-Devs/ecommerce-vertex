@@ -1,5 +1,12 @@
 # Changelog — ecommerce-vertex (storefront)
 
+## [0.9.3] - 2026-09-16
+
+### Fixed
+- **fix(seo):** Added static Open Graph and Twitter Card baseline metadata in `index.html` and implemented modern `SeoService` with signals/inject to support WhatsApp and social preview unfurling.
+- **fix(about):** Made banner title optional in "Nosotros" management form and refined storefront banner to conditionally render text overlay/scrim for clean photography.
+- **fix(catalog):** Resolved accessibility WCAG blockers on filter inputs (replaced `display: none` with `.visually-hidden`), fixed skeleton/card CLS with `aspect-ratio: 1 / 1`, added reset filters button to empty state, and purified signal reactivity without `toObservable()` round-trips.
+
 ## [0.9.2] - 2026-09-14
 
 ### Fixed
