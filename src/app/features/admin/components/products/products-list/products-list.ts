@@ -17,6 +17,10 @@ import { AdminSearchBar } from '@shared/components/admin-search-bar/admin-search
 import { AdminPagination } from '@shared/components/admin-pagination/admin-pagination';
 
 export type CatalogDensity = 'compact' | 'comfortable' | 'list';
+export const ALLOWED_PAGE_SIZES = [12, 24, 48] as const;
+export type AllowedPageSize = (typeof ALLOWED_PAGE_SIZES)[number];
+export const STORAGE_KEY_PAGE_SIZE = 'admin_catalog_page_size';
+export const DEFAULT_PAGE_SIZE: AllowedPageSize = 12;
 
 @Component({
   selector: 'app-products-list',
@@ -53,7 +57,7 @@ export class ProductsList implements OnInit {
   private categoriesMap: Map<string, string> = new Map();
 
   currentPageSubject = new BehaviorSubject<number>(1);
-  itemsPerPageSubject = new BehaviorSubject<number>(12);
+  itemsPerPageSubject = new BehaviorSubject<number>(this.getInitialPageSize());
 
   totalProducts = 0;
   totalPages = 0;
@@ -131,6 +135,7 @@ export class ProductsList implements OnInit {
   onPageSizeChange(newSize: number): void {
     this.itemsPerPageSubject.next(newSize);
     this.currentPageSubject.next(1);
+    this.savePageSize(newSize);
   }
 
   goToPage(page: number): void {
@@ -214,5 +219,32 @@ export class ProductsList implements OnInit {
       }
     }
     return 'comfortable';
+  }
+
+  private getInitialPageSize(): number {
+    if (typeof window !== 'undefined' && !!window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem(STORAGE_KEY_PAGE_SIZE);
+        if (saved) {
+          const parsed = parseInt(saved, 10);
+          if (ALLOWED_PAGE_SIZES.includes(parsed as AllowedPageSize)) {
+            return parsed;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not read admin_catalog_page_size from localStorage:', error);
+      }
+    }
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  private savePageSize(size: number): void {
+    if (typeof window !== 'undefined' && !!window.localStorage) {
+      try {
+        window.localStorage.setItem(STORAGE_KEY_PAGE_SIZE, size.toString());
+      } catch (error) {
+        console.warn('Could not save admin_catalog_page_size to localStorage:', error);
+      }
+    }
   }
 }

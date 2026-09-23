@@ -103,7 +103,7 @@
         </div>
       } @else {
         @if (densityMode() === 'list') {
-          <div class="glass-card table-responsive density-list p-0">
+          <div class="table-card table-responsive density-list p-0">
             <table
               class="table table-hover align-middle mb-0"
               aria-label="Tabla de catálogo de productos"
@@ -111,12 +111,12 @@
               <thead>
                 <tr>
                   <th scope="col" class="th-img">Miniatura</th>
-                  <th scope="col">Producto</th>
-                  <th scope="col">Categoría</th>
-                  <th scope="col">Precio</th>
-                  <th scope="col">Stock</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col" class="actions-cell text-end text-nowrap">Acciones</th>
+                  <th scope="col" class="th-product">Producto</th>
+                  <th scope="col" class="th-category">Categoría</th>
+                  <th scope="col" class="th-price">Precio</th>
+                  <th scope="col" class="th-stock text-center">Stock</th>
+                  <th scope="col" class="th-status text-center">Estado</th>
+                  <th scope="col" class="th-actions actions-cell text-end text-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,9 +136,14 @@
                         </div>
                       }
                     </td>
-                    <td>
-                      <div class="fw-bold product-name-cell text-white">{{ product.name }}</div>
-                      <div class="text-muted small">
+                    <td class="td-product">
+                      <div
+                        class="fw-bold product-name-cell text-white text-truncate"
+                        [title]="product.name"
+                      >
+                        {{ product.name }}
+                      </div>
+                      <div class="text-muted small text-truncate">
                         @if (product.variants?.[0]?.sku) {
                           <span>SKU: {{ product.variants?.[0]?.sku }}</span>
                         } @else {
@@ -146,18 +151,18 @@
                         }
                       </div>
                     </td>
-                    <td>
-                      <span class="category-pill">
+                    <td class="td-category">
+                      <span class="category-pill text-truncate">
                         <i class="bi bi-tag-fill me-1"></i>
                         {{ getCategoryName(product.categoryId) | titlecase }}
                       </span>
                     </td>
-                    <td>
+                    <td class="td-price">
                       <span class="product-price fw-bold">
                         {{ product.price | currency: 'ARS' : '$' }}
                       </span>
                     </td>
-                    <td>
+                    <td class="td-stock text-center">
                       <span
                         class="badge stock-badge"
                         [ngClass]="{
@@ -170,7 +175,7 @@
                         {{ product.totalStock }} un.
                       </span>
                     </td>
-                    <td>
+                    <td class="td-status text-center">
                       @if (product.totalStock > 0 && product.inStock !== false) {
                         <span
                           class="badge bg-success-subtle text-success border border-success-subtle"
@@ -186,7 +191,7 @@
                       }
                     </td>
                     <td
-                      class="actions-cell text-end text-nowrap"
+                      class="td-actions actions-cell text-end text-nowrap"
                       (click)="$event.stopPropagation()"
                     >
                       <div class="d-inline-flex gap-2 align-items-center">
@@ -291,7 +296,7 @@
         }
 
         @if (totalProducts > 0) {
-          <div class="mt-4">
+          <div class="admin-pagination-container">
             <app-admin-pagination
               [totalItems]="totalProducts"
               [currentPage]="currentPageSubject.value"

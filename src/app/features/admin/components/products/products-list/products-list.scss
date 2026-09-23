@@ -15,7 +15,7 @@
 
 .products-list-wrapper {
   width: 100%;
-  padding-bottom: 2rem;
+  padding-bottom: 5.5rem;
   animation: float-in 0.6s ease-out;
   overflow-x: hidden;
 }
@@ -630,11 +630,19 @@
   }
 }
 
+.admin-pagination-container {
+  margin-top: 1.5rem;
+
+  @media (min-width: 768px) {
+    padding-right: 5.5rem;
+  }
+}
+
 .fab-button {
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 1050;
+  z-index: 1020;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -712,21 +720,31 @@
   }
 }
 
-// ── Table / List Density View ──────────────────────────────────────────────
-.density-list {
-  animation: fadeIn 0.3s ease-in-out;
-  border-radius: 16px;
-  overflow-x: auto;
+// ── Table Card Container (Autónomo para tablas, sin pseudo ::before de 200% ni transform) ──
+.table-card {
+  position: relative;
   background: rgba(255, 255, 255, 0.04);
   backdrop-filter: blur(25px) saturate(200%);
   -webkit-backdrop-filter: blur(25px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+// ── Table / List Density View ──────────────────────────────────────────────
+.density-list {
+  animation: fadeIn 0.3s ease-in-out;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 
   .table {
     width: 100%;
-    table-layout: auto;
     margin-bottom: 0;
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
     color: #ffffff;
     --bs-table-bg: transparent;
     --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
@@ -760,6 +778,44 @@
     }
   }
 
+  /* ── Calibración de Columnas ── */
+  .th-img,
+  .td-img {
+    width: 64px;
+    min-width: 64px;
+    text-align: center;
+  }
+
+  .th-product,
+  .td-product {
+    min-width: 220px;
+    max-width: 400px;
+  }
+
+  .th-category,
+  .td-category {
+    min-width: 140px;
+    white-space: nowrap;
+  }
+
+  .th-price,
+  .td-price {
+    min-width: 110px;
+    white-space: nowrap;
+  }
+
+  .th-stock,
+  .td-stock {
+    min-width: 90px;
+    white-space: nowrap;
+  }
+
+  .th-status,
+  .td-status {
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
   .actions-cell {
     width: 1%;
     white-space: nowrap;
@@ -774,13 +830,6 @@
     padding: 0.2rem 0.6rem;
     border-radius: 50rem;
     font-size: 0.75rem;
-  }
-
-  .th-img,
-  .td-img {
-    width: 56px;
-    min-width: 56px;
-    text-align: center;
   }
 
   .product-table-img {
@@ -805,8 +854,11 @@
 
   .product-name-cell {
     font-size: 0.9rem;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     margin-bottom: 2px;
-    line-height: 1.2;
   }
 
   .product-price {

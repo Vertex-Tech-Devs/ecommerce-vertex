@@ -338,4 +338,47 @@ describe('ProductsList', () => {
       expect(actionsWrapper).toBeTruthy();
     }));
   });
+
+  describe('Page Size Persistence', () => {
+    it('should default to 12 when localStorage is empty', () => {
+      spyOn(localStorage, 'getItem').and.returnValue(null);
+      const newFixture = TestBed.createComponent(ProductsList);
+      const newComp = newFixture.componentInstance;
+      expect(newComp.itemsPerPageSubject.value).toBe(12);
+    });
+
+    it('should load initial page size from localStorage if valid', () => {
+      spyOn(localStorage, 'getItem').and.returnValue('24');
+      const newFixture = TestBed.createComponent(ProductsList);
+      const newComp = newFixture.componentInstance;
+      expect(newComp.itemsPerPageSubject.value).toBe(24);
+    });
+
+    it('should fallback to 12 if localStorage has invalid value or throws', () => {
+      spyOn(localStorage, 'getItem').and.returnValue('999');
+      const newFixture = TestBed.createComponent(ProductsList);
+      const newComp = newFixture.componentInstance;
+      expect(newComp.itemsPerPageSubject.value).toBe(12);
+    });
+
+    it('should fallback to 12 if localStorage access throws an error', () => {
+      spyOn(localStorage, 'getItem').and.throwError(new Error('Storage access blocked'));
+      const newFixture = TestBed.createComponent(ProductsList);
+      const newComp = newFixture.componentInstance;
+      expect(newComp.itemsPerPageSubject.value).toBe(12);
+    });
+
+    it('should update itemsPerPageSubject and persist to localStorage on onPageSizeChange', () => {
+      const setItemSpy = spyOn(localStorage, 'setItem');
+      component.onPageSizeChange(48);
+      expect(component.itemsPerPageSubject.value).toBe(48);
+      expect(setItemSpy).toHaveBeenCalledWith('admin_catalog_page_size', '48');
+    });
+
+    it('should catch error gracefully if localStorage.setItem fails in onPageSizeChange', () => {
+      spyOn(localStorage, 'setItem').and.throwError(new Error('Quota exceeded'));
+      expect(() => component.onPageSizeChange(24)).not.toThrow();
+      expect(component.itemsPerPageSubject.value).toBe(24);
+    });
+  });
 });
