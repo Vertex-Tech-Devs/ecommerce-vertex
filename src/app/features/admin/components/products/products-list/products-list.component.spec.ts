@@ -313,5 +313,29 @@ describe('ProductsList', () => {
       switcherButtons[2].click();
       expect(setDensitySpy).toHaveBeenCalledWith('list');
     });
+
+    it('should render category pills and action cell wrapper in table view', fakeAsync(() => {
+      const localFixture = TestBed.createComponent(ProductsList);
+      const localComp = localFixture.componentInstance;
+      localComp.setDensity('list');
+      localFixture.detectChanges();
+      tick(300);
+      localFixture.detectChanges();
+
+      const tableWrapper = localFixture.nativeElement.querySelector('.density-list');
+      expect(tableWrapper).toBeTruthy();
+      expect(tableWrapper.classList.contains('p-0')).toBeTrue();
+
+      const categoryPill = localFixture.nativeElement.querySelector('.density-list .category-pill');
+      expect(categoryPill).toBeTruthy();
+
+      const actionsCell = localFixture.nativeElement.querySelector('.density-list td.actions-cell');
+      expect(actionsCell).toBeTruthy();
+      expect(actionsCell.classList.contains('text-end')).toBeTrue();
+      expect(actionsCell.classList.contains('text-nowrap')).toBeTrue();
+
+      const actionsWrapper = actionsCell.querySelector('.d-inline-flex.gap-2.align-items-center');
+      expect(actionsWrapper).toBeTruthy();
+    }));
   });
 });

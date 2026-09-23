@@ -103,7 +103,7 @@
         </div>
       } @else {
         @if (densityMode() === 'list') {
-          <div class="glass-card table-responsive density-list">
+          <div class="glass-card table-responsive density-list p-0">
             <table
               class="table table-hover align-middle mb-0"
               aria-label="Tabla de catálogo de productos"
@@ -116,7 +116,7 @@
                   <th scope="col">Precio</th>
                   <th scope="col">Stock</th>
                   <th scope="col">Estado</th>
-                  <th scope="col" class="text-end">Acciones</th>
+                  <th scope="col" class="actions-cell text-end text-nowrap">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -147,9 +147,7 @@
                       </div>
                     </td>
                     <td>
-                      <span
-                        class="badge bg-secondary-subtle text-light border border-secondary-subtle"
-                      >
+                      <span class="category-pill">
                         <i class="bi bi-tag-fill me-1"></i>
                         {{ getCategoryName(product.categoryId) | titlecase }}
                       </span>
@@ -187,8 +185,11 @@
                         </span>
                       }
                     </td>
-                    <td class="text-end" (click)="$event.stopPropagation()">
-                      <div class="btn-group btn-group-sm">
+                    <td
+                      class="actions-cell text-end text-nowrap"
+                      (click)="$event.stopPropagation()"
+                    >
+                      <div class="d-inline-flex gap-2 align-items-center">
                         <a
                           [routerLink]="['/admin/products/edit', product.id]"
                           (click)="$event.stopPropagation()"

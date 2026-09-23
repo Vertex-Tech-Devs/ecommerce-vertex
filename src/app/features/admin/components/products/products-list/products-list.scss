@@ -161,82 +161,139 @@
   transition: all 0.3s ease;
 
   @media (min-width: 768px) {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
   }
 
-  @media (min-width: 1200px) {
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-    gap: 1.25rem;
+  // ── Nueva Vista Cómoda ──────────────────────────────────────────────────
+  &.density-comfortable {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
 
-    &.density-compact {
+    @media (min-width: 768px) {
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 0.85rem;
+      gap: 1rem;
+    }
 
-      .product-card {
-        .product-card__image-wrapper {
-          height: 140px;
-          aspect-ratio: auto;
+    .product-card {
+      .product-card__image-wrapper {
+        height: 150px;
+        aspect-ratio: auto;
 
-          .product-card__image {
-            height: 140px;
-            object-fit: cover;
-          }
-        }
-
-        .card-body {
-          padding: 0.5rem 0.75rem;
-        }
-
-        .product-card__name {
-          font-size: 0.85rem;
-          margin-bottom: 0.15rem;
-        }
-
-        .product-card__category {
-          font-size: 0.65rem;
-          margin-bottom: 4px;
-        }
-
-        .product-card__desc {
-          font-size: 0.75rem;
-          -webkit-line-clamp: 1;
-          line-clamp: 1;
-        }
-
-        .product-card__price-final {
-          font-size: 1rem;
-        }
-
-        .card-footer-action {
-          padding: 0.4rem 0.6rem;
-          gap: 6px;
-
-          .btn-action {
-            padding: 4px 6px;
-            font-size: 0.85rem;
-            border-radius: 8px;
-          }
+        .product-card__image {
+          height: 150px;
+          object-fit: cover;
         }
       }
 
-      .product-card--skeleton {
-        .skeleton-box--img {
-          height: 140px;
-          aspect-ratio: auto;
-        }
+      .card-body {
+        padding: 1rem;
+      }
+
+      .card-footer-action {
+        padding: 0.6rem 1rem;
+        gap: 8px;
       }
     }
 
-    &.density-comfortable {
-      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-      gap: 1.25rem;
+    .product-card--skeleton {
+      .skeleton-box--img {
+        height: 150px;
+        aspect-ratio: auto;
+      }
+    }
+  }
+
+  // ── Nueva Vista Compacta ────────────────────────────────────────────────
+  &.density-compact {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 0.5rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+      gap: 0.65rem;
+    }
+
+    .product-card {
+      .product-card__image-wrapper {
+        height: 105px;
+        aspect-ratio: auto;
+
+        .product-card__image {
+          height: 105px;
+          object-fit: cover;
+        }
+      }
+
+      .card-body {
+        padding: 0.5rem 0.65rem;
+      }
+
+      .product-card__name {
+        font-size: 0.8125rem;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+      }
+
+      .product-card__category {
+        font-size: 0.625rem;
+        margin-bottom: 2px;
+      }
+
+      .product-card__desc {
+        display: none;
+      }
+
+      .product-card__price-container {
+        padding-top: 0.25rem;
+        margin-top: auto;
+      }
+
+      .product-card__price-final {
+        font-size: 0.95rem;
+      }
+
+      .card-footer-action {
+        padding: 0.35rem 0.5rem;
+        gap: 4px;
+        margin-top: auto;
+
+        .btn-action {
+          padding: 3px 5px;
+          font-size: 0.8rem;
+          border-radius: 6px;
+        }
+      }
+
+      .stock-badge-overlay {
+        top: 0.35rem;
+        right: 0.35rem;
+        font-size: 0.6rem;
+        padding: 0.2em 0.5em;
+        border-radius: 6px;
+      }
+    }
+
+    .product-card--skeleton {
+      .skeleton-box--img {
+        height: 105px;
+        aspect-ratio: auto;
+      }
     }
   }
 }
 
 .product-card {
   cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .glass-card {
@@ -448,6 +505,7 @@
   display: flex;
   gap: 2px;
   background: rgba(0, 0, 0, 0.15);
+  margin-top: auto;
 
   @media (min-width: 768px) {
     padding: 0.75rem 1rem;
@@ -666,6 +724,8 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 
   .table {
+    width: 100%;
+    table-layout: auto;
     margin-bottom: 0;
     color: #ffffff;
     --bs-table-bg: transparent;
@@ -698,6 +758,22 @@
         background-color: rgba(255, 255, 255, 0.06);
       }
     }
+  }
+
+  .actions-cell {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .category-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 0.2rem 0.6rem;
+    border-radius: 50rem;
+    font-size: 0.75rem;
   }
 
   .th-img,
@@ -794,4 +870,15 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 0.2rem 0.6rem;
+  border-radius: 50rem;
+  font-size: 0.75rem;
 }
