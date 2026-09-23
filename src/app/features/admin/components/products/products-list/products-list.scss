@@ -730,6 +730,16 @@
   border-radius: 16px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
   overflow: hidden;
+
+  &.density-list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    @media (min-width: 992px) {
+      overflow-x: hidden;
+      width: 100%;
+    }
+  }
 }
 
 // ── Table / List Density View ──────────────────────────────────────────────
@@ -738,6 +748,11 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+
+  @media (min-width: 992px) {
+    overflow-x: hidden;
+    width: 100%;
+  }
 
   .table {
     width: 100%;
@@ -756,13 +771,13 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 0.85rem 1rem;
+      padding: 0.65rem 0.55rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       white-space: nowrap;
     }
 
     tbody td {
-      padding: 0.65rem 1rem;
+      padding: 0.55rem 0.55rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       vertical-align: middle;
       color: rgba(255, 255, 255, 0.85);
@@ -778,47 +793,50 @@
     }
   }
 
-  /* ── Calibración de Columnas ── */
+  /* ── Calibración Elástica de Columnas ── */
   .th-img,
   .td-img {
-    width: 64px;
-    min-width: 64px;
+    width: 52px;
+    min-width: 52px;
     text-align: center;
+    padding-left: 0.85rem;
+    padding-right: 0.35rem;
   }
 
   .th-product,
   .td-product {
-    min-width: 220px;
-    max-width: 400px;
+    min-width: 170px;
+    max-width: 380px;
   }
 
   .th-category,
   .td-category {
-    min-width: 140px;
+    min-width: 115px;
     white-space: nowrap;
   }
 
   .th-price,
   .td-price {
-    min-width: 110px;
+    min-width: 95px;
     white-space: nowrap;
   }
 
   .th-stock,
   .td-stock {
-    min-width: 90px;
+    min-width: 80px;
     white-space: nowrap;
   }
 
   .th-status,
   .td-status {
-    min-width: 100px;
+    min-width: 85px;
     white-space: nowrap;
   }
 
   .actions-cell {
     width: 1%;
     white-space: nowrap;
+    padding-right: 0.85rem;
   }
 
   .category-pill {
@@ -833,23 +851,23 @@
   }
 
   .product-table-img {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     object-fit: cover;
     border: 1px solid rgba(255, 255, 255, 0.15);
     display: inline-block;
   }
 
   .product-table-placeholder {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.3);
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
   .product-name-cell {
