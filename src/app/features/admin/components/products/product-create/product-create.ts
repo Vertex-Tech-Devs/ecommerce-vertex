@@ -506,8 +506,8 @@ export class ProductCreate implements OnInit, AfterViewInit {
   }
 
   onCancel(): void {
-    void this.router.navigate(
-      this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products'],
-    );
+    const target =
+      this.isEditMode && this.productId ? ['/admin/products', this.productId] : ['/admin/products'];
+    void this.router.navigate(target);
   }
 }
