@@ -32,6 +32,47 @@
   margin-bottom: var(--space-8);
 }
 
+.density-switcher {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 3px;
+  display: inline-flex;
+  gap: 2px;
+
+  .density-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 0.4rem 0.65rem;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    &.active {
+      background: rgba(168, 85, 247, 0.25);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(168, 85, 247, 0.3);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(168, 85, 247, 0.6);
+      outline-offset: 2px;
+    }
+  }
+}
+
 .products__title {
   font-size: 2.25rem;
   font-weight: 800;
@@ -115,21 +156,82 @@
 
 .products__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+  transition: all 0.3s ease;
 
   @media (min-width: 768px) {
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
   }
 
-  @media (min-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-  }
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1.25rem;
 
-  @media (min-width: 1400px) {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 28px;
+    &.density-compact {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 0.85rem;
+
+      .product-card {
+        .product-card__image-wrapper {
+          height: 140px;
+          aspect-ratio: auto;
+
+          .product-card__image {
+            height: 140px;
+            object-fit: cover;
+          }
+        }
+
+        .card-body {
+          padding: 0.5rem 0.75rem;
+        }
+
+        .product-card__name {
+          font-size: 0.85rem;
+          margin-bottom: 0.15rem;
+        }
+
+        .product-card__category {
+          font-size: 0.65rem;
+          margin-bottom: 4px;
+        }
+
+        .product-card__desc {
+          font-size: 0.75rem;
+          -webkit-line-clamp: 1;
+          line-clamp: 1;
+        }
+
+        .product-card__price-final {
+          font-size: 1rem;
+        }
+
+        .card-footer-action {
+          padding: 0.4rem 0.6rem;
+          gap: 6px;
+
+          .btn-action {
+            padding: 4px 6px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+          }
+        }
+      }
+
+      .product-card--skeleton {
+        .skeleton-box--img {
+          height: 140px;
+          aspect-ratio: auto;
+        }
+      }
+    }
+
+    &.density-comfortable {
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.25rem;
+    }
   }
 }
 
@@ -549,5 +651,147 @@
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+// ── Table / List Density View ──────────────────────────────────────────────
+.density-list {
+  animation: fadeIn 0.3s ease-in-out;
+  border-radius: 16px;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+
+  .table {
+    margin-bottom: 0;
+    color: #ffffff;
+    --bs-table-bg: transparent;
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+
+    thead th {
+      background: rgba(15, 23, 42, 0.6);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .product-row {
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.06);
+      }
+    }
+  }
+
+  .th-img,
+  .td-img {
+    width: 56px;
+    min-width: 56px;
+    text-align: center;
+  }
+
+  .product-table-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: inline-block;
+  }
+
+  .product-table-placeholder {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 1.1rem;
+  }
+
+  .product-name-cell {
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .product-price {
+    font-size: 0.95rem;
+    background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+  }
+
+  .stock-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3em 0.6em;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .btn-action-table {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    &.btn-outline-primary {
+      color: #818cf8;
+
+      &:hover {
+        background: rgba(129, 140, 248, 0.2);
+        border-color: #818cf8;
+        color: #ffffff;
+      }
+    }
+
+    &.btn-outline-danger {
+      color: #f87171;
+
+      &:hover {
+        background: rgba(248, 113, 113, 0.2);
+        border-color: #f87171;
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -16,6 +16,8 @@ import type { Category } from '@core/models/category.model';
 import { AdminSearchBar } from '@shared/components/admin-search-bar/admin-search-bar';
 import { AdminPagination } from '@shared/components/admin-pagination/admin-pagination';
 
+export type CatalogDensity = 'compact' | 'comfortable' | 'list';
+
 @Component({
   selector: 'app-products-list',
   templateUrl: './products-list.html',
@@ -34,6 +36,7 @@ import { AdminPagination } from '@shared/components/admin-pagination/admin-pagin
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductsList implements OnInit {
+  readonly densityMode = signal<CatalogDensity>(this.getInitialDensity());
   products$!: Observable<Product[]>;
   private rawProducts$ = new BehaviorSubject<Product[]>([]);
   readonly isLoading = signal<boolean>(true);
@@ -186,5 +189,30 @@ export class ProductsList implements OnInit {
     if (productId) {
       void this.router.navigate(['/admin/products', productId]);
     }
+  }
+
+  setDensity(mode: CatalogDensity): void {
+    this.densityMode.set(mode);
+    if (typeof window !== 'undefined' && !!window.localStorage) {
+      try {
+        window.localStorage.setItem('admin_catalog_density', mode);
+      } catch (error) {
+        console.warn('Could not save admin_catalog_density to localStorage:', error);
+      }
+    }
+  }
+
+  private getInitialDensity(): CatalogDensity {
+    if (typeof window !== 'undefined' && !!window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem('admin_catalog_density');
+        if (saved === 'compact' || saved === 'comfortable' || saved === 'list') {
+          return saved;
+        }
+      } catch (error) {
+        console.warn('Could not read admin_catalog_density from localStorage:', error);
+      }
+    }
+    return 'comfortable';
   }
 }
