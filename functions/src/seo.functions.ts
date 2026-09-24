@@ -50,7 +50,9 @@ export function escapeHtml(str: string): string {
  */
 export function isSvgUrl(url?: string): boolean {
   if (!url || typeof url !== 'string') return false;
-  return /\.svg($|\?)/i.test(url.trim());
+  const clean = url.trim().toLowerCase();
+  const pathWithoutQuery = clean.split('?')[0].split('#')[0];
+  return pathWithoutQuery.endsWith('.svg');
 }
 
 /**
@@ -61,37 +63,39 @@ export function isSvgUrl(url?: string): boolean {
  * - Preserves secure HTTPS URLs unchanged.
  */
 export function normalizeToAbsoluteHttps(url: string, host: string): string {
-  if (!url || typeof url !== 'string') {
-    return '';
+  if (!url || typeof url !== 'string') return '';
+  const clean = url.trim();
+  if (!clean) return '';
+
+  if (clean.startsWith('//')) {
+    return `https:${clean}`;
+  }
+  if (clean.startsWith('https://')) {
+    return clean;
+  }
+  if (clean.startsWith('http://')) {
+    return `https://${clean.slice(7)}`;
+  }
+  if (clean.toLowerCase().startsWith('https://')) {
+    return `https://${clean.slice(8)}`;
+  }
+  if (clean.toLowerCase().startsWith('http://')) {
+    return `https://${clean.slice(7)}`;
   }
 
-  const trimmed = url.trim();
-  if (!trimmed) {
-    return '';
+  // Limpiar host sin regex
+  let cleanHost = (host || 'vertex-storefront.web.app').trim();
+  if (cleanHost.startsWith('https://')) {
+    cleanHost = cleanHost.slice(8);
+  } else if (cleanHost.startsWith('http://')) {
+    cleanHost = cleanHost.slice(7);
+  }
+  const slashIdx = cleanHost.indexOf('/');
+  if (slashIdx !== -1) {
+    cleanHost = cleanHost.slice(0, slashIdx);
   }
 
-  // 1. Protocol-relative: //cdn.example.com/... -> https://cdn.example.com/...
-  if (trimmed.startsWith('//')) {
-    return `https:${trimmed}`;
-  }
-
-  // 2. HTTP -> HTTPS
-  if (/^http:\/\//i.test(trimmed)) {
-    return trimmed.replace(/^http:\/\//i, 'https://');
-  }
-
-  // 3. Already HTTPS
-  if (/^https:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-
-  // 4. Relative paths with or without leading slash (/assets/... or assets/...)
-  const cleanHost = (host || 'vertex-storefront.web.app')
-    .replace(/^https?:\/\//i, '')
-    .replace(/\/+$/, '')
-    .trim();
-
-  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  const cleanPath = clean.startsWith('/') ? clean : `/${clean}`;
   return `https://${cleanHost}${cleanPath}`;
 }
 
@@ -222,6 +226,22 @@ export function getBaseHtml(): string {
   return cachedBaseHtml;
 }
 
+export function stripSocialMetaTags(html: string): string {
+  // Un solo cuantificador determinista [^>]* sin backtracking ambiguo
+  return html.replace(/<meta\b[^>]*>/gi, (tag) => {
+    const isSocialTag =
+      tag.includes('property="og:') ||
+      tag.includes("property='og:") ||
+      tag.includes('name="og:') ||
+      tag.includes("name='og:") ||
+      tag.includes('name="twitter:') ||
+      tag.includes("name='twitter:") ||
+      tag.includes('property="twitter:') ||
+      tag.includes("property='twitter:");
+    return isSocialTag ? '' : tag;
+  });
+}
+
 /**
  * Injects Open Graph and Twitter Card tags cleanly into the HTML head.
  * Removes existing og:* and twitter:* tags to prevent scraper confusion or duplicate metadata.
@@ -233,10 +253,7 @@ export function injectSeoTags(baseHtml: string, metadata: SeoMetadata): string {
   const url = escapeHtml(metadata.fullUrl);
 
   // 1. Remove existing Open Graph and Twitter Card tags to ensure clean injection
-  let cleanHtml = baseHtml
-    .replace(/<meta\s+property=["']og:[^"']+["'][^>]*>\s*/gi, '')
-    .replace(/<meta\s+name=["']twitter:[^"']+["'][^>]*>\s*/gi, '')
-    .replace(/<meta\s+name=["']description["'][^>]*>\s*/gi, '');
+  let cleanHtml = stripSocialMetaTags(baseHtml);
 
   // 2. Replace document <title> if present
   if (/<title>.*?<\/title>/i.test(cleanHtml)) {
@@ -334,19 +351,17 @@ export const storefrontSeo = onRequest(
           }
 
           // Strict raster image fallback cascade for WhatsApp & Facebook (SVGs strictly rejected)
-          const logoUrl =
+          const rawLogo =
             typeof data['logoUrl'] === 'string' ? data['logoUrl'].trim() : '';
-          const bannerUrl =
+          const rawBanner =
             typeof data['bannerUrl'] === 'string' ? data['bannerUrl'].trim() : '';
 
-          let selectedImage = DEFAULT_IMAGE_URL;
-          if (logoUrl && !isSvgUrl(logoUrl)) {
-            selectedImage = logoUrl;
-          } else if (bannerUrl && !isSvgUrl(bannerUrl)) {
-            selectedImage = bannerUrl;
-          } else {
-            selectedImage = DEFAULT_IMAGE_URL;
-          }
+          const selectedImage =
+            rawLogo && !isSvgUrl(rawLogo)
+              ? rawLogo
+              : rawBanner && !isSvgUrl(rawBanner)
+                ? rawBanner
+                : DEFAULT_IMAGE_URL;
 
           imageUrl = normalizeToAbsoluteHttps(selectedImage, host);
         }

@@ -36,6 +36,7 @@ import {
   resolveStoreIdFromRequest,
   escapeHtml,
   injectSeoTags,
+  stripSocialMetaTags,
   isSvgUrl,
   normalizeToAbsoluteHttps,
   storefrontSeo,
@@ -283,6 +284,10 @@ describe('SEO Cloud Functions', () => {
         <meta property="og:title" content="Old OG Title" />
         <meta name="twitter:title" content="Old Twitter Title" />
       </head><body><app-root></app-root></body></html>`;
+
+      const stripped = stripSocialMetaTags(baseHtml);
+      expect(stripped).not.toContain('Old OG Title');
+      expect(stripped).not.toContain('Old Twitter Title');
 
       const result = injectSeoTags(baseHtml, {
         storeName: 'Nueva Tienda',
